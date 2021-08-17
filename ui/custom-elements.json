@@ -1,0 +1,81 @@
+{
+  "schemaVersion": "1.0.0",
+  "readme": "",
+  "modules": [
+    {
+      "kind": "javascript-module",
+      "path": "src/elements/calendar-event.ts",
+      "declarations": [
+        {
+          "kind": "class",
+          "description": "",
+          "name": "CalendarEventEl",
+          "cssParts": [
+            {
+              "description": "Style the event title textfield",
+              "name": "event-title"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "title",
+              "description": "This is a description of a property with an attribute with exactly the same name: \"color\".",
+              "default": "'Hey there'"
+            },
+            {
+              "kind": "field",
+              "name": "_calendarEventsService",
+              "type": {
+                "text": "CalendarEventsService"
+              },
+              "description": "Dependencies"
+            },
+            {
+              "kind": "field",
+              "name": "_counter",
+              "description": "Private properties",
+              "default": "5"
+            }
+          ],
+          "events": [
+            {
+              "description": "Fired after actually creating the event, containing the new CalendarEvent",
+              "name": "event-created"
+            }
+          ],
+          "attributes": [
+            {
+              "name": "title",
+              "description": "This is a description of a property with an attribute with exactly the same name: \"color\".",
+              "default": "'Hey there'",
+              "fieldName": "title"
+            }
+          ],
+          "mixins": [
+            {
+              "name": "ScopedElementsMixin",
+              "package": "@open-wc/scoped-elements"
+            }
+          ],
+          "superclass": {
+            "name": "LitElement",
+            "package": "lit"
+          },
+          "tagName": "calendar-event",
+          "customElement": true
+        }
+      ],
+      "exports": [
+        {
+          "kind": "js",
+          "name": "CalendarEventEl",
+          "declaration": {
+            "name": "CalendarEventEl",
+            "module": "src/elements/calendar-event.ts"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "name": "demo-1",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm run build && npm run pack && TRYORAMA_LOG_LEVEL=info RUST_LOG=error WASM_LOG=warn RUST_BACKTRACE=1 TRYORAMA_HOLOCHAIN_PATH=\"holochain\" ts-node src/index.ts",
+    "build": "cd .. && CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown",
+    "pack": "hc dna pack ../workdir/dna"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@holochain/tryorama": "0.4.3",
+    "@types/lodash": "^4.14.158",
+    "@types/node": "^14.0.14",
+    "lodash": "^4.17.19",
+    "tape": "^5.0.1",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6"
+  }
+}

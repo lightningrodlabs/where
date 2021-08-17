@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      body {
+        background: #fafafa;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- TODO: change the element -->
+    <context-provider id="provider">
+      <calendar-event></calendar-event>
+    </context-provider>
+
+    <script type="module">
+      import {
+        CalendarEventEl,
+        CalendarEventsService,
+        TODO_REPLACE_NAME_CONTEXT,
+      } from '../dist';
+      import ConductorApi from '@holochain/conductor-api';
+      import { ContextProviderElement } from '@holochain-open-dev/context';
+
+      (async function () {
+        const appWebsocket = await ConductorApi.AppWebsocket.connect(
+          'ws://localhost:8888'
+        );
+        const appInfo = await appWebsocket.appInfo({
+          installed_app_id: 'test-app',
+        });
+
+        const cellId = appInfo.cell_data[0].cell_id;
+
+        const service = new CalendarEventsService(appWebsocket, cellId);
+
+        customElements.define('context-provider', ContextProviderElement);
+
+        const provider = document.getElementById('provider');
+        provider.name = TODO_REPLACE_NAME_CONTEXT;
+        provider.value = service;
+
+        customElements.define('calendar-event', CalendarEventEl);
+      })();
+    </script>
+  </body>
+</html>

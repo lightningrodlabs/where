@@ -9,6 +9,5 @@ export default {
   },
   appIndex: 'demo/index.html',
   open: true,
-  rootDir: '..',
   plugins,
 };

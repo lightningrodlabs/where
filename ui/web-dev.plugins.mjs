@@ -19,6 +19,7 @@ export default [
   }),
   builtins(),
   commonjs({
+    include: ['node_modules/**/*']
   }),
   globals(),
 ];

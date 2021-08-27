@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "zome/zomes/hc_zome_todo_rename",
+  "zome/zomes/where",
 ]
 
 [profile.dev]

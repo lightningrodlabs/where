@@ -2,7 +2,7 @@
 
 import { AgentPubKeyB64 } from "@holochain-open-dev/core-types";
 
-export const TODO_REPLACE_NAME_CONTEXT = 'hc_zome_todo_rename/service';
+export const TODO_REPLACE_NAME_CONTEXT = 'hc_zome_where/service';
 
 export interface CalendarEvent {
   title: string;

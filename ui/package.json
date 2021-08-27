@@ -9,7 +9,7 @@
   "scripts": {
     "start": "concurrently --kill-others \"npm:start-ui\" \"npm:start-holochain\"",
     "start-ui": "CONDUCTOR_URL=ws://localhost:8888 concurrently -k --names tsc,dev-server \"npm run build-watch\" \"web-dev-server --config demo/web-dev-server.config.mjs\"",
-    "start-holochain": "RUST_LOG=warn hc s generate -r=8888 ../zome/workdir/happ/sample-happ.happ network -b https://bootstrap-staging.holo.host quic",
+    "start-holochain": "RUST_LOG=warn hc s generate -r=8888 ../zome/workdir/happ/where.happ network -b https://bootstrap-staging.holo.host quic",
     "build": "rimraf dist && rollup -c rollup.config.js",
     "build-watch": "rimraf dist && rollup -c rollup.config.js -w",
     "test": "tsc && web-test-runner --coverage --puppeteer",
@@ -27,7 +27,8 @@
   "dependencies": {
     "@holochain-open-dev/context": "git+https://github.com/holochain-open-dev/context.git#ui-build",
     "@holochain-open-dev/core-types": "git+https://github.com/holochain-open-dev/core-types.git#build",
-    "@holochain/conductor-api": "0.0.4",
+    "@holochain-open-dev/profiles": "git+https://github.com/holochain-open-dev/profiles.git#ui-build",
+    "@holochain/conductor-api": "0.2.0",
     "@open-wc/scoped-elements": "^2.0.0-next.4",
     "lit": "^2.0.0-rc.2"
   },

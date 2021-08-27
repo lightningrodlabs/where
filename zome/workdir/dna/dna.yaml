@@ -1,8 +1,10 @@
 ---
 manifest_version: "1"
-name: sample
+name: where
 uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
 zomes:
-  - name: hc_zome_todo_rename
-    bundled: ../../target/wasm32-unknown-unknown/release/hc_zome_todo_rename.wasm
+  - name: where
+    bundled: ../../target/wasm32-unknown-unknown/release/where.wasm
+  - name: profiles
+    bundled: ../../target/wasm32-unknown-unknown/release/profiles.wasm

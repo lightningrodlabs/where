@@ -1,6 +1,6 @@
 # Zome Developer Setup
 
-This folder has an example DNA for the `hc_zome_todo_rename` zome. The actual code for the zome is in `zomes/hc_zome_todo_rename`.
+This folder has an example DNA for the `hc_zome_where` zome. The actual code for the zome is in `zomes/hc_zome_where`.
 
 To change the code, you can work either opening VSCode inside the root folder of the repo or in this folder, you should have rust intellisense either way.
 

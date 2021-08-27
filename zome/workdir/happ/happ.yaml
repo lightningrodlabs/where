@@ -1,14 +1,14 @@
 ---
 manifest_version: "1"
-name: sample-happ
+name: where
 description: ~
 slots:
-  - id: sample-slot
+  - id: where-slot
     provisioning:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dna/sample.dna"
+      bundled: "../dna/where.dna"
       properties: ~
       uuid: ~
       version: ~

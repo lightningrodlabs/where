@@ -1,6 +1,7 @@
 [workspace]
 members = [
-  "zomes/todo_rename_zome",
+  "zomes/where",
+  "zomes/profiles"
 ]
 
 [profile.dev]
@@ -8,3 +9,10 @@ opt-level = "z"
 
 [profile.release]
 opt-level = "z"
+
+[patch.crates-io]
+hdk =  {git = "https://github.com/holochain/holochain.git", rev = "6535292238dc1fbd2b60433a2054f7787e4f060e", package = "hdk"}
+holo_hash = {git = "https://github.com/holochain/holochain.git", rev = "6535292238dc1fbd2b60433a2054f7787e4f060e", package = "holo_hash"}
+hc_utils = {git = "https://github.com/holochain/hc-utils", branch = "v0.0.102", package = "hc_utils"}
+# hdk = { path = "../holochain/crates/hdk" }
+#hdk = "0.0.102" #{git = "https://github.com/holochain/holochain", rev = "bd89d55e397baf7876099f600db997c89dd70fb6", package = "hdk"}

@@ -2,4 +2,6 @@ target/
 node_modules/
 dist/
 .cargo/
-.hc
+.hc*
+zome/workdir/dna/*.dna
+zome/workdir/happ/*.happ

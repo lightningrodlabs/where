@@ -25,22 +25,21 @@ export class CalendarEventEl extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @requestContext(TODO_REPLACE_NAME_CONTEXT)
-  _calendarEventsService!: CalendarEventsService;
+  @requestContext("where")
+  _whereThing!: string;
 
   /** Private properties */
 
   @state() _counter = 5;
 
   async firstUpdated() {
-    const result = await this._calendarEventsService.getAllCalendarEvents();
-    console.log('result', result);
+//    const result = await this._calendarEventsService.getAllCalendarEvents();
+//    console.log('result', result);
   }
 
   render() {
     return html`
-      <h2>${this.title} Nr. ${this._counter}!</h2>
-      <button @click=${() => this._counter++}>increment</button>
+      <h2>${this._whereThing}</h2>
     `;
   }
 

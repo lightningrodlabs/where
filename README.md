@@ -7,7 +7,7 @@ This is what is has included:
 - UI and Zome Instructions to use the module in a bigger app
 - Github Actions automatic integration with building and testing
 - Zome
-  - Basic sample code 
+  - Basic sample code
   - Integrated tests with tryorama
   - Instructions to include the zome as a crate in any DNA
 - UI
@@ -35,7 +35,7 @@ This module is designed to be included in other DNAs, assuming as little as poss
 
 ## Documentation
 
-See our [`storybook`](https://holochain-open-dev.github.io/hc_zome_todo_rename).
+See our [`storybook`](https://holochain-open-dev.github.io/hc_zome_where).
 
 ## Installation and usage
 
@@ -48,13 +48,13 @@ See our [`storybook`](https://holochain-open-dev.github.io/hc_zome_todo_rename).
 
 ```toml
 [dependencies]
-hc_zome_todo_rename = {git = "https://github.com/holochain-open-dev/todo_rename", package = "hc_zome_todo_rename"}
+hc_zome_where = {git = "https://github.com/lightningrodlabs/where-new", package = "hc_zome_where"}
 ```
 
 5. Create a `src` folder besides the `Cargo.toml` with this content:
 
 ```rust
-extern crate hc_zome_todo_rename;
+extern crate hc_zome_where;
 ```
 
 6. Add the zome into your `dna.yaml` file with the name `todo_rename`.
@@ -62,7 +62,7 @@ extern crate hc_zome_todo_rename;
 
 ### Including the UI
 
-See the list of available elements [here](https://holochain-open-dev.github.io/todo_rename).
+See the list of available elements [here](https://lightningrodlabs/where-new).
 
 1. Install the module with `npm install "https://github.com/holochain-open-dev/todo_rename#ui-build"`.
 

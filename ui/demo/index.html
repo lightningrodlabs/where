@@ -10,39 +10,55 @@
   </head>
   <body>
     <!-- TODO: change the element -->
-    <context-provider id="provider">
-      <calendar-event></calendar-event>
+    <context-provider id="profile_provider">
+      <context-provider id="where_provider">
+        <profile-prompt style="height: 400px; width: 500px"></profile-prompt>
+
+      </context-provider>
     </context-provider>
 
     <script type="module">
+      import { ContextProviderElement } from "@holochain-open-dev/context";
+      import { CalendarEventEl } from "../dist"
       import {
-        CalendarEventEl,
-        CalendarEventsService,
-        TODO_REPLACE_NAME_CONTEXT,
-      } from '../dist';
-      import ConductorApi from '@holochain/conductor-api';
-      import { ContextProviderElement } from '@holochain-open-dev/context';
+        ProfilePrompt,
+        ProfilesStore,
+        ProfilesService,
+        PROFILES_STORE_CONTEXT,
+      } from "@holochain-open-dev/profiles";
+      import { AppWebsocket } from "@holochain/conductor-api";
+      import { HolochainClient } from "@holochain-open-dev/cell-client";
 
-      (async function () {
-        const appWebsocket = await ConductorApi.AppWebsocket.connect(
-          'ws://localhost:8888'
+      async function setup() {
+        const appWebsocket = await AppWebsocket.connect(
+          "ws://localhost:8888",
+          //  process.env.CONDUCTOR_URL,
+          12000
         );
         const appInfo = await appWebsocket.appInfo({
-          installed_app_id: 'test-app',
+          installed_app_id: "test-app",
         });
 
-        const cellId = appInfo.cell_data[0].cell_id;
+        const cellData = appInfo.cell_data[0];
 
-        const service = new CalendarEventsService(appWebsocket, cellId);
+        const cellClient = new HolochainClient(appWebsocket, cellData);
 
-        customElements.define('context-provider', ContextProviderElement);
+        const profilesService = new ProfilesService(cellClient);
+        const profilesStore = new ProfilesStore(profilesService);
 
-        const provider = document.getElementById('provider');
-        provider.name = TODO_REPLACE_NAME_CONTEXT;
-        provider.value = service;
+        customElements.define("context-provider", ContextProviderElement);
 
-        customElements.define('calendar-event', CalendarEventEl);
-      })();
+        const provider = document.getElementById("profile_provider");
+        provider.name = PROFILES_STORE_CONTEXT;
+        provider.value = profilesStore;
+        customElements.define("profile-prompt", ProfilePrompt);
+
+        const where_provider = document.getElementById("where_provider");
+        provider.name = "where";
+        provider.value = "fish";
+
+      }
+      setup()
     </script>
   </body>
 </html>

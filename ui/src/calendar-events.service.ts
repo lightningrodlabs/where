@@ -6,7 +6,7 @@ export class CalendarEventsService {
   constructor(
     protected appWebsocket: AppWebsocket,
     protected cellId: CellId,
-    protected zomeName = 'hc_zome_todo_rename'
+    protected zomeName = 'hc_zome_where'
   ) {}
 
   async getAllCalendarEvents(): Promise<Array<HoloHashed<CalendarEvent>>> {

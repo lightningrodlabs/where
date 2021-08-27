@@ -20,7 +20,7 @@ const rootTypeDef = gql`
 // TODO: add your own typeDefs to rootTypeDef
 const allTypeDefs = [rootTypeDef, calendarEventsTypeDefs];
 
-const dnaMock = new DnaMock({ hc_zome_todo_rename: new CalendarEventsMock() });
+const dnaMock = new DnaMock({ hc_zome_where: new CalendarEventsMock() });
 async function getAppWebsocket() {
   if (process.env.CONDUCTOR_URL)
     return AppWebsocket.connect(process.env.CONDUCTOR_URL);

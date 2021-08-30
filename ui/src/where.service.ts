@@ -2,7 +2,7 @@ import { AppWebsocket, CellId } from '@holochain/conductor-api';
 import { HoloHashed } from '@holochain-open-dev/core-types';
 import { CalendarEvent } from './types';
 
-export class CalendarEventsService {
+export class WhereService {
   constructor(
     protected appWebsocket: AppWebsocket,
     protected cellId: CellId,

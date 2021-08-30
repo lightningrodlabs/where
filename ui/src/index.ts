@@ -3,6 +3,7 @@ import 'cqfill';
 
 // TODO: change exports to be available for consumer packages
 
-export * from './elements/calendar-event';
-export * from './calendar-events.service';
+export * from './elements/where-map';
+export * from './where.service';
+export * from './where.store';
 export * from './types';

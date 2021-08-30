@@ -4,12 +4,12 @@
   "modules": [
     {
       "kind": "javascript-module",
-      "path": "src/elements/calendar-event.ts",
+      "path": "src/elements/where-map.ts",
       "declarations": [
         {
           "kind": "class",
           "description": "",
-          "name": "CalendarEventEl",
+          "name": "WhereMap",
           "cssParts": [
             {
               "description": "Style the event title textfield",
@@ -25,9 +25,9 @@
             },
             {
               "kind": "field",
-              "name": "_calendarEventsService",
+              "name": "_whereService",
               "type": {
-                "text": "CalendarEventsService"
+                "text": "whereService"
               },
               "description": "Dependencies"
             },
@@ -69,10 +69,10 @@
       "exports": [
         {
           "kind": "js",
-          "name": "CalendarEventEl",
+          "name": "WhereMap",
           "declaration": {
-            "name": "CalendarEventEl",
-            "module": "src/elements/calendar-event.ts"
+            "name": "WhereMap",
+            "module": "src/elements/where-map.ts"
           }
         }
       ]

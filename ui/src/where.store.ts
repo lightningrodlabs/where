@@ -29,6 +29,19 @@ export class WhereStore {
         size: {x:1150, y:450}
       },
     },
+    "otherkey": {
+      name: "Ecuador",
+      surface: {
+        url: "https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg",
+        size: {x: 500, y: 300}
+      },
+      wheres: [
+        { entry: {location: {x: 0, y: 0}, meta: "My apartment"},
+          authorPic: "https://i.imgur.com/4BKqQY1.png",
+          authorName: "Monk",
+          authorPubkey: "sntahoeuabcorchaotbkantgcdoesucd"}
+      ]
+    }
   };
 
   constructor(protected service: WhereService) {

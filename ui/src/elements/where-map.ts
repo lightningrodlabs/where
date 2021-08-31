@@ -30,7 +30,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  @state() _current = "somekey";
+  @state() _current = "otherkey";
   @state() _meIdx = 0;
   @state() _me = {
     authorPic: "https://i.imgur.com/oIrcAO8.jpg",
@@ -45,6 +45,11 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   async firstUpdated() {
 //    const result = await this._whereService.getAllCalendarEvents();
 //    console.log('result', result);
+  }
+
+  private handleSpaceSelect(space: string) {
+    this._current = space
+    this.requestUpdate()
   }
 
   private handleClick(event: any) {
@@ -69,15 +74,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   render() {
     return html`
 <div class="map">
+<mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
+  ${Object.entries(this._store.spaces).map(([key,space]) => html`
 
-<mwc-select label="filled">
-<mwc-list-item></mwc-list-item>
-<mwc-list-item value="0">Item 0</mwc-list-item>
-<mwc-list-item value="1">Item 1</mwc-list-item>
-<mwc-list-item value="2">Item 2</mwc-list-item>
-<mwc-list-item value="3">Item 3</mwc-list-item>
+  <mwc-list-item
+    @request-selected=${() => this.handleSpaceSelect(key)}
+    ${key === this._current ? 'selected' : ""} value="${key}">${space.name}
+  </mwc-list-item>
+      ` )}
 </mwc-select>
-
   <img src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
   ${this._store.spaces[this._current].wheres.map((where, i) => html`
       <img class="where-marker" class:me=${i == this._meIdx} style="left:${where.entry.location.x - (40/2)}px;top: ${where.entry.location.y - (40/2)}px" src="${where.authorPic}">

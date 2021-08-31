@@ -31,7 +31,8 @@
     "@holochain-open-dev/profiles": "git+https://github.com/holochain-open-dev/profiles.git#ui-build",
     "@holochain/conductor-api": "0.2.0",
     "@open-wc/scoped-elements": "^2.0.0-next.4",
-    "lit": "^2.0.0-rc.2"
+    "lit": "^2.0.0-rc.2",
+    "scoped-material-components": "^0.1.6"
   },
   "devDependencies": {
     "@custom-elements-manifest/analyzer": "^0.3.11",

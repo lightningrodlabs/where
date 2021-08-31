@@ -7,9 +7,8 @@ import { sharedStyles } from '../sharedStyles';
 import { WHERE_CONTEXT, Where } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-
-// TODO: create your own elements
-
+import { ListItem } from 'scoped-material-components/mwc-list-item';
+import { Select } from 'scoped-material-components/mwc-select';
 
 /**
  * @element where-map
@@ -50,17 +49,16 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   private handleClick(event: any) {
     if (event != null) {
-      var rect = event.target.getBoundingClientRect();
-      var x = event.clientX - rect.left; //x position within the element.
-      var y = event.clientY - rect.top;  //y position within the element.
+      const rect = event.target.getBoundingClientRect();
+      const x = event.clientX - rect.left; //x position within the element.
+      const y = event.clientY - rect.top;  //y position within the element.
 
       this._meIdx = this.getMeIdxInSpace(this._current)
       if (this._meIdx >= 0) {
-        console.log("setting",this._store.spaces[this._current].wheres[this._meIdx].entry.location.x," to ", x)
         this._store.spaces[this._current].wheres[this._meIdx].entry.location.x = x
         this._store.spaces[this._current].wheres[this._meIdx].entry.location.y = y
       } else {
-        let w:Where = {entry: {location: {x,y}, meta:""}, authorPic: "", authorName:"", authorPubkey:""}
+        const w:Where = {entry: {location: {x,y}, meta:""}, authorPic: "", authorName:"", authorPubkey:""}
         Object.assign(w,this._me)
 
         this._store.spaces[this._current].wheres.push(w)
@@ -71,6 +69,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   render() {
     return html`
 <div class="map">
+
+<mwc-select label="filled">
+<mwc-list-item></mwc-list-item>
+<mwc-list-item value="0">Item 0</mwc-list-item>
+<mwc-list-item value="1">Item 1</mwc-list-item>
+<mwc-list-item value="2">Item 2</mwc-list-item>
+<mwc-list-item value="3">Item 3</mwc-list-item>
+</mwc-select>
+
   <img src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
   ${this._store.spaces[this._current].wheres.map((where, i) => html`
       <img class="where-marker" class:me=${i == this._meIdx} style="left:${where.entry.location.x - (40/2)}px;top: ${where.entry.location.y - (40/2)}px" src="${where.authorPic}">
@@ -80,6 +87,13 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   `)}
 </div>
 `;
+  }
+
+  static get scopedElements() {
+    return {
+      'mwc-select': Select,
+      'mwc-list-item': ListItem,
+    };
   }
 
   static get styles() {

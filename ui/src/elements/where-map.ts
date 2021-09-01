@@ -10,6 +10,9 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Select } from 'scoped-material-components/mwc-select';
 
+
+const MARKER_WIDTH = 40
+
 /**
  * @element where-map
  * @fires event-created - Fired after actually creating the event, containing the new CalendarEvent
@@ -30,7 +33,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  @state() _current = "otherkey";
+  @state() _current = "somekey";
   @state() _meIdx = 0;
   @state() _me = {
     authorPic: "https://i.imgur.com/oIrcAO8.jpg",
@@ -55,9 +58,17 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   private handleClick(event: any) {
     if (event != null) {
       const rect = event.target.getBoundingClientRect();
-      const x = event.clientX - rect.left; //x position within the element.
-      const y = event.clientY - rect.top;  //y position within the element.
 
+      const ow = this._store.spaces[this._current].surface.size.x;
+      const oh = this._store.spaces[this._current].surface.size.y;
+
+      const img = event.target
+      const cw = img!.offsetWidth;
+      const ch = img!.offsetHeight;
+      const fw = 1//ow/cw;
+      const fh = 1//oh/ch;
+      const x = (event.clientX - rect.left)*fw; //x position within the element.
+      const y = (event.clientY - rect.top)*fh;  //y position within the element.
       this._meIdx = this.getMeIdxInSpace(this._current)
       if (this._meIdx >= 0) {
         this._store.spaces[this._current].wheres[this._meIdx].entry.location.x = x
@@ -71,25 +82,38 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       this.requestUpdate()
     }
   }
-  render() {
-    return html`
-<div class="map">
-<mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
-  ${Object.entries(this._store.spaces).map(([key,space]) => html`
 
-  <mwc-list-item
-    @request-selected=${() => this.handleSpaceSelect(key)}
-    ${key === this._current ? 'selected' : ""} value="${key}">${space.name}
-  </mwc-list-item>
-      ` )}
-</mwc-select>
-  <img src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
-  ${this._store.spaces[this._current].wheres.map((where, i) => html`
-      <img class="where-marker" class:me=${i == this._meIdx} style="left:${where.entry.location.x - (40/2)}px;top: ${where.entry.location.y - (40/2)}px" src="${where.authorPic}">
-      <div class="where-details" class:me=${i == this._meIdx} style="left:${where.entry.location.x - (40/2)}px;top: ${where.entry.location.y + (40/2)}px" src="${where.authorPic}">
+  render() {
+    const ow = this._store.spaces[this._current].surface.size.x;
+    const oh = this._store.spaces[this._current].surface.size.y;
+    const whereItems = this._store.spaces[this._current].wheres.map((where, i) => {
+  //    const x = 100*(where.entry.location.x)/ow
+    //  const y = 100*(where.entry.location.y)/oh
+
+      const x = where.entry.location.x
+      const y = where.entry.location.y
+
+      return html`
+      <img class="where-marker" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.authorPic}">
+      <div class="where-details" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.authorPic}">
       <h3>${where.authorName}</h3>
       <p>${where.entry.meta}</p>
-  `)}
+  `})
+
+
+    return html`
+<mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
+${Object.entries(this._store.spaces).map(([key,space]) => html`
+      <mwc-list-item
+    @request-selected=${() => this.handleSpaceSelect(key)}
+      .selected=${key === this._current} value="${key}">${space.name}
+    </mwc-list-item>
+      ` )}
+</mwc-select>
+<div class="surface">
+<img .id="${this._store.spaces[this._current].name}-img" src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
+${whereItems}
+
 </div>
 `;
   }
@@ -105,8 +129,14 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     return [
       sharedStyles,
       css`
-.map{
+.surface{
 position: relative;
+overflow:auto;
+max-width:1000px;
+max-height:500px;
+}
+
+.surface > img {
 }
 
 img.where-marker {
@@ -115,8 +145,10 @@ max-height:100%;
 border-radius: 10000px;
 border: black 1px solid;
 position: absolute;
-height: 40px; /* hardcoded for now */
-width: 40px;
+height: ${MARKER_WIDTH}px;
+width: ${MARKER_WIDTH}px;
+margin-top: -${MARKER_WIDTH/2}px;
+margin-left: -${MARKER_WIDTH/2}px;
 }
 
 img.where-marker.me {

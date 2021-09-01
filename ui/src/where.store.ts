@@ -26,7 +26,7 @@ export class WhereStore {
       ],
       surface: {
         url: "https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg",
-        size: {x:1150, y:450}
+        size: {x:3840, y:1799}
       },
     },
     "otherkey": {

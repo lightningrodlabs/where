@@ -9,6 +9,7 @@ import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Select } from 'scoped-material-components/mwc-select';
+import { IconButton } from 'scoped-material-components/mwc-icon-button';
 
 
 const MARKER_WIDTH = 40
@@ -40,6 +41,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     authorName: "Eggy",
     authorPubkey: "mememememememememememememememeeeeee"
   }
+  @state() _zoom = 1.0;
 
   getMeIdxInSpace(idx:string):number {
     return this._store.spaces[idx].wheres.findIndex((w) => w.authorPubkey == this._me.authorPubkey)
@@ -55,6 +57,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+  private handleZoom(zoom: number) {
+    if (this._zoom + zoom < 0) {
+      this._zoom = 0
+    } else {
+      this._zoom += zoom;
+    }
+    this.requestUpdate()
+  }
+
   private handleClick(event: any) {
     if (event != null) {
       const rect = event.target.getBoundingClientRect();
@@ -63,12 +74,8 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       const oh = this._store.spaces[this._current].surface.size.y;
 
       const img = event.target
-      const cw = img!.offsetWidth;
-      const ch = img!.offsetHeight;
-      const fw = 1//ow/cw;
-      const fh = 1//oh/ch;
-      const x = (event.clientX - rect.left)*fw; //x position within the element.
-      const y = (event.clientY - rect.top)*fh;  //y position within the element.
+      const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
+      const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
       this._meIdx = this.getMeIdxInSpace(this._current)
       if (this._meIdx >= 0) {
         this._store.spaces[this._current].wheres[this._meIdx].entry.location.x = x
@@ -90,16 +97,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   //    const x = 100*(where.entry.location.x)/ow
     //  const y = 100*(where.entry.location.y)/oh
 
-      const x = where.entry.location.x
-      const y = where.entry.location.y
-
+      const x = where.entry.location.x*this._zoom
+      const y = where.entry.location.y*this._zoom
+      console.log(x)
       return html`
       <img class="where-marker" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.authorPic}">
       <div class="where-details" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.authorPic}">
       <h3>${where.authorName}</h3>
       <p>${where.entry.meta}</p>
   `})
-
 
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
@@ -110,8 +116,11 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
     </mwc-list-item>
       ` )}
 </mwc-select>
+Zoom: ${(this._zoom*100).toFixed(0)}%
+<mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
+<mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
 <div class="surface">
-<img .id="${this._store.spaces[this._current].name}-img" src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
+<img .style="width:${ow*this._zoom}px" .id="${this._current}-img" src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
 ${whereItems}
 
 </div>
@@ -122,6 +131,7 @@ ${whereItems}
     return {
       'mwc-select': Select,
       'mwc-list-item': ListItem,
+      'mwc-icon-button': IconButton,
     };
   }
 

@@ -83,16 +83,16 @@ fn get_spaces_inner(base: EntryHash) -> WhereResult<Vec<SpaceOutput>> {
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct WhereInput {
-    pub space: EntryHash,
+    pub space: EntryHashB64,
     pub entry: Where,
 }
 
 #[hdk_extern]
-fn add_where(input: WhereInput) -> ExternResult<EntryHash> {
+fn add_where(input: WhereInput) -> ExternResult<EntryHashB64> {
     let _header_hash = create_entry(&input.entry)?;
     let hash = hash_entry(input.entry)?;
-    create_link(input.space, hash.clone(), ())?;
-    Ok(hash)
+    create_link(input.space.into(), hash.clone(), ())?;
+    Ok(hash.into())
 }
 
 /// Input to the create channel call
@@ -103,8 +103,8 @@ pub struct WhereOutput {
 }
 
 #[hdk_extern]
-fn get_wheres(input: EntryHash) -> ExternResult<Vec<WhereOutput>> {
-    let wheres = get_wheres_inner(input)?;
+fn get_wheres(space: EntryHashB64) -> ExternResult<Vec<WhereOutput>> {
+    let wheres = get_wheres_inner(space.into())?;
     Ok(wheres)
 }
 

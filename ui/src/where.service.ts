@@ -1,24 +1,43 @@
-import { AppWebsocket, CellId } from '@holochain/conductor-api';
-import { HoloHashed } from '@holochain-open-dev/core-types';
-import { CalendarEvent, Spaces } from './types';
+import { CellClient } from '@holochain-open-dev/cell-client';
+import { HoloHashed, serializeHash, EntryHashB64 } from '@holochain-open-dev/core-types';
+import { CalendarEvent, Space, SpaceEntry, WhereEntry, Where, WhereInfo } from './types';
 
 export class WhereService {
   constructor(
-    protected appWebsocket: AppWebsocket,
-    protected cellId: CellId,
+    public cellClient: CellClient,
     protected zomeName = 'hc_zome_where'
   ) {}
 
-  async getSpaces(): Promise<Array<HoloHashed<Space>>> {
-    const spaces = await this.callZome('get_spaces', null);
-
-    return events.map(
-      ({ entry_hash, entry }: { entry_hash: string; entry: any }) => ({
-        hash: entry_hash,
-        content: entry,
-      })
-    );
+  get myAgentPubKey() {
+    return serializeHash(this.cellClient.cellId[1]);
   }
+
+  async getSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+    return this.callZome('get_spaces', null);
+  }
+
+  async getWheres(space: EntryHashB64): Promise<Array<Where>> {
+    const whereInfos =  await this.callZome('get_wheres', space);
+    return whereInfos.map((w: WhereInfo) => (
+      {
+        entry: {
+          location: JSON.parse(w.entry.location),
+          meta: w.entry.meta,
+        },
+        authorPubKey: w.author
+      }
+    ));
+  }
+
+  async addWhere(where: WhereEntry, space: EntryHashB64): Promise<EntryHashB64> {
+    return this.callZome('add_where', {entry: where, space});
+  }
+
+  async createSpace(space: SpaceEntry): Promise<EntryHashB64> {
+    return this.callZome('create_space', space);
+  }
+
+
 
   async createCalendarEvent({
     title,
@@ -60,14 +79,7 @@ export class WhereService {
       content: calendarEvent,
     };
   }
-  async callZome(fn_name: string, payload: any) {
-    return this.appWebsocket.callZome({
-      cap: null as any,
-      cell_id: this.cellId,
-      zome_name: this.zomeName,
-      fn_name: fn_name,
-      payload: payload,
-      provenance: this.cellId[1],
-    });
+  private callZome(fn_name: string, payload: any) {
+    return this.cellClient.callZome(this.zomeName, fn_name, payload);
   }
 }

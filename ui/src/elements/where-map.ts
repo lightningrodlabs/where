@@ -34,11 +34,13 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  @state() _current = "somekey";
+  @state() _current = "";
   @state() _meIdx = 0;
   @state() _me = {
-    authorPic: "https://i.imgur.com/oIrcAO8.jpg",
-    authorName: "Eggy",
+    meta: {
+      img: "https://i.imgur.com/oIrcAO8.jpg",
+      name: "Eggy",
+    },
     authorPubkey: "mememememememememememememememeeeeee"
   }
   @state() _zoom = 1.0;
@@ -47,9 +49,65 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     return this._store.spaces[idx].wheres.findIndex((w) => w.authorPubkey == this._me.authorPubkey)
   }
 
+  async initializeSpaces() {
+    const me = this._store.myAgentPubKey
+    await this._store.addSpace(
+      { name: "earth",
+        surface: {
+          url: "https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg",
+          size: {x:3840, y:1799},
+        },
+        meta: {},
+        wheres: [
+          { entry: {location: {x: 1150, y: 450},
+                    meta: {
+                      img: this._me.meta.img,
+                      name: this._me.meta.name,
+                      tag: "My house"
+                    }},
+            authorPubkey: me},
+          { entry: {location: {x: 1890, y: 500},
+                    meta: {
+                      name: "Monk",
+                      tag: "My apartment",
+                      img: "https://i.imgur.com/4BKqQY1.png"
+                    }},
+            authorPubkey: "sntahoeuabcorchaotbkantgcdoesucd"}
+        ],
+      }
+    )
+    await this._store.addSpace(
+      {
+        name: "Ecuador",
+        surface: {
+          url: "https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg",
+          size: {x: 500, y: 300}
+        },
+        meta: {},
+        wheres: [
+          { entry: {location: {x: 0, y: 0},
+                    meta: {
+                      name: "Monk",
+                      tag: "My apartment",
+                      img: "https://i.imgur.com/4BKqQY1.png"
+                    }},
+            authorPubkey: "sntahoeuabcorchaotbkantgcdoesucd"}
+        ]
+      }
+    )
+  }
+
   async firstUpdated() {
-//    const result = await this._whereService.getAllCalendarEvents();
-//    console.log('result', result);
+    this._me.authorPubkey = this._store.myAgentPubKey
+    const result = await this._store.updateSpaces();
+    // load up a space if there are none:
+    if (Object.keys(this._store.spaces).length == 0) {
+      await this.initializeSpaces();
+      await this._store.updateSpaces();
+      console.log(Object.keys(this._store.spaces).length)
+    }
+    this._current = Object.keys(this._store.spaces)[0]
+    console.log(this._current)
   }
 
   private handleSpaceSelect(space: string) {
@@ -81,7 +139,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
         this._store.spaces[this._current].wheres[this._meIdx].entry.location.x = x
         this._store.spaces[this._current].wheres[this._meIdx].entry.location.y = y
       } else {
-        const w:Where = {entry: {location: {x,y}, meta:""}, authorPic: "", authorName:"", authorPubkey:""}
+        const w:Where = {entry: {location: {x,y}, meta:{tag:"", img: "", name:""}}, authorPubkey:""}
         Object.assign(w,this._me)
 
         this._store.spaces[this._current].wheres.push(w)
@@ -91,6 +149,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
+    if (!this._current) return;
     const ow = this._store.spaces[this._current].surface.size.x;
     const oh = this._store.spaces[this._current].surface.size.y;
     const whereItems = this._store.spaces[this._current].wheres.map((where, i) => {
@@ -101,10 +160,10 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       const y = where.entry.location.y*this._zoom
       console.log(x)
       return html`
-      <img class="where-marker" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.authorPic}">
-      <div class="where-details" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.authorPic}">
-      <h3>${where.authorName}</h3>
-      <p>${where.entry.meta}</p>
+      <img class="where-marker" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
+      <div class="where-details" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
+      <h3>${where.entry.meta.name}</h3>
+      <p>${where.entry.meta.tag}</p>
   `})
 
     return html`

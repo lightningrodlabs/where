@@ -33,11 +33,11 @@ module.exports = async (orchestrator) => {
       surface: "https://mountain-map-images.com/cotopaxi",
       meta: {}
     };
-    const space1_hash = await alice_where.call('where', 'create_space', space1 );
+    const space1_hash = await alice_where.call('hc_zome_where', 'create_space', space1 );
     t.ok(space1_hash)
     console.log("space1_hash", space1_hash);
 
-    const spaces = await alice_where.call('where', 'get_spaces', null );
+    const spaces = await alice_where.call('hc_zome_where', 'get_spaces', null );
     console.log(spaces);
     t.deepEqual(spaces, [{hash: space1_hash, content: space1}]);
 
@@ -46,11 +46,11 @@ module.exports = async (orchestrator) => {
       location: JSON.stringify({x: 12354, y: 725}),
       meta: {tags: JSON.stringify(["personal summit", "feeling good"])}
     }
-    const where1_hash = await alice_where.call('where', 'add_where', {space: space1_hash, entry: where1})
+    const where1_hash = await alice_where.call('hc_zome_where', 'add_where', {space: space1_hash, entry: where1})
     t.ok(where1_hash)
     console.log(where1_hash);
 
-    const wheres = await alice_where.call('where', 'get_wheres', space1_hash);
+    const wheres = await alice_where.call('hc_zome_where', 'get_wheres', space1_hash);
     t.ok(wheres)
     t.deepEqual(wheres[0].entry, where1)
     t.deepEqual(wheres[0].author, serializeHash(alice_where.cellId[1]))

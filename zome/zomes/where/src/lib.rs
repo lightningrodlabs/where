@@ -4,6 +4,7 @@ pub use error::{WhereError, WhereResult};
 pub mod error;
 use hc_utils::*;
 use std::collections::HashMap;
+use holo_hash::{EntryHashB64, AgentPubKeyB64};
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -24,6 +25,12 @@ entry_defs![
     Space::entry_def(),
     Where::entry_def()
 ];
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct SpaceOutput {
+    hash: EntryHashB64,
+    content: Space,
+}
 
 /// A space
 #[hdk_entry(id = "space")]
@@ -47,32 +54,31 @@ fn get_spaces_path() -> Path {
 }
 
 #[hdk_extern]
-fn create_space(input: Space) -> ExternResult<EntryHash> {
+fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let _header_hash = create_entry(&input)?;
     let hash = hash_entry(input)?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
     create_link(anchor_hash, hash.clone(), ())?;
-    Ok(hash)
+    Ok(hash.into())
 }
 
 #[hdk_extern]
-fn get_spaces(_: ()) -> ExternResult<Vec<(EntryHash, Space)>> {
+fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
     let path = get_spaces_path();
-    let pairs = get_spaces_inner(path.hash()?)?;
-    Ok(pairs)
+    let spaces = get_spaces_inner(path.hash()?)?;
+    Ok(spaces)
 }
 
-fn get_spaces_inner(base: EntryHash) -> WhereResult<Vec<(EntryHash, Space)>> {
+fn get_spaces_inner(base: EntryHash) -> WhereResult<Vec<SpaceOutput>> {
     let entries = get_links_and_load_type(base, None)?;
-    let mut pairs = vec![];
+    let mut spaces = vec![];
     for e in entries {
-        pairs.push(( hash_entry(&e)?, e))
+        spaces.push(SpaceOutput {hash: hash_entry(&e)?.into(), content: e});
     }
-    Ok(pairs)
+    Ok(spaces)
 }
-
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
@@ -93,7 +99,7 @@ fn add_where(input: WhereInput) -> ExternResult<EntryHash> {
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct WhereOutput {
     pub entry: Where,
-    pub author: AgentPubKey,
+    pub author: AgentPubKeyB64,
 }
 
 #[hdk_extern]
@@ -124,7 +130,7 @@ fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
                 // Create the message type for the UI
                 WhereOutput{
                     entry,
-                    author: signed_header.header().author().clone()
+                    author: signed_header.header().author().clone().into()
                 }
             }
             // Where is missing. This could be an error but we are

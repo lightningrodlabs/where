@@ -2,7 +2,11 @@ import { Orchestrator, Config, InstallAgentsHapps } from '@holochain/tryorama'
 import path from 'path'
 import * as _ from 'lodash'
 import { RETRY_DELAY, RETRY_COUNT, localConductorConfig, networkedConductorConfig, installAgents, awaitIntegration, delay } from './common'
+import { Base64 } from "js-base64";
 
+function serializeHash(hash: Uint8Array): string {
+  return `u${Base64.fromUint8Array(hash, true)}`;
+}
 module.exports = async (orchestrator) => {
 
   orchestrator.registerScenario('where basic tests', async (s, t) => {
@@ -35,7 +39,7 @@ module.exports = async (orchestrator) => {
 
     const spaces = await alice_where.call('where', 'get_spaces', null );
     console.log(spaces);
-    t.deepEqual(spaces, [[space1_hash,space1]]);
+    t.deepEqual(spaces, [{hash: space1_hash, content: space1}]);
 
 
     let where1 = {
@@ -49,7 +53,7 @@ module.exports = async (orchestrator) => {
     const wheres = await alice_where.call('where', 'get_wheres', space1_hash);
     t.ok(wheres)
     t.deepEqual(wheres[0].entry, where1)
-    t.deepEqual(wheres[0].author, alice_where.cellId[1])
+    t.deepEqual(wheres[0].author, serializeHash(alice_where.cellId[1]))
 
   })
 }

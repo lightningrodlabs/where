@@ -1,6 +1,6 @@
 import { AppWebsocket, CellId } from '@holochain/conductor-api';
 import { HoloHashed } from '@holochain-open-dev/core-types';
-import { CalendarEvent } from './types';
+import { CalendarEvent, Spaces } from './types';
 
 export class WhereService {
   constructor(
@@ -9,8 +9,8 @@ export class WhereService {
     protected zomeName = 'hc_zome_where'
   ) {}
 
-  async getAllCalendarEvents(): Promise<Array<HoloHashed<CalendarEvent>>> {
-    const events = await this.callZome('get_my_calendar_events', null);
+  async getSpaces(): Promise<Array<HoloHashed<Space>>> {
+    const spaces = await this.callZome('get_spaces', null);
 
     return events.map(
       ({ entry_hash, entry }: { entry_hash: string; entry: any }) => ({

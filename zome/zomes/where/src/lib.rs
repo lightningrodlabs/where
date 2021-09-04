@@ -4,7 +4,7 @@ pub use error::{WhereError, WhereResult};
 pub mod error;
 use hc_utils::*;
 use std::collections::HashMap;
-use holo_hash::{EntryHashB64, AgentPubKeyB64};
+use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -88,17 +88,18 @@ pub struct WhereInput {
 }
 
 #[hdk_extern]
-fn add_where(input: WhereInput) -> ExternResult<EntryHashB64> {
-    let _header_hash = create_entry(&input.entry)?;
+fn add_where(input: WhereInput) -> ExternResult<HeaderHashB64> {
+    create_entry(&input.entry)?;
     let hash = hash_entry(input.entry)?;
-    create_link(input.space.into(), hash.clone(), ())?;
-    Ok(hash.into())
+    let header_hash = create_link(input.space.into(), hash, ())?;
+    Ok(header_hash.into())
 }
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct WhereOutput {
     pub entry: Where,
+    pub hash: HeaderHashB64,
     pub author: AgentPubKeyB64,
 }
 
@@ -114,8 +115,8 @@ fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
     let mut output = Vec::with_capacity(links.len());
 
     // for every link get details on the target and create the message
-    for target in links.into_iter().map(|link| link.target) {
-        let w = match get_details(target, GetOptions::content())? {
+    for link in links.into_iter().map(|link| link) {
+        let w = match get_details(link.target, GetOptions::content())? {
             Some(Details::Entry(EntryDetails {
                 entry, mut headers, ..
             })) => {
@@ -127,9 +128,10 @@ fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
                     None => continue,
                 };
 
-                // Create the message type for the UI
+                // Create the output for the UI
                 WhereOutput{
                     entry,
+                    hash: link.create_link_hash.into(),
                     author: signed_header.header().author().clone().into()
                 }
             }

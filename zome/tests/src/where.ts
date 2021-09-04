@@ -53,6 +53,7 @@ module.exports = async (orchestrator) => {
     const wheres = await alice_where.call('hc_zome_where', 'get_wheres', space1_hash);
     t.ok(wheres)
     t.deepEqual(wheres[0].entry, where1)
+    t.deepEqual(wheres[0].hash, where1_hash)
     t.deepEqual(wheres[0].author, serializeHash(alice_where.cellId[1]))
 
   })

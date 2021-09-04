@@ -19,7 +19,7 @@ export class WhereStore {
 
   async updateSpaces() {
     const spaces = await this.service.getSpaces();
-    for (let s of spaces) {
+    for (const s of spaces) {
       const space : Space = {
         name : s.content.name,
         meta : s.content.meta,

@@ -7,7 +7,7 @@ import {
   computed,
 } from 'mobx';
 import { WhereService } from './where.service';
-import { Dictionary, Space, SpaceEntry, WhereEntry } from './types';
+import { Dictionary, Space, SpaceEntry, WhereEntry, Where, Location} from './types';
 
 export class WhereStore {
   @observable
@@ -50,6 +50,17 @@ export class WhereStore {
     return this.service.myAgentPubKey;
   }
 
+  async addWhere(spaceHash: string, where: Location) {
+    const entry : WhereEntry = {
+      location: JSON.stringify(where.location),
+      meta: where.meta
+    }
+    const hash = await this.service.addWhere(entry, spaceHash)
+    const w:Where = {entry: {location: where.location, meta:where.meta}, hash, authorPubKey: this.myAgentPubKey}
+    console.log("added", hash)
+    this.spaces[spaceHash].wheres.push(w)
+  }
+
   async updateWhere(spaceHash: string, agentIdx: number, x: number, y: number) {
     const space = this.spaces[spaceHash]
     const w = space.wheres[agentIdx]
@@ -61,7 +72,6 @@ export class WhereStore {
       meta: w.entry.meta
     }
     const hash: HeaderHashB64 = await this.service.addWhere(entry, spaceHash)
-    console.log(w)
     await this.service.deleteWhere(w.hash)
     w.hash = hash
   }

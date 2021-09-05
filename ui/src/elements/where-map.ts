@@ -4,7 +4,7 @@ import { state, property } from 'lit/decorators.js';
 import { requestContext } from '@holochain-open-dev/context';
 
 import { sharedStyles } from '../sharedStyles';
-import { WHERE_CONTEXT, Where } from '../types';
+import { WHERE_CONTEXT, Where, Location } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
@@ -22,6 +22,20 @@ const MARKER_WIDTH = 40
  * @csspart event-title - Style the event title textfield
  */
 export class WhereMap extends ScopedElementsMixin(LitElement) {
+
+  private _handleWheel = (e:WheelEvent) => {
+    if (e.target ) {
+      if ((e.target as Element).tagName == "WHERE-MAP") {
+        this.handleZoom(e.deltaY > 0 ? .05 : -.05)
+      }
+    }
+  }
+
+  constructor() {
+    super()
+    window.addEventListener('wheel', this._handleWheel);
+  }
+
   /** Public attributes */
 
   /**
@@ -82,7 +96,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
           size: {x: 500, y: 300}
         },
         meta: {},
-        wheres: [
+        wheres: [/*
           { entry: {location: {x: 0, y: 0},
                     meta: {
                       name: "Monk",
@@ -90,7 +104,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
                       img: "https://i.imgur.com/4BKqQY1.png"
                     }},
             hash: "",
-            authorPubKey: "sntahoeuabcorchaotbkantgcdoesucd"}
+            authorPubKey: "sntahoeuabcorchaotbkantgcdoesucd"}*/
         ]
       }
     )
@@ -144,12 +158,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       if (this._meIdx >= 0) {
         this._store.updateWhere(this._current,this._meIdx, x, y)
       } else {
-        /* New where
-           this._store.addWhere(this._current, x, y, {tag:"", img: this._myAvatar, name: this._myNickname} )
-        const w:Where = {entry: {location: {x,y}, meta:{tag:"", img: this._myAvatar, name: this._myNickname}}, hash:"", authorPubKey:""}
-
-        this._store.spaces[this._current].wheres.push(w)
-        */
+        const where : Location = {
+          location: {x,y},
+          meta: {
+            tag: "",
+            img: this._myAvatar,
+            name: this._myNickName
+          }
+        }
+        this._store.addWhere(this._current, where )
       }
       this.requestUpdate()
     }

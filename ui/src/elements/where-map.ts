@@ -10,6 +10,8 @@ import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Select } from 'scoped-material-components/mwc-select';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
+import { Button } from 'scoped-material-components/mwc-button';
+import { PROFILES_STORE_CONTEXT, ProfilesStore } from "@holochain-open-dev/profiles";
 
 
 const MARKER_WIDTH = 40
@@ -32,21 +34,19 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   @requestContext(WHERE_CONTEXT)
   _store!: WhereStore;
 
+  @requestContext(PROFILES_STORE_CONTEXT)
+  _profiles!: ProfilesStore;
+
   /** Private properties */
 
   @state() _current = "";
   @state() _meIdx = 0;
-  @state() _me = {
-    meta: {
-      img: "https://i.imgur.com/oIrcAO8.jpg",
-      name: "Eggy",
-    },
-    authorPubKey: "mememememememememememememememeeeeee"
-  }
+  @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
+  @state() _myNickName = "_unknown_";
   @state() _zoom = 1.0;
 
   async initializeSpaces() {
-    const me = this._store.myAgentPubKey
+    const myPubKey = this._profiles.myAgentPubKey
     await this._store.addSpace(
       { name: "earth",
         surface: {
@@ -57,12 +57,12 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
         wheres: [
           { entry: {location: {x: 1150, y: 450},
                     meta: {
-                      img: this._me.meta.img,
-                      name: this._me.meta.name,
+                      img: this._myAvatar,
+                      name: this._myNickName,
                       tag: "My house"
                     }},
             hash: "",
-            authorPubKey: me},
+            authorPubKey: myPubKey},
           { entry: {location: {x: 1890, y: 500},
                     meta: {
                       name: "Monk",
@@ -96,17 +96,28 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     )
   }
 
-  async firstUpdated() {
-    this._me.authorPubKey = this._store.myAgentPubKey
-    await this._store.updateSpaces();
-    // load up a space if there are none:
-    if (Object.keys(this._store.spaces).length == 0) {
-      await this.initializeSpaces();
-      await this._store.updateSpaces();
-      console.log(Object.keys(this._store.spaces).length)
+  async checkInit() {
+    if (this._profiles) {
+      await this._profiles.fetchMyProfile()
+      const myProfile = this._profiles.myProfile
+      console.log("Profile", myProfile)
+
+      if (myProfile) {
+        this._myNickName = myProfile.nickname
+        await this._store.updateSpaces();
+        // load up a space if there are none:
+        if (Object.keys(this._store.spaces).length == 0) {
+          await this.initializeSpaces();
+          await this._store.updateSpaces();
+        }
+        this._current = Object.keys(this._store.spaces)[0]
+        console.log("current space", this._current, this._store.spaces[this._current].name)
+        this.requestUpdate()
+        return
+      }
     }
-    this._current = Object.keys(this._store.spaces)[0]
-    console.log("current space", this._current, this._store.spaces[this._current].name)
+    console.log("trying again")
+    setTimeout(this.checkInit,200)
   }
 
   private handleSpaceSelect(space: string) : void {
@@ -129,21 +140,25 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
       const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
       const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
-      this._meIdx = this._store.getAgentIdx(this._current, this._me.authorPubKey)
+      this._meIdx = this._store.getAgentIdx(this._current, this._profiles.myAgentPubKey)
       if (this._meIdx >= 0) {
         this._store.updateWhere(this._current,this._meIdx, x, y)
       } else {
-        const w:Where = {entry: {location: {x,y}, meta:{tag:"", img: "", name:""}}, hash:"", authorPubKey:""}
-        Object.assign(w,this._me)
+        /* New where
+           this._store.addWhere(this._current, x, y, {tag:"", img: this._myAvatar, name: this._myNickname} )
+        const w:Where = {entry: {location: {x,y}, meta:{tag:"", img: this._myAvatar, name: this._myNickname}}, hash:"", authorPubKey:""}
 
         this._store.spaces[this._current].wheres.push(w)
+        */
       }
       this.requestUpdate()
     }
   }
 
   render() {
-    if (!this._current) return;
+    if (!this._current) return html`
+<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>
+`;
     const space = this._store.space(this._current)
     const whereItems = space.wheres.map((where, i) => {
 
@@ -182,6 +197,7 @@ ${whereItems}
       'mwc-select': Select,
       'mwc-list-item': ListItem,
       'mwc-icon-button': IconButton,
+      'mwc-button': Button,
     };
   }
 

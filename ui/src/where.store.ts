@@ -1,4 +1,4 @@
-import { serializeHash, EntryHashB64 } from '@holochain-open-dev/core-types';
+import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import {
   observable,
   makeObservable,
@@ -37,7 +37,6 @@ export class WhereStore {
       meta: space.meta,
     };
     const hash: EntryHashB64 = await this.service.createSpace(s)
-    console.log("HASH",hash)
     for (const w of space.wheres) {
       const entry : WhereEntry = {
         location: JSON.stringify(w.entry.location),
@@ -51,6 +50,28 @@ export class WhereStore {
     return this.service.myAgentPubKey;
   }
 
+  async updateWhere(spaceHash: string, agentIdx: number, x: number, y: number) {
+    const space = this.spaces[spaceHash]
+    const w = space.wheres[agentIdx]
+    w.entry.location.x = x
+    w.entry.location.y = y
 
+    const entry : WhereEntry = {
+      location: JSON.stringify(w.entry.location),
+      meta: w.entry.meta
+    }
+    const hash: HeaderHashB64 = await this.service.addWhere(entry, spaceHash)
+    console.log(w)
+    await this.service.deleteWhere(w.hash)
+    w.hash = hash
+  }
+
+  getAgentIdx(space: string, agent: AgentPubKeyB64) : number {
+    return this.spaces[space].wheres.findIndex((w) => w.authorPubKey == agent)
+  }
+
+  space(space: string): Space {
+    return this.spaces[space];
+  }
 
 }

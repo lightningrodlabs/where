@@ -41,13 +41,9 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       img: "https://i.imgur.com/oIrcAO8.jpg",
       name: "Eggy",
     },
-    authorPubkey: "mememememememememememememememeeeeee"
+    authorPubKey: "mememememememememememememememeeeeee"
   }
   @state() _zoom = 1.0;
-
-  getMeIdxInSpace(idx:string):number {
-    return this._store.spaces[idx].wheres.findIndex((w) => w.authorPubkey == this._me.authorPubkey)
-  }
 
   async initializeSpaces() {
     const me = this._store.myAgentPubKey
@@ -65,14 +61,16 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
                       name: this._me.meta.name,
                       tag: "My house"
                     }},
-            authorPubkey: me},
+            hash: "",
+            authorPubKey: me},
           { entry: {location: {x: 1890, y: 500},
                     meta: {
                       name: "Monk",
                       tag: "My apartment",
                       img: "https://i.imgur.com/4BKqQY1.png"
                     }},
-            authorPubkey: "sntahoeuabcorchaotbkantgcdoesucd"}
+            hash: "",
+            authorPubKey: "sntahoeuabcorchaotbkantgcdoesucd"}
         ],
       }
     )
@@ -91,14 +89,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
                       tag: "My apartment",
                       img: "https://i.imgur.com/4BKqQY1.png"
                     }},
-            authorPubkey: "sntahoeuabcorchaotbkantgcdoesucd"}
+            hash: "",
+            authorPubKey: "sntahoeuabcorchaotbkantgcdoesucd"}
         ]
       }
     )
   }
 
   async firstUpdated() {
-    this._me.authorPubkey = this._store.myAgentPubKey
+    this._me.authorPubKey = this._store.myAgentPubKey
     const result = await this._store.updateSpaces();
     // load up a space if there are none:
     if (Object.keys(this._store.spaces).length == 0) {
@@ -107,7 +106,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       console.log(Object.keys(this._store.spaces).length)
     }
     this._current = Object.keys(this._store.spaces)[0]
-    console.log(this._current)
+    console.log("current space", this._current, this._store.spaces[this._current].name)
   }
 
   private handleSpaceSelect(space: string) {
@@ -128,18 +127,14 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     if (event != null) {
       const rect = event.target.getBoundingClientRect();
 
-      const ow = this._store.spaces[this._current].surface.size.x;
-      const oh = this._store.spaces[this._current].surface.size.y;
-
       const img = event.target
       const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
       const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
-      this._meIdx = this.getMeIdxInSpace(this._current)
+      this._meIdx = this._store.getAgentIdx(this._current, this._me.authorPubKey)
       if (this._meIdx >= 0) {
-        this._store.spaces[this._current].wheres[this._meIdx].entry.location.x = x
-        this._store.spaces[this._current].wheres[this._meIdx].entry.location.y = y
+        this._store.updateWhere(this._current,this._meIdx, x, y)
       } else {
-        const w:Where = {entry: {location: {x,y}, meta:{tag:"", img: "", name:""}}, authorPubkey:""}
+        const w:Where = {entry: {location: {x,y}, meta:{tag:"", img: "", name:""}}, hash:"", authorPubKey:""}
         Object.assign(w,this._me)
 
         this._store.spaces[this._current].wheres.push(w)
@@ -150,15 +145,12 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this._current) return;
-    const ow = this._store.spaces[this._current].surface.size.x;
-    const oh = this._store.spaces[this._current].surface.size.y;
-    const whereItems = this._store.spaces[this._current].wheres.map((where, i) => {
-  //    const x = 100*(where.entry.location.x)/ow
-    //  const y = 100*(where.entry.location.y)/oh
+    const space = this._store.space(this._current)
+    const whereItems = space.wheres.map((where, i) => {
 
       const x = where.entry.location.x*this._zoom
       const y = where.entry.location.y*this._zoom
-      console.log(x)
+
       return html`
       <img class="where-marker" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
       <div class="where-details" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
@@ -179,7 +171,7 @@ Zoom: ${(this._zoom*100).toFixed(0)}%
 <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
 <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
 <div class="surface">
-<img .style="width:${ow*this._zoom}px" .id="${this._current}-img" src="${this._store.spaces[this._current].surface.url}" @click=${this.handleClick}>
+<img .style="width:${space.surface.size.x*this._zoom}px" .id="${this._current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}
 
 </div>

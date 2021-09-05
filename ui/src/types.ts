@@ -8,6 +8,7 @@ export type Dictionary<T> = { [key: string]: T };
 
 export interface WhereInfo {
   entry: WhereEntry,
+  hash: HeaderHashB64;
   author: AgentPubKeyB64,
 }
 
@@ -18,8 +19,8 @@ export interface WhereEntry {
 
 export interface Where {
   entry: Location;
-  hash?: HeaderHashB64;
-  authorPubkey: AgentPubKeyB64;
+  hash: HeaderHashB64;
+  authorPubKey: AgentPubKeyB64;
 }
 
 export interface Location {

@@ -95,6 +95,12 @@ fn add_where(input: WhereInput) -> ExternResult<HeaderHashB64> {
     Ok(header_hash.into())
 }
 
+#[hdk_extern]
+fn delete_where(input: HeaderHashB64) -> ExternResult<()> {
+    delete_link(input.into())?;
+    Ok(())
+}
+
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct WhereOutput {

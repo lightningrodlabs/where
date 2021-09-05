@@ -98,7 +98,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   async firstUpdated() {
     this._me.authorPubKey = this._store.myAgentPubKey
-    const result = await this._store.updateSpaces();
+    await this._store.updateSpaces();
     // load up a space if there are none:
     if (Object.keys(this._store.spaces).length == 0) {
       await this.initializeSpaces();
@@ -109,12 +109,12 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     console.log("current space", this._current, this._store.spaces[this._current].name)
   }
 
-  private handleSpaceSelect(space: string) {
+  private handleSpaceSelect(space: string) : void {
     this._current = space
     this.requestUpdate()
   }
 
-  private handleZoom(zoom: number) {
+  private handleZoom(zoom: number) : void {
     if (this._zoom + zoom < 0) {
       this._zoom = 0
     } else {
@@ -123,11 +123,10 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
-  private handleClick(event: any) {
+  private handleClick(event: any) : void {
     if (event != null) {
       const rect = event.target.getBoundingClientRect();
 
-      const img = event.target
       const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
       const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
       this._meIdx = this._store.getAgentIdx(this._current, this._me.authorPubKey)

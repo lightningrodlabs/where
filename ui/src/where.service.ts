@@ -1,6 +1,6 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
-import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64 } from '@holochain-open-dev/core-types';
-import { CalendarEvent, Space, SpaceEntry, WhereEntry, Where, WhereInfo } from './types';
+import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import { CalendarEvent, SpaceEntry, WhereEntry, Where, WhereInfo } from './types';
 
 export class WhereService {
   constructor(
@@ -8,7 +8,7 @@ export class WhereService {
     protected zomeName = 'hc_zome_where'
   ) {}
 
-  get myAgentPubKey() {
+  get myAgentPubKey() : AgentPubKeyB64 {
     return serializeHash(this.cellClient.cellId[1]);
   }
 

@@ -1,4 +1,4 @@
-import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import { EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import {
   observable,
   makeObservable,
@@ -7,7 +7,7 @@ import {
   computed,
 } from 'mobx';
 import { WhereService } from './where.service';
-import { Dictionary, Space, SpaceEntry, WhereEntry, Surface } from './types';
+import { Dictionary, Space, SpaceEntry, WhereEntry } from './types';
 
 export class WhereStore {
   @observable

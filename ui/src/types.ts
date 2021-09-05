@@ -1,6 +1,6 @@
 // TODO: add globally available interfaces for your elements
 
-import { AgentPubKeyB64, EntryHashB64, HeaderHashB64 } from "@holochain-open-dev/core-types";
+import { AgentPubKeyB64, HeaderHashB64 } from "@holochain-open-dev/core-types";
 
 export const WHERE_CONTEXT = 'hc_zome_where/service';
 

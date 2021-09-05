@@ -189,11 +189,15 @@ ${whereItems}
     return [
       sharedStyles,
       css`
+:host {
+margin: 10px;
+}
+
 .surface{
 position: relative;
 overflow:auto;
-max-width:1000px;
-max-height:500px;
+max-width:1500px;
+max-height:900px;
 }
 
 .surface > img {

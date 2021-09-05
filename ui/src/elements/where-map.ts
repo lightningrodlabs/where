@@ -110,6 +110,11 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     )
   }
 
+  async refresh() {
+    await this._store.updateSpaces();
+    this.requestUpdate()
+  }
+
   async checkInit() {
     if (this._profiles) {
       await this._profiles.fetchMyProfile()
@@ -201,6 +206,7 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
 Zoom: ${(this._zoom*100).toFixed(0)}%
 <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
 <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
+<mwc-icon-button icon="refresh" @click=${() => this.refresh()}></mwc-icon-button>
 <div class="surface">
 <img .style="width:${space.surface.size.x*this._zoom}px" .id="${this._current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}

@@ -20,7 +20,7 @@
 
     <script type="module">
       import { ContextProviderElement } from "@holochain-open-dev/context";
-      import { WhereMap, WHERE_CONTEXT, WhereService, WhereStore  } from "../dist"
+      import { WhereMap, WhereSpace, WHERE_CONTEXT, WhereService, WhereStore  } from "../dist"
       import {
         ProfilePrompt,
         ProfilesStore,
@@ -60,6 +60,7 @@
         where_provider.name = WHERE_CONTEXT;
         where_provider.value = whereStore;
         customElements.define("where-map", WhereMap);
+        customElements.define("where-space", WhereSpace);
 
       }
       setup()

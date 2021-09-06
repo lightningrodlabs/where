@@ -6,15 +6,13 @@ import { requestContext } from '@holochain-open-dev/context';
 import { sharedStyles } from '../sharedStyles';
 import { WHERE_CONTEXT, Where, Location } from '../types';
 import { WhereStore } from '../where.store';
+import { WhereSpace } from './where-space';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Select } from 'scoped-material-components/mwc-select';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
-import { PROFILES_STORE_CONTEXT, ProfilesStore } from "@holochain-open-dev/profiles";
-
-
-const MARKER_WIDTH = 40
+import { PROFILES_STORE_CONTEXT, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
 
 /**
  * @element where-map
@@ -23,17 +21,8 @@ const MARKER_WIDTH = 40
  */
 export class WhereMap extends ScopedElementsMixin(LitElement) {
 
-  private _handleWheel = (e:WheelEvent) => {
-    if (e.target ) {
-      if ((e.target as Element).tagName == "WHERE-MAP") {
-        this.handleZoom(e.deltaY > 0 ? .05 : -.05)
-      }
-    }
-  }
-
   constructor() {
     super()
-    window.addEventListener('wheel', this._handleWheel);
   }
 
   /** Public attributes */
@@ -55,11 +44,15 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   @state() _current = "";
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
-  @state() _myNickName = "_unknown_";
   @state() _zoom = 1.0;
+
+  get myNickName(): string {
+    return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
+  }
 
   async initializeSpaces() {
     const myPubKey = this._profiles.myAgentPubKey
+    const myProfile = this._profiles.myProfile as Profile;
     await this._store.addSpace(
       { name: "earth",
         surface: {
@@ -71,7 +64,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
           { entry: {location: {x: 1150, y: 450},
                     meta: {
                       img: this._myAvatar,
-                      name: this._myNickName,
+                      name: this.myNickName,
                       tag: "My house"
                     }},
             hash: "",
@@ -114,6 +107,11 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+  async newSpace() {
+    alert("new")
+    this.requestUpdate()
+  }
+
   async checkInit() {
     if (this._profiles) {
       await this._profiles.fetchMyProfile()
@@ -121,7 +119,6 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       console.log("Profile", myProfile)
 
       if (myProfile) {
-        this._myNickName = myProfile.nickname
         await this._store.updateSpaces();
         // load up a space if there are none:
         if (Object.keys(this._store.spaces).length == 0) {
@@ -138,12 +135,18 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     setTimeout(this.checkInit,200)
   }
 
+  get spaceElem() : WhereSpace {
+    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
   private handleSpaceSelect(space: string) : void {
     this._current = space
+    this.spaceElem.setSpace(space)
     this.requestUpdate()
   }
 
   private handleZoom(zoom: number) : void {
+    this.spaceElem.zoom(zoom)
     if (this._zoom + zoom < 0) {
       this._zoom = 0
     } else {
@@ -152,48 +155,12 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
-  private handleClick(event: any) : void {
-    if (event != null) {
-      const rect = event.target.getBoundingClientRect();
-
-      const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
-      const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
-
-      // For now we are assuming one where per agent keyed by the nickname
-      const idx = this._store.getAgentIdx(this._current, this._myNickName)
-      if (idx >= 0) {
-        this._store.updateWhere(this._current, idx, x, y)
-      } else {
-        const where : Location = {
-          location: {x,y},
-          meta: {
-            tag: "",
-            img: this._myAvatar,
-            name: this._myNickName
-          }
-        }
-        this._store.addWhere(this._current, where )
-      }
-      this.requestUpdate()
-    }
-  }
-
   render() {
     if (!this._current) return html`
 <mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>
 `;
     const space = this._store.space(this._current)
-    const whereItems = space.wheres.map((where, i) => {
 
-      const x = where.entry.location.x*this._zoom
-      const y = where.entry.location.y*this._zoom
-
-      return html`
-<img idx="${i}" class="where-marker ${where.entry.meta.name == this._myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
-<div class="where-details ${where.entry.meta.name == this._myNickName ? "me": ""}"  style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
-      <h3>${where.entry.meta.name}</h3>
-      <p>${where.entry.meta.tag}</p>
-  `})
 
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
@@ -209,12 +176,9 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
   <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
   <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
 </div>
-<mwc-icon-button icon="refresh" @click=${() => this.refresh()}></mwc-icon-button>
-<div class="surface">
-<img .style="width:${space.surface.size.x*this._zoom}px" .id="${this._current}-img" src="${space.surface.url}" @click=${this.handleClick}>
-${whereItems}
-
-</div>
+<mwc-button icon="add_circle" @click=${() => this.newSpace()}>New</mwc-button>
+<mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+<where-space id="where-space" .current=${this._current} avatar="${this._myAvatar}"></where-space>
 `;
   }
 
@@ -224,6 +188,7 @@ ${whereItems}
       'mwc-list-item': ListItem,
       'mwc-icon-button': IconButton,
       'mwc-button': Button,
+      'where-space': WhereSpace,
     };
   }
 
@@ -233,59 +198,6 @@ ${whereItems}
       css`
 :host {
 margin: 10px;
-}
-
-.surface{
-position: relative;
-overflow:auto;
-max-width:1500px;
-max-height:900px;
-}
-
-.surface > img {
-}
-
-img.where-marker {
-max-width:100%;
-max-height:100%;
-border-radius: 10000px;
-border: black 1px solid;
-position: absolute;
-height: ${MARKER_WIDTH}px;
-width: ${MARKER_WIDTH}px;
-margin-top: -${MARKER_WIDTH/2}px;
-margin-left: -${MARKER_WIDTH/2}px;
-}
-
-img.where-marker.me {
-border: orange 2px solid;
-}
-
-.where-details {
-display: none;
-position: absolute;
-
-background: white;
-border-radius: 10px;
-border: black 1px solid;
-padding: 15px;
-text-align: left;
-}
-
-.where-details.me {
-border: orange 2px solid;
-}
-
-.where-details h3 {
-margin: 0;
-}
-
-.where-details p:last-of-type {
-margin-bottom: 0;
-}
-
-.where-marker:hover + .where-details, .where-details:hover {
-display: block;
 }
 
 .zoom {

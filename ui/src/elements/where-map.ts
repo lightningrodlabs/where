@@ -1,10 +1,11 @@
 import { html,css, LitElement } from 'lit';
 import { state, property } from 'lit/decorators.js';
 
-import { requestContext } from '@holochain-open-dev/context';
+import { contextProvided } from '@lit-labs/context';
+import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { WHERE_CONTEXT, Where, Location } from '../types';
+import { whereContext, Where, Location } from '../types';
 import { WhereStore } from '../where.store';
 import { WhereSpace } from './where-space';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
@@ -13,7 +14,7 @@ import { Select } from 'scoped-material-components/mwc-select';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
-import { PROFILES_STORE_CONTEXT, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
+import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
 
 /**
  * @element where-map
@@ -35,11 +36,17 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @requestContext(WHERE_CONTEXT)
+  @contextProvided({context: whereContext})
   _store!: WhereStore;
 
-  @requestContext(PROFILES_STORE_CONTEXT)
+  @contextProvided({context: profilesStoreContext})
   _profiles!: ProfilesStore;
+
+  @contextStore({
+    context: profilesStoreContext,
+    selectStore: s => s.myProfile,
+  })
+  _myProfile!: Profile;
 
   /** Private properties */
 
@@ -47,12 +54,12 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   get myNickName(): string {
-    return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
+    return this._myProfile.nickname
+//    return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
   }
 
   async initializeSpaces() {
     const myPubKey = this._profiles.myAgentPubKey
-    const myProfile = this._profiles.myProfile as Profile;
     await this._store.addSpace(
       { name: "earth",
         surface: {
@@ -116,10 +123,8 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   async checkInit() {
     if (this._profiles) {
       await this._profiles.fetchMyProfile()
-      const myProfile = this._profiles.myProfile
-      console.log("Profile", myProfile)
 
-      if (myProfile) {
+      if (this._myProfile) {
         await this._store.updateSpaces();
         // load up a space if there are none:
         if (Object.keys(this._store.spaces).length == 0) {

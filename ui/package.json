@@ -30,8 +30,11 @@
     "@holochain-open-dev/core-types": "0.1.1",
     "@holochain-open-dev/profiles": "git+https://github.com/holochain-open-dev/profiles.git#ui-build",
     "@holochain/conductor-api": "0.2.0",
+    "@lit-labs/context": "git+https://github.com/holochain-open-dev/context.git#build",
     "@open-wc/scoped-elements": "^2.0.0-next.4",
     "lit": "^2.0.0-rc.2",
+    "lit-svelte-stores": "0.0.7",
+    "mobx": "^6.3.3",
     "scoped-material-components": "^0.1.6"
   },
   "devDependencies": {

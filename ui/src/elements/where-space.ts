@@ -1,13 +1,14 @@
 import { html,css, LitElement } from 'lit';
 import { state, property } from 'lit/decorators.js';
 
-import { requestContext } from '@holochain-open-dev/context';
+import { contextProvided } from "@lit-labs/context";
+import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { WHERE_CONTEXT, Where, Location, Space } from '../types';
+import { whereContext, Where, Location, Space } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { PROFILES_STORE_CONTEXT, ProfilesStore } from "@holochain-open-dev/profiles";
+import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
 
 const MARKER_WIDTH = 40
 
@@ -24,11 +25,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @property({ type: String }) avatar = '';
   @property({ type: String }) current = '';
 
-  @requestContext(WHERE_CONTEXT)
+  @contextProvided({context: whereContext})
   _store!: WhereStore;
 
-  @requestContext(PROFILES_STORE_CONTEXT)
+  @contextProvided({context: profilesStoreContext})
   _profiles!: ProfilesStore;
+
+  @contextStore({
+    context: profilesStoreContext,
+    selectStore: s => s.myProfile,
+  })
+  _myProfile!: Profile;
 
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
@@ -47,7 +54,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   get myNickName(): string {
-    return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
+    return this._myProfile.nickname
   }
 
   private handleClick(event: any) : void {

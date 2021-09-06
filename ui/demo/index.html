@@ -10,60 +10,79 @@
   </head>
   <body>
     <!-- TODO: change the element -->
-    <context-provider id="profile_provider">
-      <context-provider id="where_provider">
-        <profile-prompt style="height: 400px; width: 500px">
-          <where-map></where-map>
-        </profile-prompt>
-      </context-provider>
-    </context-provider>
+    <where-demo-app></where-demo-app>
+
 
     <script type="module">
-      import { ContextProviderElement } from "@holochain-open-dev/context";
-      import { WhereMap, WhereSpace, WHERE_CONTEXT, WhereService, WhereStore  } from "../dist"
+      import { ContextProvider } from '@lit-labs/context';
+      import { WhereMap, WhereSpace, whereContext, WhereService, WhereStore  } from "../dist"
       import {
         ProfilePrompt,
-        ProfilesStore,
-        ProfilesService,
-        PROFILES_STORE_CONTEXT,
+        createProfilesStore,
+        profilesStoreContext,
       } from "@holochain-open-dev/profiles";
       import { AppWebsocket } from "@holochain/conductor-api";
       import { HolochainClient } from "@holochain-open-dev/cell-client";
+      import { ScopedElementsMixin } from '@open-wc/scoped-elements';
+      import { LitElement, html } from 'lit';
 
-      async function setup() {
-        const appWebsocket = await AppWebsocket.connect(
-          "ws://localhost:8888",
-          //  process.env.CONDUCTOR_URL,
-          12000
-        );
-        const appInfo = await appWebsocket.appInfo({
-          installed_app_id: "test-app",
-        });
+      class WhereDemoApp extends ScopedElementsMixin(LitElement) {
+        static get properties() {
+          return {
+            loaded: {
+              type: Boolean,
+            },
+          };
+        }
 
-        const cellData = appInfo.cell_data[0];
+        async firstUpdated() {
+          const appWebsocket = await AppWebsocket.connect(
+            'ws://localhost:8888'
+          );
+          const appInfo = await appWebsocket.appInfo({
+            installed_app_id: 'test-app',
+          });
 
-        const cellClient = new HolochainClient(appWebsocket, cellData);
+          const cellData = appInfo.cell_data[0];
+          const cellClient = new HolochainClient(appWebsocket, cellData);
 
-        const profilesService = new ProfilesService(cellClient);
-        const profilesStore = new ProfilesStore(profilesService);
+          const whereService = new WhereService(cellClient);
+          const whereStore = new WhereStore(whereService);
 
-        customElements.define("context-provider", ContextProviderElement);
+          new ContextProvider(
+            this,
+            profilesStoreContext,
+            createProfilesStore(cellClient)
+          );
 
-        const provider = document.getElementById("profile_provider");
-        provider.name = PROFILES_STORE_CONTEXT;
-        provider.value = profilesStore;
-        customElements.define("profile-prompt", ProfilePrompt);
+          new ContextProvider(
+            this,
+            whereContext,
+            whereStore
+          );
 
-        const whereService = new WhereService(cellClient);
-        const whereStore = new WhereStore(whereService);
-        const where_provider = document.getElementById("where_provider");
-        where_provider.name = WHERE_CONTEXT;
-        where_provider.value = whereStore;
-        customElements.define("where-map", WhereMap);
-        customElements.define("where-space", WhereSpace);
+          this.loaded = true;
+        }
 
+        render() {
+          if (!this.loaded) return html`<span>Loading...</span>`;
+          return html`
+            <profile-prompt style="height: 400px; width: 500px">
+              <where-map></where-map>
+            </profile-prompt>
+          `;
+        }
+
+        static get scopedElements() {
+          return {
+            'profile-prompt': ProfilePrompt,
+            'where-map': WhereMap,
+            'where-space': WhereSpace
+          };
+        }
       }
-      setup()
+      customElements.define('where-demo-app', WhereDemoApp);
+
     </script>
   </body>
 </html>

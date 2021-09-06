@@ -12,6 +12,7 @@ import { ListItem } from 'scoped-material-components/mwc-list-item';
 import { Select } from 'scoped-material-components/mwc-select';
 import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
+import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { PROFILES_STORE_CONTEXT, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
 
 /**
@@ -107,7 +108,8 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   }
 
   async newSpace() {
-    alert("new")
+    const dialog = this.newSpaceElem
+    dialog.open = true
     this.requestUpdate()
   }
 
@@ -136,6 +138,10 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   get spaceElem() : WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+  get newSpaceElem() : Dialog {
+    return this.shadowRoot!.getElementById("new-space") as Dialog;
   }
 
   private handleSpaceSelect(space: string) : void {
@@ -172,6 +178,20 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
 </div>
 <mwc-button icon="add_circle" @click=${() => this.newSpace()}>New</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+<mwc-dialog id="new-space">
+<div>
+<div>
+This is my content. Here is an actionable button:
+<button dialogAction="contentButton">button 1</button>
+</div>
+<div>
+This is my content. Here is a diabled actionable button:
+<button disabled dialogAction="disabledContentButton">button 2</button>
+</div>
+</div>
+<mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
+<mwc-button slot="secondaryAction">cancel</mwc-button>
+</mwc-dialog>
 <where-space id="where-space" .current=${this._current} avatar="${this._myAvatar}"></where-space>
 `;
   }
@@ -182,6 +202,7 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
       'mwc-list-item': ListItem,
       'mwc-icon-button': IconButton,
       'mwc-button': Button,
+      'mwc-dialog': Dialog,
       'where-space': WhereSpace,
     };
   }

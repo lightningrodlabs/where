@@ -61,9 +61,9 @@ export class WhereStore {
     this.spaces[spaceHash].wheres.push(w)
   }
 
-  async updateWhere(spaceHash: string, agentIdx: number, x: number, y: number) {
+  async updateWhere(spaceHash: string, idx: number, x: number, y: number) {
     const space = this.spaces[spaceHash]
-    const w = space.wheres[agentIdx]
+    const w = space.wheres[idx]
     w.entry.location.x = x
     w.entry.location.y = y
 
@@ -76,8 +76,8 @@ export class WhereStore {
     w.hash = hash
   }
 
-  getAgentIdx(space: string, agent: AgentPubKeyB64) : number {
-    return this.spaces[space].wheres.findIndex((w) => w.authorPubKey == agent)
+  getAgentIdx(space: string, agent: string) : number {
+    return this.spaces[space].wheres.findIndex((w) => w.entry.meta.name == agent)
   }
 
   space(space: string): Space {

@@ -54,7 +54,6 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   /** Private properties */
 
   @state() _current = "";
-  @state() _meIdx = 0;
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
   @state() _myNickName = "_unknown_";
   @state() _zoom = 1.0;
@@ -159,9 +158,11 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
       const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
       const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
-      this._meIdx = this._store.getAgentIdx(this._current, this._profiles.myAgentPubKey)
-      if (this._meIdx >= 0) {
-        this._store.updateWhere(this._current,this._meIdx, x, y)
+
+      // For now we are assuming one where per agent keyed by the nickname
+      const idx = this._store.getAgentIdx(this._current, this._myNickName)
+      if (idx >= 0) {
+        this._store.updateWhere(this._current, idx, x, y)
       } else {
         const where : Location = {
           location: {x,y},
@@ -188,8 +189,8 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       const y = where.entry.location.y*this._zoom
 
       return html`
-      <img class="where-marker" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
-      <div class="where-details" class:me=${i == this._meIdx} style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
+<img idx="${i}" class="where-marker ${where.entry.meta.name == this._myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
+<div class="where-details ${where.entry.meta.name == this._myNickName ? "me": ""}"  style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
       <h3>${where.entry.meta.name}</h3>
       <p>${where.entry.meta.tag}</p>
   `})

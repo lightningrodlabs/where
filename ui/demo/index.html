@@ -15,7 +15,7 @@
 
     <script type="module">
       import { ContextProvider } from '@lit-labs/context';
-      import { WhereMap, WhereSpace, whereContext, WhereService, WhereStore  } from "../dist"
+      import { WhereMap, WhereSpace, whereContext, createWhereStore  } from "../dist"
       import {
         ProfilePrompt,
         createProfilesStore,
@@ -46,9 +46,6 @@
           const cellData = appInfo.cell_data[0];
           const cellClient = new HolochainClient(appWebsocket, cellData);
 
-          const whereService = new WhereService(cellClient);
-          const whereStore = new WhereStore(whereService);
-
           new ContextProvider(
             this,
             profilesStoreContext,
@@ -58,7 +55,7 @@
           new ContextProvider(
             this,
             whereContext,
-            whereStore
+            createWhereStore(cellClient)
           );
 
           this.loaded = true;

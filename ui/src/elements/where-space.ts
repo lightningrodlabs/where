@@ -5,7 +5,7 @@ import { contextProvided } from "@lit-labs/context";
 import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { whereContext, Where, Location, Space } from '../types';
+import { whereContext, Where, Location, Space, Dictionary } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
@@ -37,20 +37,27 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   })
   _myProfile!: Profile;
 
+  @contextStore({
+    context: whereContext,
+    selectStore: s => s.spaces,
+  })
+  _spaces!: Dictionary<Space>;
+
+  @contextStore({
+    context: whereContext,
+    selectStore: s => s.zooms,
+  })
+  _zooms!: Dictionary<number>;
+
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
       e.preventDefault()
-      this.zoom(e.deltaY > 0 ? .05 : -.05)
+      this._store.zoom(this.current, e.deltaY > 0 ? .05 : -.05)
     }
   }
 
   zoom(delta: number) : void {
-    if (this._store.zooms[this.current] + delta < 0) {
-      this._store.zooms[this.current] = 0
-    } else {
-      this._store.zooms[this.current] += delta;
-    }
-    this.requestUpdate()
+    this._store.zoom(this.current, delta)
   }
 
   get myNickName(): string {
@@ -60,7 +67,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private handleClick(event: any) : void {
     if (event != null) {
       const rect = event.target.getBoundingClientRect();
-      const z = this._store.zooms[this.current]
+      const z = this._zooms[this.current]
       const x = (event.clientX - rect.left)/z; //x position within the element.
       const y = (event.clientY - rect.top)/z;  //y position within the element.
 
@@ -79,14 +86,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         }
         this._store.addWhere(this.current, where )
       }
-      this.requestUpdate()
     }
   }
 
   render() {
     if (!this.current) return
-    const space = this._store.space(this.current)
-    const z = this._store.zooms[this.current]
+    const space = this._spaces[this.current]
+    const z = this._zooms[this.current]
     const whereItems = space.wheres.map((where, i) => {
 
       const x = where.entry.location.x*z

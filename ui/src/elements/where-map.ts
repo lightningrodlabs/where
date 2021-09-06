@@ -5,7 +5,7 @@ import { contextProvided } from '@lit-labs/context';
 import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { whereContext, Where, Location, Space } from '../types';
+import { whereContext, Where, Location, Space, Dictionary } from '../types';
 import { WhereStore } from '../where.store';
 import { WhereSpace } from './where-space';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
@@ -48,6 +48,19 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     selectStore: s => s.myProfile,
   })
   _myProfile!: Profile;
+
+
+  @contextStore({
+    context: whereContext,
+    selectStore: s => s.spaces,
+  })
+  _spaces!: Dictionary<Space>;
+
+  @contextStore({
+    context: whereContext,
+    selectStore: s => s.zooms,
+  })
+  _zooms!: Dictionary<number>;
 
   /** Private properties */
 
@@ -112,13 +125,11 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   async refresh() {
     await this._store.updateSpaces();
-    this.requestUpdate()
   }
 
   async newSpace() {
     const dialog = this.newSpaceElem
     dialog.open = true
-    this.requestUpdate()
   }
 
   async checkInit() {
@@ -126,15 +137,14 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
       await this._profiles.fetchMyProfile()
 
       if (this._myProfile) {
-        await this._store.updateSpaces();
+        let spaces = await this._store.updateSpaces();
         // load up a space if there are none:
-        if (Object.keys(this._store.spaces).length == 0) {
+        if (Object.keys(spaces).length == 0) {
           await this.initializeSpaces();
-          await this._store.updateSpaces();
+          spaces = await this._store.updateSpaces();
         }
-        this._current = Object.keys(this._store.spaces)[0]
-        console.log("current space", this._current, this._store.spaces[this._current].name)
-        this.requestUpdate()
+        this._current = Object.keys(spaces)[0]
+        console.log("current space", this._current, spaces[this._current].name)
         return
       }
     }
@@ -153,33 +163,37 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
   private handleSpaceSelect(space: string) : void {
     this._current = space
     this.spaceElem.current = space
-    this.requestUpdate()
   }
 
   private handleZoom(zoom: number) : void {
     this.spaceElem.zoom(zoom)
-    this.requestUpdate()
   }
 
-  private handleNewSpace(e: any) :void {
+  private async handleNewSpace(e: any) {
+    const name = this.shadowRoot!.getElementById("new-space-name") as TextField
+    const url = this.shadowRoot!.getElementById("new-space-url") as TextField
     if (e.detail.action == "ok") {
       const dialog = e.target as Dialog
       const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement
-      const name = this.shadowRoot!.getElementById("new-space-name") as TextField
-      const url = this.shadowRoot!.getElementById("new-space-url") as TextField
-      img.src = url.value
-      const space : Space = {
-        name: name.value,
-        surface: {
-          url: url.value,
-          size: {x: img.naturalHeight, y: img.naturalWidth}
-        },
-        meta: {},
-        wheres: []
+      img.onload = async () => {
+        const space : Space = {
+          name: name.value,
+          surface: {
+            url: url.value,
+            size: {x: img.naturalHeight, y: img.naturalWidth}
+          },
+          meta: {},
+          wheres: []
+        }
+        this._current = await this._store.addSpace(space)
+        name.value = ""
+        url.value = ""
       }
-      this._store.addSpace(space)
-      this._store.updateSpaces()
-      this.requestUpdate()
+      img.src = url.value
+    }
+    else {
+      name.value = ""
+      url.value = ""
     }
   }
 
@@ -192,7 +206,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
-${Object.entries(this._store.spaces).map(([key,space]) => html`
+${Object.entries(this._spaces).map(([key,space]) => html`
       <mwc-list-item
     @request-selected=${() => this.handleSpaceSelect(key)}
       .selected=${key === this._current} value="${key}">${space.name}
@@ -200,7 +214,7 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
       ` )}
 </mwc-select>
 <div class="zoom">
-  Zoom: ${(this._store.zooms[this._current]*100).toFixed(0)}% <br/>
+  Zoom: ${(this._zooms[this._current]*100).toFixed(0)}% <br/>
   <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
   <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
 </div>

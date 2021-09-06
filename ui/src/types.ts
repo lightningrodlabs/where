@@ -1,9 +1,10 @@
 // TODO: add globally available interfaces for your elements
 
 import { AgentPubKeyB64, HeaderHashB64 } from "@holochain-open-dev/core-types";
-import { createContext } from "@lit-labs/context";
+import { createContext, Context } from "@lit-labs/context";
+import { WhereStore } from "./where.store";
 
-export const whereContext = createContext('hc_zome_where/service');
+export const whereContext : Context<WhereStore> = createContext('hc_zome_where/service');
 
 export type Dictionary<T> = { [key: string]: T };
 

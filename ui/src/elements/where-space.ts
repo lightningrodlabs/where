@@ -38,10 +38,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  setSpace(s: string) : void {
-    this.current = s
-  }
-
   zoom(delta: number) : void {
     if (this._zoom + delta < 0) {
       this._zoom = 0

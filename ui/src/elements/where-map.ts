@@ -141,7 +141,7 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   private handleSpaceSelect(space: string) : void {
     this._current = space
-    this.spaceElem.setSpace(space)
+    this.spaceElem.current = space
     this.requestUpdate()
   }
 

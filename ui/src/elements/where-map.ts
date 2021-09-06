@@ -5,7 +5,7 @@ import { contextProvided } from '@lit-labs/context';
 import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { whereContext, Where, Location } from '../types';
+import { whereContext, Where, Location, Space } from '../types';
 import { WhereStore } from '../where.store';
 import { WhereSpace } from './where-space';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
@@ -15,6 +15,7 @@ import { IconButton } from 'scoped-material-components/mwc-icon-button';
 import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
+import { TextField } from 'scoped-material-components/mwc-textfield';
 
 /**
  * @element where-map
@@ -160,6 +161,28 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+  private handleNewSpace(e: any) :void {
+    if (e.detail.action == "ok") {
+      const dialog = e.target as Dialog
+      const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement
+      const name = this.shadowRoot!.getElementById("new-space-name") as TextField
+      const url = this.shadowRoot!.getElementById("new-space-url") as TextField
+      img.src = url.value
+      const space : Space = {
+        name: name.value,
+        surface: {
+          url: url.value,
+          size: {x: img.naturalHeight, y: img.naturalWidth}
+        },
+        meta: {},
+        wheres: []
+      }
+      this._store.addSpace(space)
+      this._store.updateSpaces()
+      this.requestUpdate()
+    }
+  }
+
   render() {
     if (!this._current) return html`
 <mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>
@@ -183,19 +206,23 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
 </div>
 <mwc-button icon="add_circle" @click=${() => this.newSpace()}>New</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
-<mwc-dialog id="new-space">
-<div>
-<div>
-This is my content. Here is an actionable button:
-<button dialogAction="contentButton">button 1</button>
-</div>
-<div>
-This is my content. Here is a diabled actionable button:
-<button disabled dialogAction="disabledContentButton">button 2</button>
-</div>
-</div>
+<mwc-dialog id="new-space" heading="New Space" @closing=${this.handleNewSpace}>
+<mwc-textfield
+id="new-space-name"
+minlength="3"
+maxlength="64"
+placeholder="Name"
+required>
+</mwc-textfield>
+<mwc-textfield
+id="new-space-url"
+placeholder="Image URL"
+required>
+<img id="sfc" src=""></img>
+</mwc-textfield>
+
 <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
-<mwc-button slot="secondaryAction">cancel</mwc-button>
+<mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
 </mwc-dialog>
 <where-space id="where-space" .current=${this._current} avatar="${this._myAvatar}"></where-space>
 `;
@@ -208,6 +235,7 @@ This is my content. Here is a diabled actionable button:
       'mwc-icon-button': IconButton,
       'mwc-button': Button,
       'mwc-dialog': Dialog,
+      'mwc-textfield': TextField,
       'where-space': WhereSpace,
     };
   }

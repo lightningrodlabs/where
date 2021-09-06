@@ -32,6 +32,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
+      e.preventDefault()
       this.zoom(e.deltaY > 0 ? .05 : -.05)
     }
   }

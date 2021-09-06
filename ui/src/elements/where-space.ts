@@ -30,8 +30,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @requestContext(PROFILES_STORE_CONTEXT)
   _profiles!: ProfilesStore;
 
-  @state() _zoom = 1.0;
-
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
       this.zoom(e.deltaY > 0 ? .05 : -.05)
@@ -39,11 +37,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   zoom(delta: number) : void {
-    if (this._zoom + delta < 0) {
-      this._zoom = 0
+    if (this._store.zooms[this.current] + delta < 0) {
+      this._store.zooms[this.current] = 0
     } else {
-      this._zoom += delta;
+      this._store.zooms[this.current] += delta;
     }
+    this.requestUpdate()
   }
 
   get myNickName(): string {
@@ -53,9 +52,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private handleClick(event: any) : void {
     if (event != null) {
       const rect = event.target.getBoundingClientRect();
-
-      const x = (event.clientX - rect.left)/this._zoom; //x position within the element.
-      const y = (event.clientY - rect.top)/this._zoom;  //y position within the element.
+      const z = this._store.zooms[this.current]
+      const x = (event.clientX - rect.left)/z; //x position within the element.
+      const y = (event.clientY - rect.top)/z;  //y position within the element.
 
       // For now we are assuming one where per agent keyed by the nickname
       const idx = this._store.getAgentIdx(this.current, this.myNickName )
@@ -79,10 +78,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this.current) return
     const space = this._store.space(this.current)
+    const z = this._store.zooms[this.current]
     const whereItems = space.wheres.map((where, i) => {
 
-      const x = where.entry.location.x*this._zoom
-      const y = where.entry.location.y*this._zoom
+      const x = where.entry.location.x*z
+      const y = where.entry.location.y*z
 
       return html`
 <img idx="${i}" class="where-marker ${where.entry.meta.name == this.myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
@@ -93,7 +93,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     return html`
 <div class="surface">
-<img .style="width:${space.surface.size.x*this._zoom}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
+<img .style="width:${space.surface.size.x*z}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}
 </div>
 `

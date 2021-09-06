@@ -13,6 +13,9 @@ export class WhereStore {
   @observable
   public spaces: Dictionary<Space> = {};
 
+  @observable
+  public zooms: Dictionary<number> = {};
+
   constructor(protected service: WhereService) {
     makeObservable(this);
   }
@@ -27,6 +30,9 @@ export class WhereStore {
         wheres: await this.service.getWheres(s.hash)
       }
       this.spaces[s.hash] = space
+      if (!this.zooms[s.hash]) {
+        this.zooms[s.hash] = 1.0
+      }
     }
   }
 

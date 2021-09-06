@@ -44,7 +44,6 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   @state() _current = "";
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
-  @state() _zoom = 1.0;
 
   get myNickName(): string {
     return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
@@ -147,11 +146,6 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   private handleZoom(zoom: number) : void {
     this.spaceElem.zoom(zoom)
-    if (this._zoom + zoom < 0) {
-      this._zoom = 0
-    } else {
-      this._zoom += zoom;
-    }
     this.requestUpdate()
   }
 
@@ -172,7 +166,7 @@ ${Object.entries(this._store.spaces).map(([key,space]) => html`
       ` )}
 </mwc-select>
 <div class="zoom">
-  Zoom: ${(this._zoom*100).toFixed(0)}% <br/>
+  Zoom: ${(this._store.zooms[this._current]*100).toFixed(0)}% <br/>
   <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
   <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
 </div>

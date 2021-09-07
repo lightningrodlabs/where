@@ -127,10 +127,6 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
     await this._store.updateSpaces();
   }
 
-  async newSpace() {
-    const dialog = this.newSpaceElem
-    dialog.open = true
-  }
 
   async checkInit() {
     if (this._profiles) {
@@ -154,6 +150,11 @@ export class WhereMap extends ScopedElementsMixin(LitElement) {
 
   get spaceElem() : WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+  async newSpace() {
+    const dialog = this.newSpaceElem
+    dialog.open = true
   }
 
   get newSpaceElem() : Dialog {
@@ -220,6 +221,7 @@ ${Object.entries(this._spaces).map(([key,space]) => html`
 </div>
 <mwc-button icon="add_circle" @click=${() => this.newSpace()}>New</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+
 <mwc-dialog id="new-space" heading="New Space" @closing=${this.handleNewSpace}>
 <mwc-textfield
 id="new-space-name"
@@ -234,10 +236,10 @@ placeholder="Image URL"
 required>
 <img id="sfc" src=""></img>
 </mwc-textfield>
-
 <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
 </mwc-dialog>
+
 <where-space id="where-space" .current=${this._current} avatar="${this._myAvatar}"></where-space>
 `;
   }

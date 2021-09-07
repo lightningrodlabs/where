@@ -9,6 +9,9 @@ import { whereContext, Where, Location, Space, Dictionary } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
+import { Dialog } from 'scoped-material-components/mwc-dialog';
+import { TextField } from 'scoped-material-components/mwc-textfield';
+import { Button } from 'scoped-material-components/mwc-button';
 
 const MARKER_WIDTH = 40
 
@@ -49,6 +52,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   })
   _zooms!: Dictionary<number>;
 
+  private newX: number = 0
+  private newY: number = 0
+
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
       e.preventDefault()
@@ -76,16 +82,33 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (idx >= 0) {
         this._store.updateWhere(this.current, idx, x, y)
       } else {
-        const where : Location = {
-          location: {x,y},
-          meta: {
-            tag: "",
-            img: this.avatar,
-            name: this.myNickName
-          }
-        }
-        this._store.addWhere(this.current, where )
+        this.newX = x
+        this.newY = y
+        this.newWhereElem.open = true
       }
+    }
+  }
+
+  get newWhereElem() : Dialog {
+    return this.shadowRoot!.getElementById("new-where") as Dialog;
+  }
+
+  private async handleNewWhere(e: any) {
+    const tag = this.shadowRoot!.getElementById("new-where-tag") as TextField
+    if (e.detail.action == "ok") {
+      const where : Location = {
+        location: {x: this.newX, y: this.newY},
+        meta: {
+          tag: tag.value,
+          img: this.avatar,
+          name: this.myNickName
+        }
+      }
+      this._store.addWhere(this.current, where )
+      tag.value = ""
+    }
+    else {
+      tag.value = ""
     }
   }
 
@@ -109,10 +132,25 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 <div class="surface">
 <img .style="width:${space.surface.size.x*z}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}
+<mwc-dialog id="new-where" heading="New Where" @closing=${this.handleNewWhere}>
+<mwc-textfield
+id="new-where-tag"
+placeholder="Tag">
+</mwc-textfield>
+<mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
+<mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
+</mwc-dialog>
 </div>
 `
   }
 
+  static get scopedElements() {
+    return {
+      'mwc-dialog': Dialog,
+      'mwc-textfield': TextField,
+      'mwc-button': Button,
+    };
+  }
   static get styles() {
     return [
       sharedStyles,

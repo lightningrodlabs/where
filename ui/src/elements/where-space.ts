@@ -114,21 +114,31 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  allowDrop(ev:Event) {
+  private allowDrop(ev:Event) {
     ev.preventDefault();
   }
 
-  drag(ev: DragEvent) {
+  private drag(ev: DragEvent) {
     if (ev.target) {
       const w = ev.target as HTMLImageElement
-      const data = w.getAttribute("idx")
-      if (ev.dataTransfer) {
-        ev.dataTransfer.setData("idx", `${data}`);
+      const idx = w.getAttribute("idx")
+      if (idx && ev.dataTransfer) {
+        if (this.canUpdate(parseInt(idx))) {
+          ev.dataTransfer.setData("idx", `${idx}`);
+          return true
+        }
       }
     }
+    return false
   }
 
-  drop(ev: any) {
+  private canUpdate(idx: number) : boolean {
+    // TODO update to check properties of space for updating
+    const myIdx = this._store.getAgentIdx(this.current, this.myNickName )
+    return idx == myIdx
+  }
+
+  private drop(ev: any) {
     ev.preventDefault();
     if (ev.dataTransfer) {
       const data = ev.dataTransfer.getData("idx")

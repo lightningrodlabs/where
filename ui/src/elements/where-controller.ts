@@ -3,6 +3,7 @@ import { state, property } from 'lit/decorators.js';
 
 import { contextProvided } from '@lit-labs/context';
 import { contextStore } from 'lit-svelte-stores';
+import { Unsubscriber } from 'svelte/store';
 
 import { sharedStyles } from '../sharedStyles';
 import { whereContext, Where, Location, Space, Dictionary } from '../types';
@@ -66,13 +67,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   get myNickName(): string {
     return this._myProfile.nickname
-//    return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
   }
 
   firstUpdated() {
-    const _unsubscribe = this._profiles.myProfile.subscribe(()=>  {
-      // unsubscribe()
+    const unsubscribe : Unsubscriber;
+    unsubscribe = this._profiles.myProfile.subscribe(()=>  {
       this.checkInit()
+      unsubscribe()
     })
   }
 

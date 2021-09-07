@@ -1,12 +1,12 @@
 import { html,css, LitElement } from 'lit';
-import { state, property } from 'lit/decorators.js';
+import { state } from 'lit/decorators.js';
 
 import { contextProvided } from '@lit-labs/context';
 import { contextStore } from 'lit-svelte-stores';
 import { Unsubscriber } from 'svelte/store';
 
 import { sharedStyles } from '../sharedStyles';
-import { whereContext, Where, Location, Space, Dictionary } from '../types';
+import { whereContext, Space, Dictionary } from '../types';
 import { WhereStore } from '../where.store';
 import { WhereSpace } from './where-space';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
@@ -170,7 +170,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const name = this.shadowRoot!.getElementById("new-space-name") as TextField
     const url = this.shadowRoot!.getElementById("new-space-url") as TextField
     if (e.detail.action == "ok") {
-      const dialog = e.target as Dialog
       const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement
       img.onload = async () => {
         const space : Space = {
@@ -196,8 +195,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this._current) return // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
-
-    const space = this._store.space(this._current)
 
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>

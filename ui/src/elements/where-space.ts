@@ -1,11 +1,11 @@
 import { html,css, LitElement } from 'lit';
-import { state, property } from 'lit/decorators.js';
+import { property } from 'lit/decorators.js';
 
 import { contextProvided } from "@lit-labs/context";
 import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { whereContext, Where, Location, Space, Dictionary } from '../types';
+import { whereContext, Location, Space, Dictionary } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";

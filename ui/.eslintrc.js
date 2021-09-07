@@ -16,7 +16,9 @@ module.exports = {
     // disable the rule for all files
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-non-null-assertion': 'off',
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/camelcase': 'off',
+    '@typescript-eslint/no-explicit-any': 'off',
     'import/named': 'off',
     'import/no-unresolved': 'off',
     'import/extensions': 'off',

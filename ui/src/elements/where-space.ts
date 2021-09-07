@@ -77,40 +77,58 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return {x,y}
   }
 
+  private canCreate() : boolean {
+    // TODO update to check properties of space for updating
+    // for now it's just if there's not already a where
+    const myIdx = this._store.getAgentIdx(this.current, this.myNickName )
+    return myIdx == -1
+  }
+
+  private canUpdate(idx: number) : boolean {
+    // TODO update to check properties of space for updating
+    const myIdx = this._store.getAgentIdx(this.current, this.myNickName )
+    return idx == myIdx
+  }
+
   private handleClick(event: any) : void {
-    if (event != null) {
+    if (event != null && this.canCreate()) {
       const coord = this.getCoordsFromEvent(event)
-      // For now we are assuming one where per agent keyed by the nickname
-      const idx = this._store.getAgentIdx(this.current, this.myNickName )
-      if (idx >= 0) {
-        this._store.updateWhere(this.current, idx, coord)
-      } else {
-        this.newCoord = coord
-        this.newWhereElem.open = true
-      }
+      this.newCoord = coord
+      this.openWhereDialog(this.myNickName, this.avatar)
     }
   }
 
-  get newWhereElem() : Dialog {
-    return this.shadowRoot!.getElementById("new-where") as Dialog;
+  openWhereDialog(name: string="", img:string="", tag:string="") {
+    const nameE = this.shadowRoot!.getElementById("edit-where-name") as TextField
+    const imgE = this.shadowRoot!.getElementById("edit-where-img") as TextField
+    const tagE = this.shadowRoot!.getElementById("edit-where-tag") as TextField
+    nameE.value = name;
+    // TODO: later these may be made visible for some kinds of spaces
+    (nameE as HTMLElement).style.display = "none";
+    (imgE as HTMLElement).style.display = "none";
+    imgE.value = img;
+    tagE.value = tag;
+    this.whereDialogElem.open = true
   }
 
-  private async handleNewWhere(e: any) {
-    const tag = this.shadowRoot!.getElementById("new-where-tag") as TextField
+  get whereDialogElem() : Dialog {
+    return this.shadowRoot!.getElementById("edit-where") as Dialog;
+  }
+
+  private async handleWhereDialog(e: any) {
     if (e.detail.action == "ok") {
+      const tag = this.shadowRoot!.getElementById("edit-where-tag") as TextField
+      const img = this.shadowRoot!.getElementById("edit-where-img") as TextField
+      const name = this.shadowRoot!.getElementById("edit-where-name") as TextField
       const where : Location = {
         location: this.newCoord,
         meta: {
           tag: tag.value,
-          img: this.avatar,
-          name: this.myNickName
+          img: img.value,
+          name: name.value,
         }
       }
       this._store.addWhere(this.current, where )
-      tag.value = ""
-    }
-    else {
-      tag.value = ""
     }
   }
 
@@ -132,13 +150,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return false
   }
 
-  private canUpdate(idx: number) : boolean {
-    // TODO update to check properties of space for updating
-    const myIdx = this._store.getAgentIdx(this.current, this.myNickName )
-    return idx == myIdx
-  }
-
-  private drop(ev: any) {
+ private drop(ev: any) {
     ev.preventDefault();
     if (ev.dataTransfer) {
       const data = ev.dataTransfer.getData("idx")
@@ -172,11 +184,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 <div class="surface">
 <img @drop="${(e:DragEvent) => this.drop(e)}" @dragover="${(e:DragEvent) => this.allowDrop(e)}" .style="width:${space.surface.size.x*z}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}
-<mwc-dialog id="new-where" heading="New Where" @closing=${this.handleNewWhere}>
-<mwc-textfield
-id="new-where-tag"
-placeholder="Tag">
-</mwc-textfield>
+<mwc-dialog id="edit-where" heading="Where" @closing=${this.handleWhereDialog}>
+<mwc-textfield id="edit-where-name" placeholder="Name"></mwc-textfield>
+<mwc-textfield id="edit-where-img" placeholder="Image Url"></mwc-textfield>
+<mwc-textfield id="edit-where-tag" placeholder="Tag"></mwc-textfield>
 <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
 </mwc-dialog>

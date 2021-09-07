@@ -1,6 +1,6 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
-import { CalendarEvent, SpaceEntry, WhereEntry, Where, WhereInfo } from './types';
+import { SpaceEntry, WhereEntry, Where, WhereInfo } from './types';
 
 export class WhereService {
   constructor(
@@ -43,48 +43,6 @@ export class WhereService {
     return this.callZome('create_space', space);
   }
 
-
-
-  async createCalendarEvent({
-    title,
-    startTime,
-    endTime,
-    location,
-    invitees,
-  }: {
-    title: string;
-    startTime: number;
-    endTime: number;
-    location?: string;
-    invitees: string[];
-  }): Promise<HoloHashed<CalendarEvent>> {
-    const { entry_hash, entry } = await this.callZome('create_calendar_event', {
-      title,
-      startTime,
-      endTime,
-      location,
-      invitees,
-    });
-
-    return {
-      hash: entry_hash,
-      content: entry,
-    };
-  }
-
-  async getCalendarEvent(
-    calendarEventHash: string
-  ): Promise<HoloHashed<CalendarEvent>> {
-    const calendarEvent = await this.callZome(
-      'get_calendar_event',
-      calendarEventHash
-    );
-
-    return {
-      hash: calendarEventHash,
-      content: calendarEvent,
-    };
-  }
   private callZome(fn_name: string, payload: any) {
     return this.cellClient.callZome(this.zomeName, fn_name, payload);
   }

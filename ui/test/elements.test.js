@@ -1,10 +1,10 @@
 import { html, fixture, expect } from '@open-wc/testing';
-
-import { CalendarEventsModule } from '../dist';
+/*
+import { WhereControlloer } from '../dist';
 import { setupApolloClient } from './mocks/setupApolloClient.js';
 
 // TODO: actually write useful tests for your element
-describe('HodCalendarEvent', () => {
+describe('WhereControlloer', () => {
   before(async () => {
     const client = await setupApolloClient();
     new CalendarEventsModule({ apolloClient: client }).install();
@@ -38,3 +38,4 @@ describe('HodCalendarEvent', () => {
     await expect(el).shadowDom.to.be.accessible();
   });
 });
+*/

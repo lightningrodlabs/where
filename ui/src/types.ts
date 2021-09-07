@@ -52,12 +52,3 @@ export interface Space  {
   wheres: Where[];
   meta?: Dictionary<string>;
 }
-
-export interface CalendarEvent {
-  title: string;
-  createdBy: AgentPubKeyB64;
-  startTime: number;
-  endTime: number;
-  invitees: AgentPubKeyB64[];
-  location: string;
-}

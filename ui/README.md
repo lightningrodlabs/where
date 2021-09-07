@@ -1,6 +1,6 @@
 # UI Developer Setup
 
-UI module for the `calendar-events-zome`.
+UI module for the `hc-where-zome`.
 
 ## Requirements
 
@@ -106,7 +106,7 @@ npm run publish-storybook
 
 This will build the static storybook site, and deploy it directly in the `gh-pages` of your repository.
 
-After this, it will be accessible in the appropriate Github Pages URL (eg. https://holochain-open-dev.github.io/calendar-events-module).
+After this, it will be accessible in the appropriate Github Pages URL (eg. https://lightningrodlabs.github.io/where-module).
 
 ## Publishing in a branch on this repository
 
@@ -120,6 +120,6 @@ Now, a built version of this module will be at the root of the `ui-build` branch
 
 ```json
   "dependencies": {
-    "@holochain-open-dev/TODO_RENAME_MODULE": "holochain-open-dev/TODO_RENAME_MODULE#ui-build",
+    "@lightningrodlabs/where": "lightningrodlabs/where#ui-build",
   }
 ```

@@ -20,8 +20,6 @@ import { TextField } from 'scoped-material-components/mwc-textfield';
 
 /**
  * @element where-controller
- * @fires event-created - Fired after actually creating the event, containing the new CalendarEvent
- * @csspart event-title - Style the event title textfield
  */
 export class WhereController extends ScopedElementsMixin(LitElement) {
 

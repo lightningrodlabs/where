@@ -1,12 +1,12 @@
 ```js script
 import { html } from '@open-wc/demoing-storybook';
 import { withKnobs, withWebComponentsKnobs } from '@open-wc/demoing-storybook';
-import { CalendarEventsModule } from '../dist';
+import { WhereControlloer } from '../dist';
 import { setupApolloClient } from '../test/mocks/setupApolloClient';
 
 // TODO: change the name of the module and add any other dependencies needed
 setupApolloClient().then(client =>
-  new CalendarEventsModule({ apolloClient: client }).install()
+  new WhereControlloer({ apolloClient: client }).install()
 );
 
 // TODO: change the name of the story and element
@@ -39,7 +39,7 @@ export default {
 
 Please note that this custom element needs to be installed together with all the other elements of the `CalendarEventsModule`. Go to [https://github.com/holochain-open-dev/calendar-events-module](https://github.com/holochain-open-dev/calendar-events-module) for installation instructions.
 
-After having installed the `CalendarEventsModule`, just add the element to your html:
+After having installed the `WhereControlloer`, just add the element to your html:
 
 ```html
 <body>

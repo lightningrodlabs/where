@@ -1,6 +1,6 @@
 # Zome Developer Setup
 
-This folder has an example DNA for the `hc_zome_where` zome. The actual code for the zome is in `zomes/hc_zome_where`.
+This folder has an example DNA for the `hc_zome_where` zome. The actual code for the zome is in `zomes/where`.
 
 To change the code, you can work either opening VSCode inside the root folder of the repo or in this folder, you should have rust intellisense either way.
 
@@ -14,7 +14,7 @@ hc dna pack workdir/dna
 hc app pack workdir/happ
 ```
 
-This should create a `workdir/happ/sample.happ` file.
+This should create a `workdir/happ/where.happ` file.
 
 ## Testing
 
@@ -31,7 +31,7 @@ npm test
 After having built the DNA:
 
 ```bash
-hc s generate workdir/happ/sample.happ --run=8888
+hc s generate workdir/happ/where.happ --run=8888
 ```
 
 Now `holochain` will be listening at port `8888`;

@@ -1,17 +1,17 @@
 import { randomHash } from 'holochain-ui-test-utils';
 
 // TODO: change the functions of this class to match the functions that your zome has
-export class CalendarEventsMock {
+export class WhereMock {
   constructor() {
-    this.calendarEvents = [];
+    this.spaces = {};
   }
 
-  create_calendar_event(calendarInput) {
+  createSpace(spaceInput) {
     const newId = randomHash();
-    this.calendarEvents.push([
+    this.spaces.push([
       newId,
       {
-        ...calendarInput,
+        ...spaceInput,
         created_by: randomHash(),
       },
     ]);
@@ -19,7 +19,7 @@ export class CalendarEventsMock {
     return newId;
   }
 
-  get_all_calendar_events() {
-    return this.calendarEvents;
+  getSpaces() {
+    return this.spaces;
   }
 }

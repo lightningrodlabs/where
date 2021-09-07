@@ -3,7 +3,7 @@ import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 
 import { WhereService } from './where.service';
-import { Dictionary, Space, SpaceEntry, WhereEntry, Where, Location} from './types';
+import { Dictionary, Space, SpaceEntry, WhereEntry, Where, Location, Coord} from './types';
 
 export interface WhereStore {
   /** Static info */
@@ -17,7 +17,7 @@ export interface WhereStore {
   updateSpaces: () => Promise<Dictionary<Space>>;
   addSpace: (space: Space) => Promise<EntryHashB64>;
   addWhere: (spaceHash: string, where: Location) => Promise<void>;
-  updateWhere: (spaceHash: string, idx: number, x: number, y: number) => Promise<void>;
+  updateWhere: (spaceHash: string, idx: number, c: Coord) => Promise<void>;
   getAgentIdx: (space: string, agent: string) => number;
   space: (space:string) => Space;
   zoom: (current: string, delta:number) => void;
@@ -100,11 +100,10 @@ export function createWhereStore(
         return spaces
       })
     },
-    async updateWhere(spaceHash: string, idx: number, x: number, y: number) {
+    async updateWhere(spaceHash: string, idx: number, c: Coord) {
       const space = get(spacesStore)[spaceHash]
       const w = space.wheres[idx]
-      w.entry.location.x = x
-      w.entry.location.y = y
+      w.entry.location = c
 
       const entry : WhereEntry = {
         location: JSON.stringify(w.entry.location),

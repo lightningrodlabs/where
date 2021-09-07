@@ -5,7 +5,7 @@ import { contextProvided } from "@lit-labs/context";
 import { contextStore } from 'lit-svelte-stores';
 
 import { sharedStyles } from '../sharedStyles';
-import { whereContext, Location, Space, Dictionary } from '../types';
+import { whereContext, Location, Space, Dictionary, Coord } from '../types';
 import { WhereStore } from '../where.store';
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
@@ -52,8 +52,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   })
   _zooms!: Dictionary<number>;
 
-  private newX = 0
-  private newY = 0
+  private newCoord = {x:0,y:0}
 
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
@@ -70,20 +69,23 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return this._myProfile.nickname
   }
 
+  private getCoordsFromEvent(event: any) : Coord {
+    const rect = event.target.getBoundingClientRect();
+    const z = this._zooms[this.current]
+    const x = (event.clientX - rect.left)/z; //x position within the element.
+    const y = (event.clientY - rect.top)/z;  //y position within the element.
+    return {x,y}
+  }
+
   private handleClick(event: any) : void {
     if (event != null) {
-      const rect = event.target.getBoundingClientRect();
-      const z = this._zooms[this.current]
-      const x = (event.clientX - rect.left)/z; //x position within the element.
-      const y = (event.clientY - rect.top)/z;  //y position within the element.
-
+      const coord = this.getCoordsFromEvent(event)
       // For now we are assuming one where per agent keyed by the nickname
       const idx = this._store.getAgentIdx(this.current, this.myNickName )
       if (idx >= 0) {
-        this._store.updateWhere(this.current, idx, x, y)
+        this._store.updateWhere(this.current, idx, coord)
       } else {
-        this.newX = x
-        this.newY = y
+        this.newCoord = coord
         this.newWhereElem.open = true
       }
     }
@@ -97,7 +99,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const tag = this.shadowRoot!.getElementById("new-where-tag") as TextField
     if (e.detail.action == "ok") {
       const where : Location = {
-        location: {x: this.newX, y: this.newY},
+        location: this.newCoord,
         meta: {
           tag: tag.value,
           img: this.avatar,
@@ -112,6 +114,34 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  allowDrop(ev:Event) {
+    ev.preventDefault();
+  }
+
+  drag(ev: DragEvent) {
+    if (ev.target) {
+      const w = ev.target as HTMLImageElement
+      const data = w.getAttribute("idx")
+      if (ev.dataTransfer) {
+        ev.dataTransfer.setData("idx", `${data}`);
+      }
+    }
+  }
+
+  drop(ev: any) {
+    ev.preventDefault();
+    if (ev.dataTransfer) {
+      const data = ev.dataTransfer.getData("idx")
+      if (data != "") {
+        const idx = parseInt(data)
+        if (ev.target) {
+          const coord = this.getCoordsFromEvent(ev)
+          this._store.updateWhere(this.current, idx, coord)
+        }
+      }
+    }
+  }
+
   render() {
     if (!this.current) return
     const space = this._spaces[this.current]
@@ -122,7 +152,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const y = where.entry.location.y*z
 
       return html`
-<img idx="${i}" class="where-marker ${where.entry.meta.name == this.myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
+<img draggable=${true} @dragstart="${(e:DragEvent) => this.drag(e)}" idx="${i}" class="where-marker ${where.entry.meta.name == this.myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
 <div class="where-details ${where.entry.meta.name == this.myNickName ? "me": ""}"  style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
 <h3>${where.entry.meta.name}</h3>
 <p>${where.entry.meta.tag}</p>
@@ -130,7 +160,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     return html`
 <div class="surface">
-<img .style="width:${space.surface.size.x*z}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
+<img @drop="${(e:DragEvent) => this.drop(e)}" @dragover="${(e:DragEvent) => this.allowDrop(e)}" .style="width:${space.surface.size.x*z}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}
 <mwc-dialog id="new-where" heading="New Where" @closing=${this.handleNewWhere}>
 <mwc-textfield

@@ -4,12 +4,12 @@
   "modules": [
     {
       "kind": "javascript-module",
-      "path": "src/elements/where-map.ts",
+      "path": "src/elements/where-controller.ts",
       "declarations": [
         {
           "kind": "class",
           "description": "",
-          "name": "WhereMap",
+          "name": "WhereController",
           "cssParts": [
             {
               "description": "Style the event title textfield",
@@ -39,18 +39,8 @@
             }
           ],
           "events": [
-            {
-              "description": "Fired after actually creating the event, containing the new CalendarEvent",
-              "name": "event-created"
-            }
           ],
           "attributes": [
-            {
-              "name": "title",
-              "description": "This is a description of a property with an attribute with exactly the same name: \"color\".",
-              "default": "'Hey there'",
-              "fieldName": "title"
-            }
           ],
           "mixins": [
             {
@@ -62,17 +52,17 @@
             "name": "LitElement",
             "package": "lit"
           },
-          "tagName": "calendar-event",
+          "tagName": "where-controller",
           "customElement": true
         }
       ],
       "exports": [
         {
           "kind": "js",
-          "name": "WhereMap",
+          "name": "WhereController",
           "declaration": {
-            "name": "WhereMap",
-            "module": "src/elements/where-map.ts"
+            "name": "WhereController",
+            "module": "src/elements/where-controller.ts"
           }
         }
       ]

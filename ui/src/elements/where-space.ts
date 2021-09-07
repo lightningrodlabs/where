@@ -52,13 +52,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   })
   _zooms!: Dictionary<number>;
 
-  private newX: number = 0
-  private newY: number = 0
+  private newX = 0
+  private newY = 0
 
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
       e.preventDefault()
-      this._store.zoom(this.current, e.deltaY > 0 ? .05 : -.05)
+      this._store.zoom(this.current, e.deltaY > 0 ? -.05 : .05)
     }
   }
 

@@ -15,7 +15,7 @@
 
     <script type="module">
       import { ContextProvider } from '@lit-labs/context';
-      import { WhereMap, WhereSpace, whereContext, createWhereStore  } from "../dist"
+      import { WhereController, WhereSpace, whereContext, createWhereStore  } from "../dist"
       import {
         ProfilePrompt,
         createProfilesStore,
@@ -65,7 +65,7 @@
           if (!this.loaded) return html`<span>Loading...</span>`;
           return html`
             <profile-prompt style="height: 400px; width: 500px">
-              <where-map></where-map>
+              <where-controller></where-controller>
             </profile-prompt>
           `;
         }
@@ -73,7 +73,7 @@
         static get scopedElements() {
           return {
             'profile-prompt': ProfilePrompt,
-            'where-map': WhereMap,
+            'where-controller': WhereController,
             'where-space': WhereSpace
           };
         }

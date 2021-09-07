@@ -18,22 +18,17 @@ import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-de
 import { TextField } from 'scoped-material-components/mwc-textfield';
 
 /**
- * @element where-map
+ * @element where-controller
  * @fires event-created - Fired after actually creating the event, containing the new CalendarEvent
  * @csspart event-title - Style the event title textfield
  */
-export class WhereMap extends ScopedElementsMixin(LitElement) {
+export class WhereController extends ScopedElementsMixin(LitElement) {
 
   constructor() {
     super()
   }
 
   /** Public attributes */
-
-  /**
-   * This is a description of a property with an attribute with exactly the same name: "color".
-   */
-  @property({ type: String }) title = 'Hey there';
 
   /** Dependencies */
 

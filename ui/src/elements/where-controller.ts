@@ -62,9 +62,32 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   @state() _current = "";
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
+  private initialized = false
+
   get myNickName(): string {
     return this._myProfile.nickname
 //    return this._profiles.myProfile ? this._profiles.myProfile.nickname : ""
+  }
+
+  firstUpdated() {
+    const _unsubscribe = this._profiles.myProfile.subscribe(()=>  {
+      // unsubscribe()
+      this.checkInit()
+    })
+  }
+
+  async checkInit() {
+    if (!this.initialized) {
+      let spaces = await this._store.updateSpaces();
+      // load up a space if there are none:
+      if (Object.keys(spaces).length == 0) {
+        await this.initializeSpaces();
+        spaces = await this._store.updateSpaces();
+      }
+      this._current = Object.keys(spaces)[0]
+      console.log("current space", this._current, spaces[this._current].name)
+    }
+    this.initialized = true
   }
 
   async initializeSpaces() {
@@ -122,27 +145,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.updateSpaces();
   }
 
-
-  async checkInit() {
-    if (this._profiles) {
-      await this._profiles.fetchMyProfile()
-
-      if (this._myProfile) {
-        let spaces = await this._store.updateSpaces();
-        // load up a space if there are none:
-        if (Object.keys(spaces).length == 0) {
-          await this.initializeSpaces();
-          spaces = await this._store.updateSpaces();
-        }
-        this._current = Object.keys(spaces)[0]
-        console.log("current space", this._current, spaces[this._current].name)
-        return
-      }
-    }
-    console.log("trying again")
-    setTimeout(this.checkInit,200)
-  }
-
   get spaceElem() : WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
@@ -194,11 +196,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    if (!this._current) return html`
-<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>
-`;
-    const space = this._store.space(this._current)
+    if (!this._current) return // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
 
+    const space = this._store.space(this._current)
 
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>

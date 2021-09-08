@@ -1,6 +1,6 @@
 [workspace]
 members = [
-  "zome/zomes/where",
+  "dna/zomes/where",
 ]
 
 [profile.dev]

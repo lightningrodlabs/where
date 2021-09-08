@@ -11,15 +11,6 @@ const globals = fromRollup(rollupGlobals);
 
 export default [
   replace({
-    global: 'window',
-    'process.env.NODE_ENV': '"production"',
-    'process.env.CONDUCTOR_URL': process.env.CONDUCTOR_URL
-      ? `"${process.env.CONDUCTOR_URL}"`
-      : 'undefined',
+    'process.env.PORT': process.env.PORT,
   }),
-  builtins(),
-  commonjs({
-    include: ['node_modules/**/*']
-  }),
-  globals(),
 ];

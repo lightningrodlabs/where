@@ -29,7 +29,7 @@ hc app pack workdir/happ
 ```
 ### Running the DNA tests
 ```bash
-cd zome/tests
+cd dna/tests
 npm run test
 ```
 

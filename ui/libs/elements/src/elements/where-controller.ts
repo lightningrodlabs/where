@@ -98,6 +98,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         surface: {
           url: "https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg",
           size: {x:3840, y:1799},
+          data: "",
         },
         meta: {},
         wheres: [
@@ -125,19 +126,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         name: "Ecuador",
         surface: {
           url: "https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg",
-          size: {x: 500, y: 300}
+          size: {x: 500, y: 300},
+          data: "",
         },
         meta: {multi: "true"},
-        wheres: [/*
-          { entry: {location: {x: 0, y: 0},
-                    meta: {
-                      name: "Monk",
-                      tag: "My apartment",
-                      img: "https://i.imgur.com/4BKqQY1.png"
-                    }},
-            hash: "",
-            authorPubKey: "sntahoeuabcorchaotbkantgcdoesucd"}*/
-        ]
+        wheres: []
+      }
+    )
+    await this._store.addSpace(
+      {
+        name: "Abstract",
+        surface: {
+          url: "",
+          size: {x: 2000, y: 1000},
+          data: `[{"location":{x":0,"y":0},"content":"<div width='2000' height='1000' style='background-color:red'></div>"}]`,
+        },
+        meta: {multi: "true"},
+        wheres: []
       }
     )
   }
@@ -179,7 +184,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           name: name.value,
           surface: {
             url: url.value,
-            size: {x: img.naturalHeight, y: img.naturalWidth}
+            size: {x: img.naturalHeight, y: img.naturalWidth},
+            data: ""
           },
           meta: {
             multi: multi.checked ? "true" : ""

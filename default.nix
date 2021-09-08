@@ -1,9 +1,9 @@
 # Example: Custom Holochain And Binaries
-# 
+#
 # The following `shell.nix` file can be used in your project's root folder and activated with `nix-shell`.
 # It uses a custom revision and a custom set of binaries to be installed.
 
-{ 
+{
   holonixPath ?  builtins.fetchTarball { url = "https://github.com/holochain/holonix/archive/develop.tar.gz"; }
 }:
 
@@ -36,5 +36,6 @@ in nixpkgs.mkShell {
   inputsFrom = [ holonix.main ];
   buildInputs = with nixpkgs; [
     binaryen
+    nodejs-16_x
   ];
 }

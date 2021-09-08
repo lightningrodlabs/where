@@ -37,6 +37,7 @@ export interface Coord {
 
 export interface Surface {
   url: string;
+  data: string;
   size: Coord;
 }
 

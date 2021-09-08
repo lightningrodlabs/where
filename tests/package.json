@@ -1,15 +1,14 @@
 {
-  "name": "tests",
+  "name": "@where/tests",
   "version": "0.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "npm run test:setup && npm run test:standard",
-    "test:standard": "TRYORAMA_LOG_LEVEL=info RUST_LOG=holochain::core::ribosome::host_fn::debug=debug RUST_BACKTRACE=1 ts-node src/index.ts | tap-diff",
-    "test:setup": "CARGO_TARGET_DIR=../target cargo build --release --target wasm32-unknown-unknown && hc dna pack ../workdir/dna -o ../workdir/dna/where.dna"
+    "test": "npm run test:zome",
+    "test:zome": "TRYORAMA_LOG_LEVEL=info RUST_BACKTRACE=1 RUST_LOG=holochain::core::ribosome::host_fn::debug=debug TRYORAMA_HOLOCHAIN_PATH=\"holochain\" node --loader ts-node/esm --experimental-specifier-resolution=node src/index.ts | tap-diff"
   },
   "author": "",
-  "license": "ISC",
+  "license": "CAL-1.0",
   "dependencies": {
     "@msgpack/msgpack": "^2.4.1",
     "js-base64": "^3.6.1",
@@ -24,5 +23,7 @@
     "@types/lodash": "^4.14.158",
     "@types/node": "^14.0.14",
     "tap-diff": "^0.1.1"
-  }
+  },
+  "type": "module"
+
 }

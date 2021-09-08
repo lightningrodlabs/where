@@ -52,7 +52,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   })
   _zooms!: Dictionary<number>;
 
-  private newCoord = {x:0,y:0}
+  private dialogCoord = {x:0,y:0}
+  private dialogIsEdit = false
+  private dialogIdx = 0
 
   private _handleWheel = (e:WheelEvent) => {
     if (e.target) {
@@ -93,21 +95,30 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private handleClick(event: any) : void {
     if (event != null && this.canCreate()) {
       const coord = this.getCoordsFromEvent(event)
-      this.newCoord = coord
-      this.openWhereDialog(this.myNickName, this.avatar)
+      this.dialogCoord = coord
+      //TODO fixme with a better way to know dialog type
+      this.dialogIsEdit = false
+      this.openWhereDialog({tag:"", name: this.myNickName, img:this.avatar, isEdit:false})
     }
   }
 
-  openWhereDialog(name: string="", img:string="", tag:string="") {
+  openWhereDialog(options = {name:"",img:"",tag:"", isEdit:false}, coord?:Coord, idx?:number) {
     const nameE = this.shadowRoot!.getElementById("edit-where-name") as TextField
     const imgE = this.shadowRoot!.getElementById("edit-where-img") as TextField
     const tagE = this.shadowRoot!.getElementById("edit-where-tag") as TextField
-    nameE.value = name;
-    // TODO: later these may be made visible for some kinds of spaces
+   // TODO: later these may be made visible for some kinds of spaces
     (nameE as HTMLElement).style.display = "none";
     (imgE as HTMLElement).style.display = "none";
-    imgE.value = img;
-    tagE.value = tag;
+    if (options.name) nameE.value = options.name;
+    if (options.img) imgE.value = options.img;
+    if (options.tag) tagE.value = options.tag;
+    if (options.isEdit) {
+      this.dialogIsEdit = options.isEdit
+      if (coord) this.dialogCoord = coord
+      if (idx) this.dialogIdx = idx
+    } else {
+      this.dialogIsEdit = false
+    }
     this.whereDialogElem.open = true
   }
 
@@ -121,14 +132,19 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const img = this.shadowRoot!.getElementById("edit-where-img") as TextField
       const name = this.shadowRoot!.getElementById("edit-where-name") as TextField
       const where : Location = {
-        location: this.newCoord,
+        location: this.dialogCoord,
         meta: {
           tag: tag.value,
           img: img.value,
           name: name.value,
         }
       }
-      this._store.addWhere(this.current, where )
+      if (this.dialogIsEdit) {
+        this._store.updateWhere(this.current, this.dialogIdx, this.dialogCoord, tag.value)
+
+      } else {
+        this._store.addWhere(this.current, where )
+      }
     }
   }
 
@@ -164,6 +180,29 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  private dblclick(ev: any) {
+    if (ev.target) {
+      const wElem = ev.target as HTMLImageElement
+      const idxStr = wElem.getAttribute("idx")
+      if (idxStr) {
+        const idx = parseInt(idxStr)
+        if (this.canUpdate(idx)) {
+          const w = this._store.space(this.current).wheres[idx]
+          this.openWhereDialog(
+            {
+              name: w.entry.meta.name,
+              img: w.entry.meta.img,
+              tag: w.entry.meta.tag,
+              isEdit: true
+            },
+            w.entry.location,
+            idx,
+          )
+        }
+      }
+    }
+  }
+
   render() {
     if (!this.current) return
     const space = this._spaces[this.current]
@@ -174,7 +213,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const y = where.entry.location.y*z
 
       return html`
-<img draggable=${true} @dragstart="${(e:DragEvent) => this.drag(e)}" idx="${i}" class="where-marker ${where.entry.meta.name == this.myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
+<img .draggable=${true} @dblclick="${(e:Event)=>this.dblclick(e)}" @dragstart="${(e:DragEvent) => this.drag(e)}" idx="${i}" class="where-marker ${where.entry.meta.name == this.myNickName ? "me": ""}" style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
 <div class="where-details ${where.entry.meta.name == this.myNickName ? "me": ""}"  style="left:${x}px;top: ${y}px" src="${where.entry.meta.img}">
 <h3>${where.entry.meta.name}</h3>
 <p>${where.entry.meta.tag}</p>

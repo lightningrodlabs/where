@@ -17,7 +17,7 @@ export interface WhereStore {
   updateSpaces: () => Promise<Dictionary<Space>>;
   addSpace: (space: Space) => Promise<EntryHashB64>;
   addWhere: (spaceHash: string, where: Location) => Promise<void>;
-  updateWhere: (spaceHash: string, idx: number, c: Coord) => Promise<void>;
+  updateWhere: (spaceHash: string, idx: number, c: Coord, tag?:string) => Promise<void>;
   getAgentIdx: (space: string, agent: string) => number;
   space: (space:string) => Space;
   zoom: (current: string, delta:number) => void;
@@ -100,10 +100,13 @@ export function createWhereStore(
         return spaces
       })
     },
-    async updateWhere(spaceHash: string, idx: number, c: Coord) {
+    async updateWhere(spaceHash: string, idx: number, c: Coord, tag?:string) {
       const space = get(spacesStore)[spaceHash]
       const w = space.wheres[idx]
       w.entry.location = c
+      if (tag != null) {
+        w.entry.meta.tag = tag
+      }
 
       const entry : WhereEntry = {
         location: JSON.stringify(w.entry.location),

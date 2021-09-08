@@ -80,16 +80,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private canCreate() : boolean {
-    // TODO update to check properties of space for updating
-    // for now it's just if there's not already a where
+    if (this._store.space(this.current).meta!.multi) return true
     const myIdx = this._store.getAgentIdx(this.current, this.myNickName )
     return myIdx == -1
   }
 
   private canUpdate(idx: number) : boolean {
-    // TODO update to check properties of space for updating
-    const myIdx = this._store.getAgentIdx(this.current, this.myNickName )
-    return idx == myIdx
+    const w = this._store.space(this.current).wheres[idx]
+    return w.entry.meta.name == this.myNickName
   }
 
   private handleClick(event: any) : void {
@@ -109,9 +107,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
    // TODO: later these may be made visible for some kinds of spaces
     (nameE as HTMLElement).style.display = "none";
     (imgE as HTMLElement).style.display = "none";
-    if (options.name) nameE.value = options.name;
-    if (options.img) imgE.value = options.img;
-    if (options.tag) tagE.value = options.tag;
+    nameE.value = options.name;
+    imgE.value = options.img;
+    tagE.value = options.tag;
     if (options.isEdit) {
       this.dialogIsEdit = options.isEdit
       if (coord) this.dialogCoord = coord

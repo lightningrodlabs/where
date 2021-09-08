@@ -17,6 +17,8 @@ import { Button } from 'scoped-material-components/mwc-button';
 import { Dialog } from 'scoped-material-components/mwc-dialog';
 import { profilesStoreContext, ProfilesStore, Profile } from "@holochain-open-dev/profiles";
 import { TextField } from 'scoped-material-components/mwc-textfield';
+import { Formfield } from 'scoped-material-components/mwc-formfield';
+import { Checkbox } from 'scoped-material-components/mwc-checkbox';
 
 /**
  * @element where-controller
@@ -125,7 +127,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           url: "https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg",
           size: {x: 500, y: 300}
         },
-        meta: {},
+        meta: {multi: "true"},
         wheres: [/*
           { entry: {location: {x: 0, y: 0},
                     meta: {
@@ -148,13 +150,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
 
-  async newSpace() {
-    const dialog = this.newSpaceElem
+  async openSpaceDialog() {
+    const dialog = this.spaceDialogElem
     dialog.open = true
   }
 
-  get newSpaceElem() : Dialog {
-    return this.shadowRoot!.getElementById("new-space") as Dialog;
+  get spaceDialogElem() : Dialog {
+    return this.shadowRoot!.getElementById("space-dialog") as Dialog;
   }
 
   private handleSpaceSelect(space: string) : void {
@@ -166,9 +168,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.spaceElem.zoom(zoom)
   }
 
-  private async handleNewSpace(e: any) {
-    const name = this.shadowRoot!.getElementById("new-space-name") as TextField
-    const url = this.shadowRoot!.getElementById("new-space-url") as TextField
+  private async handleSpaceDialog(e: any) {
+    const name = this.shadowRoot!.getElementById("space-dialog-name") as TextField
+    const url = this.shadowRoot!.getElementById("space-dialog-url") as TextField
+    const multi = this.shadowRoot!.getElementById("space-dialog-multi") as Checkbox
     if (e.detail.action == "ok") {
       const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement
       img.onload = async () => {
@@ -178,7 +181,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
             url: url.value,
             size: {x: img.naturalHeight, y: img.naturalWidth}
           },
-          meta: {},
+          meta: {
+            multi: multi.checked ? "true" : ""
+          },
           wheres: []
         }
         this._current = await this._store.addSpace(space)
@@ -210,25 +215,18 @@ ${Object.entries(this._spaces).map(([key,space]) => html`
   <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(.1)}></mwc-icon-button>
   <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-.1)}></mwc-icon-button>
 </div>
-<mwc-button icon="add_circle" @click=${() => this.newSpace()}>New</mwc-button>
+<mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>New</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
 
-<mwc-dialog id="new-space" heading="New Space" @closing=${this.handleNewSpace}>
-<mwc-textfield
-id="new-space-name"
-minlength="3"
-maxlength="64"
-placeholder="Name"
-required>
-</mwc-textfield>
-<mwc-textfield
-id="new-space-url"
-placeholder="Image URL"
-required>
-<img id="sfc" src=""></img>
-</mwc-textfield>
+<mwc-dialog id="space-dialog" heading="Space" @closing=${this.handleSpaceDialog}>
+<mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" placeholder="Name" required></mwc-textfield>
+<mwc-textfield id="space-dialog-url" placeholder="Image URL" required></mwc-textfield>
+<mwc-formfield label="Multi-wheres per user">
+<mwc-checkbox id="space-dialog-multi"></mwc-checkbox>
+</mwc-formfield>
 <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
+<img id="sfc" src=""></img>
 </mwc-dialog>
 
 <where-space id="where-space" .current=${this._current} avatar="${this._myAvatar}"></where-space>
@@ -243,6 +241,8 @@ required>
       'mwc-button': Button,
       'mwc-dialog': Dialog,
       'mwc-textfield': TextField,
+      'mwc-formfield': Formfield,
+      'mwc-checkbox': Checkbox,
       'where-space': WhereSpace,
     };
   }

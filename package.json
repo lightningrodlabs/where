@@ -7,7 +7,7 @@
     "tests"
   ],
   "scripts": {
-    "start": "npm run build:happ && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ\" \"npm run start -w where\"",
+    "start": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ\" \"npm run start -w where\"",
     "test": "npm run build:happ && npm t -w tests",
     "start:happ": "RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where",
     "build:happ": "npm run build:dna && hc app pack ./dna/workdir/happ",

@@ -10,13 +10,15 @@
   "author": "",
   "license": "CAL-1.0",
   "dependencies": {
-    "@msgpack/msgpack": "^2.4.1",
+    "@msgpack/msgpack": "^2.7.0",
+    "esm": "^3.2.25",
     "js-base64": "^3.6.1",
-    "lodash": "^4.17.19",
-    "tape": "^5.0.1",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.9.6",
-    "uuidv4": "^6.2.3"
+    "lodash-es": "^4.17.21",
+    "path": "^0.12.7",
+    "tape": "^5.2.2",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.3.5",
+    "uuidv4": "^6.2.11"
   },
   "devDependencies": {
     "@holochain/tryorama": "holochain/tryorama#3970c375e5f48bbf520e8ec906fb37f1ee29c35e",
@@ -25,5 +27,4 @@
     "tap-diff": "^0.1.1"
   },
   "type": "module"
-
 }

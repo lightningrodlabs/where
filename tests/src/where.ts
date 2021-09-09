@@ -7,7 +7,7 @@ import { Base64 } from "js-base64";
 function serializeHash(hash: Uint8Array): string {
   return `u${Base64.fromUint8Array(hash, true)}`;
 }
-module.exports = async (orchestrator) => {
+export default async (orchestrator) => {
 
   orchestrator.registerScenario('where basic tests', async (s, t) => {
     // Declare two players using the previously specified config, nicknaming them "alice" and "bob"

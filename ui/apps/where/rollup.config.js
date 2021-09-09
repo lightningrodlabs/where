@@ -13,9 +13,7 @@ import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
 
 const HC_PORT = process.env.HC_PORT || 8888;
-const DIST_FOLDER = process.env.ROLLUP_WATCH
-  ? `.dist/${HC_PORT}`
-  : "dist";
+const DIST_FOLDER = process.env.ROLLUP_WATCH ? `.dist/${HC_PORT}`: "dist";
 
 export default {
   input: "index.html",
@@ -26,7 +24,6 @@ export default {
     format: "es",
     dir: DIST_FOLDER,
   },
-  preserveEntrySignatures: false,
 
   plugins: [
     /** Enable using HTML as rollup entrypoint */

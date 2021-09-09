@@ -5,7 +5,7 @@ const delay = ms => new Promise(r => setTimeout(r, ms))
 import { localConductorConfig, installAgents, awaitIntegration } from './common'
 var wait = ms => new Promise((r, j)=>setTimeout(r, ms))
 
-module.exports = (orchestrator) => {
+export default (orchestrator) => {
 
   orchestrator.registerScenario('test profile zomes', async (s, t) => {
     // spawn the conductor process

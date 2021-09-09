@@ -1,6 +1,9 @@
 import { Orchestrator, Config, InstallAgentsHapps, InstalledHapp } from '@holochain/tryorama'
 import * as msgpack from '@msgpack/msgpack';
 import path from 'path'
+import { fileURLToPath } from "url";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export const RETRY_DELAY = 1000
 export const RETRY_COUNT = 16
@@ -92,7 +95,7 @@ export const networkedConductorConfig = Config.gen({ network })
 
 
 // Construct proper paths for your DNAs
-export const chatDna = path.join(__dirname, "../../workdir/dna/where.dna")
+export const chatDna = path.join(__dirname, "../../dna/workdir/dna/where.dna")
 
 // create an InstallAgentsHapps array with your DNAs to tell tryorama what
 // to install into the conductor.

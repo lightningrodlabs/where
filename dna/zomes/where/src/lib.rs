@@ -56,7 +56,8 @@ fn get_spaces_path() -> Path {
 #[hdk_extern]
 fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let _header_hash = create_entry(&input)?;
-    let hash = hash_entry(input)?;
+    let hash = hash_entry(input.clone())?;
+    emit_signal(&SignalPayload::new(hash.clone().into(), Message::NewSpace(input)))?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
@@ -149,4 +150,53 @@ fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
     }
 
     Ok(output)
+}
+
+#[derive(Serialize, Deserialize, SerializedBytes, Debug)]
+    #[serde(tag = "type", content = "content")]
+pub enum Message {
+    NewSpace(Space),
+    NewWhere(WhereOutput),
+    DeleteWhere(HeaderHashB64)
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+    #[serde(rename_all = "camelCase")]
+pub struct SignalPayload {
+    space_hash: EntryHashB64,
+    message: Message,
+}
+
+impl SignalPayload {
+    fn new(space_hash: EntryHashB64, message: Message) -> Self {
+        SignalPayload {
+            space_hash,
+            message,
+        }
+    }
+}
+
+#[hdk_extern]
+fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
+    let sig: SignalPayload = signal.decode()?;
+    Ok(emit_signal(&sig)?)
+}
+
+/// Input to the notify call
+#[derive(Serialize, Deserialize, SerializedBytes, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct NotifyInput {
+    pub folks: Vec<AgentPubKeyB64>,
+    pub signal: SignalPayload,
+}
+
+
+#[hdk_extern]
+fn notify(input: NotifyInput) -> ExternResult<()> {
+    let mut folks : Vec<AgentPubKey> = vec![];
+    for a in input.folks {
+        folks.push(a.into())
+    }
+    remote_signal(ExternIO::encode(input.signal)?,folks)?;
+    Ok(())
 }

@@ -6,7 +6,7 @@ import { contextStore } from "lit-svelte-stores";
 import { Unsubscriber } from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, Space, Dictionary } from "../types";
+import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
@@ -51,6 +51,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _myProfile!: Profile;
 
   @contextStore({
+    context: profilesStoreContext,
+    selectStore: (s) => s.knownProfiles,
+  })
+  _knownProfiles!: Dictionary<Profile>;
+
+  @contextStore({
     context: whereContext,
     selectStore: (s) => s.spaces,
   })
@@ -74,6 +80,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   firstUpdated() {
+
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe(() => {
       this.checkInit();
@@ -198,7 +205,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           surface: {
             url: url.value,
             size: { x: img.naturalHeight, y: img.naturalWidth },
-            data: "",
+            data: "[]",
           },
           meta: {
             multi: multi.checked ? "true" : "",
@@ -218,7 +225,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
-
+    const folks = Object.entries(this._knownProfiles).map(([key, profile])=>{
+      return html`<li class="folk">${profile.nickname}</li>`
+    })
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
 ${Object.entries(this._spaces).map(
@@ -242,6 +251,11 @@ ${Object.entries(this._spaces).map(
 <mwc-button icon="add_circle" @click=${() =>
       this.openSpaceDialog()}>New</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+
+<div class="folks">
+Folks:
+${folks}
+</div>
 
 <mwc-dialog id="space-dialog" heading="Space" @closing=${
       this.handleSpaceDialog
@@ -290,6 +304,13 @@ ${Object.entries(this._spaces).map(
         .zoom mwc-icon-button {
           height: 30px;
           margin-top: -8px;
+        }
+
+        .folks {
+          float:right;
+        }
+        .folk {
+list-style: none
         }
 
         @media (min-width: 640px) {

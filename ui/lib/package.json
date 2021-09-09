@@ -15,13 +15,13 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@holochain-open-dev/cell-client": "^0.0.3",
+    "@holochain-open-dev/cell-client": "^0.0.4",
     "@holochain-open-dev/core-types": "^0.1.1",
     "@holochain-open-dev/profiles": "github.com:holochain-open-dev/profiles.git#ui-build",
     "@lit-labs/context": "github:holochain-open-dev/context#build",
     "@open-wc/scoped-elements": "^2.0.0-next.4",
-    "@scoped-elements/material-web": "0.0.4",
-    "scoped-material-components": "^0.1.6",
+    "@scoped-elements/material-web": "^0.0.4",
+    "cqfill": "^0.6.0",
     "lit": "^2.0.0-rc.3",
     "lit-svelte-stores": "^0.0.10",
     "lodash-es": "^4.17.21",

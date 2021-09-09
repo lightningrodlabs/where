@@ -1,5 +1,11 @@
-import { ContextProvider } from '@lit-labs/context';
-import { WhereController, WhereSpace, whereContext, createWhereStore  } from "@where/elements"
+import { ContextProvider } from "@lit-labs/context";
+import { state } from "lit/decorators.js";
+import {
+  WhereController,
+  WhereSpace,
+  whereContext,
+  createWhereStore,
+} from "@where/elements";
 import {
   ProfilePrompt,
   createProfilesStore,
@@ -7,24 +13,19 @@ import {
 } from "@holochain-open-dev/profiles";
 import { AppWebsocket } from "@holochain/conductor-api";
 import { HolochainClient } from "@holochain-open-dev/cell-client";
-import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import { LitElement, html } from 'lit';
+import { ScopedElementsMixin } from "@open-wc/scoped-elements";
+import { LitElement, html } from "lit";
 
-class WhereApp extends ScopedElementsMixin(LitElement) {
-  static get properties() {
-    return {
-      loaded: {
-        type: Boolean,
-      },
-    };
-  }
+export class WhereApp extends ScopedElementsMixin(LitElement) {
+  @state()
+  loaded = false;
 
   async firstUpdated() {
     const appWebsocket = await AppWebsocket.connect(
-      'ws://localhost:8888'
+      `ws://localhost:${process.env.HC_PORT}`
     );
     const appInfo = await appWebsocket.appInfo({
-      installed_app_id: 'where',
+      installed_app_id: "where",
     });
 
     const cellData = appInfo.cell_data[0];
@@ -36,11 +37,7 @@ class WhereApp extends ScopedElementsMixin(LitElement) {
       createProfilesStore(cellClient)
     );
 
-    new ContextProvider(
-      this,
-      whereContext,
-      createWhereStore(cellClient)
-    );
+    new ContextProvider(this, whereContext, createWhereStore(cellClient));
 
     this.loaded = true;
   }
@@ -48,17 +45,17 @@ class WhereApp extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this.loaded) return html`<span>Loading...</span>`;
     return html`
-<profile-prompt style="height: 400px; width: 500px">
-<where-controller></where-controller>
-</profile-prompt>
-`;
+      <profile-prompt style="height: 400px; width: 500px">
+        <where-controller></where-controller>
+      </profile-prompt>
+    `;
   }
 
   static get scopedElements() {
     return {
-      'profile-prompt': ProfilePrompt,
-      'where-controller': WhereController,
-      'where-space': WhereSpace
+      "profile-prompt": ProfilePrompt,
+      "where-controller": WhereController,
+      "where-space": WhereSpace,
     };
   }
 }

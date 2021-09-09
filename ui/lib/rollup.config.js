@@ -11,16 +11,11 @@ export default {
   input: `src/index.ts`,
   output: [{ dir: 'dist', format: 'es', sourcemap: true }],
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash-es')
-  external: [...Object.keys(pkg.dependencies), /scoped-material-components/, /lit/],
+  external: [...Object.keys(pkg.dependencies), /lit/],
   watch: {
     include: 'src/**',
   },
   plugins: [
-    postcss({
-      inject: false,
-      plugins: [postcssCQFill],
-    }),
-    postcssLit(),
     typescript({
       target: 'es6',
     }),

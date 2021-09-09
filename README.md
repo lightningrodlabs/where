@@ -22,14 +22,11 @@ For more details read the [design documents](DESIGN.md).
   - Assemble the DNA:
 
 ```bash
-cd zome
-CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown
-hc dna pack workdir/dna
-hc app pack workdir/happ
+npm run build:happ
 ```
+
 ### Running the DNA tests
 ```bash
-cd dna/tests
 npm run test
 ```
 
@@ -38,7 +35,6 @@ npm run test
 To test out the UI:
 
 ``` bash
-cd ui
 npm run start
 ```
 

@@ -217,10 +217,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 <p>${where.entry.meta.tag}</p>
 `})
 
+    const dataItems = JSON.parse(space.surface.data).map((item:any ) => {
+
+      return html`
+<div class="data-item" style="width:${item.box.width*z}px;height:${item.box.height*z}px;left:${item.box.left*z}px;top:${item.box.top*z}px;${item.style}">${item.content}</div>
+`
+    })
+
+    const w = space.surface.size.x*z
+    const h = space.surface.size.y*z
     return html`
-<div class="surface">
-<img @drop="${(e:DragEvent) => this.drop(e)}" @dragover="${(e:DragEvent) => this.allowDrop(e)}" .style="width:${space.surface.size.x*z}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
+<div class="surface" style="width:${w*1.01}px;height:${h*1.01}px">
+<img @drop="${(e:DragEvent) => this.drop(e)}" @dragover="${(e:DragEvent) => this.allowDrop(e)}" .style="width:${w}px;height:${h}px" .id="${this.current}-img" src="${space.surface.url}" @click=${this.handleClick}>
 ${whereItems}
+${dataItems}
 <mwc-dialog id="edit-where" heading="Where" @closing=${this.handleWhereDialog}>
 <mwc-textfield id="edit-where-name" placeholder="Name"></mwc-textfield>
 <mwc-textfield id="edit-where-img" placeholder="Image Url"></mwc-textfield>
@@ -263,6 +273,7 @@ height: ${MARKER_WIDTH}px;
 width: ${MARKER_WIDTH}px;
 margin-top: -${MARKER_WIDTH/2}px;
 margin-left: -${MARKER_WIDTH/2}px;
+z-index: 10000;
 }
 
 img.where-marker.me {
@@ -272,6 +283,7 @@ border: orange 2px solid;
 .where-details {
 display: none;
 position: absolute;
+z-index: 10000;
 
 background: white;
 border-radius: 10px;
@@ -295,6 +307,14 @@ margin-bottom: 0;
 .where-marker:hover + .where-details, .where-details:hover {
 display: block;
 }
+
+.data-item {
+position:absolute;
+pointer-events: none;
+text-align:center;
+}
+
+
 `]
   }
 }

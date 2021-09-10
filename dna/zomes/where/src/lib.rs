@@ -179,6 +179,7 @@ impl SignalPayload {
 #[hdk_extern]
 fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
     let sig: SignalPayload = signal.decode()?;
+    debug!("Received signal {:?}", sig);
     Ok(emit_signal(&sig)?)
 }
 
@@ -194,9 +195,10 @@ pub struct NotifyInput {
 #[hdk_extern]
 fn notify(input: NotifyInput) -> ExternResult<()> {
     let mut folks : Vec<AgentPubKey> = vec![];
-    for a in input.folks {
+    for a in input.folks.clone() {
         folks.push(a.into())
     }
+    debug!("Sending signal {:?} to {:?}", input.signal, input.folks);
     remote_signal(ExternIO::encode(input.signal)?,folks)?;
     Ok(())
 }

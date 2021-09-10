@@ -325,9 +325,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           max-height: 900px;
         }
 
-        .surface > img {
-        }
-
         img.where-marker {
           max-width: 100%;
           max-height: 100%;

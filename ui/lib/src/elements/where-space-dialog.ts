@@ -1,5 +1,5 @@
 import { html, css, LitElement } from "lit";
-import { state } from "lit/decorators.js";
+import { state, query } from "lit/decorators.js";
 
 import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";
@@ -24,33 +24,36 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     dialog.open = true
   }
 
+  /** Private properties */
+  @query('#name-field')
+  _nameField!: TextField;
+  @query('#url-field')
+  _urlField!: TextField;
+  @query('#multi-chk')
+  _multiChk!: Checkbox;
+  @query('#sfc')
+  _surfaceImg!: HTMLImageElement;
+
 
   private async handleOk(e: any) {
-    const name = this.shadowRoot!.getElementById(
-      "name-field"
-    ) as TextField;
-    const url = this.shadowRoot!.getElementById(
-      "url-field"
-    ) as TextField;
-    const valid = url.validity.valid && name.validity.valid
-    if (!name.validity.valid) {
-      name.reportValidity()
+    const valid = this._urlField.validity.valid && this._nameField.validity.valid
+    if (!this._nameField.validity.valid) {
+      this._nameField.reportValidity()
     }
-    if (!url.validity.valid) {
-      url.reportValidity()
+    if (!this._urlField.validity.valid) {
+      this._urlField.reportValidity()
     }
     if (!valid) return
 
     const multi = this.shadowRoot!.getElementById(
       "multi-chk"
     ) as Checkbox;
-    const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
 
     const space: Space = {
-      name: name.value,
+      name: this._nameField.value,
       surface: {
-        url: url.value,
-        size: { y: img.naturalHeight, x: img.naturalWidth },
+        url: this._urlField.value,
+        size: { y: this._surfaceImg.naturalHeight, x: this._surfaceImg.naturalWidth },
         data: "[]",
       },
       meta: {
@@ -67,30 +70,19 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private async handleSpaceDialog(e: any) {
-    const name = this.shadowRoot!.getElementById(
-      "name-field"
-    ) as TextField;
-    const url = this.shadowRoot!.getElementById(
-      "url-field"
-    ) as TextField;
-    const multi = this.shadowRoot!.getElementById(
-      "multi-chk"
-    ) as Checkbox;
-    name.value = "";
-    url.value = "";
+    this._nameField.value = "";
+    this._urlField.value = "";
+    this._surfaceImg.src = "";
   }
 
   handleUrlUpdated(e:Event) {
-    const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
-    const url = this.shadowRoot!.getElementById(
-      "url-field"
-    ) as TextField;
-    url.setCustomValidity("can't load url")
-    img.onload = async () => {
-      url.setCustomValidity("")
-      this.size ={y:img.naturalHeight, x: img.naturalWidth}
+    this._urlField.setCustomValidity("can't load url")
+    this._surfaceImg.onload = async () => {
+      this._urlField.setCustomValidity("")
+      this.size ={y:this._surfaceImg.naturalHeight, x: this._surfaceImg.naturalWidth}
     }
-    img.src = url.value;
+    this._surfaceImg.src = this._urlField.value;
+    this.size = {x:0,y:0}
   }
 
   render() {

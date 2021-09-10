@@ -55,6 +55,8 @@ export default {
     importMetaAssets(),
     /** Compile JS to a lower language target */
     babel({
+      exclude: /node_modules/,
+
       babelHelpers: "bundled",
       presets: [
         [

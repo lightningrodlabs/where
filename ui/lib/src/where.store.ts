@@ -63,7 +63,7 @@ export function createWhereStore(
   service.cellClient.addSignalHandler( signal => {
     console.log("SIGNAL",signal)
     const payload = signal.data.payload
-    switch(payload.type) {
+    switch(payload.message.type) {
       case "NewSpace":
         if (!get(spaces)[payload.space_hash]) {
           updateSpaceFromEntry(payload.space_hash, payload.message)

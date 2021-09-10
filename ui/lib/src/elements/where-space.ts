@@ -1,5 +1,6 @@
 import { html, css, LitElement } from "lit";
 import { property } from "lit/decorators.js";
+import { styleMap } from "lit/directives/style-map";
 
 import { contextProvided } from "@lit-labs/context";
 import { contextStore } from "lit-svelte-stores";
@@ -240,14 +241,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           class="where-marker ${where.entry.meta.name == this.myNickName
             ? "me"
             : ""}"
-          style="left:${x}px;top: ${y}px"
+          style=${styleMap({ left: `${x}px`, top: `${y}px` })}
           src="${where.entry.meta.img}"
         />
         <div
           class="where-details ${where.entry.meta.name == this.myNickName
             ? "me"
             : ""}"
-          style="left:${x}px;top: ${y}px"
+          style=${styleMap({ left: `${x}px`, top: `${y}px` })}
           src="${where.entry.meta.img}"
         >
           <h3>${where.entry.meta.name}</h3>
@@ -260,7 +261,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       return html`
         <div
           class="data-item"
-          style="width:${item.box.width * z}px;height:${item.box.height *z}px;left:${item.box.left * z}px;top:${item.box.top *z}px;${item.style};"
+          style=${styleMap({
+            width: `${item.box.width * z}px`,
+            height: `${item.box.height * z}px`,
+            left: `${item.box.left * z}px`,
+            top: `${item.box.top * z}px`,
+            ...item.style,
+          })}
         >
           ${item.content}
         </div>
@@ -270,11 +277,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     return html`
-      <div class="surface" style="width:${w * 1.01}px;height:${h * 1.01}px">
+      <div
+        class="surface"
+        style=${styleMap({ width: `${w * 1.01}px`, height: `${h * 1.01}px` })}
+      >
         <img
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-          .style="width:${w}px;height:${h}px"
+          style=${styleMap({ width: `${w}px`, height: `${h}px` })}
           .id="${this.current}-img"
           src="${space.surface.url}"
           @click=${this.handleClick}

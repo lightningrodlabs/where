@@ -1,16 +1,19 @@
 import { html, css, LitElement } from "lit";
+import { state } from "lit/decorators.js";
 
 import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
-import { whereContext, Space } from "../types";
+import { whereContext, Space, Coord } from "../types";
 import { Dialog, TextField, Button, Checkbox, Formfield } from "@scoped-elements/material-web";
 
 /**
  * @element where-space
  */
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
+
+  @state() size : Coord = {x:0,y:0};
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -19,6 +22,48 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   open() {
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
     dialog.open = true
+  }
+
+
+  private async handleOk(e: any) {
+    const name = this.shadowRoot!.getElementById(
+      "space-dialog-name"
+    ) as TextField;
+    const url = this.shadowRoot!.getElementById(
+      "space-dialog-url"
+    ) as TextField;
+    const valid = url.validity.valid && name.validity.valid
+    if (!name.validity.valid) {
+      name.reportValidity()
+    }
+    if (!url.validity.valid) {
+      url.reportValidity()
+    }
+    if (!valid) return
+
+    const multi = this.shadowRoot!.getElementById(
+      "space-dialog-multi"
+    ) as Checkbox;
+    const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
+
+    const space: Space = {
+      name: name.value,
+      surface: {
+        url: url.value,
+        size: { y: img.naturalHeight, x: img.naturalWidth },
+        data: "[]",
+      },
+      meta: {
+        multi: multi.checked ? "true" : "",
+      },
+      wheres: [],
+    };
+    const newSpace = await this._store.addSpace(space);
+    this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
+    const dialog = this.shadowRoot!.getElementById(
+      "space-dialog"
+    ) as Dialog;
+    dialog.close()
   }
 
   private async handleSpaceDialog(e: any) {
@@ -31,35 +76,21 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const multi = this.shadowRoot!.getElementById(
       "space-dialog-multi"
     ) as Checkbox;
-    if (e.detail.action == "ok") {
-      const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
-      img.onload = async () => {
-        const space: Space = {
-          name: name.value,
-          surface: {
-            url: url.value,
-            size: { x: img.naturalHeight, y: img.naturalWidth },
-            data: "[]",
-          },
-          meta: {
-            multi: multi.checked ? "true" : "",
-          },
-          wheres: [],
-        };
-        const newSpace = await this._store.addSpace(space);
-        this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
-        name.value = "";
-        url.value = "";
-      };
-      img.src = url.value;
-    } else {
-      name.value = "";
-      url.value = "";
-    }
+    name.value = "";
+    url.value = "";
   }
 
   handleUrlUpdated(e:Event) {
-    console.log(e)
+    const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
+    const url = this.shadowRoot!.getElementById(
+      "space-dialog-url"
+    ) as TextField;
+    url.setCustomValidity("can't load url")
+    img.onload = async () => {
+      url.setCustomValidity("")
+      this.size ={y:img.naturalHeight, x: img.naturalWidth}
+    }
+    img.src = url.value;
   }
 
   render() {
@@ -67,14 +98,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 <mwc-dialog  id="space-dialog" heading="Space" @closing=${
 this.handleSpaceDialog
 }>
-<mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" placeholder="Name" required></mwc-textfield>
-<mwc-textfield @input=${this.handleUrlUpdated} id="space-dialog-url" placeholder="Image URL" required></mwc-textfield>
+<div id="thumbnail"><img id="sfc" src="" />${this.size.x} x ${this.size.y}</div>
+<mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+<mwc-textfield @input=${this.handleUrlUpdated} id="space-dialog-url" label="Image URL" autoValidate=true required></mwc-textfield>
 <mwc-formfield label="Multi-wheres per user">
 <mwc-checkbox id="space-dialog-multi"></mwc-checkbox>
 </mwc-formfield>
-<mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
+<mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
-<img id="sfc" src="" />
 </mwc-dialog>
 `
   }
@@ -91,8 +122,12 @@ this.handleSpaceDialog
     return [
       sharedStyles,
       css`
-#sfc {
+#thumbnail {
 width: 200px;
+float: right;
+}
+#sfc {
+width: 100%;
 }
 `,
     ];

@@ -5,6 +5,5 @@
     "rootDir": "./src",
     "declaration": false
   },
-
   "include": ["src/**/*.ts"]
 }

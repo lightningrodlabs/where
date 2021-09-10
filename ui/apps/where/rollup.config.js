@@ -50,7 +50,7 @@ export default {
     commonjs({}),
     globals(),
     /** Minify JS */
-    terser(),
+    !process.env.ROLLUP_WATCH && terser(),
     /** Bundle assets references via import.meta.url */
     importMetaAssets(),
     /** Compile JS to a lower language target */

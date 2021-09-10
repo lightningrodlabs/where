@@ -9,16 +9,13 @@ import { sharedStyles } from "../sharedStyles";
 import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
+import { WhereSpaceDialog } from "./where-space-dialog";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
   Button,
-  Dialog,
-  TextField,
-  Formfield,
-  Checkbox,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -170,12 +167,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async openSpaceDialog() {
-    const dialog = this.spaceDialogElem;
-    dialog.open = true;
+    this.spaceDialogElem.open();
   }
 
-  get spaceDialogElem(): Dialog {
-    return this.shadowRoot!.getElementById("space-dialog") as Dialog;
+  get spaceDialogElem() : WhereSpaceDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
   private handleSpaceSelect(space: string): void {
@@ -185,42 +181,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private handleZoom(zoom: number): void {
     this.spaceElem.zoom(zoom);
-  }
-
-  private async handleSpaceDialog(e: any) {
-    const name = this.shadowRoot!.getElementById(
-      "space-dialog-name"
-    ) as TextField;
-    const url = this.shadowRoot!.getElementById(
-      "space-dialog-url"
-    ) as TextField;
-    const multi = this.shadowRoot!.getElementById(
-      "space-dialog-multi"
-    ) as Checkbox;
-    if (e.detail.action == "ok") {
-      const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
-      img.onload = async () => {
-        const space: Space = {
-          name: name.value,
-          surface: {
-            url: url.value,
-            size: { x: img.naturalHeight, y: img.naturalWidth },
-            data: "[]",
-          },
-          meta: {
-            multi: multi.checked ? "true" : "",
-          },
-          wheres: [],
-        };
-        this._current = await this._store.addSpace(space);
-        name.value = "";
-        url.value = "";
-      };
-      img.src = url.value;
-    } else {
-      name.value = "";
-      url.value = "";
-    }
   }
 
   render() {
@@ -257,22 +217,9 @@ Folks:
 ${folks}
 </div>
 
-<mwc-dialog id="space-dialog" heading="Space" @closing=${
-      this.handleSpaceDialog
-    }>
-<mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" placeholder="Name" required></mwc-textfield>
-<mwc-textfield id="space-dialog-url" placeholder="Image URL" required></mwc-textfield>
-<mwc-formfield label="Multi-wheres per user">
-<mwc-checkbox id="space-dialog-multi"></mwc-checkbox>
-</mwc-formfield>
-<mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
-<mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
-<img id="sfc" src=""></img>
-</mwc-dialog>
+<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
 
-<where-space id="where-space" .current=${this._current} avatar="${
-      this._myAvatar
-    }"></where-space>
+<where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
 `;
   }
 
@@ -282,10 +229,7 @@ ${folks}
       "mwc-list-item": ListItem,
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-formfield": Formfield,
-      "mwc-checkbox": Checkbox,
+      "where-space-dialog" : WhereSpaceDialog,
       "where-space": WhereSpace,
     };
   }

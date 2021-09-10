@@ -10,7 +10,7 @@
     "start": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ\" \"npm run start -w where\"",
     "start-proxied": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ-proxied\" \"npm run start -w where\"",
     "test": "npm run build:happ && npm t -w tests",
-    "start:happ": "rimraf .hc* && RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic",
+    "start:happ": "rimraf .hc* && RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network mdns",
     "start:happ-proxied": "rimraf .hc* && RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
     "package": "npm run build:happ && npm run package -w where",
     "build:happ": "npm run build:dna && hc app pack ./dna/workdir/happ",

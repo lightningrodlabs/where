@@ -9,7 +9,7 @@
   "scripts": {
     "start": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ\" \"npm run start -w where\"",
     "test": "npm run build:happ && npm t -w tests",
-    "start:happ": "rimraf .hc* && RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic",
+    "start:happ": "rimraf .hc* && RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://CIW6PxKxsPPlcuvUCbMcKwUpaMSmB7kLD8xyyj4mqcw/kitsune-quic/h/52.14.147.62/p/22224/--",
     "package": "npm run build:happ && npm run package -w where",
     "build:happ": "npm run build:dna && hc app pack ./dna/workdir/happ",
     "build:dna": "npm run build:zome && hc dna pack ./dna/workdir/dna",

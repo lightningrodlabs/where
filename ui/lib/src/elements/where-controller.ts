@@ -79,8 +79,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   firstUpdated() {
 
     let unsubscribe: Unsubscriber;
-    unsubscribe = this._profiles.myProfile.subscribe(() => {
-      this.checkInit();
+    unsubscribe = this._profiles.myProfile.subscribe((profile) => {
+      if (profile) {
+        this.checkInit();
+      }
       //      unsubscribe()
     });
   }

@@ -115,32 +115,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:white;border-radius: 10px;","content":"Land of the Lost"}]`,
       },
       meta: {},
-      wheres: [
-        {
-          entry: {
-            location: { x: 1150, y: 450 },
-            meta: {
-              img: this._myAvatar,
-              name: this.myNickName,
-              tag: "My house",
-            },
-          },
-          hash: "",
-          authorPubKey: myPubKey,
-        },
-        {
-          entry: {
-            location: { x: 1890, y: 500 },
-            meta: {
-              name: "Monk",
-              tag: "My apartment",
-              img: "https://i.imgur.com/4BKqQY1.png",
-            },
-          },
-          hash: "",
-          authorPubKey: "sntahoeuabcorchaotbkantgcdoesucd",
-        },
-      ],
+      wheres: [],
     });
     await this._store.addSpace({
       name: "Ecuador",
@@ -193,7 +168,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
     const folks = Object.entries(this._knownProfiles).map(([key, profile])=>{
-      return html`<li class="folk">${profile.nickname}</li>`
+      return html`<li class="folk"><img src="https://robohash.org/${profile.nickname}"> <div>${profile.nickname}</div></li>`
     })
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
@@ -220,7 +195,6 @@ ${Object.entries(this._spaces).map(
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
 
 <div class="folks">
-Folks:
 ${folks}
 </div>
 
@@ -262,6 +236,9 @@ ${folks}
         }
         .folk {
 list-style: none
+        }
+        .folk > img {
+         width: 50px;
         }
 
         @media (min-width: 640px) {

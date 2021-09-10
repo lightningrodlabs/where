@@ -338,7 +338,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           width: ${MARKER_WIDTH}px;
           margin-top: -${MARKER_WIDTH / 2}px;
           margin-left: -${MARKER_WIDTH / 2}px;
-          z-index: 1000;
+          z-index: 1;
+          background-color: white;
         }
 
         img.where-marker.me {

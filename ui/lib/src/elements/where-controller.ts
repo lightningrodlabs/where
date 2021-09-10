@@ -165,6 +165,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async refresh() {
     await this._store.updateSpaces();
+    await this._profiles.fetchAllProfiles()
   }
 
   get spaceElem(): WhereSpace {

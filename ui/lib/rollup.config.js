@@ -24,6 +24,9 @@ export default {
     postcssLit(),
     typescript({
       target: 'es6',
+      plugins: [{
+        "name": "ts-lit-plugin"
+      }]
     }),
     resolve(),
     commonjs(),

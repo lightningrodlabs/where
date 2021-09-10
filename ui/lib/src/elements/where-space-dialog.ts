@@ -1,5 +1,4 @@
 import { html, css, LitElement } from "lit";
-import { property } from "lit/decorators.js";
 
 import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";

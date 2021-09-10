@@ -1,6 +1,6 @@
 import { html, css, LitElement } from "lit";
 import { property } from "lit/decorators.js";
-import { styleMap } from "lit/directives/style-map";
+import { styleMap } from "lit/directives/style-map.js";
 
 import { contextProvided } from "@lit-labs/context";
 import { contextStore } from "lit-svelte-stores";

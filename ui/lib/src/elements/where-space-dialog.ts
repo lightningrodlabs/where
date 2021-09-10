@@ -12,7 +12,6 @@ import { Dialog, TextField, Button, Checkbox, Formfield } from "@scoped-elements
  * @element where-space
  */
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
-  @property({ type: String }) current = "";
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -48,7 +47,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           },
           wheres: [],
         };
-        this.current = await this._store.addSpace(space);
+        const newSpace = await this._store.addSpace(space);
+        this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
         name.value = "";
         url.value = "";
       };

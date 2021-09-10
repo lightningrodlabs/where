@@ -217,11 +217,9 @@ Folks:
 ${folks}
 </div>
 
-<where-space-dialog id="space-dialog" .current="${this._current}"></where-space-dialog>
+<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
 
-<where-space id="where-space" .current={$this._current} avatar="${
-      this._myAvatar
-    }"></where-space>
+<where-space id="where-space" .current={$this._current} .avatar={$this._myAvatar}"></where-space>
 `;
   }
 

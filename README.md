@@ -22,14 +22,11 @@ For more details read the [design documents](DESIGN.md).
   - Assemble the DNA:
 
 ```bash
-cd zome
-CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown
-hc dna pack workdir/dna
-hc app pack workdir/happ
+npm run build:happ
 ```
+
 ### Running the DNA tests
 ```bash
-cd zome/tests
 npm run test
 ```
 
@@ -38,10 +35,18 @@ npm run test
 To test out the UI:
 
 ``` bash
-cd ui
 npm run start
 ```
 
+## Package
+
+To package the web happ:
+
+``` bash
+npm run package
+```
+
+You'll have the `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
 
 ## License
 [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blue.svg)](https://github.com/holochain/cryptographic-autonomy-license)

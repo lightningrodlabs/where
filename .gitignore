@@ -3,5 +3,5 @@ node_modules/
 dist/
 .cargo/
 .hc*
-zome/workdir/dna/*.dna
-zome/workdir/happ/*.happ
+dna/workdir/dna/*.dna
+dna/workdir/happ/*.happ

@@ -90,6 +90,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       let spaces = await this._store.updateSpaces();
       // load up a space if there are none:
       if (Object.keys(spaces).length == 0) {
+        console.log("no spaces found, initializing")
         await this.initializeSpaces();
         spaces = await this._store.updateSpaces();
       }

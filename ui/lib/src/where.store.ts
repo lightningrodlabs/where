@@ -98,7 +98,6 @@ export function createWhereStore(
         break;
     }
   })
-
   return {
     myAgentPubKey,
     spaces,
@@ -106,7 +105,7 @@ export function createWhereStore(
     async updateSpaces() : Promise<Dictionary<Space>> {
       const spaces = await service.getSpaces();
       for (const s of spaces) {
-        updateSpaceFromEntry(s.hash, s.content)
+        await updateSpaceFromEntry(s.hash, s.content)
       }
       return get(spacesStore)
     },

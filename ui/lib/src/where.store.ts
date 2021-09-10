@@ -65,19 +65,20 @@ export function createWhereStore(
     const payload = signal.data.payload
     switch(payload.message.type) {
       case "NewSpace":
-        if (!get(spaces)[payload.space_hash]) {
-          updateSpaceFromEntry(payload.space_hash, payload.message)
+        if (!get(spaces)[payload.spaceHash]) {
+          updateSpaceFromEntry(payload.spaceHash, payload.message.content)
         }
         break;
       case "NewWhere":
-        if (get(spaces)[payload.space_hash]) {
+        if (get(spaces)[payload.spaceHash]) {
           spacesStore.update(spaces => {
-            let wheres = spaces[payload.space_hash].wheres
-            const w : Where = service.whereFromInfo(payload.message)
+            let wheres = spaces[payload.spaceHash].wheres
+            const w : Where = service.whereFromInfo(payload.message.content)
             const idx = wheres.findIndex((w) => w.hash == payload.message.hash)
             if (idx > -1) {
               wheres[idx] = w
             } else {
+              console.log("adding",w)
               wheres.push(w)
             }
             return spaces
@@ -85,10 +86,12 @@ export function createWhereStore(
         }
         break;
       case "DeleteWhere":
-        if (get(spaces)[payload.space_hash]) {
+        if (get(spaces)[payload.spaceHash]) {
+          console.log("here", payload.message)
           spacesStore.update(spaces => {
-            let wheres = spaces[payload.space_hash].wheres
-            const idx = wheres.findIndex((w) => w.hash == payload.message)
+            let wheres = spaces[payload.spaceHash].wheres
+            const idx = wheres.findIndex((w) => w.hash == payload.message.content)
+            console.log(idx)
             if (idx > -1) {
               wheres.splice(idx, 1);
             }
@@ -161,12 +164,13 @@ export function createWhereStore(
       }
       const hash: HeaderHashB64 = await service.addWhere(entry, spaceHash)
       await service.deleteWhere(w.hash)
+      const oldHash = w.hash
       w.hash = hash
       spacesStore.update(spaces => {
         spaces[spaceHash].wheres[idx] = w
         return spaces
       })
-      await service.notify({spaceHash, message:{type:"DeleteWhere", content:hash}}, others());
+      await service.notify({spaceHash, message:{type:"DeleteWhere", content:oldHash}}, others());
       await service.notify({spaceHash, message:{type:"NewWhere", content:{entry, hash, author:myAgentPubKey}}}, others());
     },
     getAgentIdx (space: string, agent: string) : number {

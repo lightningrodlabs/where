@@ -13,7 +13,7 @@ import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
 
 const HC_PORT = process.env.HC_PORT || 8888;
-const DIST_FOLDER = process.env.ROLLUP_WATCH ? `.dist/${HC_PORT}`: "dist";
+const DIST_FOLDER = process.env.HC_PORT ? `.dist/${HC_PORT}`: "dist";
 
 export default {
   input: "index.html",
@@ -23,6 +23,9 @@ export default {
     assetFileNames: "[hash][extname]",
     format: "es",
     dir: DIST_FOLDER,
+  },
+  watch: {
+    clearScreen: false,
   },
 
   plugins: [
@@ -35,12 +38,12 @@ export default {
     /** Resolve bare module imports */
     nodeResolve({
       browser: true,
-      preferBuiltins: false,
+      preferBuiltins: false
     }),
     replace({
       "process.env.NODE_ENV": '"production"',
       "process.env.ENV": `"${process.env.ENV}"`,
-      "process.env.HC_PORT": `"${process.env.HC_PORT}"`,
+      "process.env.HC_PORT": `"${HC_PORT}"`,
     }),
     builtins(),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),

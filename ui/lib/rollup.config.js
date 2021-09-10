@@ -14,6 +14,7 @@ export default {
   external: [...Object.keys(pkg.dependencies), /lit/],
   watch: {
     include: 'src/**',
+    clearScreen: false,
   },
   plugins: [
     typescript({

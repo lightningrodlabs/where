@@ -167,8 +167,8 @@ export function createWhereStore(
         spaces[spaceHash].wheres[idx] = w
         return spaces
       })
-      service.notify({spaceHash, message:{type:"DeleteWhere", content:hash}}, others());
-      service.notify({spaceHash, message:{type:"NewWhere", content:{entry, hash, author:myAgentPubKey}}}, others());
+      await service.notify({spaceHash, message:{type:"DeleteWhere", content:hash}}, others());
+      await service.notify({spaceHash, message:{type:"NewWhere", content:{entry, hash, author:myAgentPubKey}}}, others());
     },
     getAgentIdx (space: string, agent: string) : number {
       return get(spacesStore)[space].wheres.findIndex((w) => w.entry.meta.name == agent)

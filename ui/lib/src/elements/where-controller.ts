@@ -235,7 +235,8 @@ ${folks}
           float:right;
         }
         .folk {
-list-style: none
+          list-style: none;
+          display: inline-block;
         }
         .folk > img {
          width: 50px;

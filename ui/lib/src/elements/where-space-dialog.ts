@@ -27,10 +27,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   private async handleOk(e: any) {
     const name = this.shadowRoot!.getElementById(
-      "space-dialog-name"
+      "name-field"
     ) as TextField;
     const url = this.shadowRoot!.getElementById(
-      "space-dialog-url"
+      "url-field"
     ) as TextField;
     const valid = url.validity.valid && name.validity.valid
     if (!name.validity.valid) {
@@ -42,7 +42,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!valid) return
 
     const multi = this.shadowRoot!.getElementById(
-      "space-dialog-multi"
+      "multi-chk"
     ) as Checkbox;
     const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
 
@@ -68,13 +68,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   private async handleSpaceDialog(e: any) {
     const name = this.shadowRoot!.getElementById(
-      "space-dialog-name"
+      "name-field"
     ) as TextField;
     const url = this.shadowRoot!.getElementById(
-      "space-dialog-url"
+      "url-field"
     ) as TextField;
     const multi = this.shadowRoot!.getElementById(
-      "space-dialog-multi"
+      "multi-chk"
     ) as Checkbox;
     name.value = "";
     url.value = "";
@@ -83,7 +83,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   handleUrlUpdated(e:Event) {
     const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
     const url = this.shadowRoot!.getElementById(
-      "space-dialog-url"
+      "url-field"
     ) as TextField;
     url.setCustomValidity("can't load url")
     img.onload = async () => {
@@ -99,10 +99,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 this.handleSpaceDialog
 }>
 <div id="thumbnail"><img id="sfc" src="" />${this.size.x} x ${this.size.y}</div>
-<mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-<mwc-textfield @input=${this.handleUrlUpdated} id="space-dialog-url" label="Image URL" autoValidate=true required></mwc-textfield>
+<mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()} id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+<mwc-textfield @input=${this.handleUrlUpdated} id="url-field" label="Image URL" autoValidate=true required></mwc-textfield>
 <mwc-formfield label="Multi-wheres per user">
-<mwc-checkbox id="space-dialog-multi"></mwc-checkbox>
+<mwc-checkbox id="multi-chk"></mwc-checkbox>
 </mwc-formfield>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>

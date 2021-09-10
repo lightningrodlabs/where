@@ -78,7 +78,6 @@ export function createWhereStore(
             if (idx > -1) {
               wheres[idx] = w
             } else {
-              console.log("adding",w)
               wheres.push(w)
             }
             return spaces
@@ -87,11 +86,9 @@ export function createWhereStore(
         break;
       case "DeleteWhere":
         if (get(spaces)[payload.spaceHash]) {
-          console.log("here", payload.message)
           spacesStore.update(spaces => {
             let wheres = spaces[payload.spaceHash].wheres
             const idx = wheres.findIndex((w) => w.hash == payload.message.content)
-            console.log(idx)
             if (idx > -1) {
               wheres.splice(idx, 1);
             }

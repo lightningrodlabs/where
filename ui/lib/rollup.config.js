@@ -4,7 +4,6 @@ import postcssLit from 'rollup-plugin-postcss-lit';
 import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
 import postcssCQFill from 'cqfill/postcss';
-import minifyHTML from 'rollup-plugin-minify-html-literals';
 
 const pkg = require('./package.json');
 
@@ -25,9 +24,6 @@ export default {
     postcssLit(),
     typescript({
       target: 'es6',
-    }),
-    minifyHTML({
-      failOnError: true,
     }),
     resolve(),
     commonjs(),

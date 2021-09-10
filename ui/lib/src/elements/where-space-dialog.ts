@@ -69,13 +69,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 this.handleSpaceDialog
 }>
 <mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" placeholder="Name" required></mwc-textfield>
-<mwc-textfield @input={$this.handleUrlUpdated} id="space-dialog-url" placeholder="Image URL" required></mwc-textfield>
+<mwc-textfield @input=${this.handleUrlUpdated} id="space-dialog-url" placeholder="Image URL" required></mwc-textfield>
 <mwc-formfield label="Multi-wheres per user">
 <mwc-checkbox id="space-dialog-multi"></mwc-checkbox>
 </mwc-formfield>
 <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
-<img id="sfc" src=""></img>
+<img id="sfc" src="" />
 </mwc-dialog>
 `
   }

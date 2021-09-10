@@ -1,6 +1,6 @@
 // TODO: add globally available interfaces for your elements
 
-import { AgentPubKeyB64, HeaderHashB64 } from "@holochain-open-dev/core-types";
+import { AgentPubKeyB64, HeaderHashB64, EntryHashB64 } from "@holochain-open-dev/core-types";
 import { createContext, Context } from "@lit-labs/context";
 import { WhereStore } from "./where.store";
 
@@ -53,3 +53,14 @@ export interface Space  {
   wheres: Where[];
   meta?: Dictionary<string>;
 }
+
+export type Signal =
+  | {
+    spaceHash: EntryHashB64, message: {type: "NewSpace", content:  SpaceEntry}
+  }
+  | {
+    spaceHash: EntryHashB64, message: {type: "NewWhere", content:  WhereInfo}
+    }
+  | {
+    spaceHash: EntryHashB64, message: {type: "DeleteWhere", content: HeaderHashB64}
+  }

@@ -17,8 +17,16 @@ export default {
     clearScreen: false,
   },
   plugins: [
+    postcss({
+      inject: false,
+      plugins: [postcssCQFill],
+    }),
+    postcssLit(),
     typescript({
       target: 'es6',
+      plugins: [{
+        "name": "ts-lit-plugin"
+      }]
     }),
     resolve(),
     commonjs(),

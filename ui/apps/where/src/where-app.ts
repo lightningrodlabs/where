@@ -31,13 +31,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const cellData = appInfo.cell_data[0];
     const cellClient = new HolochainClient(appWebsocket, cellData);
 
+    const profiles = createProfilesStore(cellClient)
     new ContextProvider(
       this,
       profilesStoreContext,
-      createProfilesStore(cellClient)
+      profiles
     );
 
-    new ContextProvider(this, whereContext, createWhereStore(cellClient));
+    new ContextProvider(this, whereContext, createWhereStore(cellClient, profiles));
 
     this.loaded = true;
   }

@@ -240,14 +240,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           class="where-marker ${where.entry.meta.name == this.myNickName
             ? "me"
             : ""}"
-          style="left:${x}px;top: ${y}px"
+          style="left: ${x}px; top: ${y}px;"
           src="${where.entry.meta.img}"
         />
         <div
           class="where-details ${where.entry.meta.name == this.myNickName
             ? "me"
             : ""}"
-          style="left:${x}px;top: ${y}px"
+          style="left: ${x}px; top: ${y}px;"
           src="${where.entry.meta.img}"
         >
           <h3>${where.entry.meta.name}</h3>
@@ -260,7 +260,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       return html`
         <div
           class="data-item"
-          style="width:${item.box.width * z}px;height:${item.box.height *z}px;left:${item.box.left * z}px;top:${item.box.top *z}px;${item.style};"
+          style="width: ${item.box.width * z}px;
+            height: ${item.box.height * z}px;
+            left: ${item.box.left * z}px;
+            top: ${item.box.top * z}px;
+          ${item.style}"
         >
           ${item.content}
         </div>
@@ -270,11 +274,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     return html`
-      <div class="surface" style="width:${w * 1.01}px;height:${h * 1.01}px">
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
         <img
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-          .style="width:${w}px;height:${h}px"
+          style="width: ${w}px; height: ${h}px;"
           .id="${this.current}-img"
           src="${space.surface.url}"
           @click=${this.handleClick}
@@ -334,7 +338,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           width: ${MARKER_WIDTH}px;
           margin-top: -${MARKER_WIDTH / 2}px;
           margin-left: -${MARKER_WIDTH / 2}px;
-          z-index: 10000;
+          z-index: 1000;
         }
 
         img.where-marker.me {
@@ -344,7 +348,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         .where-details {
           display: none;
           position: absolute;
-          z-index: 10000;
+          z-index: 1;
 
           background: white;
           border-radius: 10px;

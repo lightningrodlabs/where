@@ -6,19 +6,16 @@ import { contextStore } from "lit-svelte-stores";
 import { Unsubscriber } from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, Space, Dictionary } from "../types";
+import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
+import { WhereSpaceDialog } from "./where-space-dialog";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
   Button,
-  Dialog,
-  TextField,
-  Formfield,
-  Checkbox,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -51,6 +48,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _myProfile!: Profile;
 
   @contextStore({
+    context: profilesStoreContext,
+    selectStore: (s) => s.knownProfiles,
+  })
+  _knownProfiles!: Dictionary<Profile>;
+
+  @contextStore({
     context: whereContext,
     selectStore: (s) => s.spaces,
   })
@@ -68,29 +71,35 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
-
+  private initializing = false;
   get myNickName(): string {
     return this._myProfile.nickname;
   }
 
   firstUpdated() {
+
     let unsubscribe: Unsubscriber;
-    unsubscribe = this._profiles.myProfile.subscribe(() => {
-      this.checkInit();
+    unsubscribe = this._profiles.myProfile.subscribe((profile) => {
+      if (profile) {
+        this.checkInit();
+      }
       //      unsubscribe()
     });
   }
 
   async checkInit() {
-    if (!this.initialized) {
+    if (!this.initialized && !this.initializing) {
+      this.initializing = true  // because checkInit gets call whenever profiles changes...
       let spaces = await this._store.updateSpaces();
       // load up a space if there are none:
       if (Object.keys(spaces).length == 0) {
+        console.log("no spaces found, initializing")
         await this.initializeSpaces();
         spaces = await this._store.updateSpaces();
       }
       this._current = Object.keys(spaces)[0];
       console.log("current space", this._current, spaces[this._current].name);
+      this.initializing = false
     }
     this.initialized = true;
   }
@@ -156,6 +165,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async refresh() {
     await this._store.updateSpaces();
+    await this._profiles.fetchAllProfiles()
   }
 
   get spaceElem(): WhereSpace {
@@ -163,12 +173,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async openSpaceDialog() {
-    const dialog = this.spaceDialogElem;
-    dialog.open = true;
+    this.spaceDialogElem.open();
   }
 
-  get spaceDialogElem(): Dialog {
-    return this.shadowRoot!.getElementById("space-dialog") as Dialog;
+  get spaceDialogElem() : WhereSpaceDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
   private handleSpaceSelect(space: string): void {
@@ -180,45 +189,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.spaceElem.zoom(zoom);
   }
 
-  private async handleSpaceDialog(e: any) {
-    const name = this.shadowRoot!.getElementById(
-      "space-dialog-name"
-    ) as TextField;
-    const url = this.shadowRoot!.getElementById(
-      "space-dialog-url"
-    ) as TextField;
-    const multi = this.shadowRoot!.getElementById(
-      "space-dialog-multi"
-    ) as Checkbox;
-    if (e.detail.action == "ok") {
-      const img = this.shadowRoot!.getElementById("sfc") as HTMLImageElement;
-      img.onload = async () => {
-        const space: Space = {
-          name: name.value,
-          surface: {
-            url: url.value,
-            size: { x: img.naturalHeight, y: img.naturalWidth },
-            data: "",
-          },
-          meta: {
-            multi: multi.checked ? "true" : "",
-          },
-          wheres: [],
-        };
-        this._current = await this._store.addSpace(space);
-        name.value = "";
-        url.value = "";
-      };
-      img.src = url.value;
-    } else {
-      name.value = "";
-      url.value = "";
-    }
-  }
-
   render() {
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
-
+    const folks = Object.entries(this._knownProfiles).map(([key, profile])=>{
+      return html`<li class="folk">${profile.nickname}</li>`
+    })
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
 ${Object.entries(this._spaces).map(
@@ -243,22 +218,14 @@ ${Object.entries(this._spaces).map(
       this.openSpaceDialog()}>New</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
 
-<mwc-dialog id="space-dialog" heading="Space" @closing=${
-      this.handleSpaceDialog
-    }>
-<mwc-textfield id="space-dialog-name" minlength="3" maxlength="64" placeholder="Name" required></mwc-textfield>
-<mwc-textfield id="space-dialog-url" placeholder="Image URL" required></mwc-textfield>
-<mwc-formfield label="Multi-wheres per user">
-<mwc-checkbox id="space-dialog-multi"></mwc-checkbox>
-</mwc-formfield>
-<mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
-<mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
-<img id="sfc" src=""></img>
-</mwc-dialog>
+<div class="folks">
+Folks:
+${folks}
+</div>
 
-<where-space id="where-space" .current=${this._current} avatar="${
-      this._myAvatar
-    }"></where-space>
+<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
+
+<where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
 `;
   }
 
@@ -268,10 +235,7 @@ ${Object.entries(this._spaces).map(
       "mwc-list-item": ListItem,
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-formfield": Formfield,
-      "mwc-checkbox": Checkbox,
+      "where-space-dialog" : WhereSpaceDialog,
       "where-space": WhereSpace,
     };
   }
@@ -290,6 +254,13 @@ ${Object.entries(this._spaces).map(
         .zoom mwc-icon-button {
           height: 30px;
           margin-top: -8px;
+        }
+
+        .folks {
+          float:right;
+        }
+        .folk {
+list-style: none
         }
 
         @media (min-width: 640px) {

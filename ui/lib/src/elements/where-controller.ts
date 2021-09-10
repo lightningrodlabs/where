@@ -81,6 +81,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe((profile) => {
       if (profile) {
+        this._myAvatar = `https://robohash.org/${profile.nickname}`
         this.checkInit();
       }
       //      unsubscribe()

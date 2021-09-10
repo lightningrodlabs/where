@@ -71,7 +71,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
-
+  private initializing = false;
   get myNickName(): string {
     return this._myProfile.nickname;
   }
@@ -86,7 +86,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async checkInit() {
-    if (!this.initialized) {
+    if (!this.initialized && !this.initializing) {
+      this.initializing = true  // because checkInit gets call whenever profiles changes...
       let spaces = await this._store.updateSpaces();
       // load up a space if there are none:
       if (Object.keys(spaces).length == 0) {
@@ -96,6 +97,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       }
       this._current = Object.keys(spaces)[0];
       console.log("current space", this._current, spaces[this._current].name);
+      this.initializing = false
     }
     this.initialized = true;
   }

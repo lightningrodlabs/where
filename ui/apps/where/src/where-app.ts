@@ -8,7 +8,7 @@ import {
 } from "@where/elements";
 import {
   ProfilePrompt,
-  createProfilesStore,
+  ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
 import { AppWebsocket } from "@holochain/conductor-api";
@@ -31,14 +31,15 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const cellData = appInfo.cell_data[0];
     const cellClient = new HolochainClient(appWebsocket, cellData);
 
-    const profiles = createProfilesStore(cellClient)
+    const store = new ProfilesStore(cellClient)
+
     new ContextProvider(
       this,
       profilesStoreContext,
-      profiles
+      store
     );
 
-    new ContextProvider(this, whereContext, createWhereStore(cellClient, profiles));
+    new ContextProvider(this, whereContext, createWhereStore(cellClient, store));
 
     this.loaded = true;
   }

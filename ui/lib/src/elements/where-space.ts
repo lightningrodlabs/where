@@ -2,7 +2,7 @@ import { html, css, LitElement } from "lit";
 import { property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
-import { contextStore } from "lit-svelte-stores";
+import { StoreSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
 import { whereContext, Location, Space, Dictionary, Coord } from "../types";
@@ -26,8 +26,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.addEventListener("wheel", this._handleWheel);
   }
 
-  @property({ type: String }) avatar = "";
-  @property({ type: String }) current = "";
+  @property() avatar = "";
+  @property() current = "";
 
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
@@ -35,23 +35,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  @contextStore({
-    context: profilesStoreContext,
-    selectStore: (s) => s.myProfile,
-  })
-  _myProfile!: Profile;
-
-  @contextStore({
-    context: whereContext,
-    selectStore: (s) => s.spaces,
-  })
-  _spaces!: Dictionary<Space>;
-
-  @contextStore({
-    context: whereContext,
-    selectStore: (s) => s.zooms,
-  })
-  _zooms!: Dictionary<number>;
+  _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
+  _spaces = new StoreSubscriber(this, () => this._store.spaces);
+  _zooms = new StoreSubscriber(this, () => this._store.zooms);
 
   private dialogCoord = { x: 0, y: 0 };
   private dialogIsEdit = false;
@@ -69,12 +55,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   get myNickName(): string {
-    return this._myProfile.nickname;
+    return this._myProfile.value.nickname;
   }
 
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.target.getBoundingClientRect();
-    const z = this._zooms[this.current];
+    const z = this._zooms.value[this.current];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
     return { x, y };
@@ -225,8 +211,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this.current) return;
-    const space = this._spaces[this.current];
-    const z = this._zooms[this.current];
+    const space = this._spaces.value[this.current];
+    const z = this._zooms.value[this.current];
     const whereItems = space.wheres.map((where, i) => {
       const x = where.entry.location.x * z;
       const y = where.entry.location.y * z;

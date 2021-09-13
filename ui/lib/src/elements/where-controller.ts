@@ -2,7 +2,7 @@ import { html, css, LitElement } from "lit";
 import { state } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
-import { contextStore } from "lit-svelte-stores";
+import { StoreSubscriber } from "lit-svelte-stores";
 import { Unsubscriber } from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
@@ -41,29 +41,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  @contextStore({
-    context: profilesStoreContext,
-    selectStore: (s) => s.myProfile,
-  })
-  _myProfile!: Profile;
-
-  @contextStore({
-    context: profilesStoreContext,
-    selectStore: (s) => s.knownProfiles,
-  })
-  _knownProfiles!: Dictionary<Profile>;
-
-  @contextStore({
-    context: whereContext,
-    selectStore: (s) => s.spaces,
-  })
-  _spaces!: Dictionary<Space>;
-
-  @contextStore({
-    context: whereContext,
-    selectStore: (s) => s.zooms,
-  })
-  _zooms!: Dictionary<number>;
+  _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
+  _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
+  _spaces = new StoreSubscriber(this, () => this._store.spaces);
+  _zooms = new StoreSubscriber(this, () => this._store.zooms);
 
   /** Private properties */
 
@@ -73,7 +54,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   private initialized = false;
   private initializing = false;
   get myNickName(): string {
-    return this._myProfile.nickname;
+    return this._myProfile.value.nickname;
   }
 
   firstUpdated() {
@@ -167,12 +148,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
-    const folks = Object.entries(this._knownProfiles).map(([key, profile])=>{
+    const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
       return html`<li class="folk"><img src="https://robohash.org/${profile.nickname}"> <div>${profile.nickname}</div></li>`
     })
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
-${Object.entries(this._spaces).map(
+${Object.entries(this._spaces.value).map(
   ([key, space]) => html`
     <mwc-list-item
       @request-selected=${() => this.handleSpaceSelect(key)}
@@ -184,7 +165,7 @@ ${Object.entries(this._spaces).map(
 )}
 </mwc-select>
 <div class="zoom">
-  Zoom: ${(this._zooms[this._current] * 100).toFixed(0)}% <br/>
+  Zoom: ${(this._zooms.value[this._current] * 100).toFixed(0)}% <br/>
   <mwc-icon-button icon="add_circle" @click=${() =>
     this.handleZoom(0.1)}></mwc-icon-button>
   <mwc-icon-button icon="remove_circle" @click=${() =>

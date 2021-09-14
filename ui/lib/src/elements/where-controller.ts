@@ -218,6 +218,9 @@ ${folks}
         .folk {
           list-style: none;
           display: inline-block;
+          margin: 2px;
+          text-align: center;
+          font-size: 70%;
         }
         .folk > img {
          width: 50px;

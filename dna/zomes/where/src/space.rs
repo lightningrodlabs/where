@@ -1,11 +1,10 @@
 pub use hdk::prelude::*;
 use hc_utils::*;
 use std::collections::HashMap;
-use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
+use holo_hash::EntryHashB64;
 
 use crate::error::*;
 use crate::signals::*;
-use crate::r#where::*;
 
 /// Space entry definition
 #[hdk_entry(id = "space")]

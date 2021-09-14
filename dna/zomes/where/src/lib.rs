@@ -7,9 +7,6 @@ pub mod space;
 pub mod signals;
 pub mod r#where;
 
-use hc_utils::*;
-use std::collections::HashMap;
-
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {

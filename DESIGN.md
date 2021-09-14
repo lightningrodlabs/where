@@ -150,3 +150,60 @@ Here are some example "Wheres" in various different coordinate systems
 
 - `added(SpaceHash, AgentPubKey, Timestamp, Where, WhereHash)`
 - `removed(WhereHash)`
+
+
+# Templates
+
+```rust
+struct Template {
+    name: String,
+    surface: JsonString,
+}
+```
+
+```javascript
+{
+    name: "Map",
+    surface: "{
+          'url': '%ImageURL%',
+          'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"
+        'title': '%String%'
+    }",
+}
+```
+
+
+```javascript
+{
+      name: "Gauge",
+   surface: "{
+      'minimum-value': '%Number%',
+           'interval':' %Number%',
+      'maximum-value': '%Number%',
+  }",
+}
+```
+
+
+```javascript
+{
+     name: "Wheel",
+  surface: "{
+        'count':' %Number%',
+     'hole-pct':' %Number%',
+ 'hole-content': '%String%',
+  }",
+}
+```
+
+```javascript
+{
+     name: "2D Compass", 
+  surface:"{
+      'left-axis': '%String%',
+     'right-axis': '%String%',
+       'top-axis': '%String%',
+    'bottom-axis': '%String%',
+  }",
+}
+```

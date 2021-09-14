@@ -1,7 +1,9 @@
 use hc_utils::*;
-use std::collections::HashMap;
-use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
+use holo_hash::EntryHashB64;
 pub use hdk::prelude::*;
+
+use crate::error::*;
+use crate::signals::*;
 
 /// Template Entry
 #[hdk_entry(id = "template")]
@@ -11,7 +13,11 @@ pub struct Template {
     pub surface: String, // Json
 }
 
-
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct TemplateOutput {
+    hash: EntryHashB64,
+    content: Template,
+}
 
 fn get_templates_path() -> Path {
     Path::from("templates")
@@ -30,17 +36,17 @@ fn create_template(input: Template) -> ExternResult<EntryHashB64> {
 }
 
 #[hdk_extern]
-fn get_templates(_: ()) -> ExternResult<Vec<SpaceOutput>> {
-    let path = get_spaces_path();
-    let spaces = get_spaces_inner(path.hash()?)?;
-    Ok(spaces)
+fn get_templates(_: ()) -> ExternResult<Vec<TemplateOutput>> {
+    let path = get_templates_path();
+    let templates = get_templates_inner(path.hash()?)?;
+    Ok(templates)
 }
 
-fn get_templates_inner(base: EntryHash) -> WhereResult<Vec<SpaceOutput>> {
+fn get_templates_inner(base: EntryHash) -> WhereResult<Vec<TemplateOutput>> {
     let entries = get_links_and_load_type(base, None)?;
-    let mut spaces = vec![];
+    let mut templates = vec![];
     for e in entries {
-        spaces.push(SpaceOutput {hash: hash_entry(&e)?.into(), content: e});
+        templates.push(TemplateOutput {hash: hash_entry(&e)?.into(), content: e});
     }
-    Ok(spaces)
+    Ok(templates)
 }

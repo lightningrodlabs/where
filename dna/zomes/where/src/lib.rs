@@ -6,7 +6,7 @@ pub mod error;
 pub mod space;
 pub mod signals;
 pub mod r#where;
-
+pub mod template;
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -24,6 +24,7 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 
 entry_defs![
     Path::entry_def(),
+    template::Template::entry_def(),
     space::Space::entry_def(),
     r#where::Where::entry_def()
 ];

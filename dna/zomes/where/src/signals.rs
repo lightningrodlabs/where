@@ -2,6 +2,7 @@ use hdk::prelude::*;
 
 use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
+use crate::template::*;
 use crate::space::*;
 use crate::r#where::*;
 
@@ -9,6 +10,7 @@ use crate::r#where::*;
     #[serde(tag = "type", content = "content")]
 pub enum Message {
     NewSpace(Space),
+    NewTemplate(Template),
     NewWhere(WhereOutput),
     DeleteWhere(HeaderHashB64)
 }

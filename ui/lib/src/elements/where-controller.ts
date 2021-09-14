@@ -118,6 +118,26 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       meta: { multi: "true" },
       wheres: [],
     });
+    await this._store.addSpace({
+      name: "Zodiac",
+      surface: {
+        url: "https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg",
+        size: { x: 626, y: 626 },
+        data: "[]",
+      },
+      meta: { multi: "false" },
+      wheres: [],
+    });
+    await this._store.addSpace({
+      name: "Political Compass",
+      surface: {
+        url: "https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg",
+        size: { x: 600, y: 600 },
+        data: "[]",
+      },
+      meta: { multi: "false" },
+      wheres: [],
+    });
   }
 
   async refresh() {

@@ -17,6 +17,11 @@ pub struct Space {
 }
 
 
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct SpaceInput {
+    origin: EntryHashB64,
+    space: Space,
+}
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SpaceOutput {
@@ -30,14 +35,15 @@ fn get_spaces_path() -> Path {
 }
 
 #[hdk_extern]
-fn create_space(input: Space) -> ExternResult<EntryHashB64> {
-    let _header_hash = create_entry(&input)?;
-    let hash = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(hash.clone().into(), Message::NewSpace(input)))?;
+fn create_space(input: SpaceInput) -> ExternResult<EntryHashB64> {
+    let _header_hash = create_entry(&input.space)?;
+    let hash = hash_entry(input.space.clone())?;
+    emit_signal(&SignalPayload::new(hash.clone().into(), Message::NewSpace(input.space)))?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
     create_link(anchor_hash, hash.clone(), ())?;
+    create_link(hash.clone(), input.origin.into(), LinkTag::new("origin"))?;
     Ok(hash.into())
 }
 

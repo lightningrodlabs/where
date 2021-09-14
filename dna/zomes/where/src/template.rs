@@ -36,6 +36,18 @@ fn create_template(input: Template) -> ExternResult<EntryHashB64> {
 }
 
 #[hdk_extern]
+fn get_template(input: EntryHashB64) -> ExternResult<Option<Template>> {
+    let eh: EntryHash = input.into();
+    match get_details(eh, GetOptions::content())? {
+            Some(Details::Entry(EntryDetails {entry, .. })) => {
+                let tmpl: Template = entry.try_into()?;
+                Ok(Some(tmpl))
+            }
+        _ => Ok(None),
+    }
+}
+
+#[hdk_extern]
 fn get_templates(_: ()) -> ExternResult<Vec<TemplateOutput>> {
     let path = get_templates_path();
     let templates = get_templates_inner(path.hash()?)?;

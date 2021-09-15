@@ -25,14 +25,14 @@ fn get_templates_path() -> Path {
 
 #[hdk_extern]
 fn create_template(input: Template) -> ExternResult<EntryHashB64> {
-    let _header_hash = create_entry(&input)?;
-    let hash = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(hash.clone().into(), Message::NewTemplate(input)))?;
+    let _hh = create_entry(&input)?;
+    let eh = hash_entry(input.clone())?;
+    emit_signal(&SignalPayload::new(eh.clone().into(), Message::NewTemplate(input)))?;
     let path = get_templates_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
-    create_link(anchor_hash, hash.clone(), ())?;
-    Ok(hash.into())
+    create_link(anchor_hash, eh.clone(), ())?;
+    Ok(eh.into())
 }
 
 #[hdk_extern]

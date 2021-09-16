@@ -43,6 +43,7 @@ export default async (orchestrator) => {
     // Create a space
     let space1 = {
       name: "mountain map",
+      origin: template1_eh64,
 /*      dimensionality: {
         type: "orthogonal",
         coords: {x: "integer", y:"integer"},
@@ -55,11 +56,7 @@ export default async (orchestrator) => {
       meta: {}
     };
 
-    let spaceInput = {
-      origin: template1_eh64,
-      space: space1,
-    }
-    const space1_hash = await alice_where.call('hc_zome_where', 'create_space', spaceInput );
+    const space1_hash = await alice_where.call('hc_zome_where', 'create_space', space1 );
     t.ok(space1_hash)
     console.log("space1_hash", space1_hash);
 

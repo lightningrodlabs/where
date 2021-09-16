@@ -10,6 +10,7 @@ import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
+// import { WhereTemplateDialog } from "./where-template-dialog";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -49,6 +50,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   /** Private properties */
 
   @state() _current = "";
+  //@state() _currentTemplate = "";
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
@@ -58,21 +60,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   firstUpdated() {
-
+    console.log("firstUpdated...")
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe((profile) => {
       if (profile) {
         this._myAvatar = `https://robohash.org/${profile.nickname}`
-        this.checkInit();
+        this.checkInit().then(() => {});
       }
-      //      unsubscribe()
+      // unsubscribe()
     });
   }
 
   async checkInit() {
+    console.log("checkInit...")
     if (!this.initialized && !this.initializing) {
       this.initializing = true  // because checkInit gets call whenever profiles changes...
       let spaces = await this._store.updateSpaces();
+      let templates = await this._store.updateTemplates();
       // load up a space if there are none:
       if (Object.keys(spaces).length == 0) {
         console.log("no spaces found, initializing")
@@ -80,16 +84,28 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         spaces = await this._store.updateSpaces();
       }
       this._current = Object.keys(spaces)[0];
+      //this._currentTemplate = Object.keys(templates)[0];
       console.log("current space", this._current, spaces[this._current].name);
+      //console.log("current template", this._currentTemplate, templates[this._currentTemplate].name);
       this.initializing = false
     }
     this.initialized = true;
   }
 
   async initializeSpaces() {
-    const myPubKey = this._profiles.myAgentPubKey;
+    console.log('initializeSpaces...')
+    //const myPubKey = this._profiles.myAgentPubKey;
+    const mapEh = await this._store.addTemplate({
+      name: "Map",
+      surfaceDesc: "{\
+        'url': '%ImageURL%',\
+        'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
+    'title': '%String%'\
+  }",
+    })
     await this._store.addSpace({
       name: "earth",
+      origin: mapEh,
       surface: {
         url: "https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg",
         size: { x: 3840, y: 1799 },
@@ -100,6 +116,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Ecuador",
+      origin: mapEh,
       surface: {
         url: "https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg",
         size: { x: 800, y: 652 },
@@ -110,6 +127,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Abstract",
+      origin: mapEh,
       surface: {
         url: "",
         size: { x: 1000, y: 700 },
@@ -120,6 +138,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Zodiac",
+      origin: mapEh,
       surface: {
         url: "https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg",
         size: { x: 626, y: 626 },
@@ -130,6 +149,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Political Compass",
+      origin: mapEh,
       surface: {
         url: "https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg",
         size: { x: 600, y: 600 },
@@ -141,9 +161,18 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async refresh() {
+    console.log('refresh...')
     await this._store.updateSpaces();
     await this._profiles.fetchAllProfiles()
   }
+
+  // async openTemplateDialog() {
+  //   this.templateDialogElem.open();
+  // }
+  //
+  // get templateDialogElem() : WhereTemplateDialog {
+  //   return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
+  // }
 
   get spaceElem(): WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
@@ -167,6 +196,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
+    console.log('render...')
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
       return html`<li class="folk"><img src="https://robohash.org/${profile.nickname}"> <div>${profile.nickname}</div></li>`
@@ -186,24 +216,26 @@ ${Object.entries(this._spaces.value).map(
 </mwc-select>
 <div class="zoom">
   Zoom: ${(this._zooms.value[this._current] * 100).toFixed(0)}% <br/>
-  <mwc-icon-button icon="add_circle" @click=${() =>
-    this.handleZoom(0.1)}></mwc-icon-button>
-  <mwc-icon-button icon="remove_circle" @click=${() =>
-    this.handleZoom(-0.1)}></mwc-icon-button>
+  <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(0.1)}></mwc-icon-button>
+  <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-0.1)}></mwc-icon-button>
 </div>
-<mwc-button icon="add_circle" @click=${() =>
-      this.openSpaceDialog()}>New</mwc-button>
+
+<mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
 
 <div class="folks">
 ${folks}
 </div>
 
-<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
+<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> </where-space-dialog>
+
 
 <where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
 `;
   }
+
+  //<mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
+  // <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
 
   static get scopedElements() {
     return {
@@ -212,6 +244,7 @@ ${folks}
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
       "where-space-dialog" : WhereSpaceDialog,
+      //"where-template-dialog" : WhereTemplateDialog,
       "where-space": WhereSpace,
     };
   }
@@ -238,6 +271,9 @@ ${folks}
         .folk {
           list-style: none;
           display: inline-block;
+          margin: 2px;
+          text-align: center;
+          font-size: 70%;
         }
         .folk > img {
          width: 50px;

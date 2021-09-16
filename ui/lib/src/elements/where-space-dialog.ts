@@ -6,7 +6,8 @@ import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
 import { whereContext, Space, Coord } from "../types";
-import { Dialog, TextField, Button, Checkbox, Formfield } from "@scoped-elements/material-web";
+import { Dialog, TextField, Button, Checkbox, Formfield, Select } from "@scoped-elements/material-web";
+import {StoreSubscriber} from "lit-svelte-stores";
 
 /**
  * @element where-space
@@ -19,7 +20,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
 
+  _templates = new StoreSubscriber(this, () => this._store.templates);
+
   open() {
+    if (this._templates.value === undefined) {
+      return;
+    }
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
     dialog.open = true
   }
@@ -27,6 +33,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   /** Private properties */
   @query('#name-field')
   _nameField!: TextField;
+  @query('#template-field')
+  _templateField!: Select;
   @query('#url-field')
   _urlField!: TextField;
   @query('#multi-chk')
@@ -51,6 +59,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     const space: Space = {
       name: this._nameField.value,
+      origin: this._templateField.value,
       surface: {
         url: this._urlField.value,
         size: { y: this._surfaceImg.naturalHeight, x: this._surfaceImg.naturalWidth },
@@ -75,6 +84,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._surfaceImg.src = "";
   }
 
+  private handleTemplateSelect(template: string): void {
+    //this._currentTemplate = template;
+  }
+
   handleUrlUpdated(e:Event) {
     this._urlField.setCustomValidity("can't load url")
     this._surfaceImg.onload = async () => {
@@ -92,6 +105,20 @@ this.handleSpaceDialog
 }>
 <div id="thumbnail"><img id="sfc" src="" />${this.size.x} x ${this.size.y}</div>
 <mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()} id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+
+  <mwc-select outlined label="Template" @select=${this.handleTemplateSelect}>
+    ${Object.entries(this._templates.value).map(
+      ([key, template]) => html`
+    <mwc-list-item
+      @request-selected=${() => this.handleTemplateSelect(key)}
+      .selected=${template === this._templates.value[0]}
+      value="${key}"
+      >${template.name}
+    </mwc-list-item>
+  `
+    )}
+  </mwc-select>
+
 <mwc-textfield @input=${this.handleUrlUpdated} id="url-field" label="Image URL" autoValidate=true required></mwc-textfield>
 <mwc-formfield label="Multi-wheres per user">
 <mwc-checkbox id="multi-chk"></mwc-checkbox>

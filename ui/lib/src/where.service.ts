@@ -1,6 +1,6 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
-import { SpaceEntry, Space, WhereEntry, Where, WhereInfo, Signal } from './types';
+import { SpaceEntry, Space, WhereEntry, Where, WhereInfo, Signal, TemplateEntry } from './types';
 
 export class WhereService {
   constructor(
@@ -10,6 +10,10 @@ export class WhereService {
 
   get myAgentPubKey() : AgentPubKeyB64 {
     return serializeHash(this.cellClient.cellId[1]);
+  }
+
+  async getTemplates(): Promise<Array<HoloHashed<TemplateEntry>>> {
+    return this.callZome('get_templates', null);
   }
 
   async getSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
@@ -31,6 +35,9 @@ export class WhereService {
     return this.callZome('delete_where', where);
   }
 
+  async createTemplate(space: TemplateEntry): Promise<EntryHashB64> {
+    return this.callZome('create_template', space);
+  }
 
   async createSpace(space: SpaceEntry): Promise<EntryHashB64> {
     return this.callZome('create_space', space);
@@ -43,6 +50,7 @@ export class WhereService {
   async spaceFromEntry(hash: EntryHashB64, entry: SpaceEntry): Promise<Space> {
     return {
       name : entry.name,
+      origin: entry.origin,
       meta : entry.meta,
       surface: JSON.parse(entry.surface),
       wheres: await this.getWheres(hash)

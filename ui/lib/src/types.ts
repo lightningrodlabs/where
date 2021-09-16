@@ -43,16 +43,24 @@ export interface Surface {
 
 export interface SpaceEntry {
   name: string;
+  origin: EntryHashB64;
   surface: string;
   meta?: Dictionary<string>;
 }
 
 export interface Space  {
   name: string;
+  origin: EntryHashB64;
   surface: Surface;
   wheres: Where[];
   meta?: Dictionary<string>;
 }
+
+export interface TemplateEntry  {
+  name: string;
+  surfaceDesc: string;
+}
+
 
 export type Signal =
   | {
@@ -64,3 +72,6 @@ export type Signal =
   | {
     spaceHash: EntryHashB64, message: {type: "DeleteWhere", content: HeaderHashB64}
   }
+  | {
+  spaceHash: EntryHashB64, message: {type: "NewTemplate", content: TemplateEntry}
+}

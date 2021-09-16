@@ -3,7 +3,7 @@ import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 
 import { WhereService } from './where.service';
-import { Dictionary, Space, SpaceEntry, WhereEntry, Where, Location, Coord} from './types';
+import {Dictionary, Space, SpaceEntry, WhereEntry, Where, Location, Coord, TemplateEntry} from './types';
 import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
@@ -13,15 +13,19 @@ export interface WhereStore {
   myAgentPubKey: AgentPubKeyB64;
 
   /** Readable stores */
+  templates: Readable<Dictionary<TemplateEntry>>;
   spaces: Readable<Dictionary<Space>>;
   zooms: Readable<Dictionary<number>>;
 
   /** Actions */
+  updateTemplates: () => Promise<Dictionary<TemplateEntry>>;
+  addTemplate: (template: TemplateEntry) => Promise<EntryHashB64>;
   updateSpaces: () => Promise<Dictionary<Space>>;
   addSpace: (space: Space) => Promise<EntryHashB64>;
   addWhere: (spaceHash: string, where: Location) => Promise<void>;
   updateWhere: (spaceHash: string, idx: number, c: Coord, tag?:string) => Promise<void>;
   getAgentIdx: (space: string, agent: string) => number;
+  template: (template:string) => TemplateEntry;
   space: (space:string) => Space;
   zoom: (current: string, delta:number) => void;
   getZoom: (current: string) => number;
@@ -36,15 +40,18 @@ export function createWhereStore(
   const service = new WhereService(cellClient, zomeName);
   const profiles = profilesStore;
 
+  const templatesStore: Writable<Dictionary<TemplateEntry>> = writable({});
   const spacesStore: Writable<Dictionary<Space>> = writable({});
   const zoomsStore: Writable<Dictionary<number>> = writable({});
 
+  const templates: Readable<Dictionary<TemplateEntry>> = derived(templatesStore, i => i)
   const spaces: Readable<Dictionary<Space>> = derived(spacesStore, i => i)
   const zooms: Readable<Dictionary<number>> = derived(zoomsStore, i => i)
 
   const others = (): Array<AgentPubKeyB64> => {
     return Object.keys(get(profiles.knownProfiles)).filter((key)=> key != myAgentPubKey)
   }
+
 
   const updateSpaceFromEntry = async (hash: EntryHashB64, entry: SpaceEntry) => {
     const space : Space = await service.spaceFromEntry(hash, entry)
@@ -100,8 +107,27 @@ export function createWhereStore(
   })
   return {
     myAgentPubKey,
+    templates,
     spaces,
     zooms,
+
+
+    async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
+      // const templates = await service.getTemplates();
+      // for (const s of templates) {
+      //   await updateSpaceFromEntry(s.hash, s.content)
+      // }
+      return get(templatesStore)
+    },
+    async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
+      const eh64: EntryHashB64 = await service.createTemplate(template)
+      templatesStore.update(templates => {
+        templates[eh64] = template
+        return templates
+      })
+      service.notify({spaceHash: eh64, message: {type:"NewTemplate", content:template}}, others());
+      return eh64
+    },
     async updateSpaces() : Promise<Dictionary<Space>> {
       const spaces = await service.getSpaces();
       for (const s of spaces) {
@@ -112,6 +138,7 @@ export function createWhereStore(
     async addSpace(space: Space) : Promise<EntryHashB64> {
       const s: SpaceEntry = {
         name: space.name,
+        origin: space.origin,
         surface: JSON.stringify(space.surface),
         meta: space.meta,
       };
@@ -173,6 +200,9 @@ export function createWhereStore(
     getAgentIdx (space: string, agent: string) : number {
       return get(spacesStore)[space].wheres.findIndex((w) => w.entry.meta.name == agent)
     } ,
+    template(eh64: EntryHashB64): TemplateEntry {
+      return get(templatesStore)[eh64];
+    },
     space(space: string): Space {
       return get(spacesStore)[space];
     },

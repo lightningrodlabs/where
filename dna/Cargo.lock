@@ -385,10 +385,11 @@ checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
 
 [[package]]
 name = "hc_utils"
-version = "0.2.0"
-source = "git+https://github.com/guillemcordoba/hc-utils?branch=develop#993a66fd4aab0803069a6a321ef88cd9eb5f918f"
+version = "0.3.0"
+source = "git+https://github.com/holochain/hc-utils?branch=v0.0.106#6897d6c5a6ff1b9543b631ef12543bcafdeb1e7c"
 dependencies = [
- "hdk 0.0.104",
+ "hdk 0.0.106",
+ "holo_hash 0.0.6",
  "serde",
  "thiserror",
 ]
@@ -510,6 +511,9 @@ version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4a29197878928112186c00a22b849160814f0bc4bb87f2467f4a76313e449a16"
 dependencies = [
+ "base64",
+ "blake2b_simd",
+ "derive_more",
  "holochain_serialized_bytes",
  "serde",
  "serde_bytes",

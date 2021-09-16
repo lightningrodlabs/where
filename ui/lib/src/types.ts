@@ -58,7 +58,7 @@ export interface Space  {
 
 export interface TemplateEntry  {
   name: string;
-  surfaceDesc: string;
+  surface: string;
 }
 
 

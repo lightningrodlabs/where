@@ -15,6 +15,7 @@ import {StoreSubscriber} from "lit-svelte-stores";
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   @state() size : Coord = {x:0,y:0};
+  @state() _currentTemplate = "";
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -85,7 +86,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleTemplateSelect(template: string): void {
-    //this._currentTemplate = template;
+    this._currentTemplate = template;
   }
 
   handleUrlUpdated(e:Event) {
@@ -106,12 +107,12 @@ this.handleSpaceDialog
 <div id="thumbnail"><img id="sfc" src="" />${this.size.x} x ${this.size.y}</div>
 <mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()} id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
 
-  <mwc-select outlined label="Template" @select=${this.handleTemplateSelect}>
+  <mwc-select required id="template-field" label="Template" @select=${this.handleTemplateSelect}>
     ${Object.entries(this._templates.value).map(
       ([key, template]) => html`
     <mwc-list-item
       @request-selected=${() => this.handleTemplateSelect(key)}
-      .selected=${template === this._templates.value[0]}
+      .selected=${key === this._currentTemplate}
       value="${key}"
       >${template.name}
     </mwc-list-item>
@@ -130,6 +131,7 @@ this.handleSpaceDialog
   }
   static get scopedElements() {
     return {
+      "mwc-select": Select,
       "mwc-button": Button,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,

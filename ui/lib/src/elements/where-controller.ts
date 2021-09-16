@@ -10,7 +10,7 @@ import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
-// import { WhereTemplateDialog } from "./where-template-dialog";
+import { WhereTemplateDialog } from "./where-template-dialog";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -50,7 +50,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   /** Private properties */
 
   @state() _current = "";
-  //@state() _currentTemplate = "";
+  @state() _currentTemplate = "";
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
@@ -84,9 +84,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         spaces = await this._store.updateSpaces();
       }
       this._current = Object.keys(spaces)[0];
-      //this._currentTemplate = Object.keys(templates)[0];
+      this._currentTemplate = Object.keys(templates)[0];
       console.log("current space", this._current, spaces[this._current].name);
-      //console.log("current template", this._currentTemplate, templates[this._currentTemplate].name);
+      console.log("current template", this._currentTemplate, templates[this._currentTemplate].name);
       this.initializing = false
     }
     this.initialized = true;
@@ -96,13 +96,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log('initializeSpaces...')
     //const myPubKey = this._profiles.myAgentPubKey;
     const mapEh = await this._store.addTemplate({
-      name: "Map",
-      surfaceDesc: "{\
+      name: "Map2D",
+      surface: "{\
         'url': '%ImageURL%',\
         'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
     'title': '%String%'\
   }",
+      //surface: "bob"
     })
+    console.log('mapEh: ' + mapEh)
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
@@ -166,13 +168,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._profiles.fetchAllProfiles()
   }
 
-  // async openTemplateDialog() {
-  //   this.templateDialogElem.open();
-  // }
-  //
-  // get templateDialogElem() : WhereTemplateDialog {
-  //   return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
-  // }
+  async openTemplateDialog() {
+    this.templateDialogElem.open();
+  }
+
+  get templateDialogElem() : WhereTemplateDialog {
+    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
+  }
 
   get spaceElem(): WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
@@ -219,7 +221,7 @@ ${Object.entries(this._spaces.value).map(
   <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(0.1)}></mwc-icon-button>
   <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-0.1)}></mwc-icon-button>
 </div>
-
+<mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
 <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
 <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
 
@@ -227,15 +229,13 @@ ${Object.entries(this._spaces.value).map(
 ${folks}
 </div>
 
+<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> </where-space-dialog>
 
 
 <where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
 `;
   }
-
-  //<mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-  // <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
 
   static get scopedElements() {
     return {
@@ -244,7 +244,7 @@ ${folks}
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
       "where-space-dialog" : WhereSpaceDialog,
-      //"where-template-dialog" : WhereTemplateDialog,
+      "where-template-dialog" : WhereTemplateDialog,
       "where-space": WhereSpace,
     };
   }

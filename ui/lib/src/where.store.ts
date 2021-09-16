@@ -71,6 +71,14 @@ export function createWhereStore(
     console.log("SIGNAL",signal)
     const payload = signal.data.payload
     switch(payload.message.type) {
+      case "NewTemplate":
+        if (!get(templates)[payload.spaceHash]) {
+          templatesStore.update(templates => {
+            templates[payload.spaceHash] = payload.message.content
+            return templates
+          })
+        }
+        break;
       case "NewSpace":
         if (!get(spaces)[payload.spaceHash]) {
           updateSpaceFromEntry(payload.spaceHash, payload.message.content)

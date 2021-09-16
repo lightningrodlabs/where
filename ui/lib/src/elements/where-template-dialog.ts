@@ -31,20 +31,22 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   _surfaceField!: TextArea;
 
   private async handleOk(e: any) {
-    const valid = this._surfaceField.validity.valid && this._nameField.validity.valid
+    const valid = this._nameField.validity.valid
+    //&& this._surfaceField.validity.valid
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
     }
-    if (!this._surfaceField.validity.valid) {
-      this._surfaceField.reportValidity()
-    }
+    // if (!this._surfaceField.validity.valid) {
+    //   this._surfaceField.reportValidity()
+    // }
     if (!valid) return
 
     const template: TemplateEntry = {
       name: this._nameField.value,
-      surfaceDesc: this._surfaceField.value,
+      surface: this._surfaceField.value,
     };
     const newTemplate = await this._store.addTemplate(template);
+    console.log("newTemplate: " + newTemplate)
     this.dispatchEvent(new CustomEvent('template-added', { detail: newTemplate, bubbles: true, composed: true }));
     const dialog = this.shadowRoot!.getElementById(
       "template-dialog"
@@ -72,7 +74,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 this.handleTemplateDialog
 }>
 <mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()} id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-<mwc-textarea id="surface-field" label="Surface sescription" autoValidate=true required></mwc-textarea>
+<mwc-textarea class="mdc-text-field__input" id="surface-field" multiline placeholder="hi bob" label="Surface description" rows="8" cols="40" autoValidate=true required></mwc-textarea>
 </mwc-formfield>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
@@ -84,6 +86,7 @@ this.handleTemplateDialog
       "mwc-button": Button,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
+      "mwc-textarea": TextArea,
       "mwc-formfield": Formfield,
     };
   }

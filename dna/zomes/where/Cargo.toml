@@ -14,7 +14,8 @@ derive_more = "0.99"
 serde = "1.0.123"
 thiserror = "1.0.20"
 hc_utils = {git = "https://github.com/guillemcordoba/hc-utils", branch = "develop", package = "hc_utils"}
-hdk = "0.0.104"
+hdk = "0.0.106"
+holo_hash = "0.0.6"
 
 [dev-dependencies]
 #holochain = { git = "https://github.com/holochain/holochain.git", branch = "develop", features = ["test_utils"] }

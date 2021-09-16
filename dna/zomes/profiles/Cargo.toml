@@ -11,4 +11,5 @@ name = "profiles"
 [dependencies]
 hc_zome_profiles = {git = "https://github.com/holochain-open-dev/profiles", branch = "main", package = "hc_zome_profiles"}
 
-hdk = "0.0.104"
+hdk = "0.0.106"
+holo_hash = "0.0.6"

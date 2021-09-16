@@ -10,6 +10,7 @@ import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
+import { lightTheme, SlAvatar } from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -57,8 +58,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this._myProfile.value.nickname;
   }
   get myAvatar(): string {
-    return this._myAvatar
-//    return this._myProfile.value.fields.avatar;
+    return this._myProfile.value.fields.avatar;
   }
   firstUpdated() {
 
@@ -152,7 +152,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
-      return html`<li class="folk"><img src="https://robohash.org/${profile.nickname}"> <div>${profile.nickname}</div></li>`
+      return html`<li class="folk">
+<sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+ <div>${profile.nickname}</div></li>`
     })
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
@@ -195,11 +197,13 @@ ${folks}
       "mwc-button": Button,
       "where-space-dialog" : WhereSpaceDialog,
       "where-space": WhereSpace,
+      'sl-avatar': SlAvatar,
     };
   }
 
   static get styles() {
     return [
+      lightTheme,
       sharedStyles,
       css`
         :host {
@@ -226,6 +230,7 @@ ${folks}
         }
         .folk > img {
          width: 50px;
+         border-radius: 10000px;
         }
 
         @media (min-width: 640px) {

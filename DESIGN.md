@@ -31,7 +31,11 @@ struct Space {
     coords: {x: "integer", y: "integer"},
     range: {x: {min: 0, max: 1024}, y:{min: 0, max: 1024}}
   },
-  surface: "https://mountain-map-images.com/everest",
+  surface: {
+    url: "https://mountain-map-images.com/everest",
+    size: {x:1000, y:700},
+    data: "[]",
+  ,}
   meta: {
       attribution: "photo taken by Jane Doe"
   }
@@ -148,5 +152,6 @@ Here are some example "Wheres" in various different coordinate systems
 
 ## Signals
 
-- `added(SpaceHash, AgentPubKey, Timestamp, Where, WhereHash)`
-- `removed(WhereHash)`
+- `new_space(SpaceHash, Space)`
+- `new_where(SpecHash, WhereHaderHash, Where)`
+- `removed(SpaceHash, WhereHeaderHash)`

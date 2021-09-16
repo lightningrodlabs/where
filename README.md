@@ -46,7 +46,7 @@ To package the web happ:
 npm run package
 ```
 
-You'll have the `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
+You'll have the `where.webhapp` in `workdir`, and it's component `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
 
 ## License
 [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blue.svg)](https://github.com/holochain/cryptographic-autonomy-license)

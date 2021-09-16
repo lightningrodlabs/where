@@ -56,7 +56,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
-
+  get myAvatar(): string {
+    return this._myAvatar
+//    return this._myProfile.value.fields.avatar;
+  }
   firstUpdated() {
 
     let unsubscribe: Unsubscriber;
@@ -180,8 +183,7 @@ ${folks}
 </div>
 
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
-
-<where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
+<where-space id="where-space" .current=${this._current} .avatar=${this.myAvatar}></where-space>
 `;
   }
 

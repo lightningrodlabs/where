@@ -7,6 +7,7 @@
     "tests"
   ],
   "scripts": {
+    "s": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run start:happ\" \"npm run start -w where\"",
     "start": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ\" \"npm run start -w where\"",
     "start-proxied": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run build:watch -w @where/elements\" \"npm run start:happ-proxied\" \"npm run start -w where\"",
     "test": "npm run build:happ && npm t -w tests",

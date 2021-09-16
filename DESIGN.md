@@ -155,3 +155,12 @@ Here are some example "Wheres" in various different coordinate systems
 - `new_space(SpaceHash, Space)`
 - `new_where(SpecHash, WhereHaderHash, Where)`
 - `removed(SpaceHash, WhereHeaderHash)`
+
+## Templates
+We want to be able to create spaces which are templates, instead of actual spaces to make it easy to customize especially spaces with complex surfaces.  To do this we:
+1. link spaces to a "templates" anchor instead of the usual "spaces" link.
+2. Use a convention in the surface data to indicate a template slot with a name that can get rendered in a UI and then substitued into when creating a space from the template.  For example, since the surface is a JSON string a template could look like this:
+
+
+"url":"%%%Image URL%%%",
+"data": "[{\"box\":{\"left\":100,\"top\":10,\"width\":100,\"height\":50},\"content\":\"%%%Title%%%\"}]"

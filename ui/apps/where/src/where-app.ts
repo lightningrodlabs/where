@@ -33,6 +33,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const store = new ProfilesStore(cellClient, {avatarMode: "identicon"})
 
+    store.fetchAllProfiles()
+
     new ContextProvider(
       this,
       profilesStoreContext,

@@ -5,7 +5,7 @@ Tooling for group self-awareness on holochain
 ##  Background
 
 Groups, especially remote colaborative groups, often lack contextual information about collaborators that makes working together harder.  Co-locating oneself across a number of spaces in the context of a group (or groups) provides an important avenue for improving both sense-making and working together.  **Where** provides a generalized pattern for creating shared maps for groups to see the emergent "whereness" of each other across self-evolved sets of maps.
-
+![screencast](where.gif)
 
 ## Design
 

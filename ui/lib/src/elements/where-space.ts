@@ -38,6 +38,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
+  _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
 
   private dialogCoord = { x: 0, y: 0 };
   private dialogIsEdit = false;
@@ -86,7 +87,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       this.openWhereDialog({
         tag: "",
         name: this.myNickName,
-        img: this.avatar,
+        img: "", //this.avatar,
         isEdit: false,
       });
     }
@@ -162,6 +163,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (ev.target) {
       const w = ev.target as HTMLImageElement;
       const idx = w.getAttribute("idx");
+      console.log(w)
       if (idx && ev.dataTransfer) {
         if (this.canUpdate(parseInt(idx))) {
           ev.dataTransfer.setData("idx", `${idx}`);
@@ -217,8 +219,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const x = where.entry.location.x * z;
       const y = where.entry.location.y * z;
 
+      // Use an image url if stored in the where, otherwise use the agent's avatar
+      const img =  where.entry.meta.img ? where.entry.meta.img : this._knownProfiles.value[where.authorPubKey].fields.avatar
+
       return html`
-        <img
+
+        <div
           .draggable=${true}
           @dblclick="${(e: Event) => this.dblclick(e)}"
           @dragstart="${(e: DragEvent) => this.drag(e)}"
@@ -227,14 +233,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
             ? "me"
             : ""}"
           style="left: ${x}px; top: ${y}px;"
-          src="${where.entry.meta.img}"
-        />
+        >
+        <img src="${img}">
+        </div>
         <div
           class="where-details ${where.entry.meta.name == this.myNickName
             ? "me"
             : ""}"
           style="left: ${x}px; top: ${y}px;"
-          src="${where.entry.meta.img}"
         >
           <h3>${where.entry.meta.name}</h3>
           <p>${where.entry.meta.tag}</p>
@@ -311,7 +317,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           max-height: 900px;
         }
 
-        img.where-marker {
+        .where-marker {
           max-width: 100%;
           max-height: 100%;
           border-radius: 10000px;
@@ -323,9 +329,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           margin-left: -${MARKER_WIDTH / 2}px;
           z-index: 1;
           background-color: white;
+          overflow: hidden;
+        }
+        .where-marker > img {
+          width: ${MARKER_WIDTH}px;
+          pointer-events: none;
         }
 
-        img.where-marker.me {
+        .where-marker.me {
           border: orange 2px solid;
         }
 

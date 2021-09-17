@@ -10,7 +10,11 @@ import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
+<<<<<<< HEAD
 import { WhereTemplateDialog } from "./where-template-dialog";
+=======
+import { lightTheme, SlAvatar } from '@scoped-elements/shoelace';
+>>>>>>> remotes/origin/HEAD
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -58,7 +62,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
-
+  get myAvatar(): string {
+    return this._myProfile.value.fields.avatar;
+  }
   firstUpdated() {
     console.log("firstUpdated...")
     let unsubscribe: Unsubscriber;
@@ -201,7 +207,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log('render...')
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
-      return html`<li class="folk"><img src="https://robohash.org/${profile.nickname}"> <div>${profile.nickname}</div></li>`
+      return html`<li class="folk">
+<sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+ <div>${profile.nickname}</div></li>`
     })
     return html`
 <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
@@ -229,11 +237,16 @@ ${Object.entries(this._spaces.value).map(
 ${folks}
 </div>
 
+<<<<<<< HEAD
 <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> </where-space-dialog>
 
 
 <where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
+=======
+<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
+<where-space id="where-space" .current=${this._current} .avatar=${this.myAvatar}></where-space>
+>>>>>>> remotes/origin/HEAD
 `;
   }
 
@@ -246,11 +259,13 @@ ${folks}
       "where-space-dialog" : WhereSpaceDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-space": WhereSpace,
+      'sl-avatar': SlAvatar,
     };
   }
 
   static get styles() {
     return [
+      lightTheme,
       sharedStyles,
       css`
         :host {
@@ -277,6 +292,7 @@ ${folks}
         }
         .folk > img {
          width: 50px;
+         border-radius: 10000px;
         }
 
         @media (min-width: 640px) {

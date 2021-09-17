@@ -31,7 +31,9 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const cellData = appInfo.cell_data[0];
     const cellClient = new HolochainClient(appWebsocket, cellData);
 
-    const store = new ProfilesStore(cellClient)
+    const store = new ProfilesStore(cellClient, {avatarMode: "avatar"})
+
+    store.fetchAllProfiles()
 
     new ContextProvider(
       this,

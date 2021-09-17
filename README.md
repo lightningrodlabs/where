@@ -5,6 +5,7 @@ Tooling for group self-awareness on holochain
 ##  Background
 
 Groups, especially remote colaborative groups, often lack contextual information about collaborators that makes working together harder.  Co-locating oneself across a number of spaces in the context of a group (or groups) provides an important avenue for improving both sense-making and working together.  **Where** provides a generalized pattern for creating shared maps for groups to see the emergent "whereness" of each other across self-evolved sets of maps.
+![screencast](where.gif)
 
 ## Design
 
@@ -46,7 +47,7 @@ To package the web happ:
 npm run package
 ```
 
-You'll have the `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
+You'll have the `where.webhapp` in `workdir`, and it's component `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
 
 ## License
 [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blue.svg)](https://github.com/holochain/cryptographic-autonomy-license)

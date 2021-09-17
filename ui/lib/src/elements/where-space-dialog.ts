@@ -6,7 +6,7 @@ import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
 import { whereContext, Space, Coord } from "../types";
-import { Dialog, TextField, Button, Checkbox, Formfield, Select } from "@scoped-elements/material-web";
+import {Dialog, TextField, Button, Checkbox, Formfield, Select, ListItem} from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 
 /**
@@ -132,6 +132,7 @@ this.handleSpaceDialog
   static get scopedElements() {
     return {
       "mwc-select": Select,
+      "mwc-list-item": ListItem,
       "mwc-button": Button,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
@@ -143,13 +144,18 @@ this.handleSpaceDialog
     return [
       sharedStyles,
       css`
-#thumbnail {
-width: 200px;
-float: right;
-}
-#sfc {
-width: 100%;
-}
+        #template-field {
+            display: block;
+              width: 227px;
+        }
+        #thumbnail {
+          padding-left: 10px;
+          width: 200px;
+          float: right;
+        }
+        #sfc {
+          width: 100%;
+        }
 `,
     ];
   }

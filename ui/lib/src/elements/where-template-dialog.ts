@@ -73,14 +73,17 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 <mwc-dialog  id="template-dialog" heading="Template" @closing=${
 this.handleTemplateDialog
 }>
-<mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()} id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-<mwc-textarea class="mdc-text-field__input" id="surface-field" multiline placeholder="hi bob" label="Surface description" rows="8" cols="40" autoValidate=true required></mwc-textarea>
-</mwc-formfield>
+<mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
+               id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+  <mwc-textarea class="" id="surface-field" placeholder="JSON description here..." value="{\\n\\n}" rows="10" cols="60" required></mwc-textarea>
+  </mwc-formfield>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
 </mwc-dialog>
 `
   }
+
+
   static get scopedElements() {
     return {
       "mwc-button": Button,
@@ -94,13 +97,9 @@ this.handleTemplateDialog
     return [
       sharedStyles,
       css`
-#thumbnail {
-width: 200px;
-float: right;
-}
-#sfc {
-width: 100%;
-}
+        #surface-field {
+          width: 100%;
+        }
 `,
     ];
   }

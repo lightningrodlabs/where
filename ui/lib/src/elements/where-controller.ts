@@ -10,11 +10,8 @@ import { whereContext, Space, Dictionary, Signal } from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
-<<<<<<< HEAD
 import { WhereTemplateDialog } from "./where-template-dialog";
-=======
 import { lightTheme, SlAvatar } from '@scoped-elements/shoelace';
->>>>>>> remotes/origin/HEAD
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -237,16 +234,9 @@ ${Object.entries(this._spaces.value).map(
 ${folks}
 </div>
 
-<<<<<<< HEAD
 <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> </where-space-dialog>
-
-
-<where-space id="where-space" .current=${this._current} .avatar=${this._myAvatar}></where-space>
-=======
-<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> ></where-space-dialog>
 <where-space id="where-space" .current=${this._current} .avatar=${this.myAvatar}></where-space>
->>>>>>> remotes/origin/HEAD
 `;
   }
 

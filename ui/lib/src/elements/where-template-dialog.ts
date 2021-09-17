@@ -31,14 +31,20 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   _surfaceField!: TextArea;
 
   private async handleOk(e: any) {
-    const valid = this._nameField.validity.valid
-    //&& this._surfaceField.validity.valid
+    let valid = this._nameField.validity.valid
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
     }
-    // if (!this._surfaceField.validity.valid) {
-    //   this._surfaceField.reportValidity()
-    // }
+    // check surface description validity
+    try {
+      JSON.parse(this._surfaceField.value)
+      this._surfaceField.setCustomValidity("OK")
+      this._surfaceField.reportValidity()
+    } catch (e) {
+      this._surfaceField.setCustomValidity("Invalid JSON: " + e)
+      this._surfaceField.reportValidity()
+      valid = false;
+    }
     if (!valid) return
 
     const template: TemplateEntry = {
@@ -75,7 +81,8 @@ this.handleTemplateDialog
 }>
 <mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <mwc-textarea class="" id="surface-field" placeholder="JSON description here..." value="{\\n\\n}" rows="10" cols="60" required></mwc-textarea>
+  <mwc-textarea @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextField).reportValidity()}
+                id="surface-field" placeholder="JSON description here..." value="{\n\n}" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>

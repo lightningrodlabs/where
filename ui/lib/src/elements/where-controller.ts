@@ -86,11 +86,22 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       }
       this._current = Object.keys(spaces)[0];
       this._currentTemplate = Object.keys(templates)[0];
-      console.log("current space", this._current, spaces[this._current].name);
-      console.log("current template", this._currentTemplate, templates[this._currentTemplate].name);
+      await this.updateTemplateLabel(spaces[this._current].name);
+      console.log("   current space: ",  spaces[this._current].name, this._current);
+      console.log("current template: ", templates[this._currentTemplate].name, this._currentTemplate);
       this.initializing = false
     }
     this.initialized = true;
+  }
+
+  private async updateTemplateLabel(space: string): Promise<void> {
+    const spaces = await this._store.updateSpaces();
+    this._currentTemplate = spaces[space].origin;
+    let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
+    const templates = await this._store.updateTemplates()
+    div.innerText = templates[this._currentTemplate].name;
+    let abbr = this.shadowRoot!.getElementById("template-abbr") as HTMLElement;
+    abbr.title = templates[this._currentTemplate].surface;
   }
 
   async initializeSpaces() {
@@ -100,7 +111,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       surface: "{\
         'url': '%ImageURL%',\
         'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
-    'title': '%String%'\
+      'title': '%String%'\
   }",
     })
     await this._store.addSpace({
@@ -185,9 +196,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
-  private handleSpaceSelect(space: string): void {
+  private async handleSpaceSelect(space: string): Promise<void> {
     this._current = space;
     this.spaceElem.current = space;
+    await this.updateTemplateLabel(space);
   }
 
   private handleZoom(zoom: number): void {
@@ -208,12 +220,13 @@ ${Object.entries(this._spaces.value).map(
     <mwc-list-item
       @request-selected=${() => this.handleSpaceSelect(key)}
       .selected=${key === this._current}
-      value="${key}"
-      >${space.name}
+      value="${key}">
+        ${space.name}
     </mwc-list-item>
   `
 )}
 </mwc-select>
+<abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>
 <div class="zoom">
   Zoom: ${(this._zooms.value[this._current] * 100).toFixed(0)}% <br/>
   <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(0.1)}></mwc-icon-button>

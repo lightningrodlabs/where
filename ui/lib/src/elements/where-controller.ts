@@ -63,7 +63,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this._myProfile.value.fields.avatar;
   }
   firstUpdated() {
-    console.log("firstUpdated...")
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe((profile) => {
       if (profile) {
@@ -75,7 +74,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async checkInit() {
-    console.log("checkInit...")
     if (!this.initialized && !this.initializing) {
       this.initializing = true  // because checkInit gets call whenever profiles changes...
       let spaces = await this._store.updateSpaces();
@@ -96,7 +94,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async initializeSpaces() {
-    console.log('initializeSpaces...')
     //const myPubKey = this._profiles.myAgentPubKey;
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
@@ -105,9 +102,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
     'title': '%String%'\
   }",
-      //surface: "bob"
     })
-    console.log('mapEh: ' + mapEh)
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
@@ -166,7 +161,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async refresh() {
-    console.log('refresh...')
     await this._store.updateSpaces();
     await this._profiles.fetchAllProfiles()
   }
@@ -201,7 +195,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    console.log('render...')
     if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
       return html`<li class="folk">

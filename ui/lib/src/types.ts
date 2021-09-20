@@ -35,11 +35,11 @@ export interface Coord {
   y: number;
 }
 
-export interface Surface {
-  url: string;
-  data: string;
-  size: Coord;
-}
+// export interface Surface {
+//   url: string;
+//   data: string;
+//   size: Coord;
+// }
 
 export interface SpaceEntry {
   name: string;
@@ -51,7 +51,7 @@ export interface SpaceEntry {
 export interface Space  {
   name: string;
   origin: EntryHashB64;
-  surface: Surface;
+  surface: any;
   wheres: Where[];
   meta?: Dictionary<string>;
 }

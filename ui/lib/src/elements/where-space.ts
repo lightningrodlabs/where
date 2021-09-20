@@ -14,6 +14,7 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
+import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 
 const MARKER_WIDTH = 40;
 
@@ -60,7 +61,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private getCoordsFromEvent(event: any): Coord {
-    const rect = event.target.getBoundingClientRect();
+    const rect = event.currentTarget.getBoundingClientRect();
     const z = this._zooms.value[this.current];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
@@ -265,16 +266,35 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
-    return html`
-      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
-        <img
+
+    //console.log({space});
+
+    let mainItem = space.surface.url?
+      html`<img
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
           .id="${this.current}-img"
           src="${space.surface.url}"
           @click=${this.handleClick}
-        />
+        />`
+      : html`<svg
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${w} ${h}"
+          .id="${this.current}-svg"
+          @click=${this.handleClick}
+        >
+          ${unsafeSVG(space.surface.svg)}
+        </svg>`
+    ;
+    //console.log({mainItem});
+
+    return html`
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
+        ${mainItem}
         ${whereItems} ${dataItems}
         <mwc-dialog
           id="edit-where"

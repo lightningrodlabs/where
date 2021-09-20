@@ -24,6 +24,7 @@ import {
   ProfilesStore,
   Profile,
 } from "@holochain-open-dev/profiles";
+import {quadrant_template_svg} from "./templates";
 
 /**
  * @element where-controller
@@ -169,7 +170,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       meta: { multi: "false" },
       wheres: [],
     });
+    await this._store.addSpace({
+      name: "Quadrant",
+      origin: mapEh,
+      surface: {
+        svg: quadrant_template_svg,
+        size: { x: 600, y: 600 },
+        data: "[]",
+      },
+      meta: { multi: "false" },
+      wheres: [],
+    });
   }
+
 
   async refresh() {
     await this._store.updateSpaces();

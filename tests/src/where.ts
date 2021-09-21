@@ -15,6 +15,11 @@ export default async (orchestrator) => {
     // be used to spin up the conductor processes which are returned in a matching array.
     const [a_and_b_conductor] = await s.players([localConductorConfig])
 
+    a_and_b_conductor.setSignalHandler((signal) => {
+      console.log("Received Signal:",signal)
+      t.deepEqual(signal.data.payload.message, { type: 'NewSpace', content: { name: 'mountain map', surface: 'https://mountain-map-images.com/cotopaxi', meta: {} } })
+    })
+
     // install your happs into the conductors and destructuring the returned happ data using the same
     // array structure as you created in your installation array.
     let [alice_where_happ/*, bobbo_where_happ*/] = await installAgents(a_and_b_conductor,  ["alice"/*, 'bobbo'*/])

@@ -1,6 +1,10 @@
-import {html} from "lit";
+import {html, svg} from "lit";
 
-export const quadrant_template_svg = `
+export const map2D_template_html = html `
+    <img src="%%ImageUrl%%" style="width:100%" />
+    `;
+
+export const quadrant_template_svg = svg`
 <!--  <svg xmlns="http://www.w3.org/2000/svg">-->
     <rect
       id="rect3451"
@@ -60,26 +64,26 @@ export const quadrant_template_svg = `
       id="text2996"
       x="29.304703"
       y="279.72247"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">Left
+      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">%%left-axis%%
     </text>
     <text
       font-size="20.431"
       id="text2998"
       style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101"
       x="421.66278"
-      y="279.79285">Right
+      y="279.79285">%%right-axis%%
     </text>
     <text
       transform="translate(219.2134,581.3018)"
       font-size="20.431"
       id="text3000"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">Libertarian
+      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">%%bottom-axis%%
     </text>
     <text
       transform="translate(207.8755,20.083)"
       font-size="20.431"
       id="text3002"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">Authoritarian
+      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">%%top-axis%%
     </text>
     <g
       id="g3487"
@@ -88,13 +92,13 @@ export const quadrant_template_svg = `
         transform="translate(412.4707,287.7975)"
         font-size="20.431"
         id="text3005"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#00aad4">Authoritarian
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#00aad4">%%top-axis%%
       </text>
       <text
         transform="translate(449.1982,312.5787)"
         font-size="20.431"
         id="text3007"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#00aad4">Right
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#00aad4">%%right-axis%%
       </text>
     </g>
     <g
@@ -104,13 +108,13 @@ export const quadrant_template_svg = `
         transform="translate(412.4706,287.7975)"
         font-size="20.431"
         id="text3010"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#f37f81">Authoritarian
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#f37f81">%%top-axis%%
       </text>
       <text
         transform="translate(456.5702,312.5787)"
         font-size="20.431"
         id="text3012"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#f37f81">Left
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#f37f81">%%left-axis%%
       </text>
     </g>
     <g
@@ -120,13 +124,13 @@ export const quadrant_template_svg = `
         transform="translate(423.8086,287.7976)"
         font-size="20.431"
         id="text3015"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#cccb00;fill-opacity:1;">Libertarian
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#cccb00;fill-opacity:1;">%%bottom-axis%%
       </text>
       <text
         transform="translate(449.1982,312.5789)"
         font-size="20.431"
         id="text3017"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#cccb00;fill-opacity:1;">Right
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#cccb00;fill-opacity:1;">%%right-axis%%
       </text>
     </g>
     <g
@@ -136,13 +140,13 @@ export const quadrant_template_svg = `
         transform="translate(423.8085,287.7977)"
         font-size="20.431"
         id="text3020"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#4ab749">Libertarian
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#4ab749">%%bottom-axis%%
       </text>
       <text
         transform="translate(456.5702,312.578)"
         font-size="20.431"
         id="text3022"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#4ab749">Left
+        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#4ab749">%%left-axis%%
       </text>
     </g>
 <!--</svg>-->

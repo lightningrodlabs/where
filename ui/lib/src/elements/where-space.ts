@@ -1,4 +1,4 @@
-import { html, css, LitElement } from "lit";
+import { html, css, LitElement, svg } from "lit";
 import { property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
@@ -269,25 +269,40 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     //console.log({space});
 
+
+    const map2D_template = html `
+    <img src="https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg" style="width:100%" />
+    `;
+
     let mainItem = space.surface.url?
-      html`<img
+      // html`<img
+      //     @drop="${(e: DragEvent) => this.drop(e)}"
+      //     @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+      //     style="width: ${w}px; height: ${h}px;"
+      //     .id="${this.current}-img"
+      //     src="${space.surface.url}"
+      //     @click=${this.handleClick}
+      //   />`
+      html`<div
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
           .id="${this.current}-img"
-          src="${space.surface.url}"
           @click=${this.handleClick}
-        />`
-      : html`<svg
+      >
+        ${map2D_template}
+      </div>`
+      : html`<svg xmlns="http://www.w3.org/2000/svg"
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
                   width="${w}px"
                   height="${h}px"
-                  viewBox="0 0 ${w} ${h}"
+                  viewBox="0 0 600 600"
+                  preserveAspectRatio="none"
           .id="${this.current}-svg"
           @click=${this.handleClick}
         >
-          ${unsafeSVG(space.surface.svg)}
+          ${space.surface.svg}
         </svg>`
     ;
     //console.log({mainItem});

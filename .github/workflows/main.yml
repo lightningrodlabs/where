@@ -27,24 +27,7 @@ jobs:
         with:
           nix_path: nixpkgs=channel:nixos-unstable
 
-      - name: build-holochain
+      - name: run-tests
         run: |
           cd $GITHUB_WORKSPACE
-          nix-shell . --run "cd zome && CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown"
-          nix-shell . --run "cd zome && hc dna pack workdir/dna"
-          nix-shell . --run "cd zome && hc app pack workdir/happ"
-          
-      - name: test-holochain
-        run: |
-          cd $GITHUB_WORKSPACE
-          nix-shell . --run "cd zome/tests && npm install"
-          nix-shell . --run "cd zome/tests && npm test"      
-          
-          
-      - name: build-ui
-        run: |
-          cd $GITHUB_WORKSPACE
-          nix-shell . --run "cd ui && npm install"
-          nix-shell . --run "cd ui && npm run lint"
-          nix-shell . --run "cd ui && npm run build"
-          
+          nix-shell . --run "cd ui && npm run test"

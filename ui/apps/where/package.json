@@ -1,6 +1,6 @@
 {
   "name": "where",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "scripts": {
     "build": "rimraf dist && rollup --config rollup.config.js",
     "build:watch": "rollup -c -w",

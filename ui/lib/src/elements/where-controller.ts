@@ -110,7 +110,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: "{\
-        'url': '%ImageURL%',\
+         html: \"<img src=\"%%ImageUrl%%\" style=\"width:100%\" />\"\
         'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
       'title': '%String%'\
   }",
@@ -119,24 +119,26 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "earth",
       origin: mapEh,
       surface: {
-        url: "https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg",
+        html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"width:100%\" />`,
         size: { x: 3840, y: 1799 },
         data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:white;border-radius: 10px;","content":"Land of the Lost"}]`,
       },
       meta: {},
       wheres: [],
     });
+
     await this._store.addSpace({
       name: "Ecuador",
       origin: mapEh,
       surface: {
-        url: "https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg",
-        size: { x: 800, y: 652 },
+        html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"width:100%\" />`,
+        size: { x: 1000, y: 700 },
         data: "[]",
       },
       meta: { multi: "true" },
       wheres: [],
     });
+
     await this._store.addSpace({
       name: "Abstract",
       origin: mapEh,
@@ -152,7 +154,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Zodiac",
       origin: mapEh,
       surface: {
-        url: "https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg",
+        html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"width:100%\" />`,
         size: { x: 626, y: 626 },
         data: "[]",
       },
@@ -163,7 +165,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Political Compass",
       origin: mapEh,
       surface: {
-        url: "https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg",
+        html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"width:100%\" />`,
         size: { x: 600, y: 600 },
         data: "[]",
       },

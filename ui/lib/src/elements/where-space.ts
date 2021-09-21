@@ -15,6 +15,7 @@ import {
 } from "@holochain-open-dev/profiles";
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 const MARKER_WIDTH = 40;
 
@@ -267,22 +268,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
 
-    //console.log({space});
+    console.log({space});
 
-
-    const map2D_template = html `
-    <img src="https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg" style="width:100%" />
-    `;
-
-    let mainItem = space.surface.url?
-      // html`<img
-      //     @drop="${(e: DragEvent) => this.drop(e)}"
-      //     @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-      //     style="width: ${w}px; height: ${h}px;"
-      //     .id="${this.current}-img"
-      //     src="${space.surface.url}"
-      //     @click=${this.handleClick}
-      //   />`
+    let mainItem = space.surface.html?
       html`<div
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
@@ -290,19 +278,19 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           .id="${this.current}-img"
           @click=${this.handleClick}
       >
-        ${map2D_template}
+        ${unsafeHTML(space.surface.html)}
       </div>`
       : html`<svg xmlns="http://www.w3.org/2000/svg"
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
                   width="${w}px"
                   height="${h}px"
-                  viewBox="0 0 600 600"
+                  viewBox="0 0 ${space.surface.size.x} ${space.surface.size.y}"
                   preserveAspectRatio="none"
           .id="${this.current}-svg"
           @click=${this.handleClick}
         >
-          ${space.surface.svg}
+          ${unsafeSVG(space.surface.svg)}
         </svg>`
     ;
     //console.log({mainItem});

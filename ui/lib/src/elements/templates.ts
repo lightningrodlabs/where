@@ -4,7 +4,7 @@ export const map2D_template_html = html `
     <img src="%%ImageUrl%%" style="width:100%" />
     `;
 
-export const quadrant_template_svg = svg`
+export const quadrant_template_svg = `
 <!--  <svg xmlns="http://www.w3.org/2000/svg">-->
     <rect
       id="rect3451"

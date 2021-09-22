@@ -268,7 +268,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
 
-    console.log({space});
+    //console.log({space});
 
     let mainItem = space.surface.html?
       html`<div

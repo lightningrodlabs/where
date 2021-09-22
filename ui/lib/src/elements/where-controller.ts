@@ -109,12 +109,20 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     //const myPubKey = this._profiles.myAgentPubKey;
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
-      surface: "{\
-         html: \"<img src=\"%%ImageUrl%%\" style=\"width:100%\" />\"\
-        'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
-      'title': '%String%'\
-  }",
+      surface: JSON.stringify({
+         html: "<img src=\"%%ImageUrl%%\" style=\"width:100%\" />",
+        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:white;border-radius: 10px;","content":"Lore"}]`,
+  }),
     })
+
+    const quadEh = await this._store.addTemplate({
+      name: "Quadrant",
+      surface: JSON.stringify({
+        svg: quadrant_template_svg,
+        size: { x: 800, y: 800 },
+      }),
+    })
+
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
@@ -163,7 +171,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Political Compass",
-      origin: mapEh,
+      origin: quadEh,
       surface: {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"width:100%\" />`,
         size: { x: 600, y: 600 },
@@ -174,7 +182,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Quadrant",
-      origin: mapEh,
+      origin: quadEh,
       surface: {
         svg: quadrant_template_svg,
         size: { x: 600, y: 600 },

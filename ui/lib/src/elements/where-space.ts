@@ -213,6 +213,33 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  renderSurface(surface: any, w: number, h: number) {
+    return surface.html?
+      html`<div
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+          style="width: ${w}px; height: ${h}px;"
+          .id="${this.current}-img"
+          @click=${this.handleClick}
+      >
+        ${unsafeHTML(surface.html)}
+      </div>`
+      : html`<svg xmlns="http://www.w3.org/2000/svg"
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+                  preserveAspectRatio="none"
+          .id="${this.current}-svg"
+          @click=${this.handleClick}
+        >
+          ${unsafeSVG(surface.svg)}
+        </svg>`
+    ;
+  }
+
+
   render() {
     if (!this.current) return;
     const space = this._spaces.value[this.current];
@@ -269,30 +296,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const h = space.surface.size.y * z;
 
     //console.log({space});
-
-    let mainItem = space.surface.html?
-      html`<div
-          @drop="${(e: DragEvent) => this.drop(e)}"
-          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-          style="width: ${w}px; height: ${h}px;"
-          .id="${this.current}-img"
-          @click=${this.handleClick}
-      >
-        ${unsafeHTML(space.surface.html)}
-      </div>`
-      : html`<svg xmlns="http://www.w3.org/2000/svg"
-          @drop="${(e: DragEvent) => this.drop(e)}"
-          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-                  width="${w}px"
-                  height="${h}px"
-                  viewBox="0 0 ${space.surface.size.x} ${space.surface.size.y}"
-                  preserveAspectRatio="none"
-          .id="${this.current}-svg"
-          @click=${this.handleClick}
-        >
-          ${unsafeSVG(space.surface.svg)}
-        </svg>`
-    ;
+    let mainItem = this.renderSurface(space.surface, w, h)
     //console.log({mainItem});
 
     return html`

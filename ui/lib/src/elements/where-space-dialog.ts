@@ -9,6 +9,8 @@ import {whereContext, Space, Coord, TemplateEntry} from "../types";
 import {Dialog, TextField, Button, Checkbox, Formfield, Select, ListItem} from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 import {quadrant_template_svg} from "./templates";
+import {unsafeHTML} from "lit/directives/unsafe-html.js";
+import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 
 /**
  * @element where-space
@@ -96,6 +98,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentTemplate = this._templates.value[templateName]
   }
 
+  private async handlePreview(e: any) {
+    this.requestUpdate()
+  }
+
+
   // handleUrlUpdated(e:Event) {
   //   this._urlField.setCustomValidity("can't load url")
   //   this._surfaceImg.onload = async () => {
@@ -119,7 +126,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     let subMap: Map<string, string> = new Map();
     for (let placeholder of this._currentPlaceHolders) {
       const txtfield = this.shadowRoot!.getElementById(placeholder + "-gen") as TextField;
-      subMap.set(placeholder, txtfield.value)
+      subMap.set(placeholder, txtfield? txtfield.value : placeholder)
     }
     console.log({subMap})
     // - Replace each placeholder
@@ -146,6 +153,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // Done
     return surface;
   }
+
 
   renderTemplate() {
     if (this._currentTemplate.surface === "") {
@@ -178,16 +186,42 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  render() {
+  renderSurfacePreview() {
+    if (this._currentTemplate.surface === "") {
+      return html`<div id="thumbnail"></div>`
+    }
+    // let surface: any = JSON.parse(this._currentTemplate.surface);
+    let surface: any = this.generateSurface()
+    const w: number = 200;
+    const h: number = 200;
+    const preview = surface.html?
+      html`
+        <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
+            ${unsafeHTML(surface.html)}
+        </div>`
+      : html`<svg xmlns="http://www.w3.org/2000/svg"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+                  preserveAspectRatio="none"
+                  id="surface-preview-svg">
+          ${unsafeSVG(surface.svg)}
+        </svg>`
+      ;
+    return html`
+      <div id="thumbnail">${preview}</div>
+    `
+  }
 
+
+  render() {
     // <div id="thumbnail"><img id="sfc" src="" />${this.size.x} x ${this.size.y}</div>
     // <mwc-textfield @input=${this.handleUrlUpdated} id="url-field" label="Image URL" autoValidate=true required></mwc-textfield>
-
     let selectedTemplateUi = this.renderTemplate()
     console.log({selectedTemplateUi})
-
     return html`
 <mwc-dialog  id="space-dialog" heading="Space" @closing=${this.handleSpaceDialog}>
+  ${this.renderSurfacePreview()}
   <mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <mwc-select required id="template-field" label="Template" @select=${this.handleTemplateSelect}>
@@ -208,6 +242,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 </mwc-formfield>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
+  <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
 </mwc-dialog>
 `
   }

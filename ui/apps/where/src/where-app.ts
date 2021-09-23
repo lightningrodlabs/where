@@ -49,9 +49,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this.loaded) return html`<span>Loading...</span>`;
     return html`
-      <profile-prompt style="height: 400px; width: 500px">
-        <where-controller></where-controller>
-      </profile-prompt>
+      <profile-prompt></profile-prompt>
+      <where-controller></where-controller>
     `;
   }
 

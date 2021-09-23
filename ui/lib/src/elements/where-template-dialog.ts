@@ -24,7 +24,7 @@ import {renderTemplate} from "../surface";
 export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   @state() size : Coord = {x:0,y:0};
-  @state() _currentType = "";
+  @state() _currentType = "html";
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -122,18 +122,18 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-<mwc-dialog  id="template-dialog" heading="Template" @closing=${this.handleTemplateDialog}>
-  <mwc-textfield @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
+<mwc-dialog id="template-dialog" heading="New template" @closing=${this.handleTemplateDialog}>
+  <mwc-textfield dialogInitialFocus @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <mwc-select required id="type-field" label="Type" @select=${this.handleTypeSelect}>
     <mwc-list-item
       @request-selected=${() => this.handleTypeSelect("html")}
-      selected=${true} value="html">HTML</mwc-list-item>
+      selected value="html">HTML</mwc-list-item>
     <mwc-list-item @request-selected=${() => this.handleTypeSelect("svg")} value="svg">SVG</mwc-list-item>
   </mwc-select>
 
-  <mwc-textarea @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextField).reportValidity()}
-                id="surface-field" placeholder="HTML/SVG here..." rows="15" cols="60" required></mwc-textarea>
+  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextField).reportValidity()}
+                id="surface-field" placeholder="HTML/SVG here..." helper="Must be valid HTML/SVG code" rows="15" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <div id="thumbnail">${this.previewTemplate()}</div>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>

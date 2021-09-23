@@ -110,8 +110,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: JSON.stringify({
-         html: "<img src=\"%%ImageUrl%%\" style=\"width:100%\" />",
-        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:white;border-radius: 10px;","content":"Lore"}]`,
+         html: "<img src=\"%%ImageUrl%%\" style=\"max-width:100%;max-height:100%;\" />",
+        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Lore"}]`,
+        //size: { x: 1000, y: 600 },
   }),
     })
 
@@ -119,7 +120,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Quadrant",
       surface: JSON.stringify({
         svg: quadrant_template_svg,
-        size: { x: 800, y: 800 },
+        size: { x: 600, y: 600 },
       }),
     })
 
@@ -127,9 +128,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "earth",
       origin: mapEh,
       surface: {
-        html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"width:100%\" />`,
-        size: { x: 3840, y: 1799 },
-        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:white;border-radius: 10px;","content":"Land of the Lost"}]`,
+        html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
+        size: { x: 1000, y: 400 },
+        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`,
       },
       meta: {},
       wheres: [],
@@ -139,8 +140,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Ecuador",
       origin: mapEh,
       surface: {
-        html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"width:100%\" />`,
-        size: { x: 1000, y: 700 },
+        html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
+        size: { x: 800, y: 652 },
         data: "[]",
       },
       meta: { multi: "true" },
@@ -151,7 +152,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Abstract",
       origin: mapEh,
       surface: {
-        url: "",
+        html: "",
         size: { x: 1000, y: 700 },
         data: `[{"box":{"left":0,"top":0,"width":1000,"height":700},"style":"background-image: linear-gradient(to bottom right, red, yellow);","content":""},{"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
       },
@@ -171,7 +172,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
     await this._store.addSpace({
       name: "Political Compass",
-      origin: quadEh,
+      origin: mapEh,
       surface: {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"width:100%\" />`,
         size: { x: 600, y: 600 },
@@ -237,32 +238,33 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
  <div>${profile.nickname}</div></li>`
     })
     return html`
-<mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
-${Object.entries(this._spaces.value).map(
-  ([key, space]) => html`
-    <mwc-list-item
-      @request-selected=${() => this.handleSpaceSelect(key)}
-      .selected=${key === this._current}
-      value="${key}">
-        ${space.name}
-    </mwc-list-item>
-  `
-)}
-</mwc-select>
-<abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>
-<div class="zoom">
-  Zoom: ${(this._zooms.value[this._current] * 100).toFixed(0)}% <br/>
-  <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(0.1)}></mwc-icon-button>
-  <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-0.1)}></mwc-icon-button>
-</div>
-<mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-<mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
-<mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+<div style="width: 100%;">
+  <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
+  ${Object.entries(this._spaces.value).map(
+    ([key, space]) => html`
+      <mwc-list-item
+        @request-selected=${() => this.handleSpaceSelect(key)}
+        .selected=${key === this._current}
+        value="${key}">
+          ${space.name}
+      </mwc-list-item>
+    `
+  )}
+  </mwc-select>
+  <abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>
+  <div class="zoom">
+    Zoom: ${(this._zooms.value[this._current] * 100).toFixed(0)}% <br/>
+    <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(0.1)}></mwc-icon-button>
+    <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-0.1)}></mwc-icon-button>
+  </div>
+  <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
+  <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
+  <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
 
-<div class="folks">
-${folks}
+  <div class="folks">
+  ${folks}
+  </div>
 </div>
-
 <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> </where-space-dialog>
 <where-space id="where-space" .current=${this._current} .avatar=${this.myAvatar}></where-space>

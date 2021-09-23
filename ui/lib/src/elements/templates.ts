@@ -1,7 +1,11 @@
 import {html, svg} from "lit";
 
+// Material textfield type:
+// export type TextFieldType = 'text'|'search'|'tel'|'url'|'email'|'password'|
+//     'date'|'month'|'week'|'time'|'datetime-local'|'number'|'color';
+
 export const map2D_template_html = html `
-    <img src="%%ImageUrl%%" style="width:100%" />
+    <img src="%%ImageUrl%%" style="max-width:100%;max-height:100%;width:100%;height:100%;" />
     `;
 
 export const quadrant_template_svg = `

@@ -8,87 +8,54 @@ import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
 
-export interface WhereStore {
+export class WhereStore {
+  /** Private */
+  private service : WhereService
+  private profiles: ProfilesStore
+
+  private templatesStore: Writable<Dictionary<TemplateEntry>> = writable({});
+  private spacesStore: Writable<Dictionary<Space>> = writable({});
+  private zoomsStore: Writable<Dictionary<number>> = writable({});
+
   /** Static info */
   myAgentPubKey: AgentPubKeyB64;
 
   /** Readable stores */
-  templates: Readable<Dictionary<TemplateEntry>>;
-  spaces: Readable<Dictionary<Space>>;
-  zooms: Readable<Dictionary<number>>;
+  public templates: Readable<Dictionary<TemplateEntry>> = derived(this.templatesStore, i => i)
+  public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
+  public zooms: Readable<Dictionary<number>> = derived(this.zoomsStore, i => i)
 
-  /** Actions */
-  updateTemplates: () => Promise<Dictionary<TemplateEntry>>;
-  addTemplate: (template: TemplateEntry) => Promise<EntryHashB64>;
-  updateSpaces: () => Promise<Dictionary<Space>>;
-  addSpace: (space: Space) => Promise<EntryHashB64>;
-  addWhere: (spaceHash: string, where: Location) => Promise<void>;
-  updateWhere: (spaceHash: string, idx: number, c: Coord, tag?:string) => Promise<void>;
-  getAgentIdx: (space: string, agent: string) => number;
-  template: (template:string) => TemplateEntry;
-  space: (space:string) => Space;
-  zoom: (current: string, delta:number) => void;
-  getZoom: (current: string) => number;
-}
-
-export function createWhereStore(
-  cellClient: CellClient,
+  constructor(
+    protected cellClient: CellClient,
   profilesStore: ProfilesStore,
   zomeName = 'hc_zome_where'
-): WhereStore {
-  const myAgentPubKey = serializeHash(cellClient.cellId[1]);
-  const service = new WhereService(cellClient, zomeName);
-  const profiles = profilesStore;
+  ) {
+    this.myAgentPubKey = serializeHash(cellClient.cellId[1]);
+    this.profiles = profilesStore;
+    this.service = new WhereService(cellClient, zomeName);
 
-  const templatesStore: Writable<Dictionary<TemplateEntry>> = writable({});
-  const spacesStore: Writable<Dictionary<Space>> = writable({});
-  const zoomsStore: Writable<Dictionary<number>> = writable({});
-
-  const templates: Readable<Dictionary<TemplateEntry>> = derived(templatesStore, i => i)
-  const spaces: Readable<Dictionary<Space>> = derived(spacesStore, i => i)
-  const zooms: Readable<Dictionary<number>> = derived(zoomsStore, i => i)
-
-  const others = (): Array<AgentPubKeyB64> => {
-    return Object.keys(get(profiles.knownProfiles)).filter((key)=> key != myAgentPubKey)
-  }
-
-
-  const updateSpaceFromEntry = async (hash: EntryHashB64, entry: SpaceEntry) => {
-    const space : Space = await service.spaceFromEntry(hash, entry)
-    spacesStore.update(spaces => {
-      spaces[hash] = space
-      return spaces
-    })
-    if (!get(zoomsStore)[hash]) {
-      zoomsStore.update(zooms => {
-        zooms[hash] = 1.0
-        return zooms
-      })
-    }
-  }
-
-  service.cellClient.addSignalHandler( signal => {
+    cellClient.addSignalHandler( signal => {
     console.log("SIGNAL",signal)
     const payload = signal.data.payload
     switch(payload.message.type) {
       case "NewTemplate":
-        if (!get(templates)[payload.spaceHash]) {
-          templatesStore.update(templates => {
+        if (!get(this.templates)[payload.spaceHash]) {
+          this.templatesStore.update(templates => {
             templates[payload.spaceHash] = payload.message.content
             return templates
           })
         }
         break;
       case "NewSpace":
-        if (!get(spaces)[payload.spaceHash]) {
-          updateSpaceFromEntry(payload.spaceHash, payload.message.content)
+        if (!get(this.spaces)[payload.spaceHash]) {
+          this.updateSpaceFromEntry(payload.spaceHash, payload.message.content)
         }
         break;
       case "NewWhere":
-        if (get(spaces)[payload.spaceHash]) {
-          spacesStore.update(spaces => {
+        if (get(this.spaces)[payload.spaceHash]) {
+          this.spacesStore.update(spaces => {
             let wheres = spaces[payload.spaceHash].wheres
-            const w : Where = service.whereFromInfo(payload.message.content)
+            const w : Where = this.service.whereFromInfo(payload.message.content)
             const idx = wheres.findIndex((w) => w.hash == payload.message.hash)
             if (idx > -1) {
               wheres[idx] = w
@@ -100,8 +67,8 @@ export function createWhereStore(
         }
         break;
       case "DeleteWhere":
-        if (get(spaces)[payload.spaceHash]) {
-          spacesStore.update(spaces => {
+        if (get(this.spaces)[payload.spaceHash]) {
+          this.spacesStore.update(spaces => {
             let wheres = spaces[payload.spaceHash].wheres
             const idx = wheres.findIndex((w) => w.hash == payload.message.content)
             if (idx > -1) {
@@ -113,36 +80,55 @@ export function createWhereStore(
         break;
     }
   })
-  return {
-    myAgentPubKey,
-    templates,
-    spaces,
-    zooms,
 
+  }
 
-    async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
+  private others(): Array<AgentPubKeyB64> {
+    return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
+  }
+
+  private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry): Promise<void>   {
+    const space : Space = await this.service.spaceFromEntry(hash, entry)
+    this.spacesStore.update(spaces => {
+      spaces[hash] = space
+      return spaces
+    })
+    if (!get(this.zoomsStore)[hash]) {
+      this.zoomsStore.update(zooms => {
+        zooms[hash] = 1.0
+        return zooms
+      })
+    }
+  }
+
+   async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
       // const templates = await service.getTemplates();
       // for (const s of templates) {
       //   await updateSpaceFromEntry(s.hash, s.content)
       // }
-      return get(templatesStore)
-    },
+      return get(this.templatesStore)
+    }
+
     async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
-      const eh64: EntryHashB64 = await service.createTemplate(template)
-      templatesStore.update(templates => {
+      const eh64: EntryHashB64 = await this.service.createTemplate(template)
+      this.templatesStore.update(templates => {
         templates[eh64] = template
         return templates
       })
-      service.notify({spaceHash: eh64, message: {type:"NewTemplate", content:template}}, others());
+      this.service.notify(
+        {spaceHash: eh64, message: {type:"NewTemplate", content:template}}
+        , this.others());
       return eh64
-    },
+    }
+
     async updateSpaces() : Promise<Dictionary<Space>> {
-      const spaces = await service.getSpaces();
+    const spaces = await this.service.getSpaces();
       for (const s of spaces) {
-        await updateSpaceFromEntry(s.hash, s.content)
+      await this.updateSpaceFromEntry(s.hash, s.content)
+    }
+    return get(this.spacesStore)
       }
-      return get(spacesStore)
-    },
+
     async addSpace(space: Space) : Promise<EntryHashB64> {
       const s: SpaceEntry = {
         name: space.name,
@@ -150,40 +136,42 @@ export function createWhereStore(
         surface: JSON.stringify(space.surface),
         meta: space.meta,
       };
-      const hash: EntryHashB64 = await service.createSpace(s)
+    const hash: EntryHashB64 = await this.service.createSpace(s)
       for (const w of space.wheres) {
         const entry : WhereEntry = {
           location: JSON.stringify(w.entry.location),
           meta: w.entry.meta
         }
-        await service.addWhere(entry, hash)
+      await this.service.addWhere(entry, hash)
       }
-      spacesStore.update(spaces => {
+    this.spacesStore.update(spaces => {
         spaces[hash] = space
         return spaces
       })
-      zoomsStore.update(zooms => {
+    this.zoomsStore.update(zooms => {
         zooms[hash] = 1
         return zooms
       })
-      service.notify({spaceHash:hash, message: {type:"NewSpace", content:s}}, others());
+    this.service.notify({spaceHash:hash, message: {type:"NewSpace", content:s}}, this.others());
       return hash
-    },
+  }
+
     async addWhere(spaceHash: string, where: Location) : Promise<void> {
       const entry : WhereEntry = {
         location: JSON.stringify(where.location),
         meta: where.meta
       }
-      const hash = await service.addWhere(entry, spaceHash)
-      const w:Where = {entry: {location: where.location, meta:where.meta}, hash, authorPubKey: myAgentPubKey}
-      spacesStore.update(spaces => {
+    const hash = await this.service.addWhere(entry, spaceHash)
+    const w:Where = {entry: {location: where.location, meta:where.meta}, hash, authorPubKey: this.myAgentPubKey}
+    this.spacesStore.update(spaces => {
         spaces[spaceHash].wheres.push(w)
         return spaces
       })
-      service.notify({spaceHash, message: {type:"NewWhere", content:{entry,hash,author:myAgentPubKey}}}, others());
-    },
+    this.service.notify({spaceHash, message: {type:"NewWhere", content:{entry,hash,author: this.myAgentPubKey}}}, this.others());
+  }
+
     async updateWhere(spaceHash: string, idx: number, c: Coord, tag?:string) {
-      const space = get(spacesStore)[spaceHash]
+    const space = get(this.spacesStore)[spaceHash]
       const w = space.wheres[idx]
       w.entry.location = c
       if (tag != null) {
@@ -194,28 +182,30 @@ export function createWhereStore(
         location: JSON.stringify(w.entry.location),
         meta: w.entry.meta
       }
-      const hash: HeaderHashB64 = await service.addWhere(entry, spaceHash)
-      await service.deleteWhere(w.hash)
+    const hash: HeaderHashB64 = await this.service.addWhere(entry, spaceHash)
+    await this.service.deleteWhere(w.hash)
       const oldHash = w.hash
       w.hash = hash
-      spacesStore.update(spaces => {
+    this.spacesStore.update(spaces => {
         spaces[spaceHash].wheres[idx] = w
         return spaces
       })
-      await service.notify({spaceHash, message:{type:"DeleteWhere", content:oldHash}}, others());
-      await service.notify({spaceHash, message:{type:"NewWhere", content:{entry, hash, author:myAgentPubKey}}}, others());
-    },
+    await this.service.notify({spaceHash, message:{type:"DeleteWhere", content:oldHash}}, this.others());
+    await this.service.notify({spaceHash, message:{type:"NewWhere", content:{entry, hash, author: this.myAgentPubKey}}}, this.others());
+  }
+
     getAgentIdx (space: string, agent: string) : number {
-      return get(spacesStore)[space].wheres.findIndex((w) => w.entry.meta.name == agent)
-    } ,
+    return get(this.spacesStore)[space].wheres.findIndex((w) => w.entry.meta.name == agent)
+  }
     template(eh64: EntryHashB64): TemplateEntry {
-      return get(templatesStore)[eh64];
-    },
+      return get(this.templatesStore)[eh64];
+    }
     space(space: string): Space {
-      return get(spacesStore)[space];
-    },
+    return get(this.spacesStore)[space];
+  }
+
     zoom(current: string, delta: number) : void {
-      zoomsStore.update(zooms => {
+    this.zoomsStore.update(zooms => {
         if (zooms[current] + delta < 0) {
           zooms[current] = 0
         } else {
@@ -223,10 +213,9 @@ export function createWhereStore(
         }
         return zooms
       })
-    },
-    getZoom(current: string) : number {
-      return get(zoomsStore)[current]
-    }
+  }
 
-  };
+    getZoom(current: string) : number {
+    return get(this.zoomsStore)[current]
+    }
 }

@@ -3,8 +3,8 @@ import { state } from "lit/decorators.js";
 import {
   WhereController,
   WhereSpace,
+  WhereStore,
   whereContext,
-  createWhereStore,
 } from "@where/elements";
 import {
   ProfilePrompt,
@@ -41,7 +41,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       store
     );
 
-    new ContextProvider(this, whereContext, createWhereStore(cellClient, store));
+    new ContextProvider(this, whereContext, new WhereStore(cellClient, store));
 
     this.loaded = true;
   }

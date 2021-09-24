@@ -48,7 +48,7 @@ struct Space {
   dimensionality: {
     type: "orthogonal",
     coords: {lat: "float", lon: "float"},
-    range: {lat: {min: -90, max: 90}, y:{min: -180, max: 180}}
+    range: {lat: {min: -90, max: 90}, lon:{min: -180, max: 180}}
   }
 }
 ```
@@ -59,7 +59,7 @@ struct Space {
   dimensionality: {
     type: "orthogonal",
     coords: {core: "enum", intensity: "integer", nuance: "string"},
-    range: {core: ["sad", "angry", "happy", "disgusted", "fearful", "suprised", "bad"], intesity: {min: 1, max: 5}}
+    range: {core: ["sad", "angry", "happy", "disgusted", "fearful", "suprised", "bad"], intensity: {min: 1, max: 5}}
   },
 }
 ```

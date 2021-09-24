@@ -249,7 +249,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const y = where.entry.location.y * z;
 
       // Use an image url if stored in the where, otherwise use the agent's avatar
-      const img =  where.entry.meta.img ? where.entry.meta.img : this._knownProfiles.value[where.authorPubKey].fields.avatar
+      let img = where.entry.meta.img
+
+      if (img === "") {
+        const profile = this._knownProfiles.value[where.authorPubKey]
+        if (profile) {
+          img = profile.fields.avatar
+        }
+      }
 
       return html`
 

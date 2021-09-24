@@ -4,7 +4,10 @@ import {html, svg} from "lit";
 // export type TextFieldType = 'text'|'search'|'tel'|'url'|'email'|'password'|
 //     'date'|'month'|'week'|'time'|'datetime-local'|'number'|'color';
 
-export const map2D_template_html = html `
+export const box_template_html =
+  `<div style=" pointer-events: none; text-align: center; width: 100%;height: 100%;%%style%%"></div>`
+
+export const map2D_template_html = `
     <img src="%%ImageUrl%%" style="max-width:100%;max-height:100%;width:100%;height:100%;" />
     `;
 

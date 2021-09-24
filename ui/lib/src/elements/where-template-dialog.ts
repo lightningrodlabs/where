@@ -157,7 +157,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     <mwc-list-item @request-selected=${() => this.handleTypeSelect("svg")} value="svg">SVG</mwc-list-item>
   </mwc-select>
 
-  <mwc-textarea type="text" label="Description" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextField).reportValidity()}
+  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextField).reportValidity()}
                 id="surface-field" placeholder="HTML/SVG here..." helper="No <svg> / <html> tag is required" rows="10" cols="67" required></mwc-textarea>
   </mwc-formfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}

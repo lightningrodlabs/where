@@ -293,10 +293,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return [
       sharedStyles,
       css`
-        mwc-dialog div {
-          flex-direction: column;
-          margin-top: 10px;
-        }
+        //mwc-dialog div {
+        //  flex-direction: column;
+        //  margin-top: 10px;
+        //}
         mwc-textfield {
           margin-top: 10px;
           display: flex;

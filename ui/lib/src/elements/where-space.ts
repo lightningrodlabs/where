@@ -284,32 +284,31 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     });
 
-    const dataItems = JSON.parse(space.surface.data).map((item: any) => {
-      return html`
-        <div
-          class="data-item"
-          style="width: ${item.box.width * z}px;
-            height: ${item.box.height * z}px;
-            left: ${item.box.left * z}px;
-            top: ${item.box.top * z}px;
-          ${item.style}"
-        >
-          ${item.content}
-        </div>
-      `;
-    });
+    // const dataItems = JSON.parse(space.surface.data).map((item: any) => {
+    //   return html`
+    //     <div
+    //       class="data-item"
+    //       style="width: ${item.box.width * z}px;
+    //         height: ${item.box.height * z}px;
+    //         left: ${item.box.left * z}px;
+    //         top: ${item.box.top * z}px;
+    //       ${item.style}"
+    //     >
+    //       ${item.content}
+    //     </div>
+    //   `;
+    // });
 
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
 
     //console.log({space});
     let mainItem = this.renderSurface(space.surface, w, h)
-    //console.log({mainItem});
 
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
         ${mainItem}
-        ${whereItems} ${dataItems}
+        ${whereItems}
         <mwc-dialog
           id="edit-where"
           heading="Where"

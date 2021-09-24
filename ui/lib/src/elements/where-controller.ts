@@ -97,7 +97,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private async updateTemplateLabel(space: string): Promise<void> {
     const spaces = await this._store.updateSpaces();
-    this._currentTemplate = spaces[space].origin;
+    if (spaces[space]) {
+      this._currentTemplate = spaces[space].origin;
+    }
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
     const templates = await this._store.updateTemplates()
     div.innerText = templates[this._currentTemplate].name;
@@ -110,7 +112,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: JSON.stringify({
-         html: "<img src=\"%%ImageUrl%%\" style=\"max-width:100%;max-height:100%;\" />",
+         html: "<img src=\"%%ImageUrl%%\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />",
         data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Lore"}]`,
         //size: { x: 1000, y: 600 },
   }),
@@ -163,7 +165,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Zodiac",
       origin: mapEh,
       surface: {
-        html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"width:100%\" />`,
+        html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 626, y: 626 },
         data: "[]",
       },
@@ -174,7 +176,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       name: "Political Compass",
       origin: mapEh,
       surface: {
-        html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"width:100%\" />`,
+        html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 600, y: 600 },
         data: "[]",
       },
@@ -230,15 +232,25 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.spaceElem.zoom(zoom);
   }
 
+
   render() {
-    if (!this._current) return; // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
+    if (!this._current) {
+      return;
+    }
+
+    // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
+
+    /** Build agent list */
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
-      return html`<li class="folk">
-<sl-avatar .image=${profile.fields.avatar}></sl-avatar>
- <div>${profile.nickname}</div></li>`
+      return html`
+        <li class="folk">
+            <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+            <div>${profile.nickname}</div>
+        </li>`
     })
+
     return html`
-<div style="width: 100%;">
+<div style="width: 100%;margin-bottom: 5px">
   <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
   ${Object.entries(this._spaces.value).map(
     ([key, space]) => html`

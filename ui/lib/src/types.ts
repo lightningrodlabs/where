@@ -35,24 +35,32 @@ export interface Coord {
   y: number;
 }
 
-export interface Surface {
-  url: string;
-  data: string;
-  size: Coord;
-}
+// export interface Surface {
+//   url: string;
+//   data: string;
+//   size: Coord;
+// }
 
 export interface SpaceEntry {
   name: string;
+  origin: EntryHashB64;
   surface: string;
   meta?: Dictionary<string>;
 }
 
 export interface Space  {
   name: string;
-  surface: Surface;
+  origin: EntryHashB64;
+  surface: any;
   wheres: Where[];
   meta?: Dictionary<string>;
 }
+
+export interface TemplateEntry  {
+  name: string;
+  surface: string;
+}
+
 
 export type Signal =
   | {
@@ -64,3 +72,6 @@ export type Signal =
   | {
     spaceHash: EntryHashB64, message: {type: "DeleteWhere", content: HeaderHashB64}
   }
+  | {
+  spaceHash: EntryHashB64, message: {type: "NewTemplate", content: TemplateEntry}
+}

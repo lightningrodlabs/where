@@ -161,6 +161,67 @@ We want to be able to create spaces which are templates, instead of actual space
 1. link spaces to a "templates" anchor instead of the usual "spaces" link.
 2. Use a convention in the surface data to indicate a template slot with a name that can get rendered in a UI and then substitued into when creating a space from the template.  For example, since the surface is a JSON string a template could look like this:
 
-
+```
+{
 "url":"%%%Image URL%%%",
 "data": "[{\"box\":{\"left\":100,\"top\":10,\"width\":100,\"height\":50},\"content\":\"%%%Title%%%\"}]"
+}
+```
+
+#### Holochain Entry
+
+```rust
+struct Template {
+    name: String,
+    surface: JsonString,
+}
+```
+
+#### examples
+
+```javascript
+{
+    name: "Map",
+    surface: "{
+          'url': '%ImageURL%',
+          'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"
+        'title': '%String%'
+    }",
+}
+```
+
+
+```javascript
+{
+      name: "Gauge",
+   surface: "{
+      'minimum-value': '%Number%',
+           'interval':' %Number%',
+      'maximum-value': '%Number%',
+  }",
+}
+```
+
+
+```javascript
+{
+     name: "Wheel",
+  surface: "{
+        'count':' %Number%',
+     'hole-pct':' %Number%',
+ 'hole-content': '%String%',
+  }",
+}
+```
+
+```javascript
+{
+     name: "2D Compass", 
+  surface:"{
+      'left-axis': '%String%',
+     'right-axis': '%String%',
+       'top-axis': '%String%',
+    'bottom-axis': '%String%',
+  }",
+}
+```

@@ -22,22 +22,45 @@ export default async (orchestrator) => {
 
     // install your happs into the conductors and destructuring the returned happ data using the same
     // array structure as you created in your installation array.
-    let [alice_where_happ/*, bobbo_where_happ*/] = await installAgents(a_and_b_conductor,  ["alice"/*, 'bobbo'*/])
+    let [alice_where_happ/*, bobbo_where_happ*/] = await installAgents(a_and_b_conductor, ["alice"/*, 'bobbo'*/])
     const [alice_where] = alice_where_happ.cells
 //    const [bobbo_where] = bobbo_where_happ.cells
+
+    // Create template
+    let template1 = {
+      name: "Map",
+      surface: "{\
+        'url': '%ImageURL%',\
+        'box': \"{'box':{'left':100,'top':10,'width':100,'height':50}\"\
+      'title':'%String%'\
+      }",
+    };
+
+    const template1_eh64 = await alice_where.call('hc_zome_where', 'create_template', template1 );
+    t.ok(template1_eh64)
+    console.log("template1_eh64", template1_eh64);
+
+    const templates = await alice_where.call('hc_zome_where', 'get_templates', null );
+    console.log(templates);
+    t.deepEqual(templates, [{hash: template1_eh64, content: template1}]);
 
 
     // Create a space
     let space1 = {
       name: "mountain map",
+      origin: template1_eh64,
 /*      dimensionality: {
         type: "orthogonal",
         coords: {x: "integer", y:"integer"},
         range: {x: {min: 0, max: 1024}, y:{min:0, max: 1024}}
         },*/
-      surface: "https://mountain-map-images.com/cotopaxi",
+      surface: "{\
+        'url': 'https://mountain-map-images.com/cotopaxi',\
+      'title':'mountain map'\
+      }",
       meta: {}
     };
+
     const space1_hash = await alice_where.call('hc_zome_where', 'create_space', space1 );
     t.ok(space1_hash)
     console.log("space1_hash", space1_hash);

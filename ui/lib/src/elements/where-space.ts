@@ -1,4 +1,4 @@
-import { html, css, LitElement } from "lit";
+import { html, css, LitElement, svg } from "lit";
 import { property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
@@ -14,6 +14,8 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
+import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 const MARKER_WIDTH = 40;
 
@@ -60,7 +62,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private getCoordsFromEvent(event: any): Coord {
-    const rect = event.target.getBoundingClientRect();
+    const rect = event.currentTarget.getBoundingClientRect();
     const z = this._zooms.value[this.current];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
@@ -211,6 +213,33 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  renderSurface(surface: any, w: number, h: number) {
+    return surface.html?
+      html`<div
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+          style="width: ${w}px; height: ${h}px;"
+          .id="${this.current}-img"
+          @click=${this.handleClick}
+      >
+        ${unsafeHTML(surface.html)}
+      </div>`
+      : html`<svg xmlns="http://www.w3.org/2000/svg"
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+                  preserveAspectRatio="none"
+          .id="${this.current}-svg"
+          @click=${this.handleClick}
+        >
+          ${unsafeSVG(surface.svg)}
+        </svg>`
+    ;
+  }
+
+
   render() {
     if (!this.current) return;
     const space = this._spaces.value[this.current];
@@ -272,16 +301,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
+
+    //console.log({space});
+    let mainItem = this.renderSurface(space.surface, w, h)
+    //console.log({mainItem});
+
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
-        <img
-          @drop="${(e: DragEvent) => this.drop(e)}"
-          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-          style="width: ${w}px; height: ${h}px;"
-          .id="${this.current}-img"
-          src="${space.surface.url}"
-          @click=${this.handleClick}
-        />
+        ${mainItem}
         ${whereItems} ${dataItems}
         <mwc-dialog
           id="edit-where"

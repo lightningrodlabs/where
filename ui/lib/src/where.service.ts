@@ -1,6 +1,27 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
-import { SpaceEntry, Space, WhereEntry, Where, WhereInfo, Signal, TemplateEntry } from './types';
+import {SpaceEntry, Space, HereEntry, LocationInfo, HereInfo, Signal, TemplateEntry, Location} from './types';
+
+
+export function locationFromHere(info: HereInfo) : LocationInfo {
+  return {
+    location: {
+      coord: JSON.parse(info.entry.value),
+      meta: info.entry.meta,
+    },
+    hash: info.hash,
+    authorPubKey: info.author,
+  }
+}
+
+export function hereFromLocation(location: Location) : HereEntry {
+  return {
+    value: JSON.stringify(location.coord),
+    meta: location.meta
+  }
+}
+
+
 
 export class WhereService {
   constructor(
@@ -20,23 +41,24 @@ export class WhereService {
     return this.callZome('get_spaces', null);
   }
 
-  async getWheres(space: EntryHashB64): Promise<Array<Where>> {
-    const whereInfos =  await this.callZome('get_wheres', space);
-    return whereInfos.map((info: WhereInfo) => {
-      return this.whereFromInfo(info)
+  async getLocations(spaceEh: EntryHashB64): Promise<Array<LocationInfo>> {
+    const hereInfos =  await this.callZome('get_heres', spaceEh);
+    return hereInfos.map((info: HereInfo) => {
+      return locationFromHere(info)
     });
   }
 
-  async addWhere(where: WhereEntry, space: EntryHashB64): Promise<HeaderHashB64> {
-    return this.callZome('add_where', {entry: where, space});
+  async addLocation(location: Location, space: EntryHashB64): Promise<HeaderHashB64> {
+    const entry = hereFromLocation(location);
+    return this.callZome('add_here', {entry, space});
   }
 
-  async deleteWhere(where: HeaderHashB64): Promise<EntryHashB64> {
-    return this.callZome('delete_where', where);
+  async deleteLocation(hereHh: HeaderHashB64): Promise<EntryHashB64> {
+    return this.callZome('delete_here', hereHh);
   }
 
-  async createTemplate(space: TemplateEntry): Promise<EntryHashB64> {
-    return this.callZome('create_template', space);
+  async createTemplate(template: TemplateEntry): Promise<EntryHashB64> {
+    return this.callZome('create_template', template);
   }
 
   async createSpace(space: SpaceEntry): Promise<EntryHashB64> {
@@ -53,18 +75,7 @@ export class WhereService {
       origin: entry.origin,
       meta : entry.meta,
       surface: JSON.parse(entry.surface),
-      wheres: await this.getWheres(hash)
-    }
-  }
-
-  whereFromInfo(info: WhereInfo) : Where {
-    return {
-      entry: {
-        location: JSON.parse(info.entry.location),
-        meta: info.entry.meta,
-      },
-      hash: info.hash,
-      authorPubKey: info.author,
+      locations: await this.getLocations(hash)
     }
   }
 

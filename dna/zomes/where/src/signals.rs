@@ -11,8 +11,8 @@ use crate::r#where::*;
 pub enum Message {
     NewSpace(Space),
     NewTemplate(Template),
-    NewWhere(WhereOutput),
-    DeleteWhere(HeaderHashB64)
+    NewHere(HereOutput),
+    DeleteHere(HeaderHashB64)
 }
 
 #[derive(Serialize, Deserialize, Debug)]

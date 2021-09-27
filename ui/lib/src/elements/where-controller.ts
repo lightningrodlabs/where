@@ -143,7 +143,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`,
       },
       meta: {},
-      wheres: [],
+      locations: [],
     });
 
     await this._store.addSpace({
@@ -155,7 +155,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         data: "[]",
       },
       meta: { multi: "true" },
-      wheres: [],
+      locations: [],
     });
 
     // await this._store.addSpace({
@@ -167,7 +167,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     //     data: `[{"box":{"left":0,"top":0,"width":1000,"height":700},"style":"background-image: linear-gradient(to bottom right, red, yellow);","content":""},{"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
     //   },
     //   meta: { multi: "true" },
-    //   wheres: [],
+    //   locations: [],
     // });
 
     await this._store.addSpace({
@@ -179,7 +179,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
       },
       meta: { multi: "true" },
-      wheres: [],
+      locations: [],
     });
 
     await this._store.addSpace({
@@ -191,7 +191,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         data: "[]",
       },
       meta: { multi: "false" },
-      wheres: [],
+      locations: [],
     });
     await this._store.addSpace({
       name: "Political Compass",
@@ -202,7 +202,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         data: "[]",
       },
       meta: { multi: "false" },
-      wheres: [],
+      locations: [],
     });
     await this._store.addSpace({
       name: "Quadrant",
@@ -213,7 +213,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         data: "[]",
       },
       meta: { multi: "false" },
-      wheres: [],
+      locations: [],
     });
   }
 

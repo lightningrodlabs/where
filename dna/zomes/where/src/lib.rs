@@ -26,6 +26,6 @@ entry_defs![
     Path::entry_def(),
     template::Template::entry_def(),
     space::Space::entry_def(),
-    r#where::Where::entry_def()
+    r#where::Here::entry_def()
 ];
 

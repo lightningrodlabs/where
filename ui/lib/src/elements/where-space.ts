@@ -84,7 +84,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (!this.currentSpaceEh) return;
       const space: Space = this._spaces.value[this.currentSpaceEh];
       const coord = this.getCoordsFromEvent(event);
-      if (space.meta?.taggable) {
+      if (space.meta?.canTag) {
         this.dialogCoord = coord;
         //TODO fixme with a better way to know dialog type
         this.dialogCanEdit = false;
@@ -271,7 +271,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
 
       return html`
-
         <div
           .draggable=${true}
           @dblclick="${(e: Event) => this.dblclick(e)}"
@@ -320,20 +319,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let maybeLocationDialog = html ``
     if (space.meta?.canTag) {
       maybeLocationDialog = html`
-        <mwc-dialog
-          id="edit-location"
-          heading="Location"
-          @closing=${this.handleLocationDialog}
-        >
-          <mwc-textfield
-            id="edit-location-name"
-            placeholder="Name"
-          ></mwc-textfield>
-          <mwc-textfield
-            id="edit-location-img"
-            placeholder="Image Url"
-          ></mwc-textfield>
-          <mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>
+        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialog}>
+          <mwc-textfield id="edit-location-name" placeholder="Name"></mwc-textfield>
+          <mwc-textfield id="edit-location-img" placeholder="Image Url"></mwc-textfield>
+          <mwc-textfield id="edit-location-tag" dialogInitialFocus placeholder="Tag"></mwc-textfield>
           <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
           <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
         </mwc-dialog>`

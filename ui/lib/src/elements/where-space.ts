@@ -5,13 +5,12 @@ import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, LocationInfo, Location, Space, Dictionary, Coord } from "../types";
+import { whereContext, Location, Coord } from "../types";
 import { WhereStore } from "../where.store";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   profilesStoreContext,
   ProfilesStore,
-  Profile,
 } from "@holochain-open-dev/profiles";
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
@@ -43,7 +42,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
 
   private dialogCoord = { x: 0, y: 0 };
-  private dialogIsEdit = false;
+  private dialogCanEdit = false;
   private dialogIdx = 0;
 
   private _handleWheel = (e: WheelEvent) => {
@@ -85,36 +84,36 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const coord = this.getCoordsFromEvent(event);
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
-      this.dialogIsEdit = false;
+      this.dialogCanEdit = false;
       this.openLocationDialog({
         tag: "",
         name: this.myNickName,
         img: "", //this.avatar,
-        isEdit: false,
+        canEdit: false,
       });
     }
   }
 
   openLocationDialog(
-    options = { name: "", img: "", tag: "", isEdit: false },
+    options = { name: "", img: "", tag: "", canEdit: false },
     coord?: Coord,
     idx?: number
   ) {
-    const nameE = this.shadowRoot!.getElementById("edit-location-name") as TextField;
-    const imgE = this.shadowRoot!.getElementById("edit-location-img") as TextField;
-    const tagE = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    const nameElem = this.shadowRoot!.getElementById("edit-location-name") as TextField;
+    const imgElem = this.shadowRoot!.getElementById("edit-location-img") as TextField;
+    const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     // TODO: later these may be made visible for some kinds of spaces
-    (nameE as HTMLElement).style.display = "none";
-    (imgE as HTMLElement).style.display = "none";
-    nameE.value = options.name;
-    imgE.value = options.img;
-    tagE.value = options.tag;
-    if (options.isEdit) {
-      this.dialogIsEdit = options.isEdit;
+    (nameElem as HTMLElement).style.display = "none";
+    (imgElem as HTMLElement).style.display = "none";
+    nameElem.value = options.name;
+    imgElem.value = options.img;
+    tagElem.value = options.tag;
+    if (options.canEdit) {
+      this.dialogCanEdit = options.canEdit;
       if (coord) this.dialogCoord = coord;
       if (idx) this.dialogIdx = idx;
     } else {
-      this.dialogIsEdit = false;
+      this.dialogCanEdit = false;
     }
     this.locationDialogElem.open = true;
   }
@@ -142,7 +141,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           name: name.value,
         },
       };
-      if (this.dialogIsEdit) {
+      if (this.dialogCanEdit) {
         this._store.updateLocation(
           this.current,
           this.dialogIdx,
@@ -201,7 +200,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
               name: locInfo.location.meta.name,
               img: locInfo.location.meta.img,
               tag: locInfo.location.meta.tag,
-              isEdit: true,
+              canEdit: true,
             },
             locInfo.location.coord,
             idx

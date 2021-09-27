@@ -21,8 +21,11 @@ export class WhereStore {
   private service : WhereService
   private profiles: ProfilesStore
 
+  /** TemplateEh -> Template */
   private templatesStore: Writable<Dictionary<TemplateEntry>> = writable({});
+  /** SpaceEh -> Space */
   private spacesStore: Writable<Dictionary<Space>> = writable({});
+  /** SpaceEh -> zoomPct */
   private zoomsStore: Writable<Dictionary<number>> = writable({});
 
   /** Static info */
@@ -96,6 +99,7 @@ export class WhereStore {
   }
 
   private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry): Promise<void>   {
+    //console.log("updateSpaceFromEntry: " + hash)
     const space : Space = await this.service.spaceFromEntry(hash, entry)
     this.spacesStore.update(spaces => {
       spaces[hash] = space
@@ -130,6 +134,7 @@ export class WhereStore {
   }
 
   async updateSpaces() : Promise<Dictionary<Space>> {
+    const _templates = await this.service.getTemplates();
     const spaces = await this.service.getSpaces();
     console.log({spaces})
     for (const s of spaces) {
@@ -205,25 +210,27 @@ export class WhereStore {
     getAgentIdx (space: string, agent: string) : number {
     return get(this.spacesStore)[space].locations.findIndex((locInfo) => locInfo.location.meta.name == agent)
   }
-    template(eh64: EntryHashB64): TemplateEntry {
-      return get(this.templatesStore)[eh64];
-    }
-    space(space: string): Space {
-    return get(this.spacesStore)[space];
+
+  template(templateEh64: EntryHashB64): TemplateEntry {
+      return get(this.templatesStore)[templateEh64];
   }
 
-    zoom(current: string, delta: number) : void {
+  space(spaceEh: EntryHashB64): Space {
+    return get(this.spacesStore)[spaceEh];
+  }
+
+  zoom(spaceEh: EntryHashB64) : number {
+    return get(this.zoomsStore)[spaceEh]
+  }
+
+  updateZoom(spaceEh: EntryHashB64, delta: number) : void {
     this.zoomsStore.update(zooms => {
-        if (zooms[current] + delta < 0) {
-          zooms[current] = 0
-        } else {
-          zooms[current] += delta;
-        }
-        return zooms
-      })
+      if (zooms[spaceEh] + delta < 0) {
+        zooms[spaceEh] = 0
+      } else {
+        zooms[spaceEh] += delta;
+      }
+      return zooms
+    })
   }
-
-    getZoom(current: string) : number {
-    return get(this.zoomsStore)[current]
-    }
 }

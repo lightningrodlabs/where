@@ -51,12 +51,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  @state() _current = "";
-  @state() _currentTemplate = "";
+  @state() _currentSpaceEh = "";
+  @state() _currentTemplateEh = "";
   @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
   private initializing = false;
+
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
@@ -80,31 +81,34 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       let spaces = await this._store.updateSpaces();
       let templates = await this._store.updateTemplates();
       // load up a space if there are none:
-      if (Object.keys(spaces).length == 0) {
+      if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
         console.log("no spaces found, initializing")
         await this.initializeSpaces();
         spaces = await this._store.updateSpaces();
       }
-      this._current = Object.keys(spaces)[0];
-      this._currentTemplate = Object.keys(templates)[0];
-      await this.updateTemplateLabel(spaces[this._current].name);
-      console.log("   current space: ",  spaces[this._current].name, this._current);
-      console.log("current template: ", templates[this._currentTemplate].name, this._currentTemplate);
+      if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
+        console.error("No spaces or templates found")
+      }
+      this._currentSpaceEh = Object.keys(spaces)[0];
+      this._currentTemplateEh = Object.keys(templates)[0];
+      await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
+      console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
+      console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
       this.initializing = false
     }
     this.initialized = true;
   }
 
-  private async updateTemplateLabel(space: string): Promise<void> {
+  private async updateTemplateLabel(spaceEh: string): Promise<void> {
     const spaces = await this._store.updateSpaces();
-    if (spaces[space]) {
-      this._currentTemplate = spaces[space].origin;
+    if (spaces[spaceEh]) {
+      this._currentTemplateEh = spaces[spaceEh].origin;
     }
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
     const templates = await this._store.updateTemplates()
-    div.innerText = templates[this._currentTemplate].name;
+    div.innerText = templates[this._currentTemplateEh].name;
     let abbr = this.shadowRoot!.getElementById("template-abbr") as HTMLElement;
-    abbr.title = templates[this._currentTemplate].surface;
+    abbr.title = templates[this._currentTemplateEh].surface;
   }
 
   async initializeSpaces() {
@@ -154,7 +158,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 800, y: 652 },
         data: "[]",
       },
-      meta: { multi: "true" },
+      meta: { multi: "true", canTag: "true" },
       locations: [],
     });
 
@@ -243,19 +247,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
-  private async handleSpaceSelect(space: string): Promise<void> {
-    this._current = space;
-    this.spaceElem.current = space;
-    await this.updateTemplateLabel(space);
+  private async handleSpaceSelect(spaceEh: string): Promise<void> {
+    this._currentSpaceEh = spaceEh;
+    this.spaceElem.currentSpaceEh = spaceEh;
+    await this.updateTemplateLabel(spaceEh);
   }
 
-  private handleZoom(zoom: number): void {
-    this.spaceElem.zoom(zoom);
+  private handleZoomUpdate(delta: number): void {
+    this.spaceElem.updateZoom(delta);
   }
 
 
   render() {
-    if (!this._current) {
+    if (!this._currentSpaceEh) {
       return;
     }
 
@@ -277,7 +281,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     ([key, space]) => html`
       <mwc-list-item
         @request-selected=${() => this.handleSpaceSelect(key)}
-        .selected=${key === this._current}
+        .selected=${key === this._currentSpaceEh}
         value="${key}">
           ${space.name}
       </mwc-list-item>
@@ -286,9 +290,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   </mwc-select>
   <abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>
   <div class="zoom">
-    Zoom: ${(this._zooms.value[this._current] * 100).toFixed(0)}% <br/>
-    <mwc-icon-button icon="add_circle" @click=${() => this.handleZoom(0.1)}></mwc-icon-button>
-    <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoom(-0.1)}></mwc-icon-button>
+    Zoom: ${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}% <br/>
+    <mwc-icon-button icon="add_circle" @click=${() => this.handleZoomUpdate(0.1)}></mwc-icon-button>
+    <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoomUpdate(-0.1)}></mwc-icon-button>
   </div>
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
@@ -298,9 +302,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   ${folks}
   </div>
 </div>
-<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplate = e.detail}> </where-template-dialog>
-<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._current = e.detail}> </where-space-dialog>
-<where-space id="where-space" .current=${this._current} .avatar=${this.myAvatar}></where-space>
+<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}> </where-template-dialog>
+<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._currentSpaceEh = e.detail}> </where-space-dialog>
+<where-space id="where-space" .current=${this._currentSpaceEh} .avatar=${this.myAvatar}></where-space>
 `;
   }
 

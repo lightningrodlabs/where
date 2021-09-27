@@ -28,7 +28,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   @property() avatar = "";
-  @property() current = "";
+  @property() currentSpaceEh = "";
 
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
@@ -48,12 +48,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private _handleWheel = (e: WheelEvent) => {
     if (e.target) {
       e.preventDefault();
-      this._store.zoom(this.current, e.deltaY > 0 ? -0.05 : 0.05);
+      this._store.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
     }
   };
 
-  zoom(delta: number): void {
-    this._store.zoom(this.current, delta);
+  updateZoom(delta: number): void {
+    this._store.updateZoom(this.currentSpaceEh, delta);
   }
 
   get myNickName(): string {
@@ -62,29 +62,29 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.currentTarget.getBoundingClientRect();
-    const z = this._zooms.value[this.current];
+    const z = this._zooms.value[this.currentSpaceEh];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
     return { x, y };
   }
 
   private canCreate(): boolean {
-    if (this._store.space(this.current).meta!.multi) return true;
-    const myIdx = this._store.getAgentIdx(this.current, this.myNickName);
+    if (this._store.space(this.currentSpaceEh).meta!.multi) return true;
+    const myIdx = this._store.getAgentIdx(this.currentSpaceEh, this.myNickName);
     return myIdx == -1;
   }
 
   private canUpdate(idx: number): boolean {
-    const locInfo = this._store.space(this.current).locations[idx];
+    const locInfo = this._store.space(this.currentSpaceEh).locations[idx];
     return locInfo.location.meta.name == this.myNickName;
   }
 
   private handleClick(event: any): void {
     if (event != null && this.canCreate()) {
-      if (!this.current) return;
-      const space: Space = this._spaces.value[this.current];
+      if (!this.currentSpaceEh) return;
+      const space: Space = this._spaces.value[this.currentSpaceEh];
       const coord = this.getCoordsFromEvent(event);
-      if (space.meta?.canTag) {
+      if (space.meta?.taggable) {
         this.dialogCoord = coord;
         //TODO fixme with a better way to know dialog type
         this.dialogCanEdit = false;
@@ -103,7 +103,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
             name: this.myNickName,
           },
         };
-        this._store.addLocation(this.current, location);
+        this._store.addLocation(this.currentSpaceEh, location);
       }
     }
   }
@@ -158,13 +158,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       };
       if (this.dialogCanEdit) {
         this._store.updateLocation(
-          this.current,
+          this.currentSpaceEh,
           this.dialogIdx,
           this.dialogCoord,
           tag.value
         );
       } else {
-        this._store.addLocation(this.current, location);
+        this._store.addLocation(this.currentSpaceEh, location);
       }
     }
   }
@@ -196,7 +196,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         const idx = parseInt(data);
         if (ev.target) {
           const coord = this.getCoordsFromEvent(ev);
-          this._store.updateLocation(this.current, idx, coord);
+          this._store.updateLocation(this.currentSpaceEh, idx, coord);
         }
       }
     }
@@ -209,7 +209,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (idxStr) {
         const idx = parseInt(idxStr);
         if (this.canUpdate(idx)) {
-          const locInfo = this._store.space(this.current).locations[idx];
+          const locInfo = this._store.space(this.currentSpaceEh).locations[idx];
           this.openLocationDialog(
             {
               name: locInfo.location.meta.name,
@@ -231,7 +231,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
-          .id="${this.current}-img"
+          .id="${this.currentSpaceEh}-img"
           @click=${this.handleClick}
       >
         ${unsafeHTML(surface.html)}
@@ -243,7 +243,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                   height="${h}px"
                   viewBox="0 0 ${surface.size.x} ${surface.size.y}"
                   preserveAspectRatio="none"
-          .id="${this.current}-svg"
+          .id="${this.currentSpaceEh}-svg"
           @click=${this.handleClick}
         >
           ${unsafeSVG(surface.svg)}
@@ -253,9 +253,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   render() {
-    if (!this.current) return;
-    const space: Space = this._spaces.value[this.current];
-    const z = this._zooms.value[this.current];
+    if (!this.currentSpaceEh) return;
+    const space: Space = this._spaces.value[this.currentSpaceEh];
+    const z = this._zooms.value[this.currentSpaceEh];
     const locationItems = space.locations.map((locationInfo, i) => {
       const x = locationInfo.location.coord.x * z;
       const y = locationInfo.location.coord.y * z;

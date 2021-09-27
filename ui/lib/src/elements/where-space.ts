@@ -5,13 +5,12 @@ import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, LocationInfo, Location, Space, Dictionary, Coord } from "../types";
+import { whereContext, Location, Coord, Space } from "../types";
 import { WhereStore } from "../where.store";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   profilesStoreContext,
   ProfilesStore,
-  Profile,
 } from "@holochain-open-dev/profiles";
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
@@ -29,7 +28,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   @property() avatar = "";
-  @property() current = "";
+  @property() currentSpaceEh = "";
 
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
@@ -43,18 +42,18 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
 
   private dialogCoord = { x: 0, y: 0 };
-  private dialogIsEdit = false;
+  private dialogCanEdit = false;
   private dialogIdx = 0;
 
   private _handleWheel = (e: WheelEvent) => {
     if (e.target) {
       e.preventDefault();
-      this._store.zoom(this.current, e.deltaY > 0 ? -0.05 : 0.05);
+      this._store.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
     }
   };
 
-  zoom(delta: number): void {
-    this._store.zoom(this.current, delta);
+  updateZoom(delta: number): void {
+    this._store.updateZoom(this.currentSpaceEh, delta);
   }
 
   get myNickName(): string {
@@ -63,58 +62,73 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.currentTarget.getBoundingClientRect();
-    const z = this._zooms.value[this.current];
+    const z = this._zooms.value[this.currentSpaceEh];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
     return { x, y };
   }
 
   private canCreate(): boolean {
-    if (this._store.space(this.current).meta!.multi) return true;
-    const myIdx = this._store.getAgentIdx(this.current, this.myNickName);
+    if (this._store.space(this.currentSpaceEh).meta!.multi) return true;
+    const myIdx = this._store.getAgentIdx(this.currentSpaceEh, this.myNickName);
     return myIdx == -1;
   }
 
   private canUpdate(idx: number): boolean {
-    const locInfo = this._store.space(this.current).locations[idx];
+    const locInfo = this._store.space(this.currentSpaceEh).locations[idx];
     return locInfo.location.meta.name == this.myNickName;
   }
 
   private handleClick(event: any): void {
     if (event != null && this.canCreate()) {
+      if (!this.currentSpaceEh) return;
+      const space: Space = this._spaces.value[this.currentSpaceEh];
       const coord = this.getCoordsFromEvent(event);
-      this.dialogCoord = coord;
-      //TODO fixme with a better way to know dialog type
-      this.dialogIsEdit = false;
-      this.openLocationDialog({
-        tag: "",
-        name: this.myNickName,
-        img: "", //this.avatar,
-        isEdit: false,
-      });
+      if (space.meta?.canTag) {
+        this.dialogCoord = coord;
+        //TODO fixme with a better way to know dialog type
+        this.dialogCanEdit = false;
+        this.openLocationDialog({
+          tag: "",
+          name: this.myNickName,
+          img: "", //this.avatar,
+          canEdit: false,
+        });
+      } else {
+        const location: Location = {
+          coord,
+          meta: {
+            tag: "",
+            img: "",
+            name: this.myNickName,
+          },
+        };
+        this._store.addLocation(this.currentSpaceEh, location);
+      }
     }
   }
 
   openLocationDialog(
-    options = { name: "", img: "", tag: "", isEdit: false },
+    options = { name: "", img: "", tag: "", canEdit: false },
     coord?: Coord,
     idx?: number
   ) {
-    const nameE = this.shadowRoot!.getElementById("edit-location-name") as TextField;
-    const imgE = this.shadowRoot!.getElementById("edit-location-img") as TextField;
-    const tagE = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    const nameElem = this.shadowRoot!.getElementById("edit-location-name") as TextField;
+    if (!nameElem) return // dialog disabled if Tag not allowed for current Space
+    const imgElem = this.shadowRoot!.getElementById("edit-location-img") as TextField;
+    const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     // TODO: later these may be made visible for some kinds of spaces
-    (nameE as HTMLElement).style.display = "none";
-    (imgE as HTMLElement).style.display = "none";
-    nameE.value = options.name;
-    imgE.value = options.img;
-    tagE.value = options.tag;
-    if (options.isEdit) {
-      this.dialogIsEdit = options.isEdit;
+    (nameElem as HTMLElement).style.display = "none";
+    (imgElem as HTMLElement).style.display = "none";
+    nameElem.value = options.name;
+    imgElem.value = options.img;
+    tagElem.value = options.tag;
+    if (options.canEdit) {
+      this.dialogCanEdit = options.canEdit;
       if (coord) this.dialogCoord = coord;
       if (idx) this.dialogIdx = idx;
     } else {
-      this.dialogIsEdit = false;
+      this.dialogCanEdit = false;
     }
     this.locationDialogElem.open = true;
   }
@@ -142,15 +156,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           name: name.value,
         },
       };
-      if (this.dialogIsEdit) {
+      if (this.dialogCanEdit) {
         this._store.updateLocation(
-          this.current,
+          this.currentSpaceEh,
           this.dialogIdx,
           this.dialogCoord,
           tag.value
         );
       } else {
-        this._store.addLocation(this.current, location);
+        this._store.addLocation(this.currentSpaceEh, location);
       }
     }
   }
@@ -182,7 +196,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         const idx = parseInt(data);
         if (ev.target) {
           const coord = this.getCoordsFromEvent(ev);
-          this._store.updateLocation(this.current, idx, coord);
+          this._store.updateLocation(this.currentSpaceEh, idx, coord);
         }
       }
     }
@@ -195,13 +209,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (idxStr) {
         const idx = parseInt(idxStr);
         if (this.canUpdate(idx)) {
-          const locInfo = this._store.space(this.current).locations[idx];
+          const locInfo = this._store.space(this.currentSpaceEh).locations[idx];
           this.openLocationDialog(
             {
               name: locInfo.location.meta.name,
               img: locInfo.location.meta.img,
               tag: locInfo.location.meta.tag,
-              isEdit: true,
+              canEdit: true,
             },
             locInfo.location.coord,
             idx
@@ -217,7 +231,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
-          .id="${this.current}-img"
+          .id="${this.currentSpaceEh}-img"
           @click=${this.handleClick}
       >
         ${unsafeHTML(surface.html)}
@@ -229,7 +243,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                   height="${h}px"
                   viewBox="0 0 ${surface.size.x} ${surface.size.y}"
                   preserveAspectRatio="none"
-          .id="${this.current}-svg"
+          .id="${this.currentSpaceEh}-svg"
           @click=${this.handleClick}
         >
           ${unsafeSVG(surface.svg)}
@@ -239,10 +253,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   render() {
-    if (!this.current) return;
-    const space = this._spaces.value[this.current];
-    const z = this._zooms.value[this.current];
-    const hereItems = space.locations.map((locationInfo, i) => {
+    if (!this.currentSpaceEh) return;
+    const space: Space = this._spaces.value[this.currentSpaceEh];
+    const z = this._zooms.value[this.currentSpaceEh];
+    const locationItems = space.locations.map((locationInfo, i) => {
       const x = locationInfo.location.coord.x * z;
       const y = locationInfo.location.coord.y * z;
 
@@ -257,7 +271,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
 
       return html`
-
         <div
           .draggable=${true}
           @dblclick="${(e: Event) => this.dblclick(e)}"
@@ -301,31 +314,25 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const h = space.surface.size.y * z;
 
     //console.log({space});
-    let mainItem = this.renderSurface(space.surface, w, h)
+    const mainItem = this.renderSurface(space.surface, w, h)
+
+    let maybeLocationDialog = html ``
+    if (space.meta?.canTag) {
+      maybeLocationDialog = html`
+        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialog}>
+          <mwc-textfield id="edit-location-name" placeholder="Name"></mwc-textfield>
+          <mwc-textfield id="edit-location-img" placeholder="Image Url"></mwc-textfield>
+          <mwc-textfield id="edit-location-tag" dialogInitialFocus placeholder="Tag"></mwc-textfield>
+          <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
+          <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+        </mwc-dialog>`
+    }
 
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
         ${mainItem}
-        ${hereItems}
-        <mwc-dialog
-          id="edit-location"
-          heading="Location"
-          @closing=${this.handleLocationDialog}
-        >
-          <mwc-textfield
-            id="edit-location-name"
-            placeholder="Name"
-          ></mwc-textfield>
-          <mwc-textfield
-            id="edit-location-img"
-            placeholder="Image Url"
-          ></mwc-textfield>
-          <mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>
-          <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
-          <mwc-button slot="secondaryAction" dialogAction="cancel"
-            >cancel</mwc-button
-          >
-        </mwc-dialog>
+        ${locationItems}
+        ${maybeLocationDialog}
       </div>
     `;
   }

@@ -2,8 +2,18 @@ import { EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash } from '@hol
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 
-import { WhereService } from './where.service';
-import {Dictionary, Space, SpaceEntry, WhereEntry, Where, Location, Coord, TemplateEntry} from './types';
+import { WhereService, locationFromHere, hereFromLocation } from './where.service';
+import {
+  Dictionary,
+  Space,
+  SpaceEntry,
+  HereEntry,
+  LocationInfo,
+  Location,
+  Coord,
+  TemplateEntry,
+  HereInfo
+} from './types';
 import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
@@ -51,28 +61,28 @@ export class WhereStore {
           this.updateSpaceFromEntry(payload.spaceHash, payload.message.content)
         }
         break;
-      case "NewWhere":
+      case "NewHere":
         if (get(this.spaces)[payload.spaceHash]) {
           this.spacesStore.update(spaces => {
-            let wheres = spaces[payload.spaceHash].wheres
-            const w : Where = this.service.whereFromInfo(payload.message.content)
-            const idx = wheres.findIndex((w) => w.hash == payload.message.hash)
+            let locations = spaces[payload.spaceHash].locations
+            const w : LocationInfo = locationFromHere(payload.message.content)
+            const idx = locations.findIndex((locationInfo) => locationInfo.hash == payload.message.hash)
             if (idx > -1) {
-              wheres[idx] = w
+              locations[idx] = w
             } else {
-              wheres.push(w)
+              locations.push(w)
             }
             return spaces
           })
         }
         break;
-      case "DeleteWhere":
+      case "DeleteHere":
         if (get(this.spaces)[payload.spaceHash]) {
           this.spacesStore.update(spaces => {
-            let wheres = spaces[payload.spaceHash].wheres
-            const idx = wheres.findIndex((w) => w.hash == payload.message.content)
+            let locations = spaces[payload.spaceHash].locations
+            const idx = locations.findIndex((locationInfo) => locationInfo.hash == payload.message.content)
             if (idx > -1) {
-              wheres.splice(idx, 1);
+              locations.splice(idx, 1);
             }
             return spaces
           })
@@ -101,101 +111,99 @@ export class WhereStore {
     }
   }
 
-   async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
-      // const templates = await service.getTemplates();
-      // for (const s of templates) {
-      //   await updateSpaceFromEntry(s.hash, s.content)
-      // }
-      return get(this.templatesStore)
-    }
+  async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
+    // const templates = await service.getTemplates();
+    // for (const s of templates) {
+    //   await updateSpaceFromEntry(s.hash, s.content)
+    // }
+    return get(this.templatesStore)
+  }
+  async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
+    const eh64: EntryHashB64 = await this.service.createTemplate(template)
+    this.templatesStore.update(templates => {
+      templates[eh64] = template
+      return templates
+    })
+    this.service.notify(
+      {spaceHash: eh64, message: {type:"NewTemplate", content:template}}
+      , this.others());
+    return eh64
+  }
 
-    async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
-      const eh64: EntryHashB64 = await this.service.createTemplate(template)
-      this.templatesStore.update(templates => {
-        templates[eh64] = template
-        return templates
-      })
-      this.service.notify(
-        {spaceHash: eh64, message: {type:"NewTemplate", content:template}}
-        , this.others());
-      return eh64
-    }
-
-    async updateSpaces() : Promise<Dictionary<Space>> {
+  async updateSpaces() : Promise<Dictionary<Space>> {
     const spaces = await this.service.getSpaces();
-      for (const s of spaces) {
+    for (const s of spaces) {
       await this.updateSpaceFromEntry(s.hash, s.content)
     }
     return get(this.spacesStore)
-      }
+  }
 
-    async addSpace(space: Space) : Promise<EntryHashB64> {
-      const s: SpaceEntry = {
-        name: space.name,
-        origin: space.origin,
-        surface: JSON.stringify(space.surface),
-        meta: space.meta,
-      };
-    const hash: EntryHashB64 = await this.service.createSpace(s)
-      for (const w of space.wheres) {
-        const entry : WhereEntry = {
-          location: JSON.stringify(w.entry.location),
-          meta: w.entry.meta
-        }
-      await this.service.addWhere(entry, hash)
-      }
+  async addSpace(space: Space) : Promise<EntryHashB64> {
+    const s: SpaceEntry = {
+      name: space.name,
+      origin: space.origin,
+      surface: JSON.stringify(space.surface),
+      meta: space.meta,
+    };
+    const spaceEh: EntryHashB64 = await this.service.createSpace(s)
+    for (const locInfo of space.locations) {
+      await this.service.addLocation(locInfo.location, spaceEh)
+    }
     this.spacesStore.update(spaces => {
-        spaces[hash] = space
-        return spaces
-      })
+      spaces[spaceEh] = space
+      return spaces
+    })
     this.zoomsStore.update(zooms => {
-        zooms[hash] = 1
-        return zooms
-      })
-    this.service.notify({spaceHash:hash, message: {type:"NewSpace", content:s}}, this.others());
-      return hash
+      zooms[spaceEh] = 1
+      return zooms
+    })
+    this.service.notify({spaceHash:spaceEh, message: {type:"NewSpace", content:s}}, this.others());
+    return spaceEh
   }
 
-    async addWhere(spaceHash: string, where: Location) : Promise<void> {
-      const entry : WhereEntry = {
-        location: JSON.stringify(where.location),
-        meta: where.meta
-      }
-    const hash = await this.service.addWhere(entry, spaceHash)
-    const w:Where = {entry: {location: where.location, meta:where.meta}, hash, authorPubKey: this.myAgentPubKey}
+  async addLocation(spaceEh: string, location: Location) : Promise<void> {
+    const entry = hereFromLocation(location)
+    const hash = await this.service.addLocation(location, spaceEh)
+    const locInfo: LocationInfo = {
+      location,
+      hash,
+      authorPubKey: this.myAgentPubKey
+    }
     this.spacesStore.update(spaces => {
-        spaces[spaceHash].wheres.push(w)
-        return spaces
-      })
-    this.service.notify({spaceHash, message: {type:"NewWhere", content:{entry,hash,author: this.myAgentPubKey}}}, this.others());
+      spaces[spaceEh].locations.push(locInfo)
+      return spaces
+    })
+    this.service.notify({
+      spaceHash: spaceEh,
+      message: {
+        type: "NewHere",
+        content: {entry ,hash, author: this.myAgentPubKey}
+      }}
+      , this.others());
   }
 
-    async updateWhere(spaceHash: string, idx: number, c: Coord, tag?:string) {
+  async updateLocation(spaceHash: string, idx: number, c: Coord, tag?: string) {
     const space = get(this.spacesStore)[spaceHash]
-      const w = space.wheres[idx]
-      w.entry.location = c
-      if (tag != null) {
-        w.entry.meta.tag = tag
-      }
-
-      const entry : WhereEntry = {
-        location: JSON.stringify(w.entry.location),
-        meta: w.entry.meta
-      }
-    const hash: HeaderHashB64 = await this.service.addWhere(entry, spaceHash)
-    await this.service.deleteWhere(w.hash)
-      const oldHash = w.hash
-      w.hash = hash
+    const locInfo = space.locations[idx]
+    locInfo.location.coord = c
+    if (tag != null) {
+      locInfo.location.meta.tag = tag
+    }
+    const hash: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceHash)
+    await this.service.deleteLocation(locInfo.hash)
+    const oldHash = locInfo.hash
+    locInfo.hash = hash
     this.spacesStore.update(spaces => {
-        spaces[spaceHash].wheres[idx] = w
-        return spaces
-      })
-    await this.service.notify({spaceHash, message:{type:"DeleteWhere", content:oldHash}}, this.others());
-    await this.service.notify({spaceHash, message:{type:"NewWhere", content:{entry, hash, author: this.myAgentPubKey}}}, this.others());
+      spaces[spaceHash].locations[idx] = locInfo
+      return spaces
+    })
+    const entry = hereFromLocation(locInfo.location)
+    await this.service.notify({spaceHash, message: {type: "DeleteHere", content:oldHash}}, this.others());
+    await this.service.notify({spaceHash, message: {type: "NewHere", content: {entry, hash, author: this.myAgentPubKey}}}, this.others());
   }
 
     getAgentIdx (space: string, agent: string) : number {
-    return get(this.spacesStore)[space].wheres.findIndex((w) => w.entry.meta.name == agent)
+    return get(this.spacesStore)[space].locations.findIndex((locInfo) => locInfo.location.meta.name == agent)
   }
     template(eh64: EntryHashB64): TemplateEntry {
       return get(this.templatesStore)[eh64];

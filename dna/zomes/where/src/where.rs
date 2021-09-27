@@ -5,24 +5,24 @@ use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
 use crate::error::*;
 
-/// Where entry definition
-#[hdk_entry(id = "where")]
+/// Here entry definition
+#[hdk_entry(id = "here")]
 #[derive(Clone)]
-pub struct Where {
-    location: String, // a location in a some arbitrary space (Json encoded)
-    meta: HashMap<String, String>, // contextualized meaning of the location
+pub struct Here {
+    value: String, // a location in a some arbitrary space (Json encoded)
+    meta: HashMap<String, String>, // contextualized meaning of the value
 }
 
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
-pub struct WhereInput {
+pub struct HereInput {
     pub space: EntryHashB64,
-    pub entry: Where,
+    pub entry: Here,
 }
 
 #[hdk_extern]
-fn add_where(input: WhereInput) -> ExternResult<HeaderHashB64> {
+fn add_here(input: HereInput) -> ExternResult<HeaderHashB64> {
     create_entry(&input.entry)?;
     let hash = hash_entry(input.entry)?;
     let header_hash = create_link(input.space.into(), hash, ())?;
@@ -30,26 +30,26 @@ fn add_where(input: WhereInput) -> ExternResult<HeaderHashB64> {
 }
 
 #[hdk_extern]
-fn delete_where(input: HeaderHashB64) -> ExternResult<()> {
+fn delete_here(input: HeaderHashB64) -> ExternResult<()> {
     delete_link(input.into())?;
     Ok(())
 }
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
-pub struct WhereOutput {
-    pub entry: Where,
+pub struct HereOutput {
+    pub entry: Here,
     pub hash: HeaderHashB64,
     pub author: AgentPubKeyB64,
 }
 
 #[hdk_extern]
-fn get_wheres(space: EntryHashB64) -> ExternResult<Vec<WhereOutput>> {
-    let wheres = get_wheres_inner(space.into())?;
-    Ok(wheres)
+fn get_heres(space: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
+    let heres = get_heres_inner(space.into())?;
+    Ok(heres)
 }
 
-fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
+fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
     let links = get_links(base.into(), None)?.into_inner();
 
     let mut output = Vec::with_capacity(links.len());
@@ -60,8 +60,8 @@ fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
             Some(Details::Entry(EntryDetails {
                 entry, mut headers, ..
             })) => {
-                // Turn the entry into a WhereOutput
-                let entry: Where = entry.try_into()?;
+                // Turn the entry into a HereOutput
+                let entry: Here = entry.try_into()?;
                 let signed_header = match headers.pop() {
                     Some(h) => h,
                     // Ignoring missing messages
@@ -69,13 +69,13 @@ fn get_wheres_inner(base: EntryHash) -> WhereResult<Vec<WhereOutput>> {
                 };
 
                 // Create the output for the UI
-                WhereOutput{
+                HereOutput {
                     entry,
                     hash: link.create_link_hash.into(),
                     author: signed_header.header().author().clone().into()
                 }
             }
-            // Where is missing. This could be an error but we are
+            // Here is missing. This could be an error but we are
             // going to ignore it.
             _ => continue,
         };

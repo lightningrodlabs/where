@@ -82,7 +82,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         multi,
         canTag
       },
-      wheres: [],
+      locations: [],
     };
     // - Add space to commons
     const newSpace = await this._store.addSpace(space);

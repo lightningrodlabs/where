@@ -7,12 +7,10 @@ import {
   Dictionary,
   Space,
   SpaceEntry,
-  HereEntry,
   LocationInfo,
   Location,
   Coord,
   TemplateEntry,
-  HereInfo
 } from './types';
 import {
   ProfilesStore,
@@ -118,6 +116,7 @@ export class WhereStore {
     // }
     return get(this.templatesStore)
   }
+
   async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
     const eh64: EntryHashB64 = await this.service.createTemplate(template)
     this.templatesStore.update(templates => {
@@ -132,6 +131,7 @@ export class WhereStore {
 
   async updateSpaces() : Promise<Dictionary<Space>> {
     const spaces = await this.service.getSpaces();
+    console.log({spaces})
     for (const s of spaces) {
       await this.updateSpaceFromEntry(s.hash, s.content)
     }

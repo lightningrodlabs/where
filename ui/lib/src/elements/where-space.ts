@@ -5,7 +5,7 @@ import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, Location, Coord } from "../types";
+import { whereContext, Location, Coord, Space } from "../types";
 import { WhereStore } from "../where.store";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
@@ -81,16 +81,30 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private handleClick(event: any): void {
     if (event != null && this.canCreate()) {
+      if (!this.current) return;
+      const space: Space = this._spaces.value[this.current];
       const coord = this.getCoordsFromEvent(event);
-      this.dialogCoord = coord;
-      //TODO fixme with a better way to know dialog type
-      this.dialogCanEdit = false;
-      this.openLocationDialog({
-        tag: "",
-        name: this.myNickName,
-        img: "", //this.avatar,
-        canEdit: false,
-      });
+      if (space.meta?.canTag) {
+        this.dialogCoord = coord;
+        //TODO fixme with a better way to know dialog type
+        this.dialogCanEdit = false;
+        this.openLocationDialog({
+          tag: "",
+          name: this.myNickName,
+          img: "", //this.avatar,
+          canEdit: false,
+        });
+      } else {
+        const location: Location = {
+          coord,
+          meta: {
+            tag: "",
+            img: "",
+            name: this.myNickName,
+          },
+        };
+        this._store.addLocation(this.current, location);
+      }
     }
   }
 
@@ -100,6 +114,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     idx?: number
   ) {
     const nameElem = this.shadowRoot!.getElementById("edit-location-name") as TextField;
+    if (!nameElem) return // dialog disabled if Tag not allowed for current Space
     const imgElem = this.shadowRoot!.getElementById("edit-location-img") as TextField;
     const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     // TODO: later these may be made visible for some kinds of spaces
@@ -239,9 +254,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this.current) return;
-    const space = this._spaces.value[this.current];
+    const space: Space = this._spaces.value[this.current];
     const z = this._zooms.value[this.current];
-    const hereItems = space.locations.map((locationInfo, i) => {
+    const locationItems = space.locations.map((locationInfo, i) => {
       const x = locationInfo.location.coord.x * z;
       const y = locationInfo.location.coord.y * z;
 
@@ -300,12 +315,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const h = space.surface.size.y * z;
 
     //console.log({space});
-    let mainItem = this.renderSurface(space.surface, w, h)
+    const mainItem = this.renderSurface(space.surface, w, h)
 
-    return html`
-      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
-        ${mainItem}
-        ${hereItems}
+    let maybeLocationDialog = html ``
+    if (space.meta?.canTag) {
+      maybeLocationDialog = html`
         <mwc-dialog
           id="edit-location"
           heading="Location"
@@ -321,10 +335,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           ></mwc-textfield>
           <mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>
           <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
-          <mwc-button slot="secondaryAction" dialogAction="cancel"
-            >cancel</mwc-button
-          >
-        </mwc-dialog>
+          <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+        </mwc-dialog>`
+    }
+
+    return html`
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
+        ${mainItem}
+        ${locationItems}
+        ${maybeLocationDialog}
       </div>
     `;
   }

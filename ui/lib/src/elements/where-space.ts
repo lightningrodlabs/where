@@ -1,11 +1,11 @@
-import { html, css, LitElement } from "lit";
+import { html, css, LitElement, svg } from "lit";
 import { property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, Location, Space, Dictionary, Coord } from "../types";
+import { whereContext, LocationInfo, Location, Space, Dictionary, Coord } from "../types";
 import { WhereStore } from "../where.store";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
@@ -14,6 +14,8 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
+import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
+import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 const MARKER_WIDTH = 40;
 
@@ -60,7 +62,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private getCoordsFromEvent(event: any): Coord {
-    const rect = event.target.getBoundingClientRect();
+    const rect = event.currentTarget.getBoundingClientRect();
     const z = this._zooms.value[this.current];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
@@ -74,8 +76,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private canUpdate(idx: number): boolean {
-    const w = this._store.space(this.current).wheres[idx];
-    return w.entry.meta.name == this.myNickName;
+    const locInfo = this._store.space(this.current).locations[idx];
+    return locInfo.location.meta.name == this.myNickName;
   }
 
   private handleClick(event: any): void {
@@ -84,7 +86,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
       this.dialogIsEdit = false;
-      this.openWhereDialog({
+      this.openLocationDialog({
         tag: "",
         name: this.myNickName,
         img: "", //this.avatar,
@@ -93,16 +95,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  openWhereDialog(
+  openLocationDialog(
     options = { name: "", img: "", tag: "", isEdit: false },
     coord?: Coord,
     idx?: number
   ) {
-    const nameE = this.shadowRoot!.getElementById(
-      "edit-where-name"
-    ) as TextField;
-    const imgE = this.shadowRoot!.getElementById("edit-where-img") as TextField;
-    const tagE = this.shadowRoot!.getElementById("edit-where-tag") as TextField;
+    const nameE = this.shadowRoot!.getElementById("edit-location-name") as TextField;
+    const imgE = this.shadowRoot!.getElementById("edit-location-img") as TextField;
+    const tagE = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     // TODO: later these may be made visible for some kinds of spaces
     (nameE as HTMLElement).style.display = "none";
     (imgE as HTMLElement).style.display = "none";
@@ -116,26 +116,26 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     } else {
       this.dialogIsEdit = false;
     }
-    this.whereDialogElem.open = true;
+    this.locationDialogElem.open = true;
   }
 
-  get whereDialogElem(): Dialog {
-    return this.shadowRoot!.getElementById("edit-where") as Dialog;
+  get locationDialogElem(): Dialog {
+    return this.shadowRoot!.getElementById("edit-location") as Dialog;
   }
 
-  private async handleWhereDialog(e: any) {
+  private async handleLocationDialog(e: any) {
     if (e.detail.action == "ok") {
       const tag = this.shadowRoot!.getElementById(
-        "edit-where-tag"
+        "edit-location-tag"
       ) as TextField;
       const img = this.shadowRoot!.getElementById(
-        "edit-where-img"
+        "edit-location-img"
       ) as TextField;
       const name = this.shadowRoot!.getElementById(
-        "edit-where-name"
+        "edit-location-name"
       ) as TextField;
-      const where: Location = {
-        location: this.dialogCoord,
+      const location: Location = {
+        coord: this.dialogCoord,
         meta: {
           tag: tag.value,
           img: img.value,
@@ -143,14 +143,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         },
       };
       if (this.dialogIsEdit) {
-        this._store.updateWhere(
+        this._store.updateLocation(
           this.current,
           this.dialogIdx,
           this.dialogCoord,
           tag.value
         );
       } else {
-        this._store.addWhere(this.current, where);
+        this._store.addLocation(this.current, location);
       }
     }
   }
@@ -182,7 +182,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         const idx = parseInt(data);
         if (ev.target) {
           const coord = this.getCoordsFromEvent(ev);
-          this._store.updateWhere(this.current, idx, coord);
+          this._store.updateLocation(this.current, idx, coord);
         }
       }
     }
@@ -195,15 +195,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (idxStr) {
         const idx = parseInt(idxStr);
         if (this.canUpdate(idx)) {
-          const w = this._store.space(this.current).wheres[idx];
-          this.openWhereDialog(
+          const locInfo = this._store.space(this.current).locations[idx];
+          this.openLocationDialog(
             {
-              name: w.entry.meta.name,
-              img: w.entry.meta.img,
-              tag: w.entry.meta.tag,
+              name: locInfo.location.meta.name,
+              img: locInfo.location.meta.img,
+              tag: locInfo.location.meta.tag,
               isEdit: true,
             },
-            w.entry.location,
+            locInfo.location.coord,
             idx
           );
         }
@@ -211,19 +211,46 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  renderSurface(surface: any, w: number, h: number) {
+    return surface.html?
+      html`<div
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+          style="width: ${w}px; height: ${h}px;"
+          .id="${this.current}-img"
+          @click=${this.handleClick}
+      >
+        ${unsafeHTML(surface.html)}
+      </div>`
+      : html`<svg xmlns="http://www.w3.org/2000/svg"
+          @drop="${(e: DragEvent) => this.drop(e)}"
+          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+                  preserveAspectRatio="none"
+          .id="${this.current}-svg"
+          @click=${this.handleClick}
+        >
+          ${unsafeSVG(surface.svg)}
+        </svg>`
+    ;
+  }
+
+
   render() {
     if (!this.current) return;
     const space = this._spaces.value[this.current];
     const z = this._zooms.value[this.current];
-    const whereItems = space.wheres.map((where, i) => {
-      const x = where.entry.location.x * z;
-      const y = where.entry.location.y * z;
+    const hereItems = space.locations.map((locationInfo, i) => {
+      const x = locationInfo.location.coord.x * z;
+      const y = locationInfo.location.coord.y * z;
 
-      // Use an image url if stored in the where, otherwise use the agent's avatar
-      let img = where.entry.meta.img
+      // Use an image url if stored in the Location, otherwise use the agent's avatar
+      let img = locationInfo.location.meta.img
 
       if (img === "") {
-        const profile = this._knownProfiles.value[where.authorPubKey]
+        const profile = this._knownProfiles.value[locationInfo.authorPubKey]
         if (profile) {
           img = profile.fields.avatar
         }
@@ -236,7 +263,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           @dblclick="${(e: Event) => this.dblclick(e)}"
           @dragstart="${(e: DragEvent) => this.drag(e)}"
           idx="${i}"
-          class="where-marker ${where.entry.meta.name == this.myNickName
+          class="location-marker ${locationInfo.location.meta.name == this.myNickName
             ? "me"
             : ""}"
           style="left: ${x}px; top: ${y}px;"
@@ -244,59 +271,56 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         <img src="${img}">
         </div>
         <div
-          class="where-details ${where.entry.meta.name == this.myNickName
+          class="location-details ${locationInfo.location.meta.name == this.myNickName
             ? "me"
             : ""}"
           style="left: ${x}px; top: ${y}px;"
         >
-          <h3>${where.entry.meta.name}</h3>
-          <p>${where.entry.meta.tag}</p>
+          <h3>${locationInfo.location.meta.name}</h3>
+          <p>${locationInfo.location.meta.tag}</p>
         </div>
       `;
     });
 
-    const dataItems = JSON.parse(space.surface.data).map((item: any) => {
-      return html`
-        <div
-          class="data-item"
-          style="width: ${item.box.width * z}px;
-            height: ${item.box.height * z}px;
-            left: ${item.box.left * z}px;
-            top: ${item.box.top * z}px;
-          ${item.style}"
-        >
-          ${item.content}
-        </div>
-      `;
-    });
+    // const dataItems = JSON.parse(space.surface.data).map((item: any) => {
+    //   return html`
+    //     <div
+    //       class="data-item"
+    //       style="width: ${item.box.width * z}px;
+    //         height: ${item.box.height * z}px;
+    //         left: ${item.box.left * z}px;
+    //         top: ${item.box.top * z}px;
+    //       ${item.style}"
+    //     >
+    //       ${item.content}
+    //     </div>
+    //   `;
+    // });
 
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
+
+    //console.log({space});
+    let mainItem = this.renderSurface(space.surface, w, h)
+
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
-        <img
-          @drop="${(e: DragEvent) => this.drop(e)}"
-          @dragover="${(e: DragEvent) => this.allowDrop(e)}"
-          style="width: ${w}px; height: ${h}px;"
-          .id="${this.current}-img"
-          src="${space.surface.url}"
-          @click=${this.handleClick}
-        />
-        ${whereItems} ${dataItems}
+        ${mainItem}
+        ${hereItems}
         <mwc-dialog
-          id="edit-where"
-          heading="Where"
-          @closing=${this.handleWhereDialog}
+          id="edit-location"
+          heading="Location"
+          @closing=${this.handleLocationDialog}
         >
           <mwc-textfield
-            id="edit-where-name"
+            id="edit-location-name"
             placeholder="Name"
           ></mwc-textfield>
           <mwc-textfield
-            id="edit-where-img"
+            id="edit-location-img"
             placeholder="Image Url"
           ></mwc-textfield>
-          <mwc-textfield id="edit-where-tag" placeholder="Tag"></mwc-textfield>
+          <mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>
           <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
           <mwc-button slot="secondaryAction" dialogAction="cancel"
             >cancel</mwc-button
@@ -324,7 +348,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           max-height: 900px;
         }
 
-        .where-marker {
+        .location-marker {
           max-width: 100%;
           max-height: 100%;
           border-radius: 10000px;
@@ -338,16 +362,16 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           background-color: white;
           overflow: hidden;
         }
-        .where-marker > img {
+        .location-marker > img {
           width: ${MARKER_WIDTH}px;
           pointer-events: none;
         }
 
-        .where-marker.me {
+        .location-marker.me {
           border: orange 2px solid;
         }
 
-        .where-details {
+        .location-details {
           display: none;
           position: absolute;
           z-index: 1;
@@ -359,20 +383,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           text-align: left;
         }
 
-        .where-details.me {
+        .location-details.me {
           border: orange 2px solid;
         }
 
-        .where-details h3 {
+        .location-details h3 {
           margin: 0;
         }
 
-        .where-details p:last-of-type {
+        .location-details p:last-of-type {
           margin-bottom: 0;
         }
 
-        .where-marker:hover + .where-details,
-        .where-details:hover {
+        .location-marker:hover + .location-details,
+        .location-details:hover {
           display: block;
         }
 

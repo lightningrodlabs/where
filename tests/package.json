@@ -23,7 +23,7 @@
   },
   "devDependencies": {
     "@detools/tap-diff": "^0.2.2",
-    "@holochain/tryorama": "holochain/tryorama#3970c375e5f48bbf520e8ec906fb37f1ee29c35e",
+    "@holochain/tryorama": "holochain/tryorama#1965cd0ad3a61d4e4abb7c1bec7a89b9f07b9d69",
     "@types/lodash": "^4.14.173",
     "@types/node": "^14.0.14"
   },

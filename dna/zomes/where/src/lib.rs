@@ -5,7 +5,7 @@ pub use error::{WhereError, WhereResult};
 pub mod error;
 pub mod space;
 pub mod signals;
-pub mod r#where;
+pub mod here;
 pub mod template;
 
 #[hdk_extern]
@@ -26,6 +26,6 @@ entry_defs![
     Path::entry_def(),
     template::Template::entry_def(),
     space::Space::entry_def(),
-    r#where::Here::entry_def()
+    here::Here::entry_def()
 ];
 

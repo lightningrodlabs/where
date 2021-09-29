@@ -136,7 +136,7 @@ export class WhereStore {
   async updateSpaces() : Promise<Dictionary<Space>> {
     const _templates = await this.service.getTemplates();
     const spaces = await this.service.getSpaces();
-    console.log({spaces})
+    //console.log({spaces})
     for (const s of spaces) {
       await this.updateSpaceFromEntry(s.hash, s.content)
     }

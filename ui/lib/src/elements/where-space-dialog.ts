@@ -87,6 +87,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // - Add space to commons
     const newSpace = await this._store.addSpace(space);
     this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
+    // - Clear all fields
+    let field = this.shadowRoot!.getElementById('name-field') as TextField;
+    field.value = ''
+    for (let placeholder of this._currentPlaceHolders) {
+      let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
+      console.log('field ' + name + ' - ' + field.value)
+      field.value = ''
+    }
     // - Close dialog
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog;
     dialog.close()
@@ -293,10 +301,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return [
       sharedStyles,
       css`
-        //mwc-dialog div {
-        //  flex-direction: column;
-        //  margin-top: 10px;
-        //}
         mwc-textfield {
           margin-top: 10px;
           display: flex;

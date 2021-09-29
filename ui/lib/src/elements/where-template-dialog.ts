@@ -132,6 +132,12 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     const newTemplateEh = await this._store.addTemplate(template);
     console.log("newTemplateEh: " + newTemplateEh)
     this.dispatchEvent(new CustomEvent('template-added', { detail: newTemplateEh, bubbles: true, composed: true }));
+    // - Clear all fields
+    let field = this.shadowRoot!.getElementById('width-field') as TextField;
+    field.value = ''
+    field = this.shadowRoot!.getElementById('height-field') as TextField;
+    field.value = ''
+    // - Close Dialog
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog;
     dialog.close()
   }

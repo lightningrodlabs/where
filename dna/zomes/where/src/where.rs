@@ -1,6 +1,6 @@
 use hdk::prelude::*;
 
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
 use crate::error::*;
@@ -10,7 +10,7 @@ use crate::error::*;
 #[derive(Clone)]
 pub struct Here {
     value: String, // a location in a some arbitrary space (Json encoded)
-    meta: HashMap<String, String>, // contextualized meaning of the value
+    meta: BTreeMap<String, String>, // contextualized meaning of the value
 }
 
 

@@ -38,9 +38,13 @@ jobs:
     - name: Use cachix
       uses: cachix/cachix-action@v10
       with:
-        name: holochain-ci
+        name: holochain
+
     - name: Prepare Nix environment
-      run: nix-shell --command "echo Completed"
+      run: |
+          nix-env -iA cachix -f https://cachix.org/api/v1/install
+          cachix use holochain-ci
+          nix-shell --command "echo Completed"
 
     - name: run-tests
       run: |

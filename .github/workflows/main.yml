@@ -42,8 +42,6 @@ jobs:
 
     - name: Prepare Nix environment
       run: |
-          nix-env -iA cachix -f https://cachix.org/api/v1/install
-          cachix use holochain-ci
           nix-shell --command "echo Completed"
 
     - name: run-tests

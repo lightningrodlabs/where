@@ -144,9 +144,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       surface: {
         html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 1000, y: 400 },
-        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`,
       },
-      meta: {},
+      meta: {
+        ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
+      },
       locations: [],
     });
 
@@ -156,33 +157,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       surface: {
         html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 800, y: 652 },
-        data: "[]",
       },
       meta: { multi: "true", canTag: "true" },
       locations: [],
     });
 
-    // await this._store.addSpace({
-    //   name: "Abstract",
-    //   origin: boxEh,
-    //   surface: {
-    //     html: "",
-    //     size: { x: 1000, y: 700 },
-    //     data: `[{"box":{"left":0,"top":0,"width":1000,"height":700},"style":"background-image: linear-gradient(to bottom right, red, yellow);","content":""},{"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
-    //   },
-    //   meta: { multi: "true" },
-    //   locations: [],
-    // });
-
     await this._store.addSpace({
-      name: "Abstract v2",
+      name: "Abstract",
       origin: boxEh,
       surface: {
-        size: { x: 800, y: 800 },
-        data: "[]",
+        size: { x: 1000, y: 700 },
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
       },
-      meta: { multi: "true" },
+      meta: {
+        ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""},\
+        {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
+        multi: "true"
+      },
       locations: [],
     });
 
@@ -192,7 +183,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       surface: {
         html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 626, y: 626 },
-        data: "[]",
       },
       meta: { multi: "false" },
       locations: [],
@@ -203,7 +193,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       surface: {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 600, y: 600 },
-        data: "[]",
       },
       meta: { multi: "false" },
       locations: [],
@@ -214,7 +203,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       surface: {
         svg: quadrant_template_svg,
         size: { x: 600, y: 600 },
-        data: "[]",
       },
       meta: { multi: "false" },
       locations: [],

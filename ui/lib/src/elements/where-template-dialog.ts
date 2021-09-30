@@ -89,10 +89,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   private createTemplate() {
     /** Create Surface */
-    let surface: any = {
-      //size: { x: 600, y: 600 },
-      data: "[]",
-    }
+    let surface: any = {}
     /** Size */
     const widthField = this.shadowRoot!.getElementById("width-field") as TextField;
     if (widthField) {
@@ -118,7 +115,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   private  previewTemplate() {
     if (!this._currentType || !this._nameField || !this._surfaceField) return html``
     const template = this.createTemplate()
-    return renderTemplate(template, 200, 200)
+    return renderTemplate(template)
   }
 
   private async handlePreview(e: any) {
@@ -163,8 +160,8 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     <mwc-list-item @request-selected=${() => this.handleTypeSelect("svg")} value="svg">SVG</mwc-list-item>
   </mwc-select>
 
-  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextField).reportValidity()}
-                id="surface-field" placeholder="HTML/SVG here..." helper="No <svg> / <html> tag is required" rows="10" cols="67" required></mwc-textarea>
+  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextArea).reportValidity()}
+                id="surface-field" placeholder="HTML/SVG here..." helper="No <svg> / <html> tag is required" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}
                  id="width-field" minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
@@ -200,8 +197,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
           margin-top:10px;
         }
         #thumbnail {
-          min-height: 200px;
-          width: 200px;
+          min-width: 200px;
           float: right;
           border: 1px solid grey;
           background-color: rgb(252, 252, 252);

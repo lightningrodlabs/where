@@ -4,11 +4,14 @@ import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {TemplateEntry} from "./types";
 
 
-export function renderTemplate(template: TemplateEntry, w: number, h: number) {
+export function renderTemplate(template: TemplateEntry) {
   if (template.surface === "") {
     return html``
   }
   let surface: any = JSON.parse(template.surface);
+  const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
+  const w: number = 200;
+  const h: number = 200 * ratio;
   const preview = surface.html?
     html`
         <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">

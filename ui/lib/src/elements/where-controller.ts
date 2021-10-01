@@ -24,7 +24,7 @@ import {
   ProfilesStore,
   Profile,
 } from "@holochain-open-dev/profiles";
-import {box_template_html, map2D_template_html, quadrant_template_svg} from "./templates";
+import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
 
 /**
  * @element where-controller
@@ -112,16 +112,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async initializeSpaces() {
-    //const myPubKey = this._profiles.myAgentPubKey;
+    /** Templates */
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: JSON.stringify({
          html: map2D_template_html,
-        data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Lore"}]`,
+        //data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Lore"}]`,
         //size: { x: 1000, y: 600 },
   }),
     })
-
     const quadEh = await this._store.addTemplate({
       name: "Quadrant",
       surface: JSON.stringify({
@@ -129,7 +128,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 600, y: 600 },
       }),
     })
-
     const boxEh = await this._store.addTemplate({
       name: "Box",
       surface: JSON.stringify({
@@ -137,7 +135,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 1000, y: 700 },
       }),
     })
+    const triangleEh = await this._store.addTemplate({
+      name: "Iron Triangle",
+      surface: JSON.stringify({
+        svg: triangle_template_svg,
+        size: { x: 650, y: 460 },
+      }),
+    })
 
+    /** Spaces */
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
@@ -184,7 +190,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 626, y: 626 },
       },
-      meta: { multi: "false" },
+      meta: { multi: "false", canTag: "true" },
       locations: [],
     });
     await this._store.addSpace({
@@ -192,16 +198,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       origin: mapEh,
       surface: {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-        size: { x: 600, y: 600 },
-      },
-      meta: { multi: "false" },
-      locations: [],
-    });
-    await this._store.addSpace({
-      name: "Quadrant",
-      origin: quadEh,
-      surface: {
-        svg: quadrant_template_svg,
         size: { x: 600, y: 600 },
       },
       meta: { multi: "false" },

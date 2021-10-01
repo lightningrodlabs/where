@@ -4,7 +4,7 @@
 # It uses a custom revision and a custom set of binaries to be installed.
 
 {
-  holonixPath ?  builtins.fetchTarball { url = "https://github.com/holochain/holonix/archive/develop.tar.gz"; }
+  holonixPath ?  builtins.fetchTarball { url = "https://github.com/holochain/holonix/archive/a0dcdfac2c8783c58805175dd5bc5528ccbb35fd.tar.gz"; }
 }:
 
 let
@@ -17,17 +17,17 @@ let
     holochainVersionId = "custom";
 
     holochainVersion = {
-      rev = "3a1eacab558c179bbe41ae4ed3dc76d3bae93ce5";
-      sha256 = "sha256:06m0blnvcxm5vasasqxx3i310bgmdgqnjnf647b68am8b2hic7w7";
-      cargoSha256 = "sha256:0p4m8ckbd7v411wgh14p0iz4dwi84i3cha5m1zgnqlln0wkqsb0f";
+      rev = "4347e4dbfd4f957576275fb2e8b3deda90ccbfd7";
+      sha256 = "sha256:1g3sm1x786zr9w324kxlsf50ajrmpigjj6l1xnm1cwl2hbqq7hxz";
+      cargoSha256 = "sha256:1i6i80vf7jjw1h0b3dsh5n0x8g5g3h16sw9rskw84yipqbv51nc7";
       bins = {
         holochain = "holochain";
         hc = "hc";
       };
 
       lairKeystoreHashes = {
-        sha256 = "0khg5w5fgdp1sg22vqyzsb2ri7znbxiwl7vr2zx6bwn744wy2cyv";
-        cargoSha256 = "1lm8vrxh7fw7gcir9lq85frfd0rdcca9p7883nikjfbn21ac4sn4";
+        sha256 = "1ibynj1mn1mc59x7b2jn8l1vv9m8czwcvpq81qgbpa52jgjqlf14";
+        cargoSha256 = "1dnfjdk3b4l7ysvm81r061mxly889bbcmg2h11nkgmfj79djka9s";
       };
     };
   };

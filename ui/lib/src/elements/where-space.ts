@@ -18,6 +18,30 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 
 const MARKER_WIDTH = 40;
 
+
+export function renderUiItems(ui: string, zx: number, zy: number) {
+  let uiItems = html``
+  try {
+    uiItems = JSON.parse(ui).map((item: any) => {
+      return html`
+            <div
+              class="ui-item"
+              style="width: ${item.box.width * zx}px;
+          height: ${item.box.height * zy}px;
+          left: ${item.box.left * zx}px;
+          top: ${item.box.top * zy}px;
+        ${item.style}"
+            >
+              ${item.content}
+            </div>
+          `;
+    });
+  } catch (e) {
+    console.error("Invalid meta.ui: " + e)
+  }
+  return uiItems
+}
+
 /**
  * @element where-space
  */
@@ -295,20 +319,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     });
 
-    // const dataItems = JSON.parse(space.surface.data).map((item: any) => {
-    //   return html`
-    //     <div
-    //       class="data-item"
-    //       style="width: ${item.box.width * z}px;
-    //         height: ${item.box.height * z}px;
-    //         left: ${item.box.left * z}px;
-    //         top: ${item.box.top * z}px;
-    //       ${item.style}"
-    //     >
-    //       ${item.content}
-    //     </div>
-    //   `;
-    // });
+    /** Parse UI items in surface meta */
+    let uiItems = html ``
+    if (space.meta && space.meta.ui) {
+      uiItems = renderUiItems(space.meta.ui, z, z)
+    }
 
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
@@ -331,6 +346,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
         ${mainItem}
+        ${uiItems}
         ${locationItems}
         ${maybeLocationDialog}
       </div>
@@ -407,7 +423,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           display: block;
         }
 
-        .data-item {
+        .ui-item {
           position: absolute;
           pointer-events: none;
           text-align: center;

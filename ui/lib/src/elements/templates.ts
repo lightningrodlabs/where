@@ -11,150 +11,54 @@ export const map2D_template_html = `
     <img src="%%ImageUrl%%" style="max-width:100%;max-height:100%;width:100%;height:100%;" />
     `;
 
+export const triangle_template_svg = `
+ <g class="layer">
+  <title>Layer 1</title>
+  <rect fill="red" height="0" id="svg_5" stroke="#000000" stroke-width="5" width="0" x="298" y="95"/>
+  <path d="m111.45499,420.32195l221.14285,-386.99999l221.14285,386.99999l-442.2857,0z" fill="#fbfcc7" id="svg_4" stroke="#b2b2b2" stroke-width="2"/>
+  <circle cx="333.5" cy="271" fill="#000000" id="svg_6" r="37.10632" stroke="#000000" stroke-width="2"/>
+  <circle cx="332" cy="56.5" fill="#5fbf00" id="svg_7" opacity="0.5" r="45.20832" stroke="#000000" stroke-width="2"/>
+  <circle cx="128" cy="404.5" fill="#00ffff" id="svg_8" opacity="0.5" r="45.20832" stroke="#000000" stroke-width="2"/>
+  <circle cx="532.5" cy="400.5" fill="#ff7f00" id="svg_9" opacity="0.5" r="45.20832" stroke="#000000" stroke-width="2"/>
+  <text fill="#000000" font-family="Serif" font-size="20" id="svg_10" stroke="#000000" stroke-width="0" text-anchor="middle" x="120" xml:space="preserve" y="415">%%param1%%</text>
+  <text fill="#000000" font-family="Serif" font-size="20" id="svg_11" stroke="#000000" stroke-width="0" text-anchor="middle" x="330" xml:space="preserve" y="73">%%param2%%</text>
+  <text fill="#000000" font-family="Serif" font-size="20" id="svg_12" stroke="#000000" stroke-width="0" text-anchor="middle" x="532" xml:space="preserve" y="415">%%param3%%</text>
+ </g>
+`;
+
 export const quadrant_template_svg = `
 <!--  <svg xmlns="http://www.w3.org/2000/svg">-->
-    <rect
-      id="rect3451"
-      x="17.279"
-      y="294.291"
-      fill="#C8E4BC"
-      width="253.817"
-      height="253.817"></rect>
-    <rect
-      id="rect3449"
-      x="17.279"
-      y="38.474"
-      fill="#F9BABA"
-      width="253.817"
-      height="253.817"></rect>
-    <rect
-      id="rect3447"
-      x="273.097"
-      y="38.474"
-      fill="#92D9F8"
-      width="253.817"
-      height="253.817"></rect>
-    <rect
-      id="rect3418"
-      x="273.097"
-      y="294.291"
-      fill="#E1C6DF"
-      width="253.817"
-      height="253.817"
-      style="fill:#f5f5a7;fill-opacity:1"></rect>
-    <path
-      id="path3210"
-      fill="#010101"
-      d="M271.097,25.229v536.156h2V25.229H271.097z"></path>
-    <path
-      id="path3440"
-      fill="#010101"
-      d="M263.211,46.602l8.839-24.037l8.839,24.037C275.67,42.761,268.53,42.784,263.211,46.602z"></path>
-    <path
-      id="path3442"
-      fill="#010101"
-      d="M280.959,540.01l-8.839,24.037l-8.839-24.037C268.5,543.85,275.64,543.828,280.959,540.01z"></path>
-    <path
-      id="path3416"
-      fill="#010101"
-      d="M4.003,292.291v2h536.156v-2H4.003z"></path>
-    <path
-      id="path3427"
-      fill="#010101"
-      d="M518.789,284.432l24.037,8.839l-24.037,8.839  C522.629,296.891,522.607,289.751,518.789,284.432z"></path>
-    <path
-      id="path3429"
-      fill="#010101"
-      d="M25.38,302.18l-24.037-8.839l24.037-8.839C21.541,289.721,21.563,296.86,25.38,302.18z"></path>
-    <text
-      font-size="20.431"
-      id="text2996"
-      x="29.304703"
-      y="279.72247"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">%%left-axis%%
-    </text>
-    <text
-      font-size="20.431"
-      id="text2998"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101"
-      x="421.66278"
-      y="279.79285">%%right-axis%%
-    </text>
-    <text
-      transform="translate(219.2134,581.3018)"
-      font-size="20.431"
-      id="text3000"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">%%bottom-axis%%
-    </text>
-    <text
-      transform="translate(207.8755,20.083)"
-      font-size="20.431"
-      id="text3002"
-      style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#010101">%%top-axis%%
-    </text>
-    <g
-      id="g3487"
-      transform="translate(-75.903324,-129.64318)">
-      <text
-        transform="translate(412.4707,287.7975)"
-        font-size="20.431"
-        id="text3005"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#00aad4">%%top-axis%%
-      </text>
-      <text
-        transform="translate(449.1982,312.5787)"
-        font-size="20.431"
-        id="text3007"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#00aad4">%%right-axis%%
-      </text>
-    </g>
-    <g
-      id="g3493"
-      transform="translate(-331.7206,-129.64318)">
-      <text
-        transform="translate(412.4706,287.7975)"
-        font-size="20.431"
-        id="text3010"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#f37f81">%%top-axis%%
-      </text>
-      <text
-        transform="translate(456.5702,312.5787)"
-        font-size="20.431"
-        id="text3012"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#f37f81">%%left-axis%%
-      </text>
-    </g>
-    <g
-      id="g3503"
-      transform="translate(-75.903324,126.17408)">
-      <text
-        transform="translate(423.8086,287.7976)"
-        font-size="20.431"
-        id="text3015"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#cccb00;fill-opacity:1;">%%bottom-axis%%
-      </text>
-      <text
-        transform="translate(449.1982,312.5789)"
-        font-size="20.431"
-        id="text3017"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#cccb00;fill-opacity:1;">%%right-axis%%
-      </text>
-    </g>
-    <g
-      id="g3513"
-      transform="translate(-331.7206,128.20422)">
-      <text
-        transform="translate(423.8085,287.7977)"
-        font-size="20.431"
-        id="text3020"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#4ab749">%%bottom-axis%%
-      </text>
-      <text
-        transform="translate(456.5702,312.578)"
-        font-size="20.431"
-        id="text3022"
-        style="font-size:20.43099976px;line-height:0%;font-family:Arial-BoldMT;fill:#4ab749">%%left-axis%%
-      </text>
-    </g>
+ <g class="layer">
+  <rect fill="#C8E4BC" height="253.817" id="rect3451" width="253.817" x="41.279" y="299.291"/>
+  <rect fill="#F9BABA" height="253.817" id="rect3449" width="253.817" x="41.279" y="43.474"/>
+  <rect fill="#92D9F8" height="253.817" id="rect3447" width="253.817" x="297.097" y="43.474"/>
+  <rect fill="#f5f5a7" height="253.817" id="rect3418" width="253.817" x="297.097" y="299.291"/>
+  <path d="m295.097,30.229l0,536.156l2,0l0,-536.156l-2,0z" fill="#010101" id="path3210"/>
+  <path d="m287.211,51.602l8.839,-24.037l8.839,24.037c-5.219,-3.841 -12.359,-3.818 -17.678,0z" fill="#010101" id="path3440"/>
+  <path d="m304.959,545.01l-8.839,24.037l-8.839,-24.037c5.219,3.84 12.359,3.818 17.678,0z" fill="#010101" id="path3442"/>
+  <path d="m28.003,297.291l0,2l536.156,0l0,-2l-536.156,0z" fill="#010101" id="path3416"/>
+  <path d="m542.789,289.432l24.037,8.839l-24.037,8.839c3.84,-5.219 3.818,-12.359 0,-17.678z" fill="#010101" id="path3427"/>
+  <path d="m49.38,307.18l-24.037,-8.839l24.037,-8.839c-3.839,5.219 -3.817,12.358 0,17.678z" fill="#010101" id="path3429"/>
+  <text fill="#010101" font-family="Arial-BoldMT" font-size="20.431px" id="text2996" text-anchor="start" x="8.3047" y="284.72247">%%left-axis%%</text>
+  <text fill="#010101" font-family="Arial-BoldMT" font-size="20.431px" id="text2998" text-anchor="end" x="588.66278" y="284.79285">%%right-axis%%</text>
+  <text fill="#010101" font-family="Arial-BoldMT" font-size="20.431px" id="text3000" text-anchor="middle" x="296.21339" y="585.30182">%%bottom-axis%%</text>
+  <text fill="#010101" font-family="Arial-BoldMT" font-size="20.431px" id="text3002" text-anchor="middle" x="295.8755" y="20.083">%%top-axis%%</text>
+  <g id="g3487">
+   <text fill="#00aad4" font-family="Arial-BoldMT" font-size="20.431px" id="text3005" text-anchor="middle" x="426.56738" y="163.15431">%%top-axis%%</text>
+   <text fill="#00aad4" font-family="Arial-BoldMT" font-size="20.431px" id="text3007" text-anchor="middle" x="427.29489" y="184.93553">%%right-axis%%</text>
+  </g>
+  <g id="g3493">
+   <text fill="#f37f81" font-family="Arial-BoldMT" font-size="20.431px" id="text3010" text-anchor="middle" x="177.75" y="163.15431">%%top-axis%%</text>
+   <text fill="#f37f81" font-family="Arial-BoldMT" font-size="20.431px" id="text3012" style="cursor: move;" text-anchor="middle" x="177.84958" y="184.93553">%%left-axis%%</text>
+  </g>
+  <g id="g3503">
+   <text fill="#cccb00" font-family="Arial-BoldMT" font-size="20.431px" id="text3015" text-anchor="middle" x="435.90527" y="418.97169">%%bottom-axis%%</text>
+   <text fill="#cccb00" font-family="Arial-BoldMT" font-size="20.431px" id="text3017" text-anchor="middle" x="437.29489" y="443.75297">%%right-axis%%</text>
+  </g>
+  <g id="g3513">
+   <text fill="#4ab749" font-family="Arial-BoldMT" font-size="20.431px" id="text3020" text-anchor="middle" x="186.08789" y="418.00192">%%bottom-axis%%</text>
+   <text fill="#4ab749" font-family="Arial-BoldMT" font-size="20.431px" id="text3022" text-anchor="middle" x="185.84958" y="442.78223">%%left-axis%%</text>
+  </g>
+ </g>
 <!--</svg>-->
 `;

@@ -1,6 +1,6 @@
 pub use hdk::prelude::*;
 use hc_utils::*;
-use std::collections::HashMap;
+use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
 use crate::error::*;
@@ -14,7 +14,7 @@ pub struct Space {
     pub origin: EntryHashB64,
     //pub dimensionality: CoordinateSystem,
     pub surface: String, // Json
-    pub meta: HashMap<String, String>,  // usable by the UI for whatever
+    pub meta: BTreeMap<String, String>,  // usable by the UI for whatever
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -44,7 +44,8 @@ fn create_space(input: Space) -> ExternResult<EntryHashB64> {
 #[hdk_extern]
 fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
     let path = get_spaces_path();
-    let spaces = get_spaces_inner(path.hash()?)?;
+    let anchor_hash = path.hash()?;
+    let spaces = get_spaces_inner(anchor_hash)?;
     Ok(spaces)
 }
 

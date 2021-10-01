@@ -6,11 +6,20 @@ import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
 import {whereContext, Space, Coord, TemplateEntry} from "../types";
-import {Dialog, TextField, Button, Checkbox, Formfield, Select, ListItem} from "@scoped-elements/material-web";
+import {
+  Dialog,
+  TextField,
+  Button,
+  Checkbox,
+  Formfield,
+  Select,
+  ListItem,
+  TextArea
+} from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
-import {quadrant_template_svg} from "./templates";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
+import {renderUiItems} from "./where-space";
 
 /**
  * @element where-space
@@ -42,33 +51,37 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _nameField!: TextField;
   @query('#template-field')
   _templateField!: Select;
+  @query('#ui-field')
+  _uiField!: TextArea;
 
-  // @query('#url-field')
-  // _urlField!: TextField;
-  // @query('#sfc')
-  // _surfaceImg!: HTMLImageElement;
-
-
+  /**
+   *
+   */
   private async handleOk(e: any) {
-    // - Check validity
-    const valid = this._nameField.validity.valid
+    /** Check validity */
+    // nameField
+    let isValid = this._nameField.validity.valid
     //&& this._urlField.validity.valid
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
     }
-    // if (!this._urlField.validity.valid) {
-    //   this._urlField.reportValidity()
-    // }
-    if (!valid) return
+    // uiField
+    try {
+      const _ = JSON.parse(this._uiField.value)
+    }
+    catch (e) {
+      isValid = false;
+      this._uiField.setCustomValidity("Invalid UI Object: " + e)
+      this._uiField.reportValidity()
+    }
+    if (!isValid) return
 
     // - Get checkbox value
     const chk = this.shadowRoot!.getElementById("multi-chk") as Checkbox;
     const multi = chk.checked ? "true" : ""
 
-
     const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
     const canTag = tagChk.checked ? "true" : ""
-
 
     let surface = this.generateSurface();
 
@@ -80,22 +93,31 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       surface,
       meta: {
         multi,
-        canTag
+        canTag,
+        ui: this._uiField.value
       },
       locations: [],
     };
     // - Add space to commons
     const newSpace = await this._store.addSpace(space);
     this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
+    // - Clear all fields
+    let field = this.shadowRoot!.getElementById('name-field') as TextField;
+    field.value = ''
+    for (let placeholder of this._currentPlaceHolders) {
+      let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
+      console.log('field ' + name + ' - ' + field.value)
+      field.value = ''
+    }
+    this._uiField.value = '[{\n\n}]'
     // - Close dialog
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog;
     dialog.close()
   }
 
-  private async handleSpaceDialog(e: any) {
+  private async handleCloseSpaceDialog(e: any) {
+    console.log("handleCloseSpaceDialog CALLED")
     this._nameField.value = "";
-    //this._urlField.value = "";
-    //this._surfaceImg.src = "";
   }
 
   private handleTemplateSelect(templateName: string): void {
@@ -150,11 +172,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       surface.html = code
     }
 
-    /** "Data" */
-    // Add if missing
-    if (!surface.data) {
-      surface.data = `[]`
-    }
     /** Size */
     const widthField = this.shadowRoot!.getElementById("width-field") as TextField;
     if (widthField) {
@@ -212,21 +229,25 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       return html`<div id="thumbnail"></div>`
     }
-    // let surface: any = JSON.parse(this._currentTemplate.surface);
-    let surface: any = this.generateSurface()
+    let surface: any = this.generateSurface();
+    const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
     const w: number = 200;
-    const h: number = 200;
+    const h: number = 200 * ratio;
+    let uiItems = this._uiField? renderUiItems(this._uiField.value, w / surface.size.x, h / surface.size.y) : html ``;
     const preview = surface.html?
       html`
+        ${uiItems}
         <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
             ${unsafeHTML(surface.html)}
-        </div>`
+        </div>
+        `
       : html`<svg xmlns="http://www.w3.org/2000/svg"
                   width="${w}px"
                   height="${h}px"
                   viewBox="0 0 ${surface.size.x} ${surface.size.y}"
                   preserveAspectRatio="none"
                   id="surface-preview-svg">
+          ${uiItems}
           ${unsafeSVG(surface.svg)}
         </svg>`
       ;
@@ -246,7 +267,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //console.log({selectedTemplateUi})
 
     return html`
-<mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleSpaceDialog}>
+<mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleCloseSpaceDialog}>
   ${this.renderSurfacePreview()}
   <mwc-textfield dialogInitialFocus type="text" @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
@@ -272,6 +293,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-formfield label="Enable tags">
     <mwc-checkbox id="tag-chk"></mwc-checkbox>
   </mwc-formfield>
+  <mwc-textarea type="text" label="UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
+                id="ui-field" value="[{\n\n}]" helper="Array of 'Box' objects" rows="8" cols="60"></mwc-textarea>
   <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
@@ -285,6 +308,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "mwc-button": Button,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
+      "mwc-textarea": TextArea,
       "mwc-formfield": Formfield,
       "mwc-checkbox": Checkbox,
     };
@@ -293,10 +317,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return [
       sharedStyles,
       css`
-        //mwc-dialog div {
-        //  flex-direction: column;
-        //  margin-top: 10px;
-        //}
         mwc-textfield {
           margin-top: 10px;
           display: flex;
@@ -312,11 +332,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           display: inline-flex;
         }
         #thumbnail {
+          position: relative;
           padding-left: 10px;
-          min-height: 200px;
+          min-width: 200px;
+          min-height: 10px;
           margin-left: 10px;
           padding-left: 0px;
-          width: 200px;
           float: right;
           border: 1px solid grey;
           background-color: rgb(252, 252, 252);
@@ -324,6 +345,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         mwc-textfield.rounded {
           --mdc-shape-small: 28px;
           width: 100px;
+        }
+        .ui-item {
+          position: absolute;
+          pointer-events: none;
+          text-align: center;
+          flex-shrink: 0;
         }
 `,
     ];

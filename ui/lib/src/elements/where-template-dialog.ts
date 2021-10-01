@@ -198,6 +198,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
         }
         #thumbnail {
           min-width: 200px;
+          min-height: 10px;
           float: right;
           border: 1px solid grey;
           background-color: rgb(252, 252, 252);

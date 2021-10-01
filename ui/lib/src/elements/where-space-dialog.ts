@@ -335,6 +335,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           position: relative;
           padding-left: 10px;
           min-width: 200px;
+          min-height: 10px;
           margin-left: 10px;
           padding-left: 0px;
           float: right;

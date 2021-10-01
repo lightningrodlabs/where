@@ -16,6 +16,9 @@ import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
 
+const areEqual = (first: Uint8Array, second: Uint8Array) =>
+      first.length === second.length && first.every((value, index) => value === second[index]);
+
 export class WhereStore {
   /** Private */
   private service : WhereService
@@ -46,9 +49,12 @@ export class WhereStore {
     this.service = new WhereService(cellClient, zomeName);
 
     cellClient.addSignalHandler( signal => {
-    console.log("SIGNAL",signal)
-    const payload = signal.data.payload
-    switch(payload.message.type) {
+      if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
+        return
+      }
+      console.log("SIGNAL",signal)
+      const payload = signal.data.payload
+      switch(payload.message.type) {
       case "NewTemplate":
         if (!get(this.templates)[payload.spaceHash]) {
           this.templatesStore.update(templates => {
@@ -89,8 +95,8 @@ export class WhereStore {
           })
         }
         break;
-    }
-  })
+      }
+    })
 
   }
 

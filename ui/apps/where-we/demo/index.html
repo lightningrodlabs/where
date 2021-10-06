@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>Page Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" type="text/css" media="screen" href="main.css" />
+  </head>
+  <body>
+    <div id="container"></div>
+
+    <script type="module">
+      import renderFunctions from "../dist";
+      import { AppWebsocket } from "@holochain/conductor-api";
+
+      const container = document.getElementById("container");
+
+      async function setup() {
+        const appWebsocket = await AppWebsocket.connect(
+          `ws://localhost:8888`
+        );
+        const appInfo = await appWebsocket.appInfo({
+          installed_app_id: "where",
+        });
+
+        const cellData = appInfo.cell_data[0];
+
+        const renders = renderFunctions(appWebsocket, cellData);
+
+        renders.full(container, window.customElements);
+      }
+      setup();
+    </script>
+  </body>
+</html>

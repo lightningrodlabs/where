@@ -187,6 +187,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 800, y: 652 },
       },
       meta: {
+        ui: `[]`,
         multi: "true", canTag: "true",
         subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
       },
@@ -216,9 +217,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
       },
       meta: {
-        subMap: "[[\"style\",\"pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);\"]]",
-        ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""},\
-        {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
+        subMap: "[[\"style\",\"background-image:linear-gradient(to bottom right, red, yellow);\"]]",
+        ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
         multi: "true"
       },
       locations: [],
@@ -232,6 +232,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 626, y: 626 },
       },
       meta: {
+        ui: `[]`,
         multi: "false", canTag: "true",
         subMap: "[[\"ImageUrl\",\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\"]]"
       },
@@ -245,6 +246,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 600, y: 600 },
       },
       meta: {
+        ui: `[]`,
         multi: "false",
         subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
       },
@@ -271,7 +273,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async openSpaceDialog(space?: any) {
+    this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(space);
+    if (space) {
+      this.spaceDialogElem.fillWithSpace(space);
+    }
   }
 
   get spaceDialogElem() : WhereSpaceDialog {

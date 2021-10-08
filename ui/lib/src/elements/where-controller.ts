@@ -62,8 +62,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   async createDummyProfile() {
-    const nickname = "Bob";
-    const avatar = "https://forum.holochain.org/user_avatar/forum.holochain.org/ddd-mtl/32/1153_2.png";
+    const nickname = "Cam";
+    const avatar = "https://publicdomainvectors.org/tn_img/raphie_green_lanthern_smiley.png";
 
     try {
       const fields: Dictionary<string> = {};
@@ -141,8 +141,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
     const templates = await this._store.updateTemplates()
     div.innerText = templates[this._currentTemplateEh].name;
-    let abbr = this.shadowRoot!.getElementById("template-abbr") as HTMLElement;
-    abbr.title = templates[this._currentTemplateEh].surface;
+    //let abbr = this.shadowRoot!.getElementById("template-abbr") as HTMLElement;
+    //abbr.title = templates[this._currentTemplateEh].surface;
   }
 
   async initializeSpaces() {
@@ -186,7 +186,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 800, y: 652 },
       },
-      meta: { multi: "true", canTag: "true" },
+      meta: {
+        multi: "true", canTag: "true",
+        subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
+      },
       locations: [],
     });
 
@@ -199,6 +202,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 1000, y: 400 },
       },
       meta: {
+        subMap: "[[\"ImageUrl\",\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\"]]",
         ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
       },
       locations: [],
@@ -212,6 +216,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
       },
       meta: {
+        subMap: "[[\"style\",\"pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);\"]]",
         ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""},\
         {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
         multi: "true"
@@ -226,7 +231,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 626, y: 626 },
       },
-      meta: { multi: "false", canTag: "true" },
+      meta: {
+        multi: "false", canTag: "true",
+        subMap: "[[\"ImageUrl\",\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\"]]"
+      },
       locations: [],
     });
     await this._store.addSpace({
@@ -236,7 +244,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 600, y: 600 },
       },
-      meta: { multi: "false" },
+      meta: {
+        multi: "false",
+        subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
+      },
       locations: [],
     });
   }
@@ -247,8 +258,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._profiles.fetchAllProfiles()
   }
 
-  async openTemplateDialog() {
-    this.templateDialogElem.open();
+  async openTemplateDialog(templateEh?: any) {
+    this.templateDialogElem.open(templateEh);
   }
 
   get templateDialogElem() : WhereTemplateDialog {
@@ -259,8 +270,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
 
-  async openSpaceDialog() {
-    this.spaceDialogElem.open();
+  async openSpaceDialog(space?: any) {
+    this.spaceDialogElem.open(space);
   }
 
   get spaceDialogElem() : WhereSpaceDialog {
@@ -316,7 +327,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   )}
   </mwc-select>
 <!--  <abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>-->
-  <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog()}></mwc-button>
+  <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button>
 
   <mwc-textfield label="Zoom" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
                  value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
@@ -327,7 +338,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
      <mwc-icon-button icon="add_circle" @click=${() => this.handleZoomUpdate(0.1)}></mwc-icon-button>
      <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoomUpdate(-0.1)}></mwc-icon-button>
    </div> -->
-  <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog()}>Fork</mwc-button>
+  <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog(this._currentSpaceEh)}>Fork</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>

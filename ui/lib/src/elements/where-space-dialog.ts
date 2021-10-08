@@ -5,7 +5,7 @@ import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
-import {whereContext, Space, Coord, TemplateEntry} from "../types";
+import {whereContext, Space, Coord, TemplateEntry, SpaceEntry} from "../types";
 import {
   Dialog,
   TextField,
@@ -38,15 +38,51 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   _templates = new StoreSubscriber(this, () => this._store.templates);
 
-  open() {
+  open(spaceEh?: any) {
     if (this._templates.value === undefined) {
       return;
     }
+
+    /** preload fields with  current space values */
+    if(spaceEh) {
+      this._originalSpace = this._store.space(spaceEh);
+      this._nameField.value = this._originalSpace.name;
+      this._templateField.value = this._originalSpace.origin;
+      this._uiField.value = this._originalSpace.meta!["ui"]? this._originalSpace.meta!["ui"] : "[\n]";
+      let chk = this.shadowRoot!.getElementById("multi-chk") as Checkbox;
+      chk.checked = this._originalSpace.meta!["multi"]? true : false;
+      const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
+      tagChk.checked = this._originalSpace.meta!["canTag"]? true : false;
+      let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
+      widthField.value = this._originalSpace.surface.size.x;
+      let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
+      heightField.value = this._originalSpace.surface.size.y;
+
+      /** Templated fields */
+      try {
+        const subMap = new Map(JSON.parse(this._originalSpace.meta!["subMap"])) as Map<string, string>;
+        for (let [key, value] of subMap) {
+          let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
+          console.log('field ' + key + ' - ' + value)
+          field.value = value
+          field.label = key
+        }
+      } catch (e) {
+        console.error("Failed parsing subMap() for space " + spaceEh)
+        console.error(e)
+      }
+
+      /** generate preview */
+      this.requestUpdate();
+    }
+
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
     dialog.open = true
   }
 
   /** Private properties */
+  _originalSpace?: Space;
+
   @query('#name-field')
   _nameField!: TextField;
   @query('#template-field')
@@ -83,7 +119,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
     const canTag = tagChk.checked ? "true" : ""
 
-    let surface = this.generateSurface();
+    let {surface, subMap} = this.generateSurface();
+    const subMapJson = JSON.stringify(Array.from(subMap.entries()));
+    console.log({subMapJson});
 
     // - Create space
     console.log("this._templateField.value = " + this._templateField.value);
@@ -92,12 +130,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       origin: this._templateField.value,
       surface,
       meta: {
+        subMap: subMapJson,
         multi,
         canTag,
         ui: this._uiField.value
       },
       locations: [],
     };
+
     // - Add space to commons
     const newSpace = await this._store.addSpace(space);
     this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
@@ -182,7 +222,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       surface.size = {x, y}
     }
     /** Done */
-    return surface;
+    return {surface, subMap};
   }
 
 
@@ -229,7 +269,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       return html`<div id="thumbnail"></div>`
     }
-    let surface: any = this.generateSurface();
+    let {surface, subMap}: any = this.generateSurface();
     const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
@@ -301,6 +341,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 </mwc-dialog>
 `
   }
+
+
   static get scopedElements() {
     return {
       "mwc-select": Select,

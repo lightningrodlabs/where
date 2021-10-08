@@ -5,7 +5,7 @@ import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
-import { whereContext, Coord } from "../types";
+import {whereContext, Coord, Space, TemplateEntry} from "../types";
 import {
   Dialog,
   TextField,
@@ -13,7 +13,7 @@ import {
   Formfield,
   TextArea,
   Select,
-  ListItem
+  ListItem, Checkbox
 } from "@scoped-elements/material-web";
 import {renderTemplate} from "../surface";
 import parser from "fast-xml-parser";
@@ -39,6 +39,7 @@ function isValidXml(input: string) {
   return true;
 }
 
+
 /**
  * @element where-template
  */
@@ -51,12 +52,39 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
 
-  open() {
+  open(templateEh?: any) {
+
+    /** preload fields with  current space values */
+    if(templateEh) {
+      this._originalTemplate = this._store.template(templateEh);
+      const surface = JSON.parse(this._originalTemplate.surface)
+
+      this._nameField.value = this._originalTemplate.name;
+
+      this._typeField.value = surface.html? 'html' : 'svg';
+
+      this._surfaceField.value = surface.html? surface.html : surface.svg;
+
+      if (surface.size) {
+        let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
+        widthField.value = surface.size.x;
+        let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
+        heightField.value = surface.size.y;
+      }
+      
+      /** generate preview */
+      this.requestUpdate();
+    }
+
+
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog
     dialog.open = true
   }
 
   /** Private properties */
+
+  _originalTemplate?: TemplateEntry;
+
   @query('#name-field')
   _nameField!: TextField;
   @query('#surface-field')

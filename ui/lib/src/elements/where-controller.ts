@@ -1,5 +1,5 @@
 import { html, css, LitElement } from "lit";
-import { state } from "lit/decorators.js";
+import { state, property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
@@ -17,7 +17,7 @@ import {
   ListItem,
   Select,
   IconButton,
-  Button,
+  Button, TextField,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -35,6 +35,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   /** Public attributes */
+  @property({ type: Boolean, attribute: 'dummy' })
+  canLoadDummy = false;
 
   /** Dependencies */
 
@@ -58,13 +60,37 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   private initialized = false;
   private initializing = false;
 
+
+  async createDummyProfile() {
+    const nickname = "Bob";
+    const avatar = "https://forum.holochain.org/user_avatar/forum.holochain.org/ddd-mtl/32/1153_2.png";
+
+    try {
+      const fields: Dictionary<string> = {};
+       if (avatar) {
+         fields['avatar'] = avatar;
+       }
+      await this._profiles.createProfile({
+        nickname,
+        fields,
+      });
+
+    } catch (e) {
+      //this._existingUsernames[nickname] = true;
+      //this._nicknameField.reportValidity();
+    }
+  }
+
+
+
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
   get myAvatar(): string {
     return this._myProfile.value.fields.avatar;
   }
-  firstUpdated() {
+
+  private subscribeProfile() {
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe((profile) => {
       if (profile) {
@@ -73,6 +99,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       }
       // unsubscribe()
     });
+  }
+
+  firstUpdated() {
+    if (this.canLoadDummy) {
+      this.createDummyProfile().then(() => {this.subscribeProfile()});
+    } else {
+      this.subscribeProfile()
+    }
   }
 
   async checkInit() {
@@ -144,6 +178,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     })
 
     /** Spaces */
+
+    await this._store.addSpace({
+      name: "Ecuador",
+      origin: mapEh,
+      surface: {
+        html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
+        size: { x: 800, y: 652 },
+      },
+      meta: { multi: "true", canTag: "true" },
+      locations: [],
+    });
+
+
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
@@ -154,17 +201,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       meta: {
         ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
       },
-      locations: [],
-    });
-
-    await this._store.addSpace({
-      name: "Ecuador",
-      origin: mapEh,
-      surface: {
-        html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-        size: { x: 800, y: 652 },
-      },
-      meta: { multi: "true", canTag: "true" },
       locations: [],
     });
 
@@ -237,6 +273,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this.updateTemplateLabel(spaceEh);
   }
 
+  private handleZoomUpdateAbs(input: number): void {
+    const zoom = Math.min(input, 999);
+    const cur: number = (this._zooms.value[this._currentSpaceEh] * 100);
+    const delta = (zoom - cur) / 100;
+    this.spaceElem.updateZoom(delta);
+  }
+
   private handleZoomUpdate(delta: number): void {
     this.spaceElem.updateZoom(delta);
   }
@@ -259,7 +302,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     })
 
     return html`
-<div style="width: 100%;margin-bottom: 5px">
+<div id="menu-bar" style="width: 100%;margin-bottom: 5px">
   <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
   ${Object.entries(this._spaces.value).map(
     ([key, space]) => html`
@@ -272,12 +315,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     `
   )}
   </mwc-select>
-  <abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>
-  <div class="zoom">
-    Zoom: ${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}% <br/>
-    <mwc-icon-button icon="add_circle" @click=${() => this.handleZoomUpdate(0.1)}></mwc-icon-button>
-    <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoomUpdate(-0.1)}></mwc-icon-button>
-  </div>
+<!--  <abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>-->
+  <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog()}></mwc-button>
+
+  <mwc-textfield label="Zoom" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
+                 value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
+                 @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
+  ></mwc-textfield>
+    <!-- <div class="zoom">
+     Zoom: ${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}% <br/>
+     <mwc-icon-button icon="add_circle" @click=${() => this.handleZoomUpdate(0.1)}></mwc-icon-button>
+     <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoomUpdate(-0.1)}></mwc-icon-button>
+   </div> -->
+  <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog()}>Fork</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
@@ -286,14 +336,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   ${folks}
   </div>
 </div>
+
 <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}> </where-template-dialog>
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._currentSpaceEh = e.detail}> </where-space-dialog>
-<where-space id="where-space" .current=${this._currentSpaceEh} .avatar=${this.myAvatar}></where-space>
+<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} .avatar=${this.myAvatar}></where-space>
 `;
   }
 
   static get scopedElements() {
     return {
+      "mwc-textfield": TextField,
       "mwc-select": Select,
       "mwc-list-item": ListItem,
       "mwc-icon-button": IconButton,
@@ -336,7 +388,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
          width: 50px;
          border-radius: 10000px;
         }
-
+        mwc-textfield.rounded {
+          --mdc-shape-small: 20px;
+          width: 90px;
+          /*margin-top:10px;*/
+        }
+        mwc-textfield label {
+          padding: 0px;
+        }
+        #menu-bar mwc-button {
+          margin-top: 10px;
+        }
         @media (min-width: 640px) {
           main {
             max-width: none;

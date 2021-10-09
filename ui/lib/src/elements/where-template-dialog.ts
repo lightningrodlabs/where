@@ -17,6 +17,7 @@ import {
 } from "@scoped-elements/material-web";
 import {renderTemplate} from "../surface";
 import parser from "fast-xml-parser";
+import {EntryHashB64} from "@holochain-open-dev/core-types";
 
 function isValidXml(input: string) {
   if (input === undefined || input === null) {
@@ -52,38 +53,15 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
 
-  open(templateEh?: any) {
-
-    /** preload fields with  current space values */
-    if(templateEh) {
-      this._originalTemplate = this._store.template(templateEh);
-      const surface = JSON.parse(this._originalTemplate.surface)
-
-      this._nameField.value = this._originalTemplate.name;
-
-      this._typeField.value = surface.html? 'html' : 'svg';
-
-      this._surfaceField.value = surface.html? surface.html : surface.svg;
-
-      if (surface.size) {
-        let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
-        widthField.value = surface.size.x;
-        let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
-        heightField.value = surface.size.y;
-      }
-      
-      /** generate preview */
-      this.requestUpdate();
-    }
-
-
+  open(templateEh?: EntryHashB64) {
+    this._templateToPreload = templateEh;
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog
     dialog.open = true
   }
 
   /** Private properties */
 
-  _originalTemplate?: TemplateEntry;
+  _templateToPreload?: EntryHashB64;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -92,6 +70,24 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   @query('#type-field')
   _typeField!: Select;
 
+  /** preload fields with  current space values */
+  loadPreset(templateEh: EntryHashB64) {
+    const templateToPreload = this._store.template(templateEh);
+    const surface = JSON.parse(templateToPreload.surface)
+
+    this._nameField.value = templateToPreload.name;
+
+    this._typeField.value = surface.html? 'html' : 'svg';
+
+    this._surfaceField.value = surface.html? surface.html : surface.svg;
+
+    if (surface.size) {
+      let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
+      widthField.value = surface.size.x;
+      let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
+      heightField.value = surface.size.y;
+    }
+  }
 
   private isValid() {
     let isValid: boolean = true;
@@ -158,18 +154,27 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     console.log("newTemplateEh: " + newTemplateEh)
     this.dispatchEvent(new CustomEvent('template-added', { detail: newTemplateEh, bubbles: true, composed: true }));
     // - Clear all fields
-    let field = this.shadowRoot!.getElementById('width-field') as TextField;
-    field.value = ''
-    field = this.shadowRoot!.getElementById('height-field') as TextField;
-    field.value = ''
+    this.clearAllFields();
     // - Close Dialog
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog;
     dialog.close()
   }
 
-  private async handleTemplateDialog(e: any) {
+  private handleDialogOpened(e: any) {
+    if (this._templateToPreload) {
+      this.loadPreset(this._templateToPreload);
+      this._templateToPreload = undefined;
+    }
+    this.requestUpdate();
+  }
+
+  private clearAllFields(e?: any) {
     this._nameField.value = "";
     this._surfaceField.value = "";
+    let field = this.shadowRoot!.getElementById('width-field') as TextField;
+    field.value = ''
+    field = this.shadowRoot!.getElementById('height-field') as TextField;
+    field.value = ''
   }
 
   private handleTypeSelect(t: string): void {
@@ -178,7 +183,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-<mwc-dialog id="template-dialog" heading="New template" @closing=${this.handleTemplateDialog}>
+<mwc-dialog id="template-dialog" heading="New template" @closing=${this.clearAllFields} @opened=${this.handleDialogOpened}>
   <mwc-textfield dialogInitialFocus @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <mwc-select required id="type-field" label="Type" @select=${this.handleTypeSelect}>

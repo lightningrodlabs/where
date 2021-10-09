@@ -276,7 +276,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(space);
     if (space) {
-      this.spaceDialogElem.fillWithSpace(space);
+      this.spaceDialogElem.loadPreset(space);
     }
   }
 

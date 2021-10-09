@@ -39,17 +39,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   _templates = new StoreSubscriber(this, () => this._store.templates);
 
-  open(originalSpace?: EntryHashB64) {
-    this._originalSpace = originalSpace;
-    if (this._templates.value === undefined) {
-      return;
-    }
-    const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
-    dialog.open = true
-  }
-
   /** Private properties */
-  _originalSpace?: EntryHashB64;
+  _spaceToPreload?: EntryHashB64;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -61,7 +52,21 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   /**
    *
    */
-  fillWithSpace(spaceEh: EntryHashB64) {
+  open(spaceToPreload?: EntryHashB64) {
+    this._spaceToPreload = spaceToPreload;
+    if (this._templates.value === undefined) {
+      return;
+    }
+    this.requestUpdate();
+    const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
+    dialog.open = true
+  }
+
+
+  /**
+   *
+   */
+  loadPreset(spaceEh: EntryHashB64) {
     const originalSpace = this._store.space(spaceEh);
     if (!originalSpace) {
       return;
@@ -95,7 +100,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       console.error("Failed parsing subMap() for space " + originalSpace)
       console.error(e)
     }
-    this.requestUpdate();
   }
 
 
@@ -151,7 +155,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const newSpace = await this._store.addSpace(space);
     this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
     // - Clear all fields
-    this.resetAllFields();
+    // this.resetAllFields();
     // - Close dialog
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog;
     dialog.close()
@@ -169,16 +173,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private async handleDialogOpened(e: any) {
-    console.log("handleDialogOpened CALLED")
-    if (this._originalSpace) {
-      this.fillWithSpace(this._originalSpace);
-      this._originalSpace = undefined;
+    if (this._spaceToPreload) {
+      this.loadPreset(this._spaceToPreload);
+      this._spaceToPreload = undefined;
     }
     this.requestUpdate()
   }
 
   private async handleDialogClosing(e: any) {
-    console.log("handleDialogClosing CALLED")
     this.resetAllFields();
   }
 

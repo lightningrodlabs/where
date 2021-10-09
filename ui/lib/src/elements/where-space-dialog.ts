@@ -331,8 +331,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     let selectedTemplateUi = this.renderTemplate()
     //console.log({selectedTemplateUi})
 
-    //this.fillWithOriginal();
-
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   ${this.renderSurfacePreview()}

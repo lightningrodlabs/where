@@ -141,19 +141,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
     const templates = await this._store.updateTemplates()
     div.innerText = templates[this._currentTemplateEh].name;
-    //let abbr = this.shadowRoot!.getElementById("template-abbr") as HTMLElement;
-    //abbr.title = templates[this._currentTemplateEh].surface;
   }
 
   async initializeSpaces() {
+
     /** Templates */
+
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: JSON.stringify({
-         html: map2D_template_html,
-        //data: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Lore"}]`,
-        //size: { x: 1000, y: 600 },
-  }),
+         html: map2D_template_html
+      }),
     })
     const quadEh = await this._store.addTemplate({
       name: "Quadrant",
@@ -176,6 +174,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 650, y: 460 },
       }),
     })
+
 
     /** Spaces */
 
@@ -332,18 +331,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     `
   )}
   </mwc-select>
-<!--  <abbr title="surface description" id="template-abbr"><span id="template-label"></span></abbr>-->
   <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button>
 
   <mwc-textfield label="Zoom" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
                  value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
                  @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
   ></mwc-textfield>
-    <!-- <div class="zoom">
-     Zoom: ${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}% <br/>
-     <mwc-icon-button icon="add_circle" @click=${() => this.handleZoomUpdate(0.1)}></mwc-icon-button>
-     <mwc-icon-button icon="remove_circle" @click=${() => this.handleZoomUpdate(-0.1)}></mwc-icon-button>
-   </div> -->
   <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog(this._currentSpaceEh)}>Fork</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>

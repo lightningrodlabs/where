@@ -1,11 +1,11 @@
-import { html, css, LitElement } from "lit";
+import {html, css, LitElement, PropertyValues} from "lit";
 import { state, query } from "lit/decorators.js";
 
 import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
-import {whereContext, Space, Coord, TemplateEntry} from "../types";
+import {whereContext, Space, Coord, TemplateEntry, SpaceEntry} from "../types";
 import {
   Dialog,
   TextField,
@@ -20,6 +20,7 @@ import {StoreSubscriber} from "lit-svelte-stores";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {renderUiItems} from "./where-space";
+import {EntryHashB64} from "@holochain-open-dev/core-types";
 
 /**
  * @element where-space
@@ -38,21 +39,69 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   _templates = new StoreSubscriber(this, () => this._store.templates);
 
-  open() {
-    if (this._templates.value === undefined) {
-      return;
-    }
-    const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
-    dialog.open = true
-  }
-
   /** Private properties */
+  _spaceToPreload?: EntryHashB64;
+
   @query('#name-field')
   _nameField!: TextField;
   @query('#template-field')
   _templateField!: Select;
   @query('#ui-field')
   _uiField!: TextArea;
+
+  /**
+   *
+   */
+  open(spaceToPreload?: EntryHashB64) {
+    this._spaceToPreload = spaceToPreload;
+    if (this._templates.value === undefined) {
+      return;
+    }
+    this.requestUpdate();
+    const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
+    dialog.open = true
+  }
+
+
+  /**
+   *
+   */
+  loadPreset(spaceEh: EntryHashB64) {
+    const originalSpace = this._store.space(spaceEh);
+    if (!originalSpace) {
+      return;
+    }
+    this._nameField.value = originalSpace.name;
+    this._templateField.value = originalSpace.origin;
+    this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
+    let chk = this.shadowRoot!.getElementById("multi-chk") as Checkbox;
+    chk.checked = originalSpace.meta!["multi"] ? true : false;
+    const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
+    tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
+    let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
+    widthField.value = originalSpace.surface.size.x;
+    let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
+    heightField.value = originalSpace.surface.size.y;
+
+    /** Templated fields */
+    try {
+      const subMap = new Map(JSON.parse(originalSpace.meta!["subMap"])) as Map<string, string>;
+      for (let [key, value] of subMap) {
+        let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
+        if (!field) {
+          console.log('Textfield not found: ' + key + '-gen')
+          continue;
+        }
+        console.log('field ' + key + ' - ' + value)
+        field.value = value
+        field.label = key
+      }
+    } catch (e) {
+      console.error("Failed parsing subMap() for space " + originalSpace)
+      console.error(e)
+    }
+  }
+
 
   /**
    *
@@ -83,7 +132,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
     const canTag = tagChk.checked ? "true" : ""
 
-    let surface = this.generateSurface();
+    let {surface, subMap} = this.generateSurface();
+    const subMapJson = JSON.stringify(Array.from(subMap.entries()));
+    console.log({subMapJson});
 
     // - Create space
     console.log("this._templateField.value = " + this._templateField.value);
@@ -92,35 +143,49 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       origin: this._templateField.value,
       surface,
       meta: {
+        subMap: subMapJson,
         multi,
         canTag,
         ui: this._uiField.value
       },
       locations: [],
     };
+
     // - Add space to commons
     const newSpace = await this._store.addSpace(space);
     this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
     // - Clear all fields
-    let field = this.shadowRoot!.getElementById('name-field') as TextField;
-    field.value = ''
-    for (let placeholder of this._currentPlaceHolders) {
-      let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
-      console.log('field ' + name + ' - ' + field.value)
-      field.value = ''
-    }
-    this._uiField.value = '[{\n\n}]'
+    // this.resetAllFields();
     // - Close dialog
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog;
     dialog.close()
   }
 
-  private async handleCloseSpaceDialog(e: any) {
-    console.log("handleCloseSpaceDialog CALLED")
-    this._nameField.value = "";
+
+  resetAllFields() {
+    this._nameField.value = ''
+    for (let placeholder of this._currentPlaceHolders) {
+      let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
+      console.log('field ' + placeholder + ' - ' + field.value)
+      field.value = ''
+    }
+    this._uiField.value = '[]'
+  }
+
+  private async handleDialogOpened(e: any) {
+    if (this._spaceToPreload) {
+      this.loadPreset(this._spaceToPreload);
+      this._spaceToPreload = undefined;
+    }
+    this.requestUpdate()
+  }
+
+  private async handleDialogClosing(e: any) {
+    this.resetAllFields();
   }
 
   private handleTemplateSelect(templateName: string): void {
+    this.resetAllFields();
     this._useTemplateSize = true;
     this._currentTemplate = this._templates.value[templateName]
   }
@@ -182,7 +247,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       surface.size = {x, y}
     }
     /** Done */
-    return surface;
+    return {surface, subMap};
   }
 
 
@@ -229,7 +294,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       return html`<div id="thumbnail"></div>`
     }
-    let surface: any = this.generateSurface();
+    let {surface, subMap}: any = this.generateSurface();
     const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
@@ -267,7 +332,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //console.log({selectedTemplateUi})
 
     return html`
-<mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleCloseSpaceDialog}>
+<mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   ${this.renderSurfacePreview()}
   <mwc-textfield dialogInitialFocus type="text" @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
@@ -294,13 +359,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-checkbox id="tag-chk"></mwc-checkbox>
   </mwc-formfield>
   <mwc-textarea type="text" label="UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
-                id="ui-field" value="[{\n\n}]" helper="Array of 'Box' objects" rows="8" cols="60"></mwc-textarea>
+                id="ui-field" value="[]" helper="Array of 'Box' objects" rows="8" cols="60"></mwc-textarea>
   <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
 </mwc-dialog>
 `
   }
+
+
   static get scopedElements() {
     return {
       "mwc-select": Select,

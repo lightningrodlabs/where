@@ -7,12 +7,11 @@ import {html, svg} from "lit";
 export const box_template_html =
   `<div style=" pointer-events: none; text-align: center; width: 100%;height: 100%;%%style%%"></div>`
 
-export const map2D_template_html = `
-    <img src="%%ImageUrl%%" style="max-width:100%;max-height:100%;width:100%;height:100%;" />
-    `;
+export const map2D_template_html =
+  `<img src="%%ImageUrl%%" style="max-width:100%;max-height:100%;width:100%;height:100%;" />`;
 
-export const triangle_template_svg = `
- <g class="layer">
+export const triangle_template_svg =
+`<g class="layer">
   <title>Layer 1</title>
   <rect fill="red" height="0" id="svg_5" stroke="#000000" stroke-width="5" width="0" x="298" y="95"/>
   <path d="m111.45499,420.32195l221.14285,-386.99999l221.14285,386.99999l-442.2857,0z" fill="#fbfcc7" id="svg_4" stroke="#b2b2b2" stroke-width="2"/>
@@ -27,7 +26,6 @@ export const triangle_template_svg = `
 `;
 
 export const quadrant_template_svg = `
-<!--  <svg xmlns="http://www.w3.org/2000/svg">-->
  <g class="layer">
   <rect fill="#C8E4BC" height="253.817" id="rect3451" width="253.817" x="41.279" y="299.291"/>
   <rect fill="#F9BABA" height="253.817" id="rect3449" width="253.817" x="41.279" y="43.474"/>
@@ -60,5 +58,4 @@ export const quadrant_template_svg = `
    <text fill="#4ab749" font-family="Arial-BoldMT" font-size="20.431px" id="text3022" text-anchor="middle" x="185.84958" y="442.78223">%%left-axis%%</text>
   </g>
  </g>
-<!--</svg>-->
 `;

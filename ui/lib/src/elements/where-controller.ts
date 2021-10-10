@@ -187,7 +187,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       },
       meta: {
         ui: `[]`,
-        multi: "true", canTag: "true",
+        multi: "true", canTag: "true", useEmoji: "true",
         subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
       },
       locations: [],
@@ -333,7 +333,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   </mwc-select>
   <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button>
 
-  <mwc-textfield label="Zoom" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
+  <mwc-textfield label="Zoom %" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
                  value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
                  @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
   ></mwc-textfield>
@@ -400,7 +400,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         }
         mwc-textfield.rounded {
           --mdc-shape-small: 20px;
-          width: 90px;
+          width: 7em;
           /*margin-top:10px;*/
         }
         mwc-textfield label {

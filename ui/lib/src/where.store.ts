@@ -231,8 +231,8 @@ export class WhereStore {
 
   updateZoom(spaceEh: EntryHashB64, delta: number) : void {
     this.zoomsStore.update(zooms => {
-      if (zooms[spaceEh] + delta < 0) {
-        zooms[spaceEh] = 0
+      if (zooms[spaceEh] + delta < 0.1) {
+        zooms[spaceEh] = 0.1
       } else {
         zooms[spaceEh] += delta;
       }

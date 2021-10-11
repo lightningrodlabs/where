@@ -73,7 +73,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (e.target) {
       e.preventDefault();
       this._store.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
-    }
+   }
   };
 
   updateZoom(delta: number): void {
@@ -277,7 +277,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   render() {
-    if (!this.currentSpaceEh) return;
+    if (!this.currentSpaceEh) {
+      return;
+    }
     const space: Space = this._spaces.value[this.currentSpaceEh];
     const z = this._zooms.value[this.currentSpaceEh];
     const locationItems = space.locations.map((locationInfo, i) => {
@@ -366,9 +368,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          overflow: auto;
-          max-width: 1500px;
-          max-height: 900px;
+          /*overflow: auto;*/
+          /*max-width: 1500px;*/
+          /*max-height: 900px;*/
         }
 
         .location-marker {

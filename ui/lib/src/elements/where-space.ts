@@ -446,6 +446,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           clear: both;
           display: inline-flex;
           position: relative;
+          color: black;
         }
         .location-marker.me {
           border: orange 2px solid;

@@ -73,7 +73,7 @@ export class WhereStore {
           this.spacesStore.update(spaces => {
             let locations = spaces[payload.spaceHash].locations
             const w : LocationInfo = locationFromHere(payload.message.content)
-            const idx = locations.findIndex((locationInfo) => locationInfo.hash == payload.message.hash)
+            const idx = locations.findIndex((locationInfo) => locationInfo!.hash == payload.message.hash)
             if (idx > -1) {
               locations[idx] = w
             } else {
@@ -87,7 +87,7 @@ export class WhereStore {
         if (get(this.spaces)[payload.spaceHash]) {
           this.spacesStore.update(spaces => {
             let locations = spaces[payload.spaceHash].locations
-            const idx = locations.findIndex((locationInfo) => locationInfo.hash == payload.message.content)
+            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.hash == payload.message.content)
             if (idx > -1) {
               locations.splice(idx, 1);
             }
@@ -158,7 +158,9 @@ export class WhereStore {
     };
     const spaceEh: EntryHashB64 = await this.service.createSpace(s)
     for (const locInfo of space.locations) {
-      await this.service.addLocation(locInfo.location, spaceEh)
+      if (locInfo) {
+        await this.service.addLocation(locInfo.location, spaceEh)
+      }
     }
     this.spacesStore.update(spaces => {
       spaces[spaceEh] = space
@@ -193,9 +195,21 @@ export class WhereStore {
       , this.others());
   }
 
+  async deleteLocation(spaceHash: string, idx: number) {
+    const space = get(this.spacesStore)[spaceHash]
+    const locInfo = space.locations[idx]!
+    await this.service.deleteLocation(locInfo.hash)
+    this.spacesStore.update(spaces => {
+      spaces[spaceHash].locations[idx] = null
+      return spaces
+    })
+    await this.service.notify({spaceHash, message: {type: "DeleteHere", content:locInfo.hash}}, this.others());
+  }
+
+
   async updateLocation(spaceHash: string, idx: number, c: Coord, tag?: string, emoji?: string) {
     const space = get(this.spacesStore)[spaceHash]
-    const locInfo = space.locations[idx]
+    const locInfo = space.locations[idx]!
     locInfo.location.coord = c
     if (tag != null) {
       locInfo.location.meta.tag = tag
@@ -217,7 +231,7 @@ export class WhereStore {
   }
 
     getAgentIdx (space: string, agent: string) : number {
-    return get(this.spacesStore)[space].locations.findIndex((locInfo) => locInfo.location.meta.name == agent)
+    return get(this.spacesStore)[space].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.name == agent)
   }
 
   template(templateEh64: EntryHashB64): TemplateEntry {

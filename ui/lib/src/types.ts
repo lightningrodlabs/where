@@ -49,7 +49,7 @@ export interface Space  {
   name: string;
   origin: EntryHashB64;
   surface: any;
-  locations: LocationInfo[];
+  locations: (LocationInfo | null)[];
   meta?: Dictionary<string>;
 }
 

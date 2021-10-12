@@ -492,12 +492,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         .location-details {
           display: none;
           position: absolute;
-          z-index: 1;
+          z-index: 10;
 
           background: white;
           border-radius: 10px;
           border: black 1px solid;
-          padding: 15px;
+          padding: 5px;
           text-align: left;
         }
 
@@ -510,7 +510,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         }
 
         .location-details p:last-of-type {
-          margin-bottom: 0;
+          margin-top: 5px;
+          margin-bottom: 5px;
         }
 
         .location-marker:hover + .location-details,

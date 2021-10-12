@@ -193,12 +193,15 @@ export class WhereStore {
       , this.others());
   }
 
-  async updateLocation(spaceHash: string, idx: number, c: Coord, tag?: string) {
+  async updateLocation(spaceHash: string, idx: number, c: Coord, tag?: string, emoji?: string) {
     const space = get(this.spacesStore)[spaceHash]
     const locInfo = space.locations[idx]
     locInfo.location.coord = c
     if (tag != null) {
       locInfo.location.meta.tag = tag
+    }
+    if (emoji != null) {
+      locInfo.location.meta.emoji = emoji
     }
     const hash: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceHash)
     await this.service.deleteLocation(locInfo.hash)

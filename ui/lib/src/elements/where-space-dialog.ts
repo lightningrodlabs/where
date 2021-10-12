@@ -48,6 +48,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _templateField!: Select;
   @query('#ui-field')
   _uiField!: TextArea;
+  @query('#tag-chk')
+  _tagChk!: Checkbox;
+  @query('#multi-chk')
+  _multiChk!: Checkbox;
+  @query('#emoji-chk')
+  _emojiChk!: Checkbox;
 
   /**
    *
@@ -74,10 +80,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._nameField.value = originalSpace.name;
     this._templateField.value = originalSpace.origin;
     this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
-    let chk = this.shadowRoot!.getElementById("multi-chk") as Checkbox;
-    chk.checked = originalSpace.meta!["multi"] ? true : false;
-    const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
-    tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
+    this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
+    this._tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
+    this._emojiChk.checked = originalSpace.meta!["useEmoji"] ? true : false;
     let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
     widthField.value = originalSpace.surface.size.x;
     let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
@@ -125,12 +130,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
     if (!isValid) return
 
-    // - Get checkbox value
-    const chk = this.shadowRoot!.getElementById("multi-chk") as Checkbox;
-    const multi = chk.checked ? "true" : ""
-
-    const tagChk = this.shadowRoot!.getElementById("tag-chk") as Checkbox;
-    const canTag = tagChk.checked ? "true" : ""
+    // - Get checkbox values
+    const multi = this._multiChk.checked ? "true" : ""
+    const canTag = this._tagChk.checked ? "true" : ""
+    const useEmoji = this._emojiChk.checked ? "true" : ""
 
     let {surface, subMap} = this.generateSurface();
     const subMapJson = JSON.stringify(Array.from(subMap.entries()));
@@ -146,6 +149,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         subMap: subMapJson,
         multi,
         canTag,
+        useEmoji,
         ui: this._uiField.value
       },
       locations: [],
@@ -358,6 +362,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-formfield label="Enable tags">
     <mwc-checkbox id="tag-chk"></mwc-checkbox>
   </mwc-formfield>
+  <mwc-formfield label="Emoji Avatar">
+    <mwc-checkbox id="emoji-chk"></mwc-checkbox>
+  </mwc-formfield>
   <mwc-textarea type="text" label="UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
                 id="ui-field" value="[]" helper="Array of 'Box' objects" rows="8" cols="60"></mwc-textarea>
   <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
@@ -411,7 +418,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
         mwc-textfield.rounded {
           --mdc-shape-small: 28px;
-          width: 100px;
+          width: 8em;
         }
         .ui-item {
           position: absolute;

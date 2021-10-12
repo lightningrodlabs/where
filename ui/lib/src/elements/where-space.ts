@@ -15,9 +15,10 @@ import {
 import { Dialog, TextField, Button } from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
+import 'emoji-picker-element';
 
 const MARKER_WIDTH = 40;
-
+const EMOJI_WIDTH = 32;
 
 export function renderUiItems(ui: string, zx: number, zy: number) {
   let uiItems = html``
@@ -40,6 +41,14 @@ export function renderUiItems(ui: string, zx: number, zy: number) {
     console.error("Invalid meta.ui: " + e)
   }
   return uiItems
+}
+
+type LocOptions = {
+  name: string,
+  img: string,
+  tag: string | null,
+  emoji: string | null,
+  canEdit: boolean
 }
 
 /**
@@ -108,12 +117,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (!this.currentSpaceEh) return;
       const space: Space = this._spaces.value[this.currentSpaceEh];
       const coord = this.getCoordsFromEvent(event);
-      if (space.meta?.canTag) {
+      if (space.meta?.canTag || space.meta?.useEmoji) {
         this.dialogCoord = coord;
         //TODO fixme with a better way to know dialog type
         this.dialogCanEdit = false;
         this.openLocationDialog({
-          tag: "",
+          tag: space.meta?.canTag ? "" : null,
+          emoji: space.meta?.useEmoji? "" : null,
           name: this.myNickName,
           img: "", //this.avatar,
           canEdit: false,
@@ -131,9 +141,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
     }
   }
-
   openLocationDialog(
-    options = { name: "", img: "", tag: "", canEdit: false },
+    options : LocOptions = { name: "", img: "", tag: "", canEdit: false, emoji: ""},
     coord?: Coord,
     idx?: number
   ) {
@@ -141,12 +150,29 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!nameElem) return // dialog disabled if Tag not allowed for current Space
     const imgElem = this.shadowRoot!.getElementById("edit-location-img") as TextField;
     const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    const emojiPickerElem = this.shadowRoot!.getElementById("edit-location-emoji");
+    const emojiPreviewElem = this.shadowRoot!.getElementById("edit-location-emoji-preview");
+
+    if (emojiPreviewElem) {
+      const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+      if (emoji) {
+        emojiPickerElem?.addEventListener('emoji-click', (event: any ) => emoji.innerHTML = event?.detail?.unicode);
+        emoji.innerHTML = `${options.emoji}`
+      }
+    }
     // TODO: later these may be made visible for some kinds of spaces
     (nameElem as HTMLElement).style.display = "none";
     (imgElem as HTMLElement).style.display = "none";
+    if (options.tag == null) {
+      (tagElem as HTMLElement).style.display = "none";
+    } else {
+      (tagElem as HTMLElement).style.display = "block";
+      tagElem.value = options.tag;
+    }
+    (emojiPickerElem as HTMLElement).style.display = options.emoji != null ? "block" : "none";
+    (emojiPreviewElem as HTMLElement).style.display = options.emoji != null ? "flex-inline" : "none";
     nameElem.value = options.name;
     imgElem.value = options.img;
-    tagElem.value = options.tag;
     if (options.canEdit) {
       this.dialogCanEdit = options.canEdit;
       if (coord) this.dialogCoord = coord;
@@ -172,10 +198,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const name = this.shadowRoot!.getElementById(
         "edit-location-name"
       ) as TextField;
+      const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+      const emojiValue = emoji ? emoji.innerHTML : ""
       const location: Location = {
         coord: this.dialogCoord,
         meta: {
           tag: tag.value,
+          emoji: emojiValue,
           img: img.value,
           name: name.value,
         },
@@ -185,7 +214,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           this.currentSpaceEh,
           this.dialogIdx,
           this.dialogCoord,
-          tag.value
+          tag.value,
+          emojiValue
         );
       } else {
         this._store.addLocation(this.currentSpaceEh, location);
@@ -233,11 +263,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       if (idxStr) {
         const idx = parseInt(idxStr);
         if (this.canUpdate(idx)) {
-          const locInfo = this._store.space(this.currentSpaceEh).locations[idx];
+          const space = this._store.space(this.currentSpaceEh);
+          const locInfo = space.locations[idx];
           this.openLocationDialog(
             {
               name: locInfo.location.meta.name,
               img: locInfo.location.meta.img,
+              emoji: locInfo.location.meta.emoji,
               tag: locInfo.location.meta.tag,
               canEdit: true,
             },
@@ -286,14 +318,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const x = locationInfo.location.coord.x * z;
       const y = locationInfo.location.coord.y * z;
 
-      // Use an image url if stored in the Location, otherwise use the agent's avatar
-      let img = locationInfo.location.meta.img
+      let marker
+      if (space.meta?.useEmoji) {
+        marker = html`<div class='emoji-marker'>${locationInfo.location.meta.emoji}</div>`
+      } else {
+        // Use an image url if stored in the Location, otherwise use the agent's avatar
+        let img = locationInfo.location.meta.img
 
-      if (img === "") {
-        const profile = this._knownProfiles.value[locationInfo.authorPubKey]
-        if (profile) {
-          img = profile.fields.avatar
+        if (img === "") {
+          const profile = this._knownProfiles.value[locationInfo.authorPubKey]
+          if (profile) {
+            img = profile.fields.avatar
+          }
         }
+        marker = html`<img src="${img}">`
       }
 
       return html`
@@ -307,7 +345,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
             : ""}"
           style="left: ${x}px; top: ${y}px;"
         >
-        <img src="${img}">
+        ${marker}
         </div>
         <div
           class="location-details ${locationInfo.location.meta.name == this.myNickName
@@ -334,12 +372,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const mainItem = this.renderSurface(space.surface, w, h)
 
     let maybeLocationDialog = html ``
-    if (space.meta?.canTag) {
+    if (space.meta?.canTag || space.meta?.useEmoji) {
       maybeLocationDialog = html`
         <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialog}>
           <mwc-textfield id="edit-location-name" placeholder="Name"></mwc-textfield>
           <mwc-textfield id="edit-location-img" placeholder="Image Url"></mwc-textfield>
           <mwc-textfield id="edit-location-tag" dialogInitialFocus placeholder="Tag"></mwc-textfield>
+<div id="edit-location-emoji-preview" class="location-marker me"><div id="edit-location-emoji-marker" class="emoji-marker"></div></div>
+          <emoji-picker id="edit-location-emoji" class="light"></emoji-picker>
           <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
           <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
         </mwc-dialog>`
@@ -360,6 +400,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
       "mwc-button": Button,
+      "emoji-picker": customElements.get('emoji-picker'),
     };
   }
   static get styles() {
@@ -386,12 +427,27 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           z-index: 1;
           background-color: white;
           overflow: hidden;
+          display: inline-flex;
+          align-items: center;
         }
         .location-marker > img {
           width: ${MARKER_WIDTH}px;
           pointer-events: none;
         }
-
+        .location-marker > .emoji-marker {
+          font-size: ${EMOJI_WIDTH}px;
+          margin: auto;
+          pointer-events: none;
+        }
+        #edit-location > .location-marker {
+          margin-top: 9px;
+          margin-left: 0px;
+          margin-bottom: 3px;
+          clear: both;
+          display: inline-flex;
+          position: relative;
+          color: black;
+        }
         .location-marker.me {
           border: orange 2px solid;
         }

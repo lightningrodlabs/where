@@ -109,6 +109,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private canUpdateLocation(idx: number): boolean {
     const locInfo = this._store.space(this.currentSpaceEh).locations[idx]!;
+    // TODO: should check agent key instead
     return locInfo.location.meta.name == this.myNickName;
   }
 
@@ -327,6 +328,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this._store.deleteLocation(this.currentSpaceEh, idx).then(() => {});
   }
 
+  canEditLocation(space: Space | undefined) {
+    if (!space) {
+      space = this._spaces.value[this.currentSpaceEh];
+    }
+    return space.meta?.canTag || space.meta?.useEmoji;
+  }
 
   render() {
     if (!this.currentSpaceEh) {
@@ -358,8 +365,19 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         marker = html`<img src="${img}">`
       }
       /** Render Location Marker and Dialog */
-      // TODO: should be agent key and not nickname
-      const maybeMeClass = locationInfo.location.meta.name == this.myNickName ? "me" : "";
+      // Handle my Locations differently
+      let maybeMeClass  = "";
+      let maybeDeleteBtn = html ``;
+      let maybeEditBtn = html ``;
+      // TODO: should check agent key and not nickname
+      if (locationInfo.location.meta.name == this.myNickName) {
+        maybeMeClass = "me";
+        maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
+        if (this.canEditLocation(space)) {
+          maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
+        }
+      };
+
       return html`
         <div
           .draggable=${true}
@@ -371,7 +389,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
           <h3>${locationInfo.location.meta.name}</h3>
           <p>${locationInfo.location.meta.tag}</p>
-          <button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>
+          ${maybeEditBtn}
+          ${maybeDeleteBtn}
         </div>
       `;
     });
@@ -389,7 +408,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const surfaceItem = this.renderSurface(space.surface, w, h)
     /** Build LocationDialog if required */
     let maybeLocationDialog = html ``
-    if (space.meta?.canTag || space.meta?.useEmoji) {
+    if (this.canEditLocation(space)) {
       maybeLocationDialog = html`
         <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialog}>
           <mwc-textfield id="edit-location-name" placeholder="Name"></mwc-textfield>

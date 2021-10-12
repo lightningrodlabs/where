@@ -107,40 +107,45 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return myIdx == -1;
   }
 
-  private canUpdate(idx: number): boolean {
-    const locInfo = this._store.space(this.currentSpaceEh).locations[idx];
+  private canUpdateLocation(idx: number): boolean {
+    const locInfo = this._store.space(this.currentSpaceEh).locations[idx]!;
     return locInfo.location.meta.name == this.myNickName;
   }
 
   private handleClick(event: any): void {
-    if (event != null && this.canCreate()) {
-      if (!this.currentSpaceEh) return;
-      const space: Space = this._spaces.value[this.currentSpaceEh];
-      const coord = this.getCoordsFromEvent(event);
-      if (space.meta?.canTag || space.meta?.useEmoji) {
-        this.dialogCoord = coord;
-        //TODO fixme with a better way to know dialog type
-        this.dialogCanEdit = false;
-        this.openLocationDialog({
-          tag: space.meta?.canTag ? "" : null,
-          emoji: space.meta?.useEmoji? "" : null,
+    if (event == null || !this.canCreate()) {
+      return;
+    }
+    if (!this.currentSpaceEh) {
+      return;
+    }
+    const space: Space = this._spaces.value[this.currentSpaceEh];
+    const coord = this.getCoordsFromEvent(event);
+    if (space.meta?.canTag || space.meta?.useEmoji) {
+      this.dialogCoord = coord;
+      //TODO fixme with a better way to know dialog type
+      this.dialogCanEdit = false;
+      this.openLocationDialog({
+        tag: space.meta?.canTag ? "" : null,
+        emoji: space.meta?.useEmoji? "" : null,
+        name: this.myNickName,
+        img: "", //this.avatar,
+        canEdit: false,
+      });
+    } else {
+      const location: Location = {
+        coord,
+        meta: {
+          tag: "",
+          img: "",
           name: this.myNickName,
-          img: "", //this.avatar,
-          canEdit: false,
-        });
-      } else {
-        const location: Location = {
-          coord,
-          meta: {
-            tag: "",
-            img: "",
-            name: this.myNickName,
-          },
-        };
-        this._store.addLocation(this.currentSpaceEh, location);
-      }
+        },
+      };
+      this._store.addLocation(this.currentSpaceEh, location);
     }
   }
+
+
   openLocationDialog(
     options : LocOptions = { name: "", img: "", tag: "", canEdit: false, emoji: ""},
     coord?: Coord,
@@ -188,38 +193,35 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private async handleLocationDialog(e: any) {
-    if (e.detail.action == "ok") {
-      const tag = this.shadowRoot!.getElementById(
-        "edit-location-tag"
-      ) as TextField;
-      const img = this.shadowRoot!.getElementById(
-        "edit-location-img"
-      ) as TextField;
-      const name = this.shadowRoot!.getElementById(
-        "edit-location-name"
-      ) as TextField;
-      const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
-      const emojiValue = emoji ? emoji.innerHTML : ""
-      const location: Location = {
-        coord: this.dialogCoord,
-        meta: {
-          tag: tag.value,
-          emoji: emojiValue,
-          img: img.value,
-          name: name.value,
-        },
-      };
-      if (this.dialogCanEdit) {
-        this._store.updateLocation(
-          this.currentSpaceEh,
-          this.dialogIdx,
-          this.dialogCoord,
-          tag.value,
-          emojiValue
-        );
-      } else {
-        this._store.addLocation(this.currentSpaceEh, location);
-      }
+    console.log("handleLocationDialog: " + e.detail.action)
+    if (e.detail.action == "cancel") {
+      return;
+    }
+    /** handle "ok" */
+    const tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    const img = this.shadowRoot!.getElementById("edit-location-img") as TextField;
+    const name = this.shadowRoot!.getElementById("edit-location-name") as TextField;
+    const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+    const emojiValue = emoji ? emoji.innerHTML : ""
+    const location: Location = {
+      coord: this.dialogCoord,
+      meta: {
+        tag: tag.value,
+        emoji: emojiValue,
+        img: img.value,
+        name: name.value,
+      },
+    };
+    if (this.dialogCanEdit) {
+      this._store.updateLocation(
+        this.currentSpaceEh,
+        this.dialogIdx,
+        this.dialogCoord,
+        tag.value,
+        emojiValue
+      );
+    } else {
+      this._store.addLocation(this.currentSpaceEh, location);
     }
   }
 
@@ -228,15 +230,16 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private drag(ev: DragEvent) {
-    if (ev.target) {
-      const w = ev.target as HTMLImageElement;
-      const idx = w.getAttribute("idx");
-      console.log(w)
-      if (idx && ev.dataTransfer) {
-        if (this.canUpdate(parseInt(idx))) {
-          ev.dataTransfer.setData("idx", `${idx}`);
-          return true;
-        }
+    if (!ev.target) {
+      return false;
+    }
+    const w = ev.target as HTMLImageElement;
+    const idx = w.getAttribute("idx");
+    //console.log(w)
+    if (idx && ev.dataTransfer) {
+      if (this.canUpdateLocation(parseInt(idx))) {
+        ev.dataTransfer.setData("idx", `${idx}`);
+        return true;
       }
     }
     return false;
@@ -256,29 +259,40 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  private dblclick(ev: any) {
-    if (ev.target) {
-      const wElem = ev.target as HTMLImageElement;
-      const idxStr = wElem.getAttribute("idx");
-      if (idxStr) {
-        const idx = parseInt(idxStr);
-        if (this.canUpdate(idx)) {
-          const space = this._store.space(this.currentSpaceEh);
-          const locInfo = space.locations[idx];
-          this.openLocationDialog(
-            {
-              name: locInfo.location.meta.name,
-              img: locInfo.location.meta.img,
-              emoji: locInfo.location.meta.emoji,
-              tag: locInfo.location.meta.tag,
-              canEdit: true,
-            },
-            locInfo.location.coord,
-            idx
-          );
-        }
-      }
+  getIdx(target: any): number | null {
+    if (!target) {
+      return null;
     }
+    const wElem = target as HTMLElement;
+    const idxStr = wElem.getAttribute("idx");
+    if (!idxStr) {
+      return null;
+    }
+    const idx = parseInt(idxStr);
+    return idx;
+  }
+
+  /**
+   * Open LocationDialog on clicked element if possible
+   */
+  private handleLocationDblClick(ev: any) {
+    const idx = this.getIdx(ev.target)!;
+    if (!this.canUpdateLocation(idx)) {
+      return;
+    }
+    const space = this._store.space(this.currentSpaceEh);
+    const locInfo = space.locations[idx]!;
+    this.openLocationDialog(
+      {
+        name: locInfo.location.meta.name,
+        img: locInfo.location.meta.img,
+        emoji: locInfo.location.meta.emoji,
+        tag: locInfo.location.meta.tag,
+        canEdit: true,
+      },
+      locInfo.location.coord,
+      idx
+    );
   }
 
   renderSurface(surface: any, w: number, h: number) {
@@ -308,23 +322,33 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  handleDeleteClick(ev: any) {
+    const idx = this.getIdx(ev.target)!;
+    this._store.deleteLocation(this.currentSpaceEh, idx).then(() => {});
+  }
+
+
   render() {
     if (!this.currentSpaceEh) {
       return;
     }
+    /** Get current space and zoom level */
     const space: Space = this._spaces.value[this.currentSpaceEh];
     const z = this._zooms.value[this.currentSpaceEh];
+    /** Render all space's locations */
     const locationItems = space.locations.map((locationInfo, i) => {
+      if (locationInfo === null) {
+        return;
+      }
       const x = locationInfo.location.coord.x * z;
       const y = locationInfo.location.coord.y * z;
-
-      let marker
+      /** Render Marker */
+      let marker;
       if (space.meta?.useEmoji) {
         marker = html`<div class='emoji-marker'>${locationInfo.location.meta.emoji}</div>`
       } else {
         // Use an image url if stored in the Location, otherwise use the agent's avatar
         let img = locationInfo.location.meta.img
-
         if (img === "") {
           const profile = this._knownProfiles.value[locationInfo.authorPubKey]
           if (profile) {
@@ -333,44 +357,37 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         }
         marker = html`<img src="${img}">`
       }
-
+      /** Render Location Marker and Dialog */
+      // TODO: should be agent key and not nickname
+      const maybeMeClass = locationInfo.location.meta.name == this.myNickName ? "me" : "";
       return html`
         <div
           .draggable=${true}
-          @dblclick="${(e: Event) => this.dblclick(e)}"
+          @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
           @dragstart="${(e: DragEvent) => this.drag(e)}"
-          idx="${i}"
-          class="location-marker ${locationInfo.location.meta.name == this.myNickName
-            ? "me"
-            : ""}"
-          style="left: ${x}px; top: ${y}px;"
-        >
+          idx="${i}" class="location-marker ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
         ${marker}
         </div>
-        <div
-          class="location-details ${locationInfo.location.meta.name == this.myNickName
-            ? "me"
-            : ""}"
-          style="left: ${x}px; top: ${y}px;"
-        >
+        <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
           <h3>${locationInfo.location.meta.name}</h3>
           <p>${locationInfo.location.meta.tag}</p>
+          <button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>
         </div>
       `;
     });
 
-    /** Parse UI items in surface meta */
+    /** Parse UI elements in surface meta */
     let uiItems = html ``
     if (space.meta && space.meta.ui) {
       uiItems = renderUiItems(space.meta.ui, z, z)
     }
 
+    /** Set viewed width and height and render Surface accordingly */
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
-
     //console.log({space});
-    const mainItem = this.renderSurface(space.surface, w, h)
-
+    const surfaceItem = this.renderSurface(space.surface, w, h)
+    /** Build LocationDialog if required */
     let maybeLocationDialog = html ``
     if (space.meta?.canTag || space.meta?.useEmoji) {
       maybeLocationDialog = html`
@@ -384,16 +401,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
         </mwc-dialog>`
     }
-
+    /** Render layout */
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
-        ${mainItem}
+        ${surfaceItem}
         ${uiItems}
         ${locationItems}
         ${maybeLocationDialog}
       </div>
     `;
   }
+
 
   static get scopedElements() {
     return {

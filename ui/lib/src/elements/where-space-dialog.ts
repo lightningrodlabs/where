@@ -27,7 +27,6 @@ import {EntryHashB64} from "@holochain-open-dev/core-types";
  */
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
-  @state() size : Coord = {x:0,y:0};
   @state() _currentTemplate: TemplateEntry = {name: "__dummy", surface:""};
   @state() _currentPlaceHolders: Array<string> = [];
 
@@ -46,8 +45,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _nameField!: TextField;
   @query('#template-field')
   _templateField!: Select;
+  @query('#width-field')
+  _widthField!: TextField;
+  @query('#height-field')
+  _heightField!: TextField;
   @query('#ui-field')
   _uiField!: TextArea;
+
   @query('#tag-chk')
   _tagChk!: Checkbox;
   @query('#multi-chk')
@@ -83,10 +87,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
     this._tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
     this._emojiChk.checked = originalSpace.meta!["useEmoji"] ? true : false;
-    let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
-    widthField.value = originalSpace.surface.size.x;
-    let heightField = this.shadowRoot!.getElementById("height-field") as TextField;
-    heightField.value = originalSpace.surface.size.y;
+    this._widthField.value = originalSpace.surface.size.x;
+    this._heightField.value = originalSpace.surface.size.y;
 
     /** Templated fields */
     try {
@@ -173,6 +175,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       console.log('field ' + placeholder + ' - ' + field.value)
       field.value = ''
     }
+    this._widthField.value = ''
+    this._heightField.value = ''
     this._uiField.value = '[]'
   }
 
@@ -199,25 +203,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
-
-  // handleUrlUpdated(e:Event) {
-  //   this._urlField.setCustomValidity("can't load url")
-  //   this._surfaceImg.onload = async () => {
-  //     this._urlField.setCustomValidity("")
-  //     this.size ={y:this._surfaceImg.naturalHeight, x: this._surfaceImg.naturalWidth}
-  //   }
-  //   this._surfaceImg.src = this._urlField.value;
-  //   this.size = {x:0,y:0}
-  // }
-
-
   /**
    *   Generate surface from template and form
    */
   generateSurface() {
     /** Html/SVG */
-    //let surface: any = {html: `<img src="%%ImageUrl%%" style="width:100%" />`, size: { x: 626, y: 626 }, data: "[]"}
-    //let surface: any = {svg: quadrant_template_svg, size: { x: 626, y: 626 }, data: "[]"}
     let surface: any = JSON.parse(this._currentTemplate.surface);
     let code: string = surface.svg? surface.svg : surface.html;
     /** Create substitution map */
@@ -242,11 +232,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
 
     /** Size */
-    const widthField = this.shadowRoot!.getElementById("width-field") as TextField;
-    if (widthField) {
-      const x = widthField.value;
-      const heightField = this.shadowRoot!.getElementById("height-field") as TextField;
-      const y = heightField.value;
+    if (this._widthField) {
+      const x = this._widthField.value;
+      const y = this._heightField.value;
       //console.log({x})
       surface.size = {x, y}
     }
@@ -264,10 +252,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     /** -- Check size -- */
     if (surface.size && this._useTemplateSize) {
-      const widthField = this.shadowRoot!.getElementById("width-field") as TextField;
-      widthField.value = surface.size.x;
-      const heightField = this.shadowRoot!.getElementById("height-field") as TextField;
-      heightField.value = surface.size.y;
+      this._widthField.value = surface.size.x;
+      this._heightField.value = surface.size.y;
     }
 
     /** -- Extract Fields  -- */
@@ -290,9 +276,27 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
     this._currentPlaceHolders = Array.from(names)
     // - Generate textField for each placeholder
-    return html`${this._currentPlaceHolders.map((name)=> html`<mwc-textfield outlined id="${name}-gen" required label="${name}" value="" ></mwc-textfield>`)}`
+    return html`${this._currentPlaceHolders.map((name)=> html`
+      <mwc-textfield outlined id="${name}-gen" required label="${name}" value="" @input="${name==='ImageUrl'?this.handleImageUrlField:null}"></mwc-textfield>`
+    )}`
   }
 
+  /** Handle special case for ImageUrl field from Map2D template */
+  handleImageUrlField(e: any) {
+    const imgComp = this.shadowRoot!.getElementById("ImageUrl-gen") as TextField;
+    try {
+      const _url = new URL(imgComp.value); // check url validity
+      let img = new Image();
+      img.onload = async () => {
+        console.log( img.naturalWidth +' '+ img.naturalHeight );
+        this._widthField.value = JSON.stringify(img.naturalWidth);
+        this._heightField.value = JSON.stringify(img.naturalHeight);
+      };
+      img.src = imgComp.value;
+    } catch (_) {
+      // N/A
+    }
+  }
 
   renderSurfacePreview() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
@@ -335,6 +339,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     let selectedTemplateUi = this.renderTemplate()
     //console.log({selectedTemplateUi})
 
+    const boxExample = `{ "box": {"left": 100, "top": 10, "width": 100, "height": 50},
+      "style": "background-color:white;border-radius:10px;",
+      "content": "Land of the Lost"}
+    }`
+
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   ${this.renderSurfacePreview()}
@@ -352,10 +361,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       `)}
   </mwc-select>
   ${selectedTemplateUi}
-  <mwc-textfield class="rounded" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}
-                 id="width-field" minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-  <mwc-textfield class="rounded" pattern="[0-9]+" outlined @input=${() => (this.shadowRoot!.getElementById("height-field") as TextField).reportValidity()}
-                   id="height-field" pattern="[0-9]+" minlength="1" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+  <mwc-textfield id="width-field" class="rounded" outlined minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+  <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="1" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
   <mwc-formfield label="Multi-locations per user">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
@@ -366,7 +373,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-checkbox id="emoji-chk"></mwc-checkbox>
   </mwc-formfield>
   <mwc-textarea type="text" label="UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
-                id="ui-field" value="[]" helper="Array of 'Box' objects" rows="8" cols="60"></mwc-textarea>
+                id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60"></mwc-textarea>
   <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>

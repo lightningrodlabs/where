@@ -6,18 +6,19 @@ import { StoreSubscriber } from "lit-svelte-stores";
 import { Unsubscriber } from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, Space, Dictionary, Signal } from "../types";
+import {whereContext, Space, Dictionary, Signal, Coord} from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
+import { WhereArchiveDialog } from "./where-archive-dialog";
 import { lightTheme, SlAvatar } from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField,
+  Button, TextField, Dialog,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -25,6 +26,7 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
+import {EntryHashB64} from "@holochain-open-dev/core-types";
 
 /**
  * @element where-controller
@@ -108,6 +110,20 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  private _getFirstVisible(spaces: Dictionary<Space>): EntryHashB64 {
+    if (Object.keys(spaces).length == 0) {
+      return "";
+    }
+    for (let spaceEh in spaces) {
+      const space = spaces[spaceEh]
+      if (space.visible) {
+        return spaceEh
+      }
+    }
+    return "";
+  }
+
   async checkInit() {
     if (this.initialized || this.initializing) {
       this.initialized = true;
@@ -125,7 +141,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
       console.error("No spaces or templates found")
     }
-    this._currentSpaceEh = Object.keys(spaces)[0];
+    this._currentSpaceEh = this._getFirstVisible(spaces);
     this._currentTemplateEh = Object.keys(templates)[0];
     await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
     console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
@@ -260,7 +276,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.hideSpace(this._currentSpaceEh);
     /** Select first space */
     const spaces = await this._store.pullSpaces();
-    const firstSpaceEh = Object.keys(spaces)[0];
+    const firstSpaceEh = this._getFirstVisible(spaces);
     console.log({firstSpaceEh})
     this._currentSpaceEh = firstSpaceEh;
     this.requestUpdate();
@@ -277,6 +293,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async openTemplateDialog(templateEh?: any) {
     this.templateDialogElem.open(templateEh);
+  }
+
+  async openArchiveDialog() {
+    this.archiveDialogElem.open();
+  }
+
+  get archiveDialogElem() : WhereArchiveDialog {
+    return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
   }
 
   get templateDialogElem() : WhereTemplateDialog {
@@ -310,6 +334,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const cur: number = (this._zooms.value[this._currentSpaceEh] * 100);
     const delta = (zoom - cur) / 100;
     this.spaceElem.updateZoom(delta);
+  }
+
+  // Check if current has been archived
+  private async handleArchiveDialogClosing(e: any) {
+    const spaces = await this._store.pullSpaces();
+    if (e.detail.includes(this._currentSpaceEh)) {
+      /** Select first visible space */
+      const firstSpaceEh = this._getFirstVisible(spaces);
+      this._currentSpaceEh = firstSpaceEh;
+      this.requestUpdate();
+    }
   }
 
 
@@ -348,17 +383,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
                  @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
   ></mwc-textfield>
   <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog(this._currentSpaceEh)}>Fork</mwc-button>
+  <mwc-button icon="delete" @click=${() => this.archiveSpace()}>Archive</mwc-button>
+  <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
-  <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
-  <mwc-button icon="delete" @click=${() => this.archiveSpace()}>Archive</mwc-button>
+  <mwc-button icon="article" @click=${() => this.openArchiveDialog()}>View Archived</mwc-button>
 
   <div class="folks">
   ${folks}
   </div>
 </div>
 
+<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"> </where-archive-dialog>
 <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}> </where-template-dialog>
 <where-space-dialog id="space-dialog" @space-added=${(e:any) => this._currentSpaceEh = e.detail}> </where-space-dialog>
 <where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} .avatar=${this.myAvatar}></where-space>
@@ -374,6 +411,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "mwc-button": Button,
       "where-space-dialog" : WhereSpaceDialog,
       "where-template-dialog" : WhereTemplateDialog,
+      "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
       'sl-avatar': SlAvatar,
     };

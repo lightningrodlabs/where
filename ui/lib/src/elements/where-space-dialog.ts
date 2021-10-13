@@ -146,6 +146,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const space: Space = {
       name: this._nameField.value,
       origin: this._templateField.value,
+      visible: true,
       surface,
       meta: {
         subMap: subMapJson,

@@ -65,7 +65,7 @@ export class WhereStore {
         break;
       case "NewSpace":
         if (!get(this.spaces)[payload.spaceHash]) {
-          this.updateSpaceFromEntry(payload.spaceHash, payload.message.content)
+          this.updateSpaceFromEntry(payload.spaceHash, payload.message.content, true)
         }
         break;
       case "NewHere":
@@ -104,9 +104,9 @@ export class WhereStore {
     return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
   }
 
-  private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry): Promise<void>   {
+  private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<void>   {
     //console.log("updateSpaceFromEntry: " + hash)
-    const space : Space = await this.service.spaceFromEntry(hash, entry)
+    const space : Space = await this.service.spaceFromEntry(hash, entry, visible)
     this.spacesStore.update(spaces => {
       spaces[hash] = space
       return spaces
@@ -139,12 +139,15 @@ export class WhereStore {
     return eh64
   }
 
-  async updateSpaces() : Promise<Dictionary<Space>> {
-    const _templates = await this.service.getTemplates();
+  async pullSpaces() : Promise<Dictionary<Space>> {
+    const _templates = await this.service.getTemplates(); // required for data integrity of 'origin' field in Space
     const spaces = await this.service.getSpaces();
-    //console.log({spaces})
+    console.log({spaces})
+    const hiddens = await this.service.getHiddenSpaceList();
+    console.log({hiddens})
     for (const s of spaces) {
-      await this.updateSpaceFromEntry(s.hash, s.content)
+      const visible = !hiddens.includes(s.hash)
+      await this.updateSpaceFromEntry(s.hash, s.content, visible)
     }
     return get(this.spacesStore)
   }

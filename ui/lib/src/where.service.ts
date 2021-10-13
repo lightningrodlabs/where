@@ -41,6 +41,14 @@ export class WhereService {
     return this.callZome('get_spaces', null);
   }
 
+  async getVisibleSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+    return this.callZome('get_visible_spaces', null);
+  }
+
+  async getHiddenSpaceList(): Promise<Array<EntryHashB64>> {
+    return this.callZome('get_hidden_spaces', null);
+  }
+
   async getLocations(spaceEh: EntryHashB64): Promise<Array<LocationInfo>> {
     const hereInfos =  await this.callZome('get_heres', spaceEh);
     return hereInfos.map((info: HereInfo) => {
@@ -65,15 +73,25 @@ export class WhereService {
     return this.callZome('create_space', space);
   }
 
+  async hideSpace(spaceEh: EntryHashB64): Promise<EntryHashB64> {
+    return this.callZome('hide_space', spaceEh);
+  }
+
+  async unhideSpace(spaceEh: EntryHashB64): Promise<EntryHashB64> {
+    return this.callZome('unhide_space', spaceEh);
+  }
+
+
   async notify(signal: Signal, folks: Array<AgentPubKeyB64>): Promise<void> {
     return this.callZome('notify', {signal, folks});
   }
 
-  async spaceFromEntry(hash: EntryHashB64, entry: SpaceEntry): Promise<Space> {
+  async spaceFromEntry(hash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<Space> {
     return {
       name : entry.name,
       origin: entry.origin,
       meta : entry.meta,
+      visible,
       surface: JSON.parse(entry.surface),
       locations: await this.getLocations(hash)
     }

@@ -112,13 +112,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async checkInit() {
     if (!this.initialized && !this.initializing) {
       this.initializing = true  // because checkInit gets call whenever profiles changes...
-      let spaces = await this._store.updateSpaces();
+      let spaces = await this._store.pullSpaces();
       let templates = await this._store.updateTemplates();
       // load up a space if there are none:
       if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
         console.log("no spaces found, initializing")
         await this.initializeSpaces();
-        spaces = await this._store.updateSpaces();
+        spaces = await this._store.pullSpaces();
       }
       if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
         console.error("No spaces or templates found")
@@ -134,7 +134,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   private async updateTemplateLabel(spaceEh: string): Promise<void> {
-    const spaces = await this._store.updateSpaces();
+    const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
     }
@@ -181,6 +181,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.addSpace({
       name: "Ecuador",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 800, y: 652 },
@@ -197,6 +198,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 1000, y: 400 },
@@ -211,6 +213,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.addSpace({
       name: "Abstract",
       origin: boxEh,
+      visible: true,
       surface: {
         size: { x: 1000, y: 700 },
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
@@ -226,6 +229,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.addSpace({
       name: "Zodiac",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 626, y: 626 },
@@ -238,8 +242,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       locations: [],
     });
     await this._store.addSpace({
-      name: "Political Compass",
+      name: "Political Compass Img",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 600, y: 600 },
@@ -258,7 +263,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async refresh() {
-    await this._store.updateSpaces();
+    await this._store.pullSpaces();
     await this._profiles.fetchAllProfiles()
   }
 

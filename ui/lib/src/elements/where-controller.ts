@@ -82,7 +82,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
@@ -110,27 +109,29 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async checkInit() {
-    if (!this.initialized && !this.initializing) {
-      this.initializing = true  // because checkInit gets call whenever profiles changes...
-      let spaces = await this._store.pullSpaces();
-      let templates = await this._store.updateTemplates();
-      // load up a space if there are none:
-      if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
-        console.log("no spaces found, initializing")
-        await this.initializeSpaces();
-        spaces = await this._store.pullSpaces();
-      }
-      if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
-        console.error("No spaces or templates found")
-      }
-      this._currentSpaceEh = Object.keys(spaces)[0];
-      this._currentTemplateEh = Object.keys(templates)[0];
-      await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
-      console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
-      console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
-      this.initializing = false
+    if (this.initialized || this.initializing) {
+      this.initialized = true;
+      return;
     }
-    this.initialized = true;
+    this.initializing = true  // because checkInit gets call whenever profiles changes...
+    let spaces = await this._store.pullSpaces();
+    let templates = await this._store.updateTemplates();
+    /** load up a space if there are none */
+    if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
+      console.log("no spaces found, initializing")
+      await this.addHardcodedSpaces();
+      spaces = await this._store.pullSpaces();
+    }
+    if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
+      console.error("No spaces or templates found")
+    }
+    this._currentSpaceEh = Object.keys(spaces)[0];
+    this._currentTemplateEh = Object.keys(templates)[0];
+    await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
+    console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
+    console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+    this.initializing = false
+    this.initialized = true
   }
 
   private async updateTemplateLabel(spaceEh: string): Promise<void> {
@@ -143,10 +144,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     div.innerText = templates[this._currentTemplateEh].name;
   }
 
-  async initializeSpaces() {
 
+  async addHardcodedSpaces() {
     /** Templates */
-
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: JSON.stringify({
@@ -175,9 +175,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       }),
     })
 
-
     /** Spaces */
-
     await this._store.addSpace({
       name: "Ecuador",
       origin: mapEh,
@@ -193,7 +191,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       },
       locations: [],
     });
-
 
     await this._store.addSpace({
       name: "earth",
@@ -258,6 +255,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
   }
 
+
+  async archiveSpace() {
+    await this._store.hideSpace(this._currentSpaceEh);
+    /** Select first space */
+    const spaces = await this._store.pullSpaces();
+    const firstSpaceEh = Object.keys(spaces)[0];
+    console.log({firstSpaceEh})
+    this._currentSpaceEh = firstSpaceEh;
+    this.requestUpdate();
+  }
+
   async resetMyLocations() {
     await this._store.deleteAllMyLocations(this._currentSpaceEh);
   }
@@ -304,17 +312,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.spaceElem.updateZoom(delta);
   }
 
-  private handleZoomUpdate(delta: number): void {
-    this.spaceElem.updateZoom(delta);
-  }
-
 
   render() {
     if (!this._currentSpaceEh) {
       return;
     }
-
-    // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
 
     /** Build agent list */
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
@@ -329,14 +331,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 <div id="menu-bar" style="width: 100%;margin-bottom: 5px">
   <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
   ${Object.entries(this._spaces.value).map(
-    ([key, space]) => html`
+    ([key, space]) => space.visible? html`
       <mwc-list-item
         @request-selected=${() => this.handleSpaceSelect(key)}
         .selected=${key === this._currentSpaceEh}
         value="${key}">
           ${space.name}
       </mwc-list-item>
-    `
+    ` : html ``
   )}
   </mwc-select>
   <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button>
@@ -350,6 +352,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
+  <mwc-button icon="delete" @click=${() => this.archiveSpace()}>Archive</mwc-button>
 
   <div class="folks">
   ${folks}

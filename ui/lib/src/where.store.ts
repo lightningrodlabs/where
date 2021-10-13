@@ -177,6 +177,16 @@ export class WhereStore {
     return spaceEh
   }
 
+  async hideSpace(spaceEh: EntryHashB64) : Promise<boolean> {
+    const _hh = await this.service.hideSpace(spaceEh);
+    this.spacesStore.update(spaces => {
+      spaces[spaceEh].visible = false
+      return spaces
+    })
+    return true;
+  }
+
+
   async addLocation(spaceEh: string, location: Location) : Promise<void> {
     const entry = hereFromLocation(location)
     const hash = await this.service.addLocation(location, spaceEh)

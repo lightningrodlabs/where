@@ -253,6 +253,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
   }
 
+  async resetMyLocations() {
+    await this._store.deleteAllMyLocations(this._currentSpaceEh);
+  }
 
   async refresh() {
     await this._store.updateSpaces();
@@ -341,6 +344,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+  <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
 
   <div class="folks">
   ${folks}

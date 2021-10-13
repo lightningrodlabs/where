@@ -195,6 +195,18 @@ export class WhereStore {
       , this.others());
   }
 
+  async deleteAllMyLocations(spaceHash: string) {
+    const space = get(this.spacesStore)[spaceHash];
+    let idx = 0;
+    for (const locInfo of space.locations) {
+      if (locInfo && locInfo.authorPubKey === this.myAgentPubKey) {
+        await this.deleteLocation(spaceHash, idx);
+      }
+      idx += 1;
+    }
+  }
+
+
   async deleteLocation(spaceHash: string, idx: number) {
     const space = get(this.spacesStore)[spaceHash]
     const locInfo = space.locations[idx]!

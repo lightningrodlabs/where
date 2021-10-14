@@ -6,7 +6,7 @@ import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {Dictionary, MarkerType, Space, TemplateEntry, whereContext} from "../types";
-import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../surface";
+import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {
   Button,
   Checkbox,

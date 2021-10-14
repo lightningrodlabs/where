@@ -6,7 +6,7 @@ import {StoreSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
 import {Coord, Location, LocationInfo, Space, whereContext, LocOptions, MarkerType} from "../types";
-import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../surface";
+import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";

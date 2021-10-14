@@ -6,7 +6,7 @@ import { StoreSubscriber } from "lit-svelte-stores";
 import { Unsubscriber } from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Space, Dictionary, Signal, Coord} from "../types";
+import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
@@ -57,7 +57,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   @state() _currentSpaceEh = "";
   @state() _currentTemplateEh = "";
-  @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
   private initializing = false;
@@ -95,7 +94,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe((profile) => {
       if (profile) {
-        this._myAvatar = `https://robohash.org/${profile.nickname}`
+        //console.log({profile})
+        //this._myAvatar = `https://robohash.org/${profile.nickname}`
         this.checkInit().then(() => {});
       }
       // unsubscribe()
@@ -104,7 +104,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   firstUpdated() {
     if (this.canLoadDummy) {
-      this.createDummyProfile().then(() => {this.subscribeProfile()});
+      this.createDummyProfile().then(() => {
+        this.subscribeProfile()
+      });
     } else {
       this.subscribeProfile()
     }
@@ -123,6 +125,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
     return "";
   }
+
 
   async checkInit() {
     if (this.initialized || this.initializing) {
@@ -149,6 +152,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.initializing = false
     this.initialized = true
   }
+
 
   private async updateTemplateLabel(spaceEh: string): Promise<void> {
     const spaces = await this._store.pullSpaces();
@@ -202,7 +206,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       },
       meta: {
         ui: `[]`,
-        multi: "true", canTag: "true", useEmoji: "true",
+        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
         subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
       },
       locations: [],
@@ -217,6 +221,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         size: { x: 1000, y: 400 },
       },
       meta: {
+        markerType: MarkerType[MarkerType.Avatar],
         subMap: "[[\"ImageUrl\",\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\"]]",
         ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
       },
@@ -232,6 +237,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
       },
       meta: {
+        markerType: MarkerType[MarkerType.Letter],
         subMap: "[[\"style\",\"background-image:linear-gradient(to bottom right, red, yellow);\"]]",
         ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
         multi: "true"
@@ -249,7 +255,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       },
       meta: {
         ui: `[]`,
-        multi: "false", canTag: "true",
+        multi: "false", canTag: "true", markerType: MarkerType[MarkerType.Color],
         subMap: "[[\"ImageUrl\",\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\"]]"
       },
       locations: [],
@@ -264,7 +270,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       },
       meta: {
         ui: `[]`,
-        multi: "false",
+        multi: "false", markerType: MarkerType[MarkerType.Avatar],
         subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
       },
       locations: [],
@@ -395,10 +401,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   </div>
 </div>
 
-<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"> </where-archive-dialog>
-<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}> </where-template-dialog>
-<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._currentSpaceEh = e.detail}> </where-space-dialog>
-<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} .avatar=${this.myAvatar}></where-space>
+<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
+<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}></where-template-dialog>
+<where-space-dialog id="space-dialog"
+                    .myProfile=${this._myProfile.value}
+                    @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
+</where-space-dialog>
+<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
 `;
   }
 

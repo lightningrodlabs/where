@@ -15,7 +15,7 @@ import {StoreSubscriber} from "lit-svelte-stores";
 
 
 /**
- *
+ * @element where-archive-dialog
  */
 export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 

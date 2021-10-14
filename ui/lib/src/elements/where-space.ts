@@ -1,55 +1,19 @@
-import { html, css, LitElement, svg } from "lit";
-import { property } from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
+import {property} from "lit/decorators.js";
 
-import { contextProvided } from "@lit-labs/context";
-import { StoreSubscriber } from "lit-svelte-stores";
+import {contextProvided} from "@lit-labs/context";
+import {StoreSubscriber} from "lit-svelte-stores";
 
-import { sharedStyles } from "../sharedStyles";
-import { whereContext, Location, Coord, Space } from "../types";
-import { WhereStore } from "../where.store";
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import {
-  profilesStoreContext,
-  ProfilesStore,
-} from "@holochain-open-dev/profiles";
-import { Dialog, TextField, Button } from "@scoped-elements/material-web";
+import {sharedStyles} from "../sharedStyles";
+import {Coord, Location, LocationInfo, Space, whereContext, LocOptions, MarkerType} from "../types";
+import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../surface";
+import {WhereStore} from "../where.store";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
+import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
+import {Button, Dialog, TextField} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
-
-const MARKER_WIDTH = 40;
-const EMOJI_WIDTH = 32;
-
-export function renderUiItems(ui: string, zx: number, zy: number) {
-  let uiItems = html``
-  try {
-    uiItems = JSON.parse(ui).map((item: any) => {
-      return html`
-            <div
-              class="ui-item"
-              style="width: ${item.box.width * zx}px;
-          height: ${item.box.height * zy}px;
-          left: ${item.box.left * zx}px;
-          top: ${item.box.top * zy}px;
-        ${item.style}"
-            >
-              ${item.content}
-            </div>
-          `;
-    });
-  } catch (e) {
-    console.error("Invalid meta.ui: " + e)
-  }
-  return uiItems
-}
-
-type LocOptions = {
-  name: string,
-  img: string,
-  tag: string | null,
-  emoji: string | null,
-  canEdit: boolean
-}
 
 /**
  * @element where-space
@@ -60,7 +24,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.addEventListener("wheel", this._handleWheel);
   }
 
-  @property() avatar = "";
+  //@property() avatar = "";
   @property() currentSpaceEh = "";
 
   @contextProvided({ context: whereContext })
@@ -122,23 +86,27 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     const space: Space = this._spaces.value[this.currentSpaceEh];
     const coord = this.getCoordsFromEvent(event);
-    if (space.meta?.canTag || space.meta?.useEmoji) {
+    const useEmoji = space.meta?.markerType == MarkerType[MarkerType.Emoji];
+    if (this.canEditLocation(space)) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
       this.dialogCanEdit = false;
-      this.openLocationDialog({
+      const options: LocOptions = {
         tag: space.meta?.canTag ? "" : null,
-        emoji: space.meta?.useEmoji? "" : null,
+        emoji: useEmoji? "" : null,
         name: this.myNickName,
-        img: "", //this.avatar,
+        img: this._myProfile.value.fields.avatar,
         canEdit: false,
-      });
+      }
+      this.openLocationDialog(options);
     } else {
       const location: Location = {
         coord,
         meta: {
+          markerType: space.meta!.markerType,
           tag: "",
-          img: "",
+          img: this._myProfile.value.fields.avatar,
+          color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
           name: this.myNickName,
         },
       };
@@ -189,12 +157,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.locationDialogElem.open = true;
   }
 
+
   get locationDialogElem(): Dialog {
     return this.shadowRoot!.getElementById("edit-location") as Dialog;
   }
 
-  private async handleLocationDialog(e: any) {
-    console.log("handleLocationDialog: " + e.detail.action)
+
+  private async handleLocationDialogClosing(e: any) {
+    //console.log("handleLocationDialogClosing: " + e.detail.action)
     if (e.detail.action == "cancel") {
       return;
     }
@@ -204,13 +174,16 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const name = this.shadowRoot!.getElementById("edit-location-name") as TextField;
     const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
     const emojiValue = emoji ? emoji.innerHTML : ""
+    const markerType = this._spaces.value[this.currentSpaceEh].meta!.markerType;
     const location: Location = {
       coord: this.dialogCoord,
       meta: {
+        markerType,
         tag: tag.value,
         emoji: emojiValue,
         img: img.value,
         name: name.value,
+        color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
       },
     };
     if (this.dialogCanEdit) {
@@ -332,8 +305,51 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!space) {
       space = this._spaces.value[this.currentSpaceEh];
     }
-    return space.meta?.canTag || space.meta?.useEmoji;
+    const useEmoji = space.meta?.markerType == MarkerType[MarkerType.Emoji];
+    return space.meta?.canTag || useEmoji;
   }
+
+
+  renderLocation(locInfo: LocationInfo | null, z: number, space: Space, i: number) {
+    if (locInfo === null) {
+      return;
+    }
+    const x = locInfo.location.coord.x * z;
+    const y = locInfo.location.coord.y * z;
+    /** Render Marker */
+    let marker = renderMarker(locInfo.location.meta);
+
+    /** Render Location Marker and Dialog */
+    // Handle my Locations differently
+    let maybeMeClass  = "";
+    let maybeDeleteBtn = html ``;
+    let maybeEditBtn = html ``;
+    // TODO: should check agent key and not nickname
+    if (locInfo.location.meta.name == this.myNickName) {
+      maybeMeClass = "me";
+      maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
+      if (this.canEditLocation(space)) {
+        maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
+      }
+    };
+
+    return html`
+      <div
+        .draggable=${true}
+        @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
+        @dragstart="${(e: DragEvent) => this.drag(e)}"
+        idx="${i}" class="location-marker ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
+      ${marker}
+      </div>
+      <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
+        <h3>${locInfo.location.meta.name}</h3>
+        <p>${locInfo.location.meta.tag}</p>
+        ${maybeEditBtn}
+        ${maybeDeleteBtn}
+      </div>
+    `;
+  }
+
 
   render() {
     if (!this.currentSpaceEh) {
@@ -344,55 +360,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const z = this._zooms.value[this.currentSpaceEh];
     /** Render all space's locations */
     const locationItems = space.locations.map((locationInfo, i) => {
-      if (locationInfo === null) {
-        return;
-      }
-      const x = locationInfo.location.coord.x * z;
-      const y = locationInfo.location.coord.y * z;
-      /** Render Marker */
-      let marker;
-      if (space.meta?.useEmoji) {
-        marker = html`<div class='emoji-marker'>${locationInfo.location.meta.emoji}</div>`
-      } else {
-        // Use an image url if stored in the Location, otherwise use the agent's avatar
-        let img = locationInfo.location.meta.img
-        if (img === "") {
-          const profile = this._knownProfiles.value[locationInfo.authorPubKey]
-          if (profile) {
-            img = profile.fields.avatar
-          }
-        }
-        marker = html`<img src="${img}">`
-      }
-      /** Render Location Marker and Dialog */
-      // Handle my Locations differently
-      let maybeMeClass  = "";
-      let maybeDeleteBtn = html ``;
-      let maybeEditBtn = html ``;
-      // TODO: should check agent key and not nickname
-      if (locationInfo.location.meta.name == this.myNickName) {
-        maybeMeClass = "me";
-        maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
-        if (this.canEditLocation(space)) {
-          maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
-        }
-      };
-
-      return html`
-        <div
-          .draggable=${true}
-          @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
-          @dragstart="${(e: DragEvent) => this.drag(e)}"
-          idx="${i}" class="location-marker ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
-        ${marker}
-        </div>
-        <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
-          <h3>${locationInfo.location.meta.name}</h3>
-          <p>${locationInfo.location.meta.tag}</p>
-          ${maybeEditBtn}
-          ${maybeDeleteBtn}
-        </div>
-      `;
+      return this.renderLocation(locationInfo, z, space, i)
     });
 
     /** Parse UI elements in surface meta */
@@ -410,7 +378,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let maybeLocationDialog = html ``
     if (this.canEditLocation(space)) {
       maybeLocationDialog = html`
-        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialog}>
+        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialogClosing}>
           <mwc-textfield id="edit-location-name" placeholder="Name"></mwc-textfield>
           <mwc-textfield id="edit-location-img" placeholder="Image Url"></mwc-textfield>
           <mwc-textfield id="edit-location-tag" dialogInitialFocus placeholder="Tag"></mwc-textfield>
@@ -476,6 +444,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           margin: auto;
           pointer-events: none;
         }
+
         #edit-location > .location-marker {
           margin-top: 9px;
           margin-left: 0px;

@@ -142,9 +142,9 @@ export class WhereStore {
   async pullSpaces() : Promise<Dictionary<Space>> {
     const _templates = await this.service.getTemplates(); // required for data integrity of 'origin' field in Space
     const spaces = await this.service.getSpaces();
-    console.log({spaces})
+    //console.log({spaces})
     const hiddens = await this.service.getHiddenSpaceList();
-    console.log({hiddens})
+    //console.log({hiddens})
     for (const s of spaces) {
       const visible = !hiddens.includes(s.hash)
       await this.updateSpaceFromEntry(s.hash, s.content, visible)

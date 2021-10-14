@@ -42,6 +42,46 @@ fn create_space(input: Space) -> ExternResult<EntryHashB64> {
 
 ///
 #[hdk_extern]
+fn hide_space(space_eh64: EntryHashB64) -> ExternResult<HeaderHash> {
+    let my_agent_eh = EntryHash::from(agent_info().unwrap().agent_latest_pubkey);
+    return create_link(my_agent_eh, space_eh64.into(), ());
+}
+
+///
+#[hdk_extern]
+fn unhide_space(space_eh64: EntryHashB64) -> ExternResult<()> {
+    let space_eh: EntryHash = space_eh64.into();
+    let my_agent_eh = EntryHash::from(agent_info().unwrap().agent_latest_pubkey);
+    let links = get_links(my_agent_eh, None)?;
+    for link in links.into_inner().iter() {
+        if link.target == space_eh {
+            let _hash = delete_link(link.create_link_hash.clone())?;
+            return Ok(());
+        }
+    }
+    Ok(())
+}
+
+///
+#[hdk_extern]
+fn get_hidden_spaces(_: ()) -> ExternResult<Vec<EntryHashB64>> {
+    let my_agent_eh = EntryHash::from(agent_info().unwrap().agent_latest_pubkey);
+    let links = get_links(my_agent_eh, None)?;
+    let spaces = links.into_inner().iter().map(|link| link.target.clone().into()).collect();
+    Ok(spaces)
+}
+
+///
+#[hdk_extern]
+fn get_visible_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
+    let hidden = get_hidden_spaces(())?;
+    let mut visible = get_spaces(())?;
+    visible.retain(|space_out| !hidden.contains(&space_out.hash));
+    Ok(visible)
+}
+
+///
+#[hdk_extern]
 fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
     let path = get_spaces_path();
     let anchor_hash = path.hash()?;

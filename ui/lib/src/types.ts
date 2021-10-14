@@ -33,6 +33,14 @@ export interface Location {
   meta: Dictionary<string>;
 }
 
+export type LocOptions = {
+  name: string,
+  img: string,
+  tag: string | null,
+  emoji: string | null,
+  canEdit: boolean
+}
+
 export interface Coord {
   x: number;
   y: number;
@@ -49,8 +57,16 @@ export interface Space  {
   name: string;
   origin: EntryHashB64;
   surface: any;
+  visible: boolean;
   locations: (LocationInfo | null)[];
   meta?: Dictionary<string>;
+}
+
+export enum MarkerType {
+  Emoji,
+  Avatar,
+  Color,
+  Letter,
 }
 
 export interface TemplateEntry  {

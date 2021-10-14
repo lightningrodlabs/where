@@ -15,7 +15,7 @@ import {
   Select,
   ListItem, Checkbox
 } from "@scoped-elements/material-web";
-import {renderTemplate} from "../surface";
+import {renderTemplate} from "../sharedRender";
 import parser from "fast-xml-parser";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 

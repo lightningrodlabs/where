@@ -65,7 +65,7 @@ export class WhereStore {
         break;
       case "NewSpace":
         if (!get(this.spaces)[payload.spaceHash]) {
-          this.updateSpaceFromEntry(payload.spaceHash, payload.message.content)
+          this.updateSpaceFromEntry(payload.spaceHash, payload.message.content, true)
         }
         break;
       case "NewHere":
@@ -104,9 +104,9 @@ export class WhereStore {
     return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
   }
 
-  private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry): Promise<void>   {
+  private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<void>   {
     //console.log("updateSpaceFromEntry: " + hash)
-    const space : Space = await this.service.spaceFromEntry(hash, entry)
+    const space : Space = await this.service.spaceFromEntry(hash, entry, visible)
     this.spacesStore.update(spaces => {
       spaces[hash] = space
       return spaces
@@ -139,12 +139,15 @@ export class WhereStore {
     return eh64
   }
 
-  async updateSpaces() : Promise<Dictionary<Space>> {
-    const _templates = await this.service.getTemplates();
+  async pullSpaces() : Promise<Dictionary<Space>> {
+    const _templates = await this.service.getTemplates(); // required for data integrity of 'origin' field in Space
     const spaces = await this.service.getSpaces();
     //console.log({spaces})
+    const hiddens = await this.service.getHiddenSpaceList();
+    //console.log({hiddens})
     for (const s of spaces) {
-      await this.updateSpaceFromEntry(s.hash, s.content)
+      const visible = !hiddens.includes(s.hash)
+      await this.updateSpaceFromEntry(s.hash, s.content, visible)
     }
     return get(this.spacesStore)
   }
@@ -174,6 +177,25 @@ export class WhereStore {
     return spaceEh
   }
 
+  async hideSpace(spaceEh: EntryHashB64) : Promise<boolean> {
+    const _hh = await this.service.hideSpace(spaceEh);
+    this.spacesStore.update(spaces => {
+      spaces[spaceEh].visible = false
+      return spaces
+    })
+    return true;
+  }
+
+  async unhideSpace(spaceEh: EntryHashB64) : Promise<boolean> {
+    const _hh = await this.service.unhideSpace(spaceEh);
+    this.spacesStore.update(spaces => {
+      spaces[spaceEh].visible = true
+      return spaces
+    })
+    return true;
+  }
+
+
   async addLocation(spaceEh: string, location: Location) : Promise<void> {
     const entry = hereFromLocation(location)
     const hash = await this.service.addLocation(location, spaceEh)
@@ -194,6 +216,18 @@ export class WhereStore {
       }}
       , this.others());
   }
+
+  async deleteAllMyLocations(spaceHash: string) {
+    const space = get(this.spacesStore)[spaceHash];
+    let idx = 0;
+    for (const locInfo of space.locations) {
+      if (locInfo && locInfo.authorPubKey === this.myAgentPubKey) {
+        await this.deleteLocation(spaceHash, idx);
+      }
+      idx += 1;
+    }
+  }
+
 
   async deleteLocation(spaceHash: string, idx: number) {
     const space = get(this.spacesStore)[spaceHash]

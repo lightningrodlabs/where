@@ -6,18 +6,19 @@ import { StoreSubscriber } from "lit-svelte-stores";
 import { Unsubscriber } from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
-import { whereContext, Space, Dictionary, Signal } from "../types";
+import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
+import { WhereArchiveDialog } from "./where-archive-dialog";
 import { lightTheme, SlAvatar } from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField,
+  Button, TextField, Dialog,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -25,6 +26,7 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
+import {EntryHashB64} from "@holochain-open-dev/core-types";
 
 /**
  * @element where-controller
@@ -55,7 +57,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   @state() _currentSpaceEh = "";
   @state() _currentTemplateEh = "";
-  @state() _myAvatar = "https://i.imgur.com/oIrcAO8.jpg";
 
   private initialized = false;
   private initializing = false;
@@ -82,7 +83,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
@@ -94,7 +94,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe((profile) => {
       if (profile) {
-        this._myAvatar = `https://robohash.org/${profile.nickname}`
+        //console.log({profile})
+        //this._myAvatar = `https://robohash.org/${profile.nickname}`
         this.checkInit().then(() => {});
       }
       // unsubscribe()
@@ -103,38 +104,58 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   firstUpdated() {
     if (this.canLoadDummy) {
-      this.createDummyProfile().then(() => {this.subscribeProfile()});
+      this.createDummyProfile().then(() => {
+        this.subscribeProfile()
+      });
     } else {
       this.subscribeProfile()
     }
   }
 
-  async checkInit() {
-    if (!this.initialized && !this.initializing) {
-      this.initializing = true  // because checkInit gets call whenever profiles changes...
-      let spaces = await this._store.updateSpaces();
-      let templates = await this._store.updateTemplates();
-      // load up a space if there are none:
-      if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
-        console.log("no spaces found, initializing")
-        await this.initializeSpaces();
-        spaces = await this._store.updateSpaces();
-      }
-      if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
-        console.error("No spaces or templates found")
-      }
-      this._currentSpaceEh = Object.keys(spaces)[0];
-      this._currentTemplateEh = Object.keys(templates)[0];
-      await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
-      console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
-      console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
-      this.initializing = false
+
+  private _getFirstVisible(spaces: Dictionary<Space>): EntryHashB64 {
+    if (Object.keys(spaces).length == 0) {
+      return "";
     }
-    this.initialized = true;
+    for (let spaceEh in spaces) {
+      const space = spaces[spaceEh]
+      if (space.visible) {
+        return spaceEh
+      }
+    }
+    return "";
   }
 
+
+  async checkInit() {
+    if (this.initialized || this.initializing) {
+      this.initialized = true;
+      return;
+    }
+    this.initializing = true  // because checkInit gets call whenever profiles changes...
+    let spaces = await this._store.pullSpaces();
+    let templates = await this._store.updateTemplates();
+    /** load up a space if there are none */
+    if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
+      console.log("no spaces found, initializing")
+      await this.addHardcodedSpaces();
+      spaces = await this._store.pullSpaces();
+    }
+    if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
+      console.error("No spaces or templates found")
+    }
+    this._currentSpaceEh = this._getFirstVisible(spaces);
+    this._currentTemplateEh = Object.keys(templates)[0];
+    await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
+    console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
+    console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+    this.initializing = false
+    this.initialized = true
+  }
+
+
   private async updateTemplateLabel(spaceEh: string): Promise<void> {
-    const spaces = await this._store.updateSpaces();
+    const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
     }
@@ -143,10 +164,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     div.innerText = templates[this._currentTemplateEh].name;
   }
 
-  async initializeSpaces() {
 
+  async addHardcodedSpaces() {
     /** Templates */
-
     const mapEh = await this._store.addTemplate({
       name: "Map2D",
       surface: JSON.stringify({
@@ -175,33 +195,33 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       }),
     })
 
-
     /** Spaces */
-
     await this._store.addSpace({
       name: "Ecuador",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 800, y: 652 },
       },
       meta: {
         ui: `[]`,
-        multi: "true", canTag: "true", useEmoji: "true",
+        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
         subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
       },
       locations: [],
     });
 
-
     await this._store.addSpace({
       name: "earth",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 1000, y: 400 },
       },
       meta: {
+        markerType: MarkerType[MarkerType.Avatar],
         subMap: "[[\"ImageUrl\",\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\"]]",
         ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
       },
@@ -211,11 +231,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.addSpace({
       name: "Abstract",
       origin: boxEh,
+      visible: true,
       surface: {
         size: { x: 1000, y: 700 },
         html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
       },
       meta: {
+        markerType: MarkerType[MarkerType.Letter],
         subMap: "[[\"style\",\"background-image:linear-gradient(to bottom right, red, yellow);\"]]",
         ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
         multi: "true"
@@ -226,27 +248,29 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._store.addSpace({
       name: "Zodiac",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 626, y: 626 },
       },
       meta: {
         ui: `[]`,
-        multi: "false", canTag: "true",
+        multi: "false", canTag: "true", markerType: MarkerType[MarkerType.Color],
         subMap: "[[\"ImageUrl\",\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\"]]"
       },
       locations: [],
     });
     await this._store.addSpace({
-      name: "Political Compass",
+      name: "Political Compass Img",
       origin: mapEh,
+      visible: true,
       surface: {
         html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
         size: { x: 600, y: 600 },
       },
       meta: {
         ui: `[]`,
-        multi: "false",
+        multi: "false", markerType: MarkerType[MarkerType.Avatar],
         subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
       },
       locations: [],
@@ -254,13 +278,35 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  async archiveSpace() {
+    await this._store.hideSpace(this._currentSpaceEh);
+    /** Select first space */
+    const spaces = await this._store.pullSpaces();
+    const firstSpaceEh = this._getFirstVisible(spaces);
+    console.log({firstSpaceEh})
+    this._currentSpaceEh = firstSpaceEh;
+    this.requestUpdate();
+  }
+
+  async resetMyLocations() {
+    await this._store.deleteAllMyLocations(this._currentSpaceEh);
+  }
+
   async refresh() {
-    await this._store.updateSpaces();
+    await this._store.pullSpaces();
     await this._profiles.fetchAllProfiles()
   }
 
   async openTemplateDialog(templateEh?: any) {
     this.templateDialogElem.open(templateEh);
+  }
+
+  async openArchiveDialog() {
+    this.archiveDialogElem.open();
+  }
+
+  get archiveDialogElem() : WhereArchiveDialog {
+    return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
   }
 
   get templateDialogElem() : WhereTemplateDialog {
@@ -296,8 +342,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.spaceElem.updateZoom(delta);
   }
 
-  private handleZoomUpdate(delta: number): void {
-    this.spaceElem.updateZoom(delta);
+  // Check if current has been archived
+  private async handleArchiveDialogClosing(e: any) {
+    const spaces = await this._store.pullSpaces();
+    if (e.detail.includes(this._currentSpaceEh)) {
+      /** Select first visible space */
+      const firstSpaceEh = this._getFirstVisible(spaces);
+      this._currentSpaceEh = firstSpaceEh;
+      this.requestUpdate();
+    }
   }
 
 
@@ -305,8 +358,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (!this._currentSpaceEh) {
       return;
     }
-
-    // html`<mwc-button  @click=${() => this.checkInit()}>Start</mwc-button>`;
 
     /** Build agent list */
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
@@ -321,14 +372,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 <div id="menu-bar" style="width: 100%;margin-bottom: 5px">
   <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
   ${Object.entries(this._spaces.value).map(
-    ([key, space]) => html`
+    ([key, space]) => space.visible? html`
       <mwc-list-item
         @request-selected=${() => this.handleSpaceSelect(key)}
         .selected=${key === this._currentSpaceEh}
         value="${key}">
           ${space.name}
       </mwc-list-item>
-    `
+    ` : html ``
   )}
   </mwc-select>
   <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button>
@@ -338,18 +389,25 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
                  @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
   ></mwc-textfield>
   <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog(this._currentSpaceEh)}>Fork</mwc-button>
+  <mwc-button icon="delete" @click=${() => this.archiveSpace()}>Archive</mwc-button>
+  <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
   <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
   <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
+  <mwc-button icon="article" @click=${() => this.openArchiveDialog()}>View Archived</mwc-button>
 
   <div class="folks">
   ${folks}
   </div>
 </div>
 
-<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}> </where-template-dialog>
-<where-space-dialog id="space-dialog" @space-added=${(e:any) => this._currentSpaceEh = e.detail}> </where-space-dialog>
-<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} .avatar=${this.myAvatar}></where-space>
+<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
+<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}></where-template-dialog>
+<where-space-dialog id="space-dialog"
+                    .myProfile=${this._myProfile.value}
+                    @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
+</where-space-dialog>
+<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
 `;
   }
 
@@ -362,6 +420,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "mwc-button": Button,
       "where-space-dialog" : WhereSpaceDialog,
       "where-template-dialog" : WhereTemplateDialog,
+      "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
       'sl-avatar': SlAvatar,
     };

@@ -1,31 +1,35 @@
-import {html, css, LitElement, PropertyValues} from "lit";
-import { state, query } from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
+import {property, query, state} from "lit/decorators.js";
 
-import { sharedStyles } from "../sharedStyles";
-import { contextProvided } from "@lit-labs/context";
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { WhereStore } from "../where.store";
-import {whereContext, Space, Coord, TemplateEntry, SpaceEntry} from "../types";
+import {sharedStyles} from "../sharedStyles";
+import {contextProvided} from "@lit-labs/context";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
+import {WhereStore} from "../where.store";
+import {Dictionary, MarkerType, Space, TemplateEntry, whereContext} from "../types";
+import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {
-  Dialog,
-  TextField,
   Button,
   Checkbox,
+  Dialog,
   Formfield,
-  Select,
   ListItem,
-  TextArea
+  Radio,
+  Select,
+  TextArea,
+  TextField
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {renderUiItems} from "./where-space";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
+import {Profile} from "@holochain-open-dev/profiles";
 
 /**
- * @element where-space
+ * @element where-space-dialog
  */
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
+
+  @property() myProfile: Profile| undefined = undefined;
 
   @state() _currentTemplate: TemplateEntry = {name: "__dummy", surface:""};
   @state() _currentPlaceHolders: Array<string> = [];
@@ -56,8 +60,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _tagChk!: Checkbox;
   @query('#multi-chk')
   _multiChk!: Checkbox;
-  @query('#emoji-chk')
-  _emojiChk!: Checkbox;
+
+  @query('#marker-select')
+  _markerField!: Select;
+
 
   /**
    *
@@ -86,7 +92,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
     this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
     this._tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
-    this._emojiChk.checked = originalSpace.meta!["useEmoji"] ? true : false;
+    this._markerField.value = originalSpace.meta!["markerType"];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
 
@@ -109,6 +115,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  private determineMarkerType(): string {
+     if (!this._markerField) {
+       return MarkerType[MarkerType.Avatar];
+    }
+    return this._markerField.value;
+  }
 
   /**
    *
@@ -135,7 +147,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // - Get checkbox values
     const multi = this._multiChk.checked ? "true" : ""
     const canTag = this._tagChk.checked ? "true" : ""
-    const useEmoji = this._emojiChk.checked ? "true" : ""
+    const markerType = this.determineMarkerType();
 
     let {surface, subMap} = this.generateSurface();
     const subMapJson = JSON.stringify(Array.from(subMap.entries()));
@@ -146,12 +158,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const space: Space = {
       name: this._nameField.value,
       origin: this._templateField.value,
+      visible: true,
       surface,
       meta: {
         subMap: subMapJson,
         multi,
         canTag,
-        useEmoji,
+        markerType,
         ui: this._uiField.value
       },
       locations: [],
@@ -281,6 +294,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     )}`
   }
 
+
   /** Handle special case for ImageUrl field from Map2D template */
   handleImageUrlField(e: any) {
     const imgComp = this.shadowRoot!.getElementById("ImageUrl-gen") as TextField;
@@ -298,11 +312,24 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  renderMarkerPreview(markerType?: string) {
+    let locMeta: Dictionary<string> = {};
+    locMeta.markerType = markerType? markerType : this.determineMarkerType();
+    locMeta.img = this.myProfile!.fields.avatar;
+    locMeta.emoji = "😀";
+    locMeta.color = "#03cece";
+    locMeta.name = this.myProfile!.nickname;
+    console.log({locMeta});
+    return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta)}</div>`
+  }
+
+
   renderSurfacePreview() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       return html`<div id="thumbnail"></div>`
     }
-    let {surface, subMap}: any = this.generateSurface();
+    let {surface, _subMap}: any = this.generateSurface();
     const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
@@ -329,7 +356,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     `
   }
 
-//
+  handleMarkerSelect(markerType: string) {
+    console.log({markerType})
+    //this.requestUpdate()
+  }
+
 
   render() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
@@ -347,7 +378,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   ${this.renderSurfacePreview()}
-  <mwc-textfield dialogInitialFocus type="text" @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
+  <mwc-textfield dialogInitialFocus type="text"
+                 @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}>
       ${Object.entries(this._templates.value).map(
@@ -363,16 +395,24 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   ${selectedTemplateUi}
   <mwc-textfield id="width-field" class="rounded" outlined minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
   <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="1" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+
+  <!--  Marker Select -->
+  <mwc-select outlined label="Marker" id="marker-select">
+    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerPreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Emoji]}">Emoji ${this.renderMarkerPreview(MarkerType[MarkerType.Emoji])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Color]}">Color ${this.renderMarkerPreview(MarkerType[MarkerType.Color])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerPreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
+  </mwc-select>
+
+
   <mwc-formfield label="Multi-locations per user">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
   <mwc-formfield label="Enable tags">
     <mwc-checkbox id="tag-chk"></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Emoji Avatar">
-    <mwc-checkbox id="emoji-chk"></mwc-checkbox>
-  </mwc-formfield>
-  <mwc-textarea type="text" label="UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
+
+  <mwc-textarea type="text" label="Extra UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
                 id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60"></mwc-textarea>
   <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
@@ -384,6 +424,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
+      "mwc-radio": Radio,
       "mwc-select": Select,
       "mwc-list-item": ListItem,
       "mwc-button": Button,
@@ -398,10 +439,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return [
       sharedStyles,
       css`
-        mwc-textfield {
-          margin-top: 10px;
-          display: flex;
-        }
         mwc-dialog div, mwc-formfield, mwc-select {
           display: flex;
         }
@@ -423,9 +460,33 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           border: 1px solid grey;
           background-color: rgb(252, 252, 252);
         }
+        mwc-textfield {
+          margin-top: 10px;
+          display: flex;
+        }
         mwc-textfield.rounded {
           --mdc-shape-small: 28px;
           width: 8em;
+        }
+        #marker-preview {
+          width: ${MARKER_WIDTH}px;
+          background-color: antiquewhite;
+        }
+        .location-marker {
+          max-width: 100%;
+          max-height: 100%;
+          border-radius: 10000px;
+          border: black 1px solid;
+          height: ${MARKER_WIDTH}px;
+          width: ${MARKER_WIDTH}px;
+          z-index: 1;
+          background-color: white;
+          overflow: hidden;
+          display: inline-flex;
+          align-items: center;
+        }
+        .emoji-marker {
+          font-size: ${EMOJI_WIDTH}px;
         }
         .ui-item {
           position: absolute;

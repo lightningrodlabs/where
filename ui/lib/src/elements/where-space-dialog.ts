@@ -320,7 +320,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     locMeta.emoji = "😀";
     locMeta.color = "#03cece";
     locMeta.name = this.myProfile!.nickname;
-    console.log({locMeta});
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta)}</div>`
   }
 
@@ -330,7 +329,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       return html`<div id="thumbnail"></div>`
     }
     let {surface, _subMap}: any = this.generateSurface();
-    const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
+    const ratio: number = (surface.size && surface.size.x > 0)? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
     let uiItems = this._uiField? renderUiItems(this._uiField.value, w / surface.size.x, h / surface.size.y) : html ``;
@@ -404,7 +403,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerPreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
   </mwc-select>
 
-
   <mwc-formfield label="Multi-locations per user">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
@@ -412,8 +410,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-checkbox id="tag-chk"></mwc-checkbox>
   </mwc-formfield>
 
-  <mwc-textarea type="text" label="Extra UI elements" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
+
+<details style="margin-top:10px;">
+<summary>Extra UI elements</summary>
+  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
                 id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60"></mwc-textarea>
+                </details>
   <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
@@ -424,7 +426,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
-      "mwc-radio": Radio,
       "mwc-select": Select,
       "mwc-list-item": ListItem,
       "mwc-button": Button,
@@ -443,7 +444,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           display: flex;
         }
         #space-dialog {
-          --mdc-dialog-min-width: 500px;
+          --mdc-dialog-min-width: 600px;
         }
         #width-field, #height-field {
           margin-top: 10px;
@@ -453,7 +454,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           position: relative;
           padding-left: 10px;
           min-width: 200px;
-          min-height: 10px;
+          min-height: 50px;
           margin-left: 10px;
           padding-left: 0px;
           float: right;
@@ -464,6 +465,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           margin-top: 10px;
           display: flex;
         }
+        mwc-formfield {
+          height: 32px;
+        }
         mwc-textfield.rounded {
           --mdc-shape-small: 28px;
           width: 8em;
@@ -471,6 +475,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         #marker-preview {
           width: ${MARKER_WIDTH}px;
           background-color: antiquewhite;
+        }
+        #marker-select {
+          margin-top: 5px;
         }
         .location-marker {
           max-width: 100%;

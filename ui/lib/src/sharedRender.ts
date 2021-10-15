@@ -68,7 +68,7 @@ export function renderTemplate(template: TemplateEntry) {
 
 export function renderMarker(locMeta: Dictionary<string>) {
   let marker;
-  console.log("locMeta.markerType: " + locMeta.markerType)
+  //console.log("locMeta.markerType: " + locMeta.markerType)
   switch (locMeta.markerType) {
     case MarkerType[MarkerType.Avatar]:
       // Use an image url if stored in the Location, otherwise use the agent's avatar

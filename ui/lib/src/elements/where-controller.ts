@@ -18,7 +18,7 @@ import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField, Dialog,
+  Button, TextField, Dialog, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -64,7 +64,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async createDummyProfile() {
     const nickname = "Cam";
-    const avatar = "https://publicdomainvectors.org/tn_img/raphie_green_lanthern_smiley.png";
+    const avatar = "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png";
 
     try {
       const fields: Dictionary<string> = {};
@@ -149,6 +149,20 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
     console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
     console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+    /** Drawer */
+    const drawer = this.shadowRoot!.getElementById("my-drawer") as Drawer;
+    //const drawer = document.getElementsByTagName('mwc-drawer')[0] as Drawer;
+    if (drawer) {
+      const container = drawer.parentNode!;
+      container.addEventListener('MDCTopAppBar:nav', () => {
+        drawer.open = !drawer.open;
+      });
+    }
+    /** Menu */
+    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
+    menu.anchor = button
+    // - Done
     this.initializing = false
     this.initialized = true
   }
@@ -159,9 +173,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
     }
-    let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
     const templates = await this._store.updateTemplates()
-    div.innerText = templates[this._currentTemplateEh].name;
+    let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
+    if (div) {
+      div.innerText = templates[this._currentTemplateEh].name;
+    }
   }
 
 
@@ -260,21 +276,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       },
       locations: [],
     });
-    await this._store.addSpace({
-      name: "Political Compass Img",
-      origin: mapEh,
-      visible: true,
-      surface: {
-        html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-        size: { x: 600, y: 600 },
-      },
-      meta: {
-        ui: `[]`,
-        multi: "false", markerType: MarkerType[MarkerType.Avatar],
-        subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
-      },
-      locations: [],
-    });
+
+    //// Used for debugging
+    // await this._store.addSpace({
+    //   name: "Political Compass Img",
+    //   origin: mapEh,
+    //   visible: true,
+    //   surface: {
+    //     html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
+    //     size: { x: 600, y: 600 },
+    //   },
+    //   meta: {
+    //     ui: `[]`,
+    //     multi: "false", markerType: MarkerType[MarkerType.Avatar],
+    //     subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
+    //   },
+    //   locations: [],
+    // });
   }
 
 
@@ -293,6 +311,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async refresh() {
+    console.log("refresh: Pulling data from DHT")
     await this._store.pullSpaces();
     await this._profiles.fetchAllProfiles()
   }
@@ -329,6 +348,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
+  private async handleSpaceSelected(e: any): Promise<void> {
+    const index = e.detail.index;
+    const spaceList = this.shadowRoot!.getElementById("spaces-list") as List;
+    const value = spaceList.items[index].value;
+    console.log("space value: " + value);
+    this.handleSpaceSelect(value);
+  }
+
   private async handleSpaceSelect(spaceEh: string): Promise<void> {
     this._currentSpaceEh = spaceEh;
     this.spaceElem.currentSpaceEh = spaceEh;
@@ -353,6 +380,35 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  // handleViewArchiveSwitch(e: any) {
+  //   console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
+  //   this.canViewArchive = e.originalTarget.checked;
+  //   this.requestUpdate()
+  // }
+
+
+  openTopMenu() {
+    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
+    menu.open = true;
+  }
+
+  handleMenuSelect(e: any) {
+    console.log("handleMenuSelect: " + e.originalTarget.innerHTML)
+    //console.log({e})
+    switch (e.originalTarget.innerHTML) {
+      case "Fork Template":
+        this.openTemplateDialog(this._currentTemplateEh)
+        break;
+      case "Fork Space":
+        this.openSpaceDialog(this._currentSpaceEh)
+        break;
+      case "Archive Space":
+        this.archiveSpace()
+        break;
+      default:
+        break;
+    }
+  }
 
   render() {
     if (!this._currentSpaceEh) {
@@ -363,65 +419,117 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
       return html`
         <li class="folk">
-            <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
-            <div>${profile.nickname}</div>
+          <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+          <div>${profile.nickname}</div>
         </li>`
     })
 
+    /** Build space list */
+    const spaces = Object.entries(this._spaces.value).map(
+      ([key, space]) => {
+        if (!space.visible) {
+          return html ``;
+        }
+        return html`
+          <mwc-list-item class="space-li" twoline value="${key}" hasMeta>
+            <span>${space.name}</span>
+            <span slot="secondary">${this._store.template(space.origin).name}</span>
+              <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
+              <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.refresh()}></mwc-icon-button> -->
+          </mwc-list-item>
+          `
+      }
+    )
+
+
     return html`
-<div id="menu-bar" style="width: 100%;margin-bottom: 5px">
-  <mwc-select outlined label="Space" @select=${this.handleSpaceSelect}>
-  ${Object.entries(this._spaces.value).map(
-    ([key, space]) => space.visible? html`
-      <mwc-list-item
-        @request-selected=${() => this.handleSpaceSelect(key)}
-        .selected=${key === this._currentSpaceEh}
-        value="${key}">
-          ${space.name}
-      </mwc-list-item>
-    ` : html ``
-  )}
-  </mwc-select>
-  <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button>
+<!--  DRAWER -->
+<mwc-drawer type="dismissible" id="my-drawer">
+  <div>
+    <mwc-list>
+    <mwc-list-item twoline graphic="avatar" noninteractive>
+      <span>${this.myNickName}</span>
+      <span slot="secondary">${this._profiles.myAgentPubKey}</span>
+      <sl-avatar style="margin-left:-22px;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
+    </mwc-list-item>
+    <li divider role="separator"></li>
+    </mwc-list>
+    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
+    <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
+    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
+    <!-- <mwc-formfield label="View Archived">
+      <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
+    </mwc-formfield>-->
 
-  <mwc-textfield label="Zoom %" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
-                 value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
-                 @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
-  ></mwc-textfield>
-  <mwc-button icon="build_circle" @click=${() => this.openSpaceDialog(this._currentSpaceEh)}>Fork</mwc-button>
-  <mwc-button icon="delete" @click=${() => this.archiveSpace()}>Archive</mwc-button>
-  <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
-  <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-  <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
-  <mwc-button icon="refresh" @click=${() => this.refresh()}>Refresh</mwc-button>
-  <mwc-button icon="article" @click=${() => this.openArchiveDialog()}>View Archived</mwc-button>
+    <!-- SPACE LIST -->
+    <mwc-list id="spaces-list" activatable @selected=${this.handleSpaceSelected}>
+      ${spaces}
+    </mwc-list>
 
-  <div class="folks">
-  ${folks}
   </div>
-</div>
+<!-- END DRAWER -->
 
-<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-<where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}></where-template-dialog>
-<where-space-dialog id="space-dialog"
-                    .myProfile=${this._myProfile.value}
-                    @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
-</where-space-dialog>
-<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
+  <div slot="appContent">
+    <!-- TOP APP BAR -->
+    <mwc-top-app-bar id="app-bar" dense style="position: relative;">
+      <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
+      <div slot="title">${this._spaces.value[this._currentSpaceEh].name}</div>
+      <mwc-icon-button slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
+        <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
+        <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>
+          <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
+          <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
+          <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
+        </mwc-menu>
+      </mwc-top-app-bar>
+
+      <!-- MENU BAR -->
+    <div id="menu-bar" style="width: 100%;margin-bottom: 5px">
+      <!-- <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button> -->
+      <mwc-textfield label="Zoom %" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
+                     value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
+                     @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
+      ></mwc-textfield>
+      <mwc-slider discrete step="2" min="10" max="300" value="100" @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}>Zoom</mwc-slider>
+      <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
+
+      <div class="folks">
+        ${folks}
+      </div>
+    </div>
+
+    <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
+    <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}></where-template-dialog>
+    <where-space-dialog id="space-dialog"
+                        .myProfile=${this._myProfile.value}
+                        @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
+    </where-space-dialog>
+    <where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
+  </div>
+</mwc-drawer>
 `;
   }
 
+
   static get scopedElements() {
     return {
+      "mwc-menu": Menu,
+      "mwc-slider": Slider,
+      "mwc-switch": Switch,
+      "mwc-drawer": Drawer,
+      "mwc-top-app-bar": TopAppBar,
       "mwc-textfield": TextField,
       "mwc-select": Select,
+      "mwc-list": List,
       "mwc-list-item": ListItem,
+      "mwc-icon": Icon,
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
       "where-space-dialog" : WhereSpaceDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
+      "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
     };
   }
@@ -435,17 +543,36 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           margin: 10px;
         }
 
+        .mdc-drawer__header {
+          display:none;
+        }
+
+        mwc-top-app-bar {
+          /**--mdc-theme-primary: #00ffbb;*/
+          /**--mdc-theme-on-primary: black;*/
+        }
+
+        #app-bar {
+          /*margin-top: -15px;*/
+        }
+
+        #my-drawer {
+          margin-top: -15px;
+        }
+
         .zoom {
           display: inline-block;
         }
+
         .zoom mwc-icon-button {
           height: 30px;
           margin-top: -8px;
         }
 
         .folks {
-          float:right;
+          float: right;
         }
+
         .folk {
           list-style: none;
           display: inline-block;
@@ -453,21 +580,26 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           text-align: center;
           font-size: 70%;
         }
+
         .folk > img {
-         width: 50px;
-         border-radius: 10000px;
+          width: 50px;
+          border-radius: 10000px;
         }
+
         mwc-textfield.rounded {
           --mdc-shape-small: 20px;
           width: 7em;
-          /*margin-top:10px;*/
+          margin-top:10px;
         }
+
         mwc-textfield label {
           padding: 0px;
         }
+
         #menu-bar mwc-button {
           margin-top: 10px;
         }
+
         @media (min-width: 640px) {
           main {
             max-width: none;

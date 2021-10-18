@@ -10,7 +10,7 @@ import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedR
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
-import {Button, Dialog, TextField, Fab} from "@scoped-elements/material-web";
+import {Button, Dialog, TextField, Fab, Slider} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
@@ -27,6 +27,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @query('#reset-fab') resetFab!: Fab;
   @query('#plus-fab') plusFab!: Fab;
   @query('#minus-fab') minusFab!: Fab;
+  @query('#hide-here-fab') hideFab!: Fab;
 
   //@property() avatar = "";
   @property() currentSpaceEh = "";
@@ -59,6 +60,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.resetFab);
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
+    await this.initFab(this.hideFab);
   }
 
 
@@ -374,6 +376,22 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this._store.deleteAllMyLocations(this.currentSpaceEh);
   }
 
+  toggleHideHere() {
+    if (this.hideFab.icon === 'visibility') {
+      this.hideFab.icon = 'visibility_off'
+    }  else {
+      this.hideFab.icon ='visibility';
+    }
+    this.requestUpdate();
+  }
+
+  private handleZoomSlider(input: number): void {
+    /** update zoom from absolute value */
+    const zoom = Math.min(input, 999);
+    const cur: number = (this._zooms.value[this.currentSpaceEh] * 100);
+    const delta = (zoom - cur) / 100;
+    this.updateZoom(delta);
+  }
 
   render() {
     if (!this.currentSpaceEh) {
@@ -383,9 +401,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const space: Space = this._spaces.value[this.currentSpaceEh];
     const z = this._zooms.value[this.currentSpaceEh];
     /** Render all space's locations */
-    const locationItems = space.locations.map((locationInfo, i) => {
-      return this.renderLocation(locationInfo, z, space, i)
-    });
+    let locationItems = undefined;
+    if (this.hideFab && this.hideFab.icon === 'visibility') {
+      locationItems = space.locations.map((locationInfo, i) => {
+        return this.renderLocation(locationInfo, z, space, i)
+      });
+    }
     /** Parse UI elements in surface meta */
     let uiItems = html ``
     if (space.meta && space.meta.ui) {
@@ -398,9 +419,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
     /** Render fabs */
     const fabs = html`
-      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
-      <mwc-fab mini id="plus-fab" icon="add" style="left:32px;top:0px" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="refresh" style="left:75px;top:0px" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
+      <mwc-slider discrete step="2" min="10" max="300" style="position:absolute;left:38px;top:-5px;min-width: 50px;"
+                  @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
+      </mwc-slider>
+      <mwc-fab mini id="plus-fab" icon="add" style="left:90px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="refresh" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:180px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */
     let maybeLocationDialog = html ``
@@ -418,7 +443,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** Render layout */
     return html`
-      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;">
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;min-width:160px;">
         ${surfaceItem}
         ${uiItems}
         ${locationItems}
@@ -431,6 +456,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
+      "mwc-slider": Slider,
       "mwc-fab": Fab,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,

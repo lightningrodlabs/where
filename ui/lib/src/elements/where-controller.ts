@@ -27,6 +27,7 @@ import {
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
+import {renderSurface} from "../sharedRender";
 
 /**
  * @element where-controller
@@ -431,9 +432,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           return html ``;
         }
         return html`
-          <mwc-list-item class="space-li" twoline value="${key}" hasMeta>
+          <mwc-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
             <span slot="secondary">${this._store.template(space.origin).name}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(space.surface, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.refresh()}></mwc-icon-button> -->
           </mwc-list-item>
@@ -473,7 +475,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title">${this._spaces.value[this._currentSpaceEh].name}</div>
+      <div slot="title">Where - ${this._spaces.value[this._currentSpaceEh].name}</div>
       <mwc-icon-button slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
         <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
         <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>

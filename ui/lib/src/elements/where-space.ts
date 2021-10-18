@@ -289,7 +289,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     );
   }
 
-  renderSurface(surface: any, w: number, h: number) {
+  renderActiveSurface(surface: any, w: number, h: number) {
     return surface.html?
       html`<div
           @drop="${(e: DragEvent) => this.drop(e)}"
@@ -395,7 +395,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     //console.log({space});
-    const surfaceItem = this.renderSurface(space.surface, w, h)
+    const surfaceItem = this.renderActiveSurface(space.surface, w, h)
     /** Render fabs */
     const fabs = html`
       <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px" @click=${() => this.updateZoom(-0.05)}></mwc-fab>

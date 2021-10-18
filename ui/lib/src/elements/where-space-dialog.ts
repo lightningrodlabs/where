@@ -256,7 +256,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  renderTemplate() {
+  renderTemplateFields() {
     // if (!this._currentTemplate || this._currentTemplate.surface === "") {
     //   return html``
     // }
@@ -366,7 +366,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       this._currentTemplate = this._templates.value[Object.keys(this._templates.value)[0]]
       console.log(this._currentTemplate)
     }
-    let selectedTemplateUi = this.renderTemplate()
+    let selectedTemplateUi = this.renderTemplateFields()
     //console.log({selectedTemplateUi})
 
     const boxExample = `{ "box": {"left": 100, "top": 10, "width": 100, "height": 50},

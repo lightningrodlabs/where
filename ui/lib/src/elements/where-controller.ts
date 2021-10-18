@@ -485,17 +485,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
       <!-- MENU BAR -->
     <div id="menu-bar" style="width: 100%;margin-bottom: 5px">
+
       <!-- <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button> -->
-      <mwc-textfield label="Zoom %" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
+        <!-- <mwc-textfield label="Zoom %" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
                      value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
                      @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
       ></mwc-textfield>
       <mwc-slider discrete step="2" min="10" max="300" value="100" @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}>Zoom</mwc-slider>
-      <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
+      <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>-->
 
       <div class="folks">
         ${folks}
       </div>
+
     </div>
 
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>

@@ -1,5 +1,5 @@
 import {css, html, LitElement} from "lit";
-import {property} from "lit/decorators.js";
+import {property, query} from "lit/decorators.js";
 
 import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
@@ -10,7 +10,7 @@ import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedR
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
-import {Button, Dialog, TextField} from "@scoped-elements/material-web";
+import {Button, Dialog, TextField, Fab} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
@@ -23,6 +23,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     super();
     this.addEventListener("wheel", this._handleWheel);
   }
+
+  @query('#reset-fab') resetFab!: Fab;
+  @query('#plus-fab') plusFab!: Fab;
+  @query('#minus-fab') minusFab!: Fab;
 
   //@property() avatar = "";
   @property() currentSpaceEh = "";
@@ -41,6 +45,22 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCoord = { x: 0, y: 0 };
   private dialogCanEdit = false;
   private dialogIdx = 0;
+
+
+  async initFab(fab: Fab) {
+    await fab.updateComplete;
+    const button = fab.shadowRoot!.querySelector('button')! as HTMLElement;
+    button.style.height = '30px';
+    button.style.width = '30px';
+    button.style.borderRadius = "25%";
+  }
+
+  async firstUpdated() {
+    await this.initFab(this.resetFab);
+    await this.initFab(this.plusFab);
+    await this.initFab(this.minusFab);
+  }
+
 
   private _handleWheel = (e: WheelEvent) => {
     if (e.target) {
@@ -350,6 +370,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+  async resetMyLocations() {
+    await this._store.deleteAllMyLocations(this.currentSpaceEh);
+  }
+
 
   render() {
     if (!this.currentSpaceEh) {
@@ -362,18 +386,22 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const locationItems = space.locations.map((locationInfo, i) => {
       return this.renderLocation(locationInfo, z, space, i)
     });
-
     /** Parse UI elements in surface meta */
     let uiItems = html ``
     if (space.meta && space.meta.ui) {
       uiItems = renderUiItems(space.meta.ui, z, z)
     }
-
     /** Set viewed width and height and render Surface accordingly */
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     //console.log({space});
     const surfaceItem = this.renderSurface(space.surface, w, h)
+    /** Render fabs */
+    const fabs = html`
+      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
+      <mwc-fab mini id="plus-fab" icon="add" style="left:32px;top:0px" @click=${() => this.updateZoom(0.05)}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="refresh" style="left:75px;top:0px" @click=${() => this.resetMyLocations()}></mwc-fab>
+    `;
     /** Build LocationDialog if required */
     let maybeLocationDialog = html ``
     if (this.canEditLocation(space)) {
@@ -394,6 +422,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         ${surfaceItem}
         ${uiItems}
         ${locationItems}
+        ${fabs}
         ${maybeLocationDialog}
       </div>
     `;
@@ -402,6 +431,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
+      "mwc-fab": Fab,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
       "mwc-button": Button,
@@ -492,6 +522,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           position: absolute;
           pointer-events: none;
           text-align: center;
+        }
+
+        mwc-fab {
+          position: absolute;
+          z-index: 2;
+          --mdc-theme-secondary: #f9f9f9;
+          --mdc-theme-on-secondary: black;
         }
       `,
     ];

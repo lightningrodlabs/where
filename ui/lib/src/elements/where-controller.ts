@@ -380,11 +380,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  // handleViewArchiveSwitch(e: any) {
+  handleViewArchiveSwitch(e: any) {
   //   console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
   //   this.canViewArchive = e.originalTarget.checked;
   //   this.requestUpdate()
-  // }
+  }
 
 
   openTopMenu() {

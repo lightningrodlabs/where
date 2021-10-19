@@ -143,11 +143,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     coord?: Coord,
     idx?: number
   ) {
-    const nameElem = this.shadowRoot!.getElementById("edit-location-name") as TextField;
-    if (!nameElem) return // dialog disabled if Tag not allowed for current Space
-    const imgElem = this.shadowRoot!.getElementById("edit-location-img") as TextField;
     const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     const emojiPickerElem = this.shadowRoot!.getElementById("edit-location-emoji");
+
+    if (!tagElem && !emojiPickerElem) {
+      return;
+    }
+
     const emojiPreviewElem = this.shadowRoot!.getElementById("edit-location-emoji-preview");
 
     if (emojiPreviewElem) {
@@ -157,19 +159,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         emoji.innerHTML = `${options.emoji}`
       }
     }
-    // TODO: later these may be made visible for some kinds of spaces
-    (nameElem as HTMLElement).style.display = "none";
-    (imgElem as HTMLElement).style.display = "none";
-    if (options.tag == null) {
-      (tagElem as HTMLElement).style.display = "none";
-    } else {
-      (tagElem as HTMLElement).style.display = "block";
-      tagElem.value = options.tag;
-    }
-    (emojiPickerElem as HTMLElement).style.display = options.emoji != null ? "block" : "none";
-    (emojiPreviewElem as HTMLElement).style.display = options.emoji != null ? "flex-inline" : "none";
-    nameElem.value = options.name;
-    imgElem.value = options.img;
+
     if (options.canEdit) {
       this.dialogCanEdit = options.canEdit;
       if (coord) this.dialogCoord = coord;
@@ -188,25 +178,26 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private async handleLocationDialogClosing(e: any) {
     //console.log("handleLocationDialogClosing: " + e.detail.action)
+    const tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     if (e.detail.action == "cancel") {
+      if (tag) tag.value = "";
       return;
     }
     /** handle "ok" */
-    const tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    const img = this.shadowRoot!.getElementById("edit-location-img") as TextField;
-    const name = this.shadowRoot!.getElementById("edit-location-name") as TextField;
+    const tagValue = tag ? tag.value : ""
     const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
     const emojiValue = emoji ? emoji.innerHTML : ""
     const markerType = this._spaces.value[this.currentSpaceEh].meta!.markerType;
+
     const location: Location = {
       coord: this.dialogCoord,
       meta: {
+        name: this._myProfile.value.nickname,
         markerType,
-        tag: tag.value,
+        tag: tagValue,
         emoji: emojiValue,
-        img: img.value,
-        name: name.value,
-        color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
+        img: markerType == MarkerType[MarkerType.Avatar]? this._myProfile.value.fields['avatar']: "",
+        color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#858585",
       },
     };
     if (this.dialogCanEdit) {
@@ -214,12 +205,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         this.currentSpaceEh,
         this.dialogIdx,
         this.dialogCoord,
-        tag.value,
+        tagValue,
         emojiValue
       );
     } else {
       this._store.addLocation(this.currentSpaceEh, location);
     }
+    if (tag) tag.value = "";
   }
 
   private allowDrop(ev: Event) {
@@ -431,19 +423,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:180px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */
-    let maybeLocationDialog = html ``
-    if (this.canEditLocation(space)) {
-      maybeLocationDialog = html`
-        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialogClosing}>
-          <mwc-textfield id="edit-location-name" placeholder="Name"></mwc-textfield>
-          <mwc-textfield id="edit-location-img" placeholder="Image Url"></mwc-textfield>
-          <mwc-textfield id="edit-location-tag" dialogInitialFocus placeholder="Tag"></mwc-textfield>
-<div id="edit-location-emoji-preview" class="location-marker me"><div id="edit-location-emoji-marker" class="emoji-marker"></div></div>
-          <emoji-picker id="edit-location-emoji" class="light"></emoji-picker>
-          <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
-          <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
-        </mwc-dialog>`
-    }
+    const maybeLocationDialog =  this.renderLocationDialog(space);
     /** Render layout */
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;min-width:160px;">
@@ -453,6 +433,34 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         ${fabs}
         ${maybeLocationDialog}
       </div>
+    `;
+  }
+
+  renderLocationDialog(space: Space | undefined) {
+    if (!this.canEditLocation(space)) {
+      return html``;
+    }
+    let maybeEmojiForm = html``;
+    if (space!.meta?.markerType == MarkerType[MarkerType.Emoji]) {
+      maybeEmojiForm = html`
+        <div id="edit-location-emoji-preview" class="location-marker emoji-marker">
+          Emoji*
+          <div id="edit-location-emoji-marker"></div>
+        </div>
+        <emoji-picker id="edit-location-emoji" class="light"></emoji-picker>
+      `;
+    }
+    const tagForm = space!.meta?.canTag
+      ? html`<mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>`
+      : html``;
+
+    return html`
+        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialogClosing}>
+          ${tagForm}
+          ${maybeEmojiForm}
+          <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
+          <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+        </mwc-dialog>
     `;
   }
 
@@ -479,27 +487,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           /*max-height: 900px;*/
         }
 
+        #edit-location-tag {
+          display:block;
+        }
+        #edit-location-emoji-marker {
+          font-size: ${EMOJI_WIDTH}px;
+          display:inline-block;
+          margin-top:10px;
+        }
+
         .location-marker {
           position: absolute;
           margin-top: -${MARKER_WIDTH / 2 + 5}px;
           margin-left: -${MARKER_WIDTH / 2 + 5}px;
           z-index: 1;
-        }
-
-        .emoji-marker::part(base) {
-          background-color: #fafafa;
-          font-size: ${EMOJI_WIDTH}px;
-        }
-
-        .initials-marker::part(base) {
-          background-color: #fafafa;
-          color: black;
-        }
-
-        sl-avatar {
-          border-radius: 100%;
-          border: black 1px solid;
-          background-color: #fafafa;
         }
 
         .me {
@@ -519,11 +520,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         #edit-location > .location-marker {
           margin-top: 9px;
           margin-left: 0px;
-          margin-bottom: 3px;
+          margin-bottom: 10px;
           clear: both;
-          display: inline-flex;
+          display: block;
           position: relative;
           color: black;
+          min-height: ${EMOJI_WIDTH}px;
         }
 
         .location-details {

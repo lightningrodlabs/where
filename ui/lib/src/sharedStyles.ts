@@ -1,4 +1,5 @@
 import { css } from 'lit';
+import {EMOJI_WIDTH, MARKER_WIDTH} from "./sharedRender";
 
 export const sharedStyles = css`
   .column {
@@ -9,13 +10,17 @@ export const sharedStyles = css`
     display: flex;
     flex-direction: row;
   }
-  .letter-marker {
-    font-size: 22px;
-    margin-left: 5px;
+  .emoji-marker::part(base) {
+    background-color: #fafafa;
+    font-size: ${EMOJI_WIDTH}px;
   }
-  .marker-bg {
-    width: 100%;
-    height: 100%;
-    background-color: red;
+  .initials-marker::part(base) {
+    background-color: #fafafa;
+    color: black;
+  }
+  sl-avatar {
+    border-radius: 100%;
+    border: black 1px solid;
+    background-color: #fafafa;
   }
 `;

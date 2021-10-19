@@ -450,7 +450,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       <span>${this.myNickName}</span>
       <span slot="secondary">${this._profiles.myAgentPubKey}</span>
-      <sl-avatar style="margin-left:-22px;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
+      <sl-avatar style="margin-left:-22px;border:none;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
       <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}" value=${this._myProfile.value.fields['color']}></sl-color-picker>
     </mwc-list-item>
     <li divider role="separator"></li>

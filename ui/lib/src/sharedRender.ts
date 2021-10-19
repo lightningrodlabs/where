@@ -119,10 +119,8 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
 function render_pin(color: string) {
   return svg`
 <svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_WIDTH}px"
-                  height="${MARKER_WIDTH}px" viewBox="0 0 64 64" aria-labelledby="title"
+                  height="${MARKER_WIDTH}px" viewBox="0 0 64 64"
 aria-describedby="desc" role="img" xmlns:xlink="http://www.w3.org/1999/xlink">
-  <title>Pin</title>
-  <desc>A solid styled icon from Orion Icon Library.</desc>
 <path data-name="layer1"
 d="M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"
 fill="${color}"></path>

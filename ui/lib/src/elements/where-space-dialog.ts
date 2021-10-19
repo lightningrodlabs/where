@@ -474,29 +474,19 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           --mdc-shape-small: 28px;
           width: 8em;
         }
-        #marker-preview {
-          width: ${MARKER_WIDTH}px;
-          background-color: antiquewhite;
+
+        mwc-list-item {
+          height: 60px;
         }
+
         #marker-select {
           margin-top: 5px;
         }
+
         .location-marker {
-          max-width: 100%;
-          max-height: 100%;
-          border-radius: 10000px;
-          border: black 1px solid;
-          height: ${MARKER_WIDTH}px;
-          width: ${MARKER_WIDTH}px;
-          z-index: 1;
-          background-color: white;
-          overflow: hidden;
           display: inline-flex;
-          align-items: center;
         }
-        .emoji-marker {
-          font-size: ${EMOJI_WIDTH}px;
-        }
+
         .ui-item {
           position: absolute;
           pointer-events: none;

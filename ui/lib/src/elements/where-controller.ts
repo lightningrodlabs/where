@@ -27,6 +27,7 @@ import {
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
+import {renderSurface} from "../sharedRender";
 
 /**
  * @element where-controller
@@ -306,9 +307,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
-  async resetMyLocations() {
-    await this._store.deleteAllMyLocations(this._currentSpaceEh);
-  }
 
   async refresh() {
     console.log("refresh: Pulling data from DHT")
@@ -362,16 +360,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this.updateTemplateLabel(spaceEh);
   }
 
-  private handleZoomUpdateAbs(input: number): void {
-    const zoom = Math.min(input, 999);
-    const cur: number = (this._zooms.value[this._currentSpaceEh] * 100);
-    const delta = (zoom - cur) / 100;
-    this.spaceElem.updateZoom(delta);
-  }
-
-  // Check if current has been archived
   private async handleArchiveDialogClosing(e: any) {
     const spaces = await this._store.pullSpaces();
+    /** Check if current space has been archived */
     if (e.detail.includes(this._currentSpaceEh)) {
       /** Select first visible space */
       const firstSpaceEh = this._getFirstVisible(spaces);
@@ -380,11 +371,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  // handleViewArchiveSwitch(e: any) {
-  //   console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
-  //   this.canViewArchive = e.originalTarget.checked;
-  //   this.requestUpdate()
-  // }
+  handleViewArchiveSwitch(e: any) {
+    // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
+    // this.canViewArchive = e.originalTarget.checked;
+    // this.requestUpdate()
+  }
 
 
   openTopMenu() {
@@ -431,9 +422,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           return html ``;
         }
         return html`
-          <mwc-list-item class="space-li" twoline value="${key}" hasMeta>
+          <mwc-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
             <span slot="secondary">${this._store.template(space.origin).name}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(space.surface, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.refresh()}></mwc-icon-button> -->
           </mwc-list-item>
@@ -473,26 +465,18 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title">${this._spaces.value[this._currentSpaceEh].name}</div>
+      <div slot="title">Where - ${this._spaces.value[this._currentSpaceEh].name}</div>
       <mwc-icon-button slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
-        <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
-        <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>
-          <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
-          <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
-          <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
-        </mwc-menu>
-      </mwc-top-app-bar>
+      <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
+      <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>
+        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
+      </mwc-menu>
+    </mwc-top-app-bar>
 
-      <!-- MENU BAR -->
-    <div id="menu-bar" style="width: 100%;margin-bottom: 5px">
-      <!-- <mwc-button icon="edit" outlined id="template-label" @click=${() => this.openTemplateDialog(this._currentTemplateEh)}></mwc-button> -->
-      <mwc-textfield label="Zoom %" class="rounded" type="number" pattern="[0-9]+" minlength="1" maxlength="3" min="10" max="999" outlined
-                     value=${(this._zooms.value[this._currentSpaceEh] * 100).toFixed(0)}
-                     @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}
-      ></mwc-textfield>
-      <mwc-slider discrete step="2" min="10" max="300" value="100" @input=${(e:any) => this.handleZoomUpdateAbs(e.target.value)}>Zoom</mwc-slider>
-      <mwc-button icon="refresh" @click=${() => this.resetMyLocations()}>Reset</mwc-button>
-
+    <div class="appBody">
+      <where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
       <div class="folks">
         ${folks}
       </div>
@@ -504,7 +488,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
                         .myProfile=${this._myProfile.value}
                         @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
     </where-space-dialog>
-    <where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
   </div>
 </mwc-drawer>
 `;
@@ -569,13 +552,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           margin-top: -8px;
         }
 
-        .folks {
-          float: right;
+        .appBody {
+          width: 100%;
+          margin-top: 2px;
+          display:flex;
         }
 
         .folk {
           list-style: none;
-          display: inline-block;
           margin: 2px;
           text-align: center;
           font-size: 70%;
@@ -594,10 +578,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         mwc-textfield label {
           padding: 0px;
-        }
-
-        #menu-bar mwc-button {
-          margin-top: 10px;
         }
 
         @media (min-width: 640px) {

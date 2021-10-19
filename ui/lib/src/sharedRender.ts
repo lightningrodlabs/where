@@ -40,6 +40,23 @@ export function renderUiItems(ui: string, zx: number, zy: number) {
   return uiItems
 }
 
+
+export function renderSurface(surface: any, w: number, h: number) {
+  return surface.html?
+    html`<div style="width: ${w}px; height: ${h}px;" >
+        ${unsafeHTML(surface.html)}
+      </div>`
+    : html`<svg xmlns="http://www.w3.org/2000/svg"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+                  preserveAspectRatio="none">
+          ${unsafeSVG(surface.svg)}
+        </svg>`
+    ;
+}
+
+
 export function renderTemplate(template: TemplateEntry) {
   if (template.surface === "") {
     return html``

@@ -23,6 +23,7 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {Profile} from "@holochain-open-dev/profiles";
+import {SlAvatar} from "@scoped-elements/shoelace";
 
 /**
  * @element where-space-dialog
@@ -320,7 +321,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     locMeta.emoji = "😀";
     locMeta.color = "#03cece";
     locMeta.name = this.myProfile!.nickname;
-    return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta)}</div>`
+    return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
 
 
@@ -425,6 +426,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
+      'sl-avatar': SlAvatar,
       "mwc-select": Select,
       "mwc-list-item": ListItem,
       "mwc-button": Button,
@@ -471,29 +473,19 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           --mdc-shape-small: 28px;
           width: 8em;
         }
-        #marker-preview {
-          width: ${MARKER_WIDTH}px;
-          background-color: antiquewhite;
+
+        mwc-list-item {
+          height: 60px;
         }
+
         #marker-select {
           margin-top: 5px;
         }
+
         .location-marker {
-          max-width: 100%;
-          max-height: 100%;
-          border-radius: 10000px;
-          border: black 1px solid;
-          height: ${MARKER_WIDTH}px;
-          width: ${MARKER_WIDTH}px;
-          z-index: 1;
-          background-color: white;
-          overflow: hidden;
           display: inline-flex;
-          align-items: center;
         }
-        .emoji-marker {
-          font-size: ${EMOJI_WIDTH}px;
-        }
+
         .ui-item {
           position: absolute;
           pointer-events: none;

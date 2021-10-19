@@ -12,7 +12,7 @@ import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
 import { WhereArchiveDialog } from "./where-archive-dialog";
-import { lightTheme, SlAvatar } from '@scoped-elements/shoelace';
+import {lightTheme, SlAvatar, SlColorPicker} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -64,22 +64,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   async createDummyProfile() {
-    const nickname = "Cam";
-    const avatar = "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png";
+    await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
+  }
 
+
+  async updateProfile(nickname: string, avatar: string, color: string) {
     try {
       const fields: Dictionary<string> = {};
-       if (avatar) {
-         fields['avatar'] = avatar;
-       }
+      fields['color'] = color;
+      fields['avatar'] = avatar;
       await this._profiles.createProfile({
         nickname,
         fields,
       });
 
     } catch (e) {
-      //this._existingUsernames[nickname] = true;
-      //this._nicknameField.reportValidity();
+      console.log("updateProfile() failed");
+      console.log(e);
     }
   }
 
@@ -401,6 +402,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  async handleColorChange(e: any) {
+    console.log("handleColorChange: " + e.target.lastValueEmitted)
+    const color = e.target.lastValueEmitted;
+    const profile = this._myProfile.value;
+    await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
+  }
+
   render() {
     if (!this._currentSpaceEh) {
       return;
@@ -439,10 +447,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 <mwc-drawer type="dismissible" id="my-drawer">
   <div>
     <mwc-list>
-    <mwc-list-item twoline graphic="avatar" noninteractive>
+    <mwc-list-item twoline graphic="avatar" hasMeta>
       <span>${this.myNickName}</span>
       <span slot="secondary">${this._profiles.myAgentPubKey}</span>
-      <sl-avatar style="margin-left:-22px;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
+      <sl-avatar style="margin-left:-22px;border:none;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
+      <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}" value=${this._myProfile.value.fields['color']}></sl-color-picker>
     </mwc-list-item>
     <li divider role="separator"></li>
     </mwc-list>
@@ -514,6 +523,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
+      'sl-color-picker': SlColorPicker,
     };
   }
 

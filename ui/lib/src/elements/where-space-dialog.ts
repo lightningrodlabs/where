@@ -23,6 +23,7 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {Profile} from "@holochain-open-dev/profiles";
+import {SlAvatar} from "@scoped-elements/shoelace";
 
 /**
  * @element where-space-dialog
@@ -320,7 +321,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     locMeta.emoji = "😀";
     locMeta.color = "#03cece";
     locMeta.name = this.myProfile!.nickname;
-    return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta)}</div>`
+    return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
 
 
@@ -426,6 +427,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
+      'sl-avatar': SlAvatar,
       "mwc-select": Select,
       "mwc-list-item": ListItem,
       "mwc-button": Button,

@@ -14,6 +14,7 @@ import {Button, Dialog, TextField, Fab, Slider} from "@scoped-elements/material-
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
+import {SlAvatar} from "@scoped-elements/shoelace";
 
 /**
  * @element where-space
@@ -339,15 +340,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const x = locInfo.location.coord.x * z;
     const y = locInfo.location.coord.y * z;
     /** Render Marker */
-    let marker = renderMarker(locInfo.location.meta);
+      // TODO: should check agent key and not nickname
+    const isMe = locInfo.location.meta.name == this.myNickName;
+    let marker = renderMarker(locInfo.location.meta, isMe);
 
     /** Render Location Marker and Dialog */
     // Handle my Locations differently
     let maybeMeClass  = "";
     let maybeDeleteBtn = html ``;
     let maybeEditBtn = html ``;
-    // TODO: should check agent key and not nickname
-    if (locInfo.location.meta.name == this.myNickName) {
+
+    if (isMe) {
       maybeMeClass = "me";
       maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
       if (this.canEditLocation(space)) {
@@ -360,7 +363,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         .draggable=${true}
         @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
         @dragstart="${(e: DragEvent) => this.drag(e)}"
-        idx="${i}" class="location-marker ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
+        idx="${i}" class="location-marker" style="left: ${x}px; top: ${y}px;">
       ${marker}
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
@@ -456,6 +459,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   static get scopedElements() {
     return {
+      "sl-avatar": SlAvatar,
       "mwc-slider": Slider,
       "mwc-fab": Fab,
       "mwc-dialog": Dialog,
@@ -476,29 +480,40 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         }
 
         .location-marker {
-          max-width: 100%;
-          max-height: 100%;
-          border-radius: 10000px;
-          border: black 1px solid;
           position: absolute;
-          height: ${MARKER_WIDTH}px;
-          width: ${MARKER_WIDTH}px;
-          margin-top: -${MARKER_WIDTH / 2}px;
-          margin-left: -${MARKER_WIDTH / 2}px;
+          margin-top: -${MARKER_WIDTH / 2 + 5}px;
+          margin-left: -${MARKER_WIDTH / 2 + 5}px;
           z-index: 1;
-          background-color: white;
-          overflow: hidden;
-          display: inline-flex;
-          align-items: center;
         }
+
+        .emoji-marker::part(base) {
+          background-color: #fafafa;
+          font-size: ${EMOJI_WIDTH}px;
+        }
+
+        .initials-marker::part(base) {
+          background-color: #fafafa;
+          color: black;
+        }
+
+        sl-avatar {
+          border-radius: 100%;
+          border: black 1px solid;
+          background-color: #fafafa;
+        }
+
+        .me {
+          border: orange 2px solid;
+        }
+
         .location-marker > img {
           width: ${MARKER_WIDTH}px;
           pointer-events: none;
         }
-        .location-marker > .emoji-marker {
-          font-size: ${EMOJI_WIDTH}px;
-          margin: auto;
-          pointer-events: none;
+
+        .pin-marker {
+          margin-top: -15px;
+          margin-left: 5px;
         }
 
         #edit-location > .location-marker {
@@ -509,9 +524,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           display: inline-flex;
           position: relative;
           color: black;
-        }
-        .location-marker.me {
-          border: orange 2px solid;
         }
 
         .location-details {

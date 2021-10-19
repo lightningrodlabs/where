@@ -560,7 +560,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         .folk {
           list-style: none;
-          display: inline-block;
           margin: 2px;
           text-align: center;
           font-size: 70%;

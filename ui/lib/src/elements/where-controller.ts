@@ -3,7 +3,7 @@ import { state, property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
-import { Unsubscriber } from "svelte/store";
+import {Unsubscriber} from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
 import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
@@ -12,7 +12,7 @@ import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
 import { WhereArchiveDialog } from "./where-archive-dialog";
-import {lightTheme, SlAvatar, SlColorPicker} from '@scoped-elements/shoelace';
+import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -26,7 +26,7 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
-import {EntryHashB64} from "@holochain-open-dev/core-types";
+import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {renderSurface} from "../sharedRender";
 
 /**
@@ -53,6 +53,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
+
+  /** agentKey -> agentStatus */
+  _agentStatusList: Dictionary<string> = {};
+
 
   /** Private properties */
 
@@ -409,6 +413,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
+
+  determineAgentStatus(key: AgentPubKeyB64) {
+    const status = "neutral";
+    if (key == this._profiles.myAgentPubKey || this._agentStatusList[key]) {
+      return "success";
+    }
+    return "danger";
+  }
+
   render() {
     if (!this._currentSpaceEh) {
       return;
@@ -418,8 +431,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
       return html`
         <li class="folk">
-          <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
-          <div>${profile.nickname}</div>
+          <sl-tooltip content=${profile.nickname}>
+            <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill>ㅤ</sl-badge>
+          </sl-tooltip>
         </li>`
     })
 
@@ -523,7 +538,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
+      'sl-tooltip': SlTooltip,
       'sl-color-picker': SlColorPicker,
+      'sl-badge': SlBadge,
     };
   }
 
@@ -538,6 +555,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         .mdc-drawer__header {
           display:none;
+        }
+
+        .avatar-badge {
+          margin-left: 35px;
+          margin-top: -15px;
+          display: block;
+
+        }
+
+        sl-badge::part(base) {
+          border: 1px solid;
+          padding-bottom: 0px;
+          padding-top: 0px;
+        }
+
+        sl-tooltip {
+          display: inline;
         }
 
         mwc-top-app-bar {

@@ -63,6 +63,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   private initializing = false;
 
 
+  get archiveDialogElem() : WhereArchiveDialog {
+    return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
+  }
+
+  get templateDialogElem() : WhereTemplateDialog {
+    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
+  }
+
+  get spaceElem(): WhereSpace {
+    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+  get spaceDialogElem() : WhereSpaceDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  }
+
+
   async createDummyProfile() {
     await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
@@ -94,11 +111,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private subscribeProfile() {
     let unsubscribe: Unsubscriber;
-    unsubscribe = this._profiles.myProfile.subscribe((profile) => {
+    unsubscribe = this._profiles.myProfile.subscribe(async (profile) => {
       if (profile) {
         //console.log({profile})
         //this._myAvatar = `https://robohash.org/${profile.nickname}`
-        this.checkInit().then(() => {});
+        await this.checkInit();
       }
       // unsubscribe()
     });
@@ -325,28 +342,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.archiveDialogElem.open();
   }
 
-  get archiveDialogElem() : WhereArchiveDialog {
-    return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
-  }
-
-  get templateDialogElem() : WhereTemplateDialog {
-    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
-  }
-
-  get spaceElem(): WhereSpace {
-    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
-  }
-
   async openSpaceDialog(space?: any) {
     this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(space);
     if (space) {
       this.spaceDialogElem.loadPreset(space);
     }
-  }
-
-  get spaceDialogElem() : WhereSpaceDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
   private async handleSpaceSelected(e: any): Promise<void> {
@@ -490,8 +491,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </mwc-list>
 
   </div>
-<!-- END DRAWER -->
-
+  <!-- END DRAWER -->
   <div slot="appContent">
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
@@ -505,16 +505,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
       </mwc-menu>
     </mwc-top-app-bar>
-
+    <!-- APP BODY -->
     <div class="appBody">
       <where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
       <div class="folks">
         ${folks}
       </div>
     </div>
-
+    <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}></where-template-dialog>
+    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     <where-space-dialog id="space-dialog"
                         .myProfile=${this._myProfile.value}
                         @space-added=${(e:any) => this._currentSpaceEh = e.detail}>

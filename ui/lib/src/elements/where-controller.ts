@@ -27,7 +27,7 @@ import {
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
-import {renderSurface} from "../sharedRender";
+import {MARKER_WIDTH, renderSurface} from "../sharedRender";
 
 /**
  * @element where-controller
@@ -53,10 +53,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
-
-  /** agentKey -> agentStatus */
-  _agentStatusList: Dictionary<string> = {};
-
 
   /** Private properties */
 
@@ -317,6 +313,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("refresh: Pulling data from DHT")
     await this._store.pullSpaces();
     await this._profiles.fetchAllProfiles()
+    console.log("refresh: Pinging All")
+    await this._store.pingOthers(this._currentSpaceEh, this._profiles.myAgentPubKey)
   }
 
   async openTemplateDialog(templateEh?: any) {
@@ -416,8 +414,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   determineAgentStatus(key: AgentPubKeyB64) {
     const status = "neutral";
-    if (key == this._profiles.myAgentPubKey || this._agentStatusList[key]) {
+    if (key == this._profiles.myAgentPubKey) {
       return "success";
+    }
+    const lastPingTime: number = this._store.agentPresences[key];
+    const currentTime: number = Math.floor(Date.now()/1000);
+    const diff: number = currentTime - lastPingTime;
+    if (diff < 10) {
+      return "success";
+    }
+    if (diff < 5 * 60) {
+      return "warning";
     }
     return "danger";
   }
@@ -568,6 +575,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           border: 1px solid;
           padding-bottom: 0px;
           padding-top: 0px;
+        }
+
+        sl-tooltip sl-avatar {
+          --size: ${MARKER_WIDTH}px;
         }
 
         sl-tooltip {

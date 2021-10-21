@@ -188,7 +188,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   private async selectSpace(spaceEh: EntryHashB64): Promise<void> {
-    console.log("    selected space: " + spaceEh);
+    console.log("   selected space: " + spaceEh);
     this._currentSpaceEh = spaceEh;
     await this.selectTemplateOf(spaceEh);
   }
@@ -198,7 +198,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
-      console.log("    selected template: " + this._currentTemplateEh);
+      console.log("selected template: " + this._currentTemplateEh);
     }
     const templates = await this._store.updateTemplates()
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;

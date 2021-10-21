@@ -221,10 +221,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private drag(ev: DragEvent) {
-    if (!ev.target) {
+    if (!ev.currentTarget) {
       return false;
     }
-    const w = ev.target as HTMLImageElement;
+    const w = ev.currentTarget as HTMLElement;
     const idx = w.getAttribute("idx");
     //console.log(w)
     if (idx && ev.dataTransfer) {
@@ -487,6 +487,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           /*overflow: auto;*/
           /*max-width: 1500px;*/
           /*max-height: 900px;*/
+        }
+
+        sl-avatar {
+          --size: ${MARKER_WIDTH}px;
         }
 
         #edit-location-tag {

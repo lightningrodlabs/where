@@ -10,7 +10,7 @@ import {
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry,
+  TemplateEntry, Signal,
 } from './types';
 import {
   ProfilesStore,
@@ -39,6 +39,9 @@ export class WhereStore {
   public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
   public zooms: Readable<Dictionary<number>> = derived(this.zoomsStore, i => i)
 
+  public agentPresences: Dictionary<number> = {};
+
+
   constructor(
     protected cellClient: CellClient,
   profilesStore: ProfilesStore,
@@ -52,9 +55,15 @@ export class WhereStore {
       if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
         return
       }
-      console.log("SIGNAL",signal)
+      const currentTimeInSeconds: number = Math.floor(Date.now()/1000);
+      console.log("[" + currentTimeInSeconds + "] SIGNAL",signal)
       const payload = signal.data.payload
       switch(payload.message.type) {
+        case "Ping":
+          const from = payload.message.content;
+          this.agentPresences[from] = currentTimeInSeconds;
+          return from;
+          break;
       case "NewTemplate":
         if (!get(this.templates)[payload.spaceHash]) {
           this.templatesStore.update(templates => {
@@ -118,6 +127,14 @@ export class WhereStore {
       })
     }
   }
+
+
+  pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
+    const signal: Signal = {spaceHash, message: {type: 'Ping', content: myKey}};
+    // console.log({signal})
+    this.service.notify(signal, this.others());
+  }
+
 
   async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
     // const templates = await service.getTemplates();

@@ -89,7 +89,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private canCreate(): boolean {
-    if (this._store.space(this.currentSpaceEh).meta!.multi) return true;
+    if (this._store.space(this.currentSpaceEh).meta!.multi) {
+      return true;
+    }
     const myIdx = this._store.getAgentIdx(this.currentSpaceEh, this.myNickName);
     return myIdx == -1;
   }

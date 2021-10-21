@@ -9,6 +9,7 @@ use crate::here::*;
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
     #[serde(tag = "type", content = "content")]
 pub enum Message {
+    Ping(AgentPubKeyB64),
     NewSpace(Space),
     NewTemplate(Template),
     NewHere(HereOutput),

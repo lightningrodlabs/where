@@ -3,7 +3,7 @@ import { state, property } from "lit/decorators.js";
 
 import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
-import { Unsubscriber } from "svelte/store";
+import {Unsubscriber} from "svelte/store";
 
 import { sharedStyles } from "../sharedStyles";
 import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
@@ -12,7 +12,7 @@ import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
 import { WhereArchiveDialog } from "./where-archive-dialog";
-import {lightTheme, SlAvatar, SlColorPicker} from '@scoped-elements/shoelace';
+import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -26,8 +26,8 @@ import {
   Profile,
 } from "@holochain-open-dev/profiles";
 import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
-import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {renderSurface} from "../sharedRender";
+import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
+import {MARKER_WIDTH, renderSurface} from "../sharedRender";
 
 /**
  * @element where-controller
@@ -63,6 +63,27 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   private initializing = false;
 
 
+  get archiveDialogElem() : WhereArchiveDialog {
+    return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
+  }
+
+  get templateDialogElem() : WhereTemplateDialog {
+    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
+  }
+
+  get spaceListElem(): List {
+    return this.shadowRoot!.getElementById("spaces-list") as List;
+  }
+
+  get spaceElem(): WhereSpace {
+    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+  get spaceDialogElem() : WhereSpaceDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  }
+
+
   async createDummyProfile() {
     await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
@@ -94,24 +115,21 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private subscribeProfile() {
     let unsubscribe: Unsubscriber;
-    unsubscribe = this._profiles.myProfile.subscribe((profile) => {
+    unsubscribe = this._profiles.myProfile.subscribe(async (profile) => {
       if (profile) {
         //console.log({profile})
         //this._myAvatar = `https://robohash.org/${profile.nickname}`
-        this.checkInit().then(() => {});
+        await this.checkInit();
       }
       // unsubscribe()
     });
   }
 
-  firstUpdated() {
+  async firstUpdated() {
     if (this.canLoadDummy) {
-      this.createDummyProfile().then(() => {
-        this.subscribeProfile()
-      });
-    } else {
-      this.subscribeProfile()
+      await this.createDummyProfile();
     }
+    this.subscribeProfile();
   }
 
 
@@ -146,14 +164,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
       console.error("No spaces or templates found")
     }
-    this._currentSpaceEh = this._getFirstVisible(spaces);
-    this._currentTemplateEh = Object.keys(templates)[0];
-    await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
-    console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
-    console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+
+    await this.selectSpace(this._getFirstVisible(spaces))
+    console.log("   starting space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
+    console.log("starting template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+
     /** Drawer */
     const drawer = this.shadowRoot!.getElementById("my-drawer") as Drawer;
-    //const drawer = document.getElementsByTagName('mwc-drawer')[0] as Drawer;
     if (drawer) {
       const container = drawer.parentNode!;
       container.addEventListener('MDCTopAppBar:nav', () => {
@@ -170,10 +187,18 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  private async updateTemplateLabel(spaceEh: string): Promise<void> {
+  private async selectSpace(spaceEh: EntryHashB64): Promise<void> {
+    console.log("    selected space: " + spaceEh);
+    this._currentSpaceEh = spaceEh;
+    await this.selectTemplateOf(spaceEh);
+  }
+
+
+  private async selectTemplateOf(spaceEh: EntryHashB64): Promise<void> {
     const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
+      console.log("    selected template: " + this._currentTemplateEh);
     }
     const templates = await this._store.updateTemplates()
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
@@ -313,6 +338,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("refresh: Pulling data from DHT")
     await this._store.pullSpaces();
     await this._profiles.fetchAllProfiles()
+    console.log("refresh: Pinging All")
+    await this._store.pingOthers(this._currentSpaceEh, this._profiles.myAgentPubKey)
   }
 
   async openTemplateDialog(templateEh?: any) {
@@ -323,18 +350,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.archiveDialogElem.open();
   }
 
-  get archiveDialogElem() : WhereArchiveDialog {
-    return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
-  }
-
-  get templateDialogElem() : WhereTemplateDialog {
-    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
-  }
-
-  get spaceElem(): WhereSpace {
-    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
-  }
-
   async openSpaceDialog(space?: any) {
     this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(space);
@@ -343,22 +358,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  get spaceDialogElem() : WhereSpaceDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
-  }
-
   private async handleSpaceSelected(e: any): Promise<void> {
     const index = e.detail.index;
-    const spaceList = this.shadowRoot!.getElementById("spaces-list") as List;
-    const value = spaceList.items[index].value;
-    console.log("space value: " + value);
-    this.handleSpaceSelect(value);
-  }
-
-  private async handleSpaceSelect(spaceEh: string): Promise<void> {
-    this._currentSpaceEh = spaceEh;
-    this.spaceElem.currentSpaceEh = spaceEh;
-    await this.updateTemplateLabel(spaceEh);
+    if (index < 0) {
+      return;
+    }
+    const value = this.spaceListElem.items[index].value;
+    this.selectSpace(value);
   }
 
   private async handleArchiveDialogClosing(e: any) {
@@ -409,6 +415,24 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
+
+  determineAgentStatus(key: AgentPubKeyB64) {
+    const status = "neutral";
+    if (key == this._profiles.myAgentPubKey) {
+      return "success";
+    }
+    const lastPingTime: number = this._store.agentPresences[key];
+    const currentTime: number = Math.floor(Date.now()/1000);
+    const diff: number = currentTime - lastPingTime;
+    if (diff < 10) {
+      return "success";
+    }
+    if (diff < 5 * 60) {
+      return "warning";
+    }
+    return "danger";
+  }
+
   render() {
     if (!this._currentSpaceEh) {
       return;
@@ -418,8 +442,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
       return html`
         <li class="folk">
-          <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
-          <div>${profile.nickname}</div>
+          <sl-tooltip content=${profile.nickname}>
+            <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill>ㅤ</sl-badge>
+          </sl-tooltip>
         </li>`
     })
 
@@ -430,7 +456,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           return html ``;
         }
         return html`
-          <mwc-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+          <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
             <span slot="secondary">${this._store.template(space.origin).name}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(space.surface, 70, 56)}</span>
@@ -468,8 +494,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </mwc-list>
 
   </div>
-<!-- END DRAWER -->
-
+  <!-- END DRAWER -->
   <div slot="appContent">
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
@@ -483,19 +508,19 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
       </mwc-menu>
     </mwc-top-app-bar>
-
+    <!-- APP BODY -->
     <div class="appBody">
       <where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>
       <div class="folks">
         ${folks}
       </div>
     </div>
-
+    <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => this._currentTemplateEh = e.detail}></where-template-dialog>
+    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     <where-space-dialog id="space-dialog"
                         .myProfile=${this._myProfile.value}
-                        @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
+                        @space-added=${(e:any) => this.selectSpace(e.detail)}>
     </where-space-dialog>
   </div>
 </mwc-drawer>
@@ -523,7 +548,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
+      'sl-tooltip': SlTooltip,
       'sl-color-picker': SlColorPicker,
+      'sl-badge': SlBadge,
     };
   }
 
@@ -538,6 +565,27 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         .mdc-drawer__header {
           display:none;
+        }
+
+        .avatar-badge {
+          margin-left: 35px;
+          margin-top: -15px;
+          display: block;
+
+        }
+
+        sl-badge::part(base) {
+          border: 1px solid;
+          padding-bottom: 0px;
+          padding-top: 0px;
+        }
+
+        sl-tooltip sl-avatar {
+          --size: ${MARKER_WIDTH}px;
+        }
+
+        sl-tooltip {
+          display: inline;
         }
 
         mwc-top-app-bar {

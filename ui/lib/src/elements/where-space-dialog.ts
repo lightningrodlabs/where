@@ -155,7 +155,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     console.log({subMapJson});
 
     // - Create space
-    console.log("this._templateField.value = " + this._templateField.value);
+    //console.log("this._templateField.value = " + this._templateField.value);
     const space: Space = {
       name: this._nameField.value,
       origin: this._templateField.value,
@@ -186,7 +186,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._nameField.value = ''
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
-      console.log('field ' + placeholder + ' - ' + field.value)
+      // console.log('field ' + placeholder + ' - ' + field.value)
       field.value = ''
     }
     this._widthField.value = ''

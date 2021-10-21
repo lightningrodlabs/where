@@ -166,8 +166,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
 
     await this.selectSpace(this._getFirstVisible(spaces))
-    console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
-    console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+    console.log("   starting space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
+    console.log("starting template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
 
     /** Drawer */
     const drawer = this.shadowRoot!.getElementById("my-drawer") as Drawer;
@@ -188,6 +188,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   private async selectSpace(spaceEh: EntryHashB64): Promise<void> {
+    console.log("    selected space: " + spaceEh);
     this._currentSpaceEh = spaceEh;
     await this.selectTemplateOf(spaceEh);
   }
@@ -197,6 +198,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
+      console.log("    selected template: " + this._currentTemplateEh);
     }
     const templates = await this._store.updateTemplates()
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
@@ -358,8 +360,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private async handleSpaceSelected(e: any): Promise<void> {
     const index = e.detail.index;
+    if (index < 0) {
+      return;
+    }
     const value = this.spaceListElem.items[index].value;
-    console.log("selected space: " + value);
     this.selectSpace(value);
   }
 
@@ -430,7 +434,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    console.log("-------------- render")
     if (!this._currentSpaceEh) {
       return;
     }
@@ -452,8 +455,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         if (!space.visible) {
           return html ``;
         }
-        const maybeSelected = key == this._currentSpaceEh? true : false;
-        console.log({maybeSelected})
         return html`
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>

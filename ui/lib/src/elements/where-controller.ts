@@ -71,6 +71,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
   }
 
+  get spaceListElem(): List {
+    return this.shadowRoot!.getElementById("spaces-list") as List;
+  }
+
   get spaceElem(): WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
@@ -121,14 +125,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     });
   }
 
-  firstUpdated() {
+  async firstUpdated() {
     if (this.canLoadDummy) {
-      this.createDummyProfile().then(() => {
-        this.subscribeProfile()
-      });
-    } else {
-      this.subscribeProfile()
+      await this.createDummyProfile();
     }
+    this.subscribeProfile();
   }
 
 
@@ -163,14 +164,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
       console.error("No spaces or templates found")
     }
-    this._currentSpaceEh = this._getFirstVisible(spaces);
-    this._currentTemplateEh = Object.keys(templates)[0];
-    await this.updateTemplateLabel(spaces[this._currentSpaceEh].name);
+
+    await this.selectSpace(this._getFirstVisible(spaces))
     console.log("   current space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
     console.log("current template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
+
     /** Drawer */
     const drawer = this.shadowRoot!.getElementById("my-drawer") as Drawer;
-    //const drawer = document.getElementsByTagName('mwc-drawer')[0] as Drawer;
     if (drawer) {
       const container = drawer.parentNode!;
       container.addEventListener('MDCTopAppBar:nav', () => {
@@ -187,7 +187,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  private async updateTemplateLabel(spaceEh: string): Promise<void> {
+  private async selectSpace(spaceEh: EntryHashB64): Promise<void> {
+    this._currentSpaceEh = spaceEh;
+    await this.selectTemplateOf(spaceEh);
+  }
+
+
+  private async selectTemplateOf(spaceEh: EntryHashB64): Promise<void> {
     const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
@@ -352,16 +358,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private async handleSpaceSelected(e: any): Promise<void> {
     const index = e.detail.index;
-    const spaceList = this.shadowRoot!.getElementById("spaces-list") as List;
-    const value = spaceList.items[index].value;
-    console.log("space value: " + value);
-    this.handleSpaceSelect(value);
-  }
-
-  private async handleSpaceSelect(spaceEh: string): Promise<void> {
-    this._currentSpaceEh = spaceEh;
-    this.spaceElem.currentSpaceEh = spaceEh;
-    await this.updateTemplateLabel(spaceEh);
+    const value = this.spaceListElem.items[index].value;
+    console.log("selected space: " + value);
+    this.selectSpace(value);
   }
 
   private async handleArchiveDialogClosing(e: any) {
@@ -431,6 +430,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
+    console.log("-------------- render")
     if (!this._currentSpaceEh) {
       return;
     }
@@ -452,8 +452,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         if (!space.visible) {
           return html ``;
         }
+        const maybeSelected = key == this._currentSpaceEh? true : false;
+        console.log({maybeSelected})
         return html`
-          <mwc-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+          <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
             <span slot="secondary">${this._store.template(space.origin).name}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(space.surface, 70, 56)}</span>
@@ -517,7 +519,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     <where-space-dialog id="space-dialog"
                         .myProfile=${this._myProfile.value}
-                        @space-added=${(e:any) => this._currentSpaceEh = e.detail}>
+                        @space-added=${(e:any) => this.selectSpace(e.detail)}>
     </where-space-dialog>
   </div>
 </mwc-drawer>

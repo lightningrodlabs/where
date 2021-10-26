@@ -17,6 +17,13 @@ For more details read the [design documents](DESIGN.md).
 2. Clone this repo: `git clone https://github.com/holochain/where && cd ./where`
 3. Enter the nix shell: `nix-shell`
 
+## Prerequisites
+
+```bash
+npm install
+(cd ui/lib && npm install)
+```
+
 ## Building the DNA
 
 - Build the DNA (assumes you are still in the nix shell for correct rust/cargo versions from step above):

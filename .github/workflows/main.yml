@@ -44,4 +44,5 @@ jobs:
     - name: run-tests
       run: |
         cd $GITHUB_WORKSPACE
-        nix-shell . --run "npm ci && npm run test"
+        npm -v
+        nix-shell . --run "npm -v && npm ci && npm run test"

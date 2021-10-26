@@ -4,7 +4,7 @@
 # It uses a custom revision and a custom set of binaries to be installed.
 
 {
-  holonixPath ?  builtins.fetchTarball { url = "https://github.com/holochain/holonix/archive/develop.tar.gz"; }
+  holonixPath ?  builtins.fetchTarball { url = "https://github.com/holochain/holonix/archive/e9d0cf532f2e0b2a556342810ad39f80f4174d46.tar.gz"; }
 }:
 
 let
@@ -17,9 +17,10 @@ let
     holochainVersionId = "custom";
 
     holochainVersion = {
-      rev = "221f3424a919224dcf1950d1059e8b88aba08f7b";
-      sha256 = "sha256:1m5clhh0xpr4ajdbybxjqc5vblkd30lsfb1sac4zbzxjrnpp5iki";
-      cargoSha256 = "sha256:175b76j31sls0gj08imchwnk7n4ylsxlc1bm58zrhfmq62hcchb1";
+      rev = "holochain-0.0.107";
+      sha256 = "1m5clhh0xpr4ajdbybxjqc5vblkd30lsfb1sac4zbzxjrnpp5iki";
+      cargoSha256 = "175b76j31sls0gj08imchwnk7n4ylsxlc1bm58zrhfmq62hcchb1";
+
       bins = {
         holochain = "holochain";
         hc = "hc";

@@ -21,7 +21,6 @@ For more details read the [design documents](DESIGN.md).
 
 ```bash
 npm install
-(cd ui/lib && npm install)
 ```
 
 ## Building the DNA

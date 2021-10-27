@@ -4,7 +4,7 @@
   "scripts": {
     "build": "rimraf dist && rollup --config rollup.config.js",
     "build:watch": "rollup -c -w",
-    "prepare": "tsc",
+    "tsc": "tsc",
     "start": "concurrently -k --names tsc,dev-server \"tsc -w --preserveWatchOutput\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "package": "rimraf ui.zip && npm run build && cd ./dist && bestzip ../ui.zip * "
   },
@@ -32,11 +32,11 @@
     "typescript": "4.3.5"
   },
   "dependencies": {
-    "@holochain-open-dev/cell-client": "^0.0.4",
+    "@holochain-open-dev/cell-client": "^0.0.8",
     "@holochain-open-dev/profiles": "github:holochain-open-dev/profiles#ui-build",
     "@holochain/conductor-api": "^0.2.1",
     "@lit-labs/context": "github:holochain-open-dev/context#build",
     "@where/elements": "^0.0.1",
-    "lit": "^2.0.0-rc.4"
+    "lit": "^2.0.2"
   }
 }

@@ -1,19 +1,19 @@
-import typescript from '@rollup/plugin-typescript';
-import postcss from 'rollup-plugin-postcss';
-import postcssLit from 'rollup-plugin-postcss-lit';
-import resolve from '@rollup/plugin-node-resolve';
-import commonjs from '@rollup/plugin-commonjs';
-import postcssCQFill from 'cqfill/postcss';
+import typescript from "@rollup/plugin-typescript";
+import postcss from "rollup-plugin-postcss";
+import postcssLit from "rollup-plugin-postcss-lit";
+import resolve from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
+import postcssCQFill from "cqfill/postcss";
 
-const pkg = require('./package.json');
+const pkg = require("./package.json");
 
 export default {
   input: `src/index.ts`,
-  output: [{ dir: 'dist', format: 'es', sourcemap: true }],
+  output: [{ dir: "dist", format: "es", sourcemap: true }],
   // Indicate here external modules you don't wanna include in your bundle (i.e.: 'lodash-es')
-  external: [...Object.keys(pkg.dependencies), /lit/],
+  external: [...Object.keys(pkg.dependencies), /lit/, 'svelte/store'],
   watch: {
-    include: 'src/**',
+    include: "src/**",
     clearScreen: false,
   },
   plugins: [
@@ -23,7 +23,7 @@ export default {
     }),
     postcssLit(),
     typescript({
-      target: 'es6',
+      target: "es6",
     }),
     resolve(),
     commonjs(),

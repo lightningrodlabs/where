@@ -21,10 +21,6 @@ jobs:
       uses: actions/checkout@v2
     - name: Use Nix
       uses: cachix/install-nix-action@v12
-    - name: Use Node.js 16
-      uses: actions/setup-node@v2
-      with:
-        node-version: 16
     - name: Configure Nix substituters
       run: |
         set -xe
@@ -44,5 +40,5 @@ jobs:
     - name: run-tests
       run: |
         cd $GITHUB_WORKSPACE
-        npm -v
+        echo "node version" && npm -v
         nix-shell . --run "npm -v && npm ci && npm run test"

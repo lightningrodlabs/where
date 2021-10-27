@@ -45,6 +45,15 @@ To test out the UI:
 npm run start
 ```
 
+## Network
+
+To bootstrap a network of N agents:
+
+``` bash
+npm run network 3
+```
+
+Replace the "3" for the number of agents you want to bootstrap.
 ## Package
 
 To package the web happ:

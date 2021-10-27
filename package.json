@@ -7,7 +7,10 @@
     "tests"
   ],
   "scripts": {
-    "start": "npm run build:happ && cross-env HC_PORT=$(port) concurrently \"npm run start:happ\" \"npm run build:watch -w @where/elements\" \"npm run start -w where\"",
+    "start": "npm run build:happ && npm run start:agent",
+    "network": "npm run build:happ && concurrently-repeat \"npm run start:agent\"",
+    "start:agent": "cross-env HC_PORT=$(port) concurrently \"npm run dev:libs\" \"npm run start:happ\" \"sleep 5 && npm run start -w where\"",
+    "dev:libs": "npm run build:watch -w @where/elements",
     "start-proxied": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run start:happ-proxied\" \"npm run start -w where\"",
     "start-rerun": "cross-env HC_PORT=8888 concurrently -k \"npm run build:watch -w @where/elements\" \"hc s run 0 -p 8888\" \"npm run start -w where\"",
     "prepare": "npm run build -w @where/elements && npm run build -w where",
@@ -22,6 +25,7 @@
   },
   "devDependencies": {
     "concurrently": "^6.2.1",
+    "concurrently-repeat": "^0.0.1",
     "cross-env": "^7.0.3",
     "json-parse-better-errors": "^1.0.2",
     "new-port-cli": "^1.0.0",

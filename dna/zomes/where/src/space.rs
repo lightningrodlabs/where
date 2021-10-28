@@ -53,7 +53,7 @@ fn unhide_space(space_eh64: EntryHashB64) -> ExternResult<()> {
     let space_eh: EntryHash = space_eh64.into();
     let my_agent_eh = EntryHash::from(agent_info().unwrap().agent_latest_pubkey);
     let links = get_links(my_agent_eh, None)?;
-    for link in links.into_inner().iter() {
+    for link in links.iter() {
         if link.target == space_eh {
             let _hash = delete_link(link.create_link_hash.clone())?;
             return Ok(());
@@ -67,7 +67,7 @@ fn unhide_space(space_eh64: EntryHashB64) -> ExternResult<()> {
 fn get_hidden_spaces(_: ()) -> ExternResult<Vec<EntryHashB64>> {
     let my_agent_eh = EntryHash::from(agent_info().unwrap().agent_latest_pubkey);
     let links = get_links(my_agent_eh, None)?;
-    let spaces = links.into_inner().iter().map(|link| link.target.clone().into()).collect();
+    let spaces = links.iter().map(|link| link.target.clone().into()).collect();
     Ok(spaces)
 }
 

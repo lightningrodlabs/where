@@ -444,7 +444,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         <li class="folk">
           <sl-tooltip content=${profile.nickname}>
             <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
-            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill>ㅤ</sl-badge>
+            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
           </sl-tooltip>
         </li>`
     })
@@ -576,8 +576,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         sl-badge::part(base) {
           border: 1px solid;
-          padding-bottom: 0px;
-          padding-top: 0px;
+          padding-top: 10px;
         }
 
         sl-tooltip sl-avatar {

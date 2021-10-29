@@ -52,7 +52,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
-  _zooms = new StoreSubscriber(this, () => this._store.zooms);
 
   /** Private properties */
 
@@ -178,7 +177,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         const margin = drawer.open? '256px' : '0px';
         const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
         menuButton.style.marginRight = margin;
-
+        this.spaceElem.isDrawerOpen = drawer.open;
+        this.spaceElem.requestUpdate();
       });
     }
     /** Menu */
@@ -603,7 +603,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         }
 
         #my-drawer {
-          margin-top: -15px;
+          margin-top: -20px;
         }
 
         .zoom {
@@ -618,6 +618,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         .appBody {
           width: 100%;
           margin-top: 2px;
+          margin-bottom: 0px;
           display:flex;
         }
 

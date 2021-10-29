@@ -48,6 +48,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
+  isDrawerOpen = false;
 
   async initFab(fab: Fab) {
     await fab.updateComplete;
@@ -426,12 +427,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Set viewed width and height and render Surface accordingly */
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
-    const maxW = window.innerWidth - 60 - 270 - 10; // minus drawer, avatar list, scroll bar
-    const maxH = window.innerHeight - 50 - 10; // minus top app bar, scroll bar
-    //console.log("max-width: ", maxW);
-    //console.log("max-height: ", maxH);
-
-    //console.log({space});
+    /** Set max size */
+    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 270 : 14) - 10; // minus drawer, avatar list, scroll bar
+    const maxH = window.innerHeight - 50 - 10 - 10; // minus top app bar, scroll bar
+    console.log("max-width: ", maxW);
+    console.log("max-height: ", maxH);
+    /** render Surface */
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
     /** Render fabs */
     const fabs = html`
@@ -445,7 +446,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     `;
     /** Build LocationDialog if required */
     const maybeLocationDialog =  this.renderLocationDialog(space);
-    /** Render layout */
+    /** Render layout - 1.01 because of scroll bars */
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
         ${surfaceItem}

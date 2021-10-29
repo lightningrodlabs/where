@@ -175,6 +175,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       const container = drawer.parentNode!;
       container.addEventListener('MDCTopAppBar:nav', () => {
         drawer.open = !drawer.open;
+        const margin = drawer.open? '256px' : '0px';
+        const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
+        menuButton.style.marginRight = margin;
+
       });
     }
     /** Menu */
@@ -500,7 +504,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${this._spaces.value[this._currentSpaceEh].name}</div>
-      <mwc-icon-button slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
+      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
       <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>

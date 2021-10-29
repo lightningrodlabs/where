@@ -421,7 +421,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                   @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
       </mwc-slider>
       <mwc-fab mini id="plus-fab" icon="add" style="left:90px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="refresh" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="delete" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
       <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:180px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */

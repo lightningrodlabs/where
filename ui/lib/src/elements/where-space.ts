@@ -65,6 +65,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('resize', this._handleResize);
+  }
+  disconnectedCallback() {
+    window.removeEventListener('resize', this._handleResize);
+    super.disconnectedCallback();
+  }
+
+
+  private _handleResize = (e: UIEvent) => {
+    this.requestUpdate();
+  }
+
   private _handleWheel = (e: WheelEvent) => {
     if (e.target) {
       e.preventDefault();
@@ -412,6 +426,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Set viewed width and height and render Surface accordingly */
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
+    const maxW = window.innerWidth - 60 - 270 - 10; // minus drawer, avatar list, scroll bar
+    const maxH = window.innerHeight - 50 - 10; // minus top app bar, scroll bar
+    //console.log("max-width: ", maxW);
+    //console.log("max-height: ", maxH);
+
     //console.log({space});
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
     /** Render fabs */
@@ -428,7 +447,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const maybeLocationDialog =  this.renderLocationDialog(space);
     /** Render layout */
     return html`
-      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;min-width:160px;">
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
         ${surfaceItem}
         ${uiItems}
         ${locationItems}
@@ -484,9 +503,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          /*overflow: auto;*/
-          /*max-width: 1500px;*/
-          /*max-height: 900px;*/
+          overflow: auto;
+          min-width:160px;
         }
 
         sl-avatar::part(initials) {

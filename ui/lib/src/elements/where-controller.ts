@@ -395,16 +395,18 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   handleMenuSelect(e: any) {
-    console.log("handleMenuSelect: " + e.originalTarget.innerHTML)
-    //console.log({e})
-    switch (e.originalTarget.innerHTML) {
-      case "Fork Template":
+    const menu = e.currentTarget as Menu;
+    console.log("handleMenuSelect: " + menu)
+    const selected = menu.selected as ListItem;
+    console.log({selected})
+    switch (selected.value) {
+      case "fork_template":
         this.openTemplateDialog(this._currentTemplateEh)
         break;
-      case "Fork Space":
+      case "fork_space":
         this.openSpaceDialog(this._currentSpaceEh)
         break;
-      case "Archive Space":
+      case "archive_space":
         this.archiveSpace()
         break;
       default:
@@ -506,7 +508,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       <div slot="title">Where - ${this._spaces.value[this._currentSpaceEh].name}</div>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
-      <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>
+      <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>

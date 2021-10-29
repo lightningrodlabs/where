@@ -507,16 +507,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           min-width:160px;
         }
 
-        sl-avatar::part(initials) {
-          /*line-height: 31px;*/
-          font-size: 26px;
-          margin-top: -3px;
-        }
-
-        sl-avatar {
-          --size: ${MARKER_WIDTH}px;
-        }
-
         #edit-location-tag {
           display:block;
         }

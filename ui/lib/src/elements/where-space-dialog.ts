@@ -319,7 +319,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     locMeta.markerType = markerType? markerType : this.determineMarkerType();
     locMeta.img = this.myProfile!.fields.avatar;
     locMeta.emoji = "😀";
-    locMeta.color = "#03cece";
+    locMeta.color = this.myProfile!.fields.color;
     locMeta.name = this.myProfile!.nickname;
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }

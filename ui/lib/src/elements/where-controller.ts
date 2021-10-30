@@ -5,6 +5,7 @@ import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 import {Unsubscriber} from "svelte/store";
 
+import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
 import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
 import { WhereStore } from "../where.store";
@@ -82,9 +83,28 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
+  randomRobotName(): string {
+    const charCodeA = "A".charCodeAt(0);
+    const charCode0 = "0".charCodeAt(0);
+
+    const randomA = String.fromCharCode(charCodeA + Math.floor(Math.random() * 26));
+    const randomB = String.fromCharCode(charCodeA + Math.floor(Math.random() * 26));
+
+    const random1 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
+    const random2 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
+    const random3 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
+
+    return randomA + randomB + '-' + random1 + random2 + random3;
+
+  }
 
   async createDummyProfile() {
-    await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
+    const nickname: string = this.randomRobotName();
+    console.log(nickname);
+    const color: string = randomColor();
+    console.log(color);
+    await this.updateProfile(nickname, `https://robohash.org/${nickname}`, color)
+    //await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
 
 
@@ -111,13 +131,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   get myAvatar(): string {
     return this._myProfile.value.fields.avatar;
   }
+  get myColor(): string {
+    return this._myProfile.value.fields.color;
+  }
 
   private subscribeProfile() {
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe(async (profile) => {
       if (profile) {
         //console.log({profile})
-        //this._myAvatar = `https://robohash.org/${profile.nickname}`
         await this.checkInit();
       }
       // unsubscribe()
@@ -449,7 +471,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return html`
         <li class="folk">
           <sl-tooltip content=${profile.nickname}>
-            <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
+            <sl-avatar .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;"></sl-avatar>
             <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
           </sl-tooltip>
         </li>`
@@ -482,7 +504,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       <span>${this.myNickName}</span>
       <span slot="secondary">${this._profiles.myAgentPubKey}</span>
-      <sl-avatar style="margin-left:-22px;border:none;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
+      <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
       <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}" value=${this._myProfile.value.fields['color']}></sl-color-picker>
     </mwc-list-item>
     <li divider role="separator"></li>
@@ -586,7 +608,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         }
 
         sl-tooltip sl-avatar {
-          --size: ${MARKER_WIDTH}px;
+          /*--size: ${MARKER_WIDTH}px;*/
         }
 
         sl-tooltip {

@@ -22,7 +22,10 @@ export const sharedStyles = css`
     --size: ${MARKER_WIDTH}px;
     border-radius: 100%;
     border: black 1px solid;
-    background-color: #fafafa;
+    /*background-color: #fafafa;*/
+  }
+  sl-avatar::part(base) {
+    background-color: transparent;
   }
   sl-avatar::part(initials) {
     /*line-height: 31px;*/

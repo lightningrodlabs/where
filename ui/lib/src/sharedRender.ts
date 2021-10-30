@@ -87,16 +87,16 @@ export function renderTemplate(template: TemplateEntry) {
 export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   let marker;
   const classes = isMe? "me" : "";
+  const myStyle = `background-color:${locMeta.color}; border:${locMeta.color} 2px solid`;
 
   //console.log("locMeta.markerType: " + locMeta.markerType)
   switch (locMeta.markerType) {
     case MarkerType[MarkerType.Avatar]:
       // Use an image url if stored in the Location, otherwise use the agent's avatar
       if (locMeta.img === "") {
-        marker = html`<sl-avatar class=${classes}></sl-avatar>`
+        marker = html`<sl-avatar class=${classes} style=${myStyle}><div slot="icon"></div></sl-avatar>`
       } else {
-        marker = html`
-          <sl-avatar class=${classes} .image=${locMeta.img}></sl-avatar>`
+        marker = html`<sl-avatar class=${classes} .image=${locMeta.img} style=${myStyle}><div slot="icon"></div></sl-avatar>`
       }
       break;
     case MarkerType[MarkerType.Color]:

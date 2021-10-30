@@ -428,10 +428,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     /** Set max size */
-    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 270 : 14) - 10; // minus drawer, avatar list, scroll bar
-    const maxH = window.innerHeight - 50 - 10 - 10; // minus top app bar, scroll bar
-    console.log("max-width: ", maxW);
-    console.log("max-height: ", maxH);
+    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 256 : 0) - 24; // minus drawer, avatar list, scroll bar
+    const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
+    //console.log("max-width: ", maxW);
+    //console.log("max-height: ", maxH);
     /** render Surface */
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
     /** Render fabs */

@@ -17,6 +17,12 @@ For more details read the [design documents](DESIGN.md).
 2. Clone this repo: `git clone https://github.com/holochain/where && cd ./where`
 3. Enter the nix shell: `nix-shell`
 
+## Prerequisites
+
+```bash
+npm install
+```
+
 ## Building the DNA
 
 - Build the DNA (assumes you are still in the nix shell for correct rust/cargo versions from step above):
@@ -39,6 +45,15 @@ To test out the UI:
 npm run start
 ```
 
+## Network
+
+To bootstrap a network of N agents:
+
+``` bash
+npm run network 3
+```
+
+Replace the "3" for the number of agents you want to bootstrap.
 ## Package
 
 To package the web happ:

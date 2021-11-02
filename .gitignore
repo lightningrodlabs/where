@@ -1,3 +1,10 @@
+## editors
+/.idea
+/.vscode
+
+## system files
+.DS_Store
+
 target/
 node_modules/
 dist/
@@ -6,3 +13,5 @@ dist/
 dna/workdir/dna/*.dna
 dna/workdir/happ/*.happ
 workdir/*.webhapp
+*.tsbuildinfo
+.running

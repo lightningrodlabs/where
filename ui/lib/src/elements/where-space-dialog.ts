@@ -372,8 +372,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     const boxExample = `{ "box": {"left": 100, "top": 10, "width": 100, "height": 50},
       "style": "background-color:white;border-radius:10px;",
-      "content": "Land of the Lost"}
-    }`
+      "content": "Land of the Lost"}`
 
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>

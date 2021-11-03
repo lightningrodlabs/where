@@ -5,6 +5,7 @@ import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 import {Unsubscriber} from "svelte/store";
 
+import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
 import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
 import { WhereStore } from "../where.store";
@@ -52,7 +53,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
-  _zooms = new StoreSubscriber(this, () => this._store.zooms);
 
   /** Private properties */
 
@@ -83,9 +83,28 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
+  randomRobotName(): string {
+    const charCodeA = "A".charCodeAt(0);
+    const charCode0 = "0".charCodeAt(0);
+
+    const randomA = String.fromCharCode(charCodeA + Math.floor(Math.random() * 26));
+    const randomB = String.fromCharCode(charCodeA + Math.floor(Math.random() * 26));
+
+    const random1 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
+    const random2 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
+    const random3 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
+
+    return randomA + randomB + '-' + random1 + random2 + random3;
+
+  }
 
   async createDummyProfile() {
-    await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
+    const nickname: string = this.randomRobotName();
+    console.log(nickname);
+    const color: string = randomColor();
+    console.log(color);
+    await this.updateProfile(nickname, `https://robohash.org/${nickname}`, color)
+    //await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
 
 
@@ -112,13 +131,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   get myAvatar(): string {
     return this._myProfile.value.fields.avatar;
   }
+  get myColor(): string {
+    return this._myProfile.value.fields.color;
+  }
 
   private subscribeProfile() {
     let unsubscribe: Unsubscriber;
     unsubscribe = this._profiles.myProfile.subscribe(async (profile) => {
       if (profile) {
         //console.log({profile})
-        //this._myAvatar = `https://robohash.org/${profile.nickname}`
         await this.checkInit();
       }
       // unsubscribe()
@@ -175,6 +196,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       const container = drawer.parentNode!;
       container.addEventListener('MDCTopAppBar:nav', () => {
         drawer.open = !drawer.open;
+        const margin = drawer.open? '256px' : '0px';
+        const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
+        menuButton.style.marginRight = margin;
+        this.spaceElem.isDrawerOpen = drawer.open;
+        this.spaceElem.requestUpdate();
       });
     }
     /** Menu */
@@ -188,7 +214,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   private async selectSpace(spaceEh: EntryHashB64): Promise<void> {
-    console.log("    selected space: " + spaceEh);
+    console.log("   selected space: " + spaceEh);
     this._currentSpaceEh = spaceEh;
     await this.selectTemplateOf(spaceEh);
   }
@@ -198,7 +224,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const spaces = await this._store.pullSpaces();
     if (spaces[spaceEh]) {
       this._currentTemplateEh = spaces[spaceEh].origin;
-      console.log("    selected template: " + this._currentTemplateEh);
+      console.log("selected template: " + this._currentTemplateEh);
     }
     const templates = await this._store.updateTemplates()
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
@@ -391,16 +417,18 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   handleMenuSelect(e: any) {
-    console.log("handleMenuSelect: " + e.originalTarget.innerHTML)
-    //console.log({e})
-    switch (e.originalTarget.innerHTML) {
-      case "Fork Template":
+    const menu = e.currentTarget as Menu;
+    console.log("handleMenuSelect: " + menu)
+    const selected = menu.selected as ListItem;
+    console.log({selected})
+    switch (selected.value) {
+      case "fork_template":
         this.openTemplateDialog(this._currentTemplateEh)
         break;
-      case "Fork Space":
+      case "fork_space":
         this.openSpaceDialog(this._currentSpaceEh)
         break;
-      case "Archive Space":
+      case "archive_space":
         this.archiveSpace()
         break;
       default:
@@ -443,8 +471,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return html`
         <li class="folk">
           <sl-tooltip content=${profile.nickname}>
-            <sl-avatar .image=${profile.fields.avatar}></sl-avatar>
-            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill>ㅤ</sl-badge>
+            <sl-avatar .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;"></sl-avatar>
+            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
           </sl-tooltip>
         </li>`
     })
@@ -476,7 +504,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       <span>${this.myNickName}</span>
       <span slot="secondary">${this._profiles.myAgentPubKey}</span>
-      <sl-avatar style="margin-left:-22px;border:none;" slot="graphic" .image=${this.myAvatar}></sl-avatar>
+      <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
       <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}" value=${this._myProfile.value.fields['color']}></sl-color-picker>
     </mwc-list-item>
     <li divider role="separator"></li>
@@ -500,9 +528,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${this._spaces.value[this._currentSpaceEh].name}</div>
-      <mwc-icon-button slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
+      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.refresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}></mwc-icon-button>
-      <mwc-menu id="top-menu" @click=${this.handleMenuSelect}>
+      <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
@@ -576,12 +604,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         sl-badge::part(base) {
           border: 1px solid;
-          padding-bottom: 0px;
-          padding-top: 0px;
+          padding-top: 10px;
         }
 
         sl-tooltip sl-avatar {
-          --size: ${MARKER_WIDTH}px;
+          /*--size: ${MARKER_WIDTH}px;*/
         }
 
         sl-tooltip {
@@ -598,7 +625,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         }
 
         #my-drawer {
-          margin-top: -15px;
+          margin-top: -20px;
         }
 
         .zoom {
@@ -613,6 +640,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         .appBody {
           width: 100%;
           margin-top: 2px;
+          margin-bottom: 0px;
           display:flex;
         }
 

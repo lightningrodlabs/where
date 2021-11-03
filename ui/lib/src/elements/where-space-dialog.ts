@@ -319,7 +319,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     locMeta.markerType = markerType? markerType : this.determineMarkerType();
     locMeta.img = this.myProfile!.fields.avatar;
     locMeta.emoji = "😀";
-    locMeta.color = "#03cece";
+    locMeta.color = this.myProfile!.fields.color;
     locMeta.name = this.myProfile!.nickname;
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
@@ -380,6 +380,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-textfield dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+  <!--  Marker Select -->
+  <mwc-select label="Marker type" id="marker-select">
+    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerPreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Emoji]}">Emoji ${this.renderMarkerPreview(MarkerType[MarkerType.Emoji])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Color]}">Colored Pin ${this.renderMarkerPreview(MarkerType[MarkerType.Color])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerPreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
+  </mwc-select>
+  <!--  Template Select -->
   <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}>
       ${Object.entries(this._templates.value).map(
         ([key, template]) => html`
@@ -392,16 +400,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       `)}
   </mwc-select>
   ${selectedTemplateUi}
+
   <mwc-textfield id="width-field" class="rounded" outlined minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
   <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="1" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
-
-  <!--  Marker Select -->
-  <mwc-select outlined label="Marker" id="marker-select">
-    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerPreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Emoji]}">Emoji ${this.renderMarkerPreview(MarkerType[MarkerType.Emoji])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Color]}">Color ${this.renderMarkerPreview(MarkerType[MarkerType.Color])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerPreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
-  </mwc-select>
 
   <mwc-formfield label="Multi-locations per user">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>

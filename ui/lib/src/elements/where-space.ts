@@ -48,6 +48,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
+  isDrawerOpen = false;
 
   async initFab(fab: Fab) {
     await fab.updateComplete;
@@ -64,6 +65,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.hideFab);
   }
 
+
+  connectedCallback() {
+    super.connectedCallback();
+    window.addEventListener('resize', this._handleResize);
+  }
+  disconnectedCallback() {
+    window.removeEventListener('resize', this._handleResize);
+    super.disconnectedCallback();
+  }
+
+
+  private _handleResize = (e: UIEvent) => {
+    this.requestUpdate();
+  }
 
   private _handleWheel = (e: WheelEvent) => {
     if (e.target) {
@@ -221,10 +236,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private drag(ev: DragEvent) {
-    if (!ev.target) {
+    if (!ev.currentTarget) {
       return false;
     }
-    const w = ev.target as HTMLImageElement;
+    const w = ev.currentTarget as HTMLElement;
     const idx = w.getAttribute("idx");
     //console.log(w)
     if (idx && ev.dataTransfer) {
@@ -412,7 +427,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Set viewed width and height and render Surface accordingly */
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
-    //console.log({space});
+    /** Set max size */
+    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 256 : 0) - 24; // minus drawer, avatar list, scroll bar
+    const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
+    //console.log("max-width: ", maxW);
+    //console.log("max-height: ", maxH);
+    /** render Surface */
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
     /** Render fabs */
     const fabs = html`
@@ -421,14 +441,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                   @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
       </mwc-slider>
       <mwc-fab mini id="plus-fab" icon="add" style="left:90px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="refresh" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="delete" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
       <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:180px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */
     const maybeLocationDialog =  this.renderLocationDialog(space);
-    /** Render layout */
+    /** Render layout - 1.01 because of scroll bars */
     return html`
-      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;min-width:160px;">
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
         ${surfaceItem}
         ${uiItems}
         ${locationItems}
@@ -484,9 +504,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          /*overflow: auto;*/
-          /*max-width: 1500px;*/
-          /*max-height: 900px;*/
+          overflow: auto;
+          min-width:160px;
         }
 
         #edit-location-tag {

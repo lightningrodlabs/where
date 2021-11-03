@@ -50,7 +50,7 @@ fn get_heres(space: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
 }
 
 fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
-    let links = get_links(base.into(), None)?.into_inner();
+    let links = get_links(base.into(), None)?;
 
     let mut output = Vec::with_capacity(links.len());
 

@@ -15,6 +15,7 @@ import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
+import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 
 /**
  * @element where-space
@@ -48,7 +49,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
-  isDrawerOpen = false;
+  @property() isDrawerOpen = false;
+
+  @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
   async initFab(fab: Fab) {
     await fab.updateComplete;
@@ -416,6 +419,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let locationItems = undefined;
     if (this.hideFab && this.hideFab.icon === 'visibility') {
       locationItems = space.locations.map((locationInfo, i) => {
+        if (this.soloAgent != null && locationInfo) {
+          if (this.soloAgent != locationInfo.authorPubKey) {
+            return;
+          }
+        }
         return this.renderLocation(locationInfo, z, space, i)
       });
     }

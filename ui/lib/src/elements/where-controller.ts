@@ -101,7 +101,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async createDummyProfile() {
     const nickname: string = this.randomRobotName();
     console.log(nickname);
-    const color: string = randomColor();
+    const color: string = randomColor({luminosity: 'light'});
     console.log(color);
     await this.updateProfile(nickname, `https://robohash.org/${nickname}`, color)
     //await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
@@ -461,6 +461,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return "danger";
   }
 
+  handleClickAvatar(e: any) {
+    console.log("Avatar clicked: " + e.currentTarget.alt)
+    //console.log(e.detail)
+    const key = e.currentTarget.alt
+    if (this.spaceElem) {
+      this.spaceElem.soloAgent = key == this.spaceElem.soloAgent? null : key;
+      this.requestUpdate();
+    }
+  }
+
   render() {
     if (!this._currentSpaceEh) {
       return;
@@ -468,11 +478,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
     /** Build agent list */
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
+      let opacity = 1.0;
+      if (this.spaceElem && this.spaceElem.soloAgent && this.spaceElem.soloAgent != key) {
+        opacity = 0.4;
+      }
       return html`
         <li class="folk">
-          <sl-tooltip content=${profile.nickname}>
-            <sl-avatar .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;"></sl-avatar>
-            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
+          <sl-tooltip content=${profile.nickname} style="opacity: ${opacity};">
+                <sl-avatar alt=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" ></sl-avatar>
+                <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
           </sl-tooltip>
         </li>`
     })

@@ -381,14 +381,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <!--  Marker Select -->
-  <mwc-select label="Marker type" id="marker-select">
+  <mwc-select label="Marker type" id="marker-select" @closing=${(e:any)=>e.stopPropagation()}>
     <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerPreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.Emoji]}">Emoji ${this.renderMarkerPreview(MarkerType[MarkerType.Emoji])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.Color]}">Colored Pin ${this.renderMarkerPreview(MarkerType[MarkerType.Color])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerPreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
   </mwc-select>
   <!--  Template Select -->
-  <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}>
+  <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
       ${Object.entries(this._templates.value).map(
         ([key, template]) => html`
         <mwc-list-item

@@ -133,7 +133,7 @@ export const installAgents = async (conductor, agentNames, memProofArray?, holo_
 
       let dna = {
         hash: dnaHash,
-        nick: 'where',
+        role_id: 'where',
       }
       if (memProofArray) {
         dna["membrane_proof"] = Array.from(memProofArray[i])

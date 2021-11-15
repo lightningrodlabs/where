@@ -179,6 +179,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     if (options.canEdit) {
       this.dialogCanEdit = options.canEdit;
+      if (options.tag) {
+        tagElem!.value = options.tag
+      }
       if (coord) this.dialogCoord = coord;
       if (idx) this.dialogIdx = idx;
     } else {
@@ -374,6 +377,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         @dragstart="${(e: DragEvent) => this.drag(e)}"
         idx="${i}" class="location-marker" style="left: ${x}px; top: ${y}px;">
       ${marker}
+      ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
         <h3>${locInfo.location.meta.name}</h3>
@@ -437,12 +441,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Render fabs */
     const fabs = html`
       <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
-      <mwc-slider discrete step="2" min="10" max="300" style="position:absolute;left:38px;top:-5px;min-width: 50px;"
+      <mwc-slider discrete step="2" min="10" max="300" style="position:absolute;left:20px;top:-5px;width:120px;"
                   @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
       </mwc-slider>
-      <mwc-fab mini id="plus-fab" icon="add" style="left:90px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="delete" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
-      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:180px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
+      <mwc-fab mini id="plus-fab" icon="add" style="left:120px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="delete" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */
     const maybeLocationDialog =  this.renderLocationDialog(space);
@@ -548,7 +552,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           color: black;
           min-height: ${EMOJI_WIDTH}px;
         }
-
+        .location-tag {
+          background-color: white;
+          border-radius: 5px;
+          border: black 1px solid;
+          font-size: 75%;
+          padding: 3px;
+          width: 80px;
+          overflow-x: auto;
+          margin-left: -20px;
+          text-align: center;
+        }
         .location-details {
           display: none;
           position: absolute;

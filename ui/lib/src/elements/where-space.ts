@@ -179,6 +179,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     if (options.canEdit) {
       this.dialogCanEdit = options.canEdit;
+      if (options.tag) {
+        tagElem!.value = options.tag
+      }
       if (coord) this.dialogCoord = coord;
       if (idx) this.dialogIdx = idx;
     } else {
@@ -374,6 +377,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         @dragstart="${(e: DragEvent) => this.drag(e)}"
         idx="${i}" class="location-marker" style="left: ${x}px; top: ${y}px;">
       ${marker}
+      ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
         <h3>${locInfo.location.meta.name}</h3>
@@ -548,7 +552,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           color: black;
           min-height: ${EMOJI_WIDTH}px;
         }
-
+        .location-tag {
+          background-color: white;
+          border-radius: 5px;
+          border: black 1px solid;
+          font-size: 75%;
+          padding: 3px;
+          width: 80px;
+          overflow-x: auto;
+          margin-left: -20px;
+          text-align: center;
+        }
         .location-details {
           display: none;
           position: absolute;

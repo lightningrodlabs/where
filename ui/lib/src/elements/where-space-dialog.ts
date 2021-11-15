@@ -59,6 +59,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   @query('#tag-chk')
   _tagChk!: Checkbox;
+  @query('#tag-visible-chk')
+  _tagVisibleChk!: Checkbox;
   @query('#multi-chk')
   _multiChk!: Checkbox;
 
@@ -93,9 +95,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
     this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
     this._tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
+    this._tagVisibleChk.checked = originalSpace.meta!["canTag"] && originalSpace.meta!["tagVisible"] ? true : false;
     this._markerField.value = originalSpace.meta!["markerType"];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
+    this.handleTagSelect()
 
     /** Templated fields */
     try {
@@ -148,6 +152,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // - Get checkbox values
     const multi = this._multiChk.checked ? "true" : ""
     const canTag = this._tagChk.checked ? "true" : ""
+    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked ? "true" : ""
     const markerType = this.determineMarkerType();
 
     let {surface, subMap} = this.generateSurface();
@@ -166,6 +171,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         multi,
         canTag,
         markerType,
+        tagVisible,
         ui: this._uiField.value
       },
       locations: [],
@@ -192,6 +198,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._widthField.value = ''
     this._heightField.value = ''
     this._uiField.value = '[]'
+    this.handleTagSelect()
   }
 
   private async handleDialogOpened(e: any) {
@@ -361,6 +368,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //this.requestUpdate()
   }
 
+  handleTagSelect() {
+    this._tagVisibleChk.disabled = !this._tagChk.checked
+    this._tagVisibleChk.hidden = !this._tagChk.checked
+  }
 
   render() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
@@ -407,8 +418,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-formfield label="Multi-locations per user">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Enable tags">
+  <mwc-formfield label="Enable tags" @click=${this.handleTagSelect}>
     <mwc-checkbox id="tag-chk"></mwc-checkbox>
+  </mwc-formfield>
+  <mwc-formfield label="Tag allways visible">
+    <mwc-checkbox id="tag-visible-chk"></mwc-checkbox>
   </mwc-formfield>
 
 

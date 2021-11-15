@@ -15,6 +15,7 @@ import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
+import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 
 /**
  * @element where-space
@@ -48,7 +49,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
-  isDrawerOpen = false;
+  @property() isDrawerOpen = false;
+
+  @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
   async initFab(fab: Fab) {
     await fab.updateComplete;
@@ -420,6 +423,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let locationItems = undefined;
     if (this.hideFab && this.hideFab.icon === 'visibility') {
       locationItems = space.locations.map((locationInfo, i) => {
+        if (this.soloAgent != null && locationInfo) {
+          if (this.soloAgent != locationInfo.authorPubKey) {
+            return;
+          }
+        }
         return this.renderLocation(locationInfo, z, space, i)
       });
     }
@@ -441,12 +449,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Render fabs */
     const fabs = html`
       <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
-      <mwc-slider discrete step="2" min="10" max="300" style="position:absolute;left:38px;top:-5px;min-width: 50px;"
+      <mwc-slider min="10" max="300" style="position:absolute;left:18px;top:-5px;min-width: 50px;width:120px;"
                   @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
       </mwc-slider>
-      <mwc-fab mini id="plus-fab" icon="add" style="left:90px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="delete" style="left:140px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
-      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:180px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
+      <mwc-fab mini id="plus-fab" icon="add" style="left:115px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="delete" style="left:165px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:205px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */
     const maybeLocationDialog =  this.renderLocationDialog(space);

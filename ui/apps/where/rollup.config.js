@@ -13,6 +13,7 @@ import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
 
 const HC_PORT = process.env.HC_PORT || 8888;
+const DIST_FOLDER = "dist"
 
 export default {
   input: "index.html",
@@ -30,7 +31,7 @@ export default {
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
-      minify: production,
+      minify: true,
       injectServiceWorker: true,
       serviceWorkerPath: "dist/sw.js",
     }),

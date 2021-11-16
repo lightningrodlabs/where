@@ -369,6 +369,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async openTemplateDialog(templateEh?: any) {
+    this.templateDialogElem.clearAllFields();
     this.templateDialogElem.open(templateEh);
   }
 

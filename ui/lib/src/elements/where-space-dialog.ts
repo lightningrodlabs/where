@@ -90,7 +90,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!originalSpace) {
       return;
     }
-    this._nameField.value = originalSpace.name;
+    this._nameField.value = 'Fork of ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
     this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
     this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
@@ -188,8 +188,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  resetAllFields() {
-    this._nameField.value = ''
+  resetAllFields(canResetName?: boolean) {
+    if (canResetName === undefined || canResetName) this._nameField.value = ''
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
       // console.log('field ' + placeholder + ' - ' + field.value)
@@ -214,7 +214,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private handleTemplateSelect(templateName: string): void {
-    this.resetAllFields();
+    this.resetAllFields(false);
     this._useTemplateSize = true;
     this._currentTemplate = this._templates.value[templateName]
   }
@@ -410,6 +410,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         </mwc-list-item>
       `)}
   </mwc-select>
+
   ${selectedTemplateUi}
 
   <mwc-textfield id="width-field" class="rounded" outlined minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>

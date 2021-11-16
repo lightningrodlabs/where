@@ -47,7 +47,7 @@ function isValidXml(input: string) {
 export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   @state() size : Coord = {x:0,y:0};
-  @state() _currentType = "html";
+
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -60,6 +60,8 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   }
 
   /** Private properties */
+
+  _currentType = "html";
 
   _templateToPreload?: EntryHashB64;
 
@@ -168,7 +170,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
-  private clearAllFields(e?: any) {
+  clearAllFields(e?: any) {
     this._nameField.value = "";
     this._surfaceField.value = "";
     let field = this.shadowRoot!.getElementById('width-field') as TextField;
@@ -183,13 +185,12 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-<mwc-dialog id="template-dialog" heading="New template" @closing=${this.clearAllFields} @opened=${this.handleDialogOpened}>
-  <mwc-textfield dialogInitialFocus @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
+<mwc-dialog id="template-dialog" heading="New template" @opened=${this.handleDialogOpened}>
+  <mwc-textfield dialogInitialFocus type="text"
+                 @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <mwc-select required id="type-field" label="Type" @select=${this.handleTypeSelect}>
-    <mwc-list-item
-      @request-selected=${() => this.handleTypeSelect("html")}
-      selected value="html">HTML</mwc-list-item>
+    <mwc-list-item @request-selected=${() => this.handleTypeSelect("html")} selected value="html">HTML</mwc-list-item>
     <mwc-list-item @request-selected=${() => this.handleTypeSelect("svg")} value="svg">SVG</mwc-list-item>
   </mwc-select>
 

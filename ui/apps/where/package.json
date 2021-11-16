@@ -1,6 +1,6 @@
 {
   "name": "where",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "scripts": {
     "build": "tsc",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",

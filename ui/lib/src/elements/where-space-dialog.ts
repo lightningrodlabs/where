@@ -90,7 +90,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!originalSpace) {
       return;
     }
-    this._nameField.value = originalSpace.name;
+    this._nameField.value = 'Fork of ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
     this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
     this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;

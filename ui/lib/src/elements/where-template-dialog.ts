@@ -77,7 +77,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     const templateToPreload = this._store.template(templateEh);
     const surface = JSON.parse(templateToPreload.surface)
 
-    this._nameField.value = templateToPreload.name;
+    this._nameField.value = 'Fork of ' + templateToPreload.name;
 
     this._typeField.value = surface.html? 'html' : 'svg';
 

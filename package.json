@@ -9,6 +9,8 @@
   "scripts": {
     "start": "npm run build:happ && npm run start:agent",
     "network": "npm run build:happ && concurrently-repeat \"npm run start:agent\"",
+    "network-proxied": "npm run build:happ && concurrently-repeat \"npm run start:agent-proxied\"",
+    "start:agent-proxied": "cross-env HC_PORT=$(port) concurrently \"npm run dev:libs\" \"npm run start:happ-proxied\" \"sleep 5 && npm run start -w where\"",
     "start:agent": "cross-env HC_PORT=$(port) concurrently \"npm run dev:libs\" \"npm run start:happ\" \"sleep 5 && npm run start -w where\"",
     "dev:libs": "npm run build:watch -w @where/elements",
     "start-proxied": "npm run build:happ && npm run build -w @where/elements && cross-env HC_PORT=$(port) concurrently -k \"npm run start:happ-proxied\" \"npm run start -w where\"",

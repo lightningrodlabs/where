@@ -24,6 +24,7 @@ import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar} from "@scoped-elements/shoelace";
+import {prefix_canvas} from "./templates";
 
 /**
  * @element where-space-dialog
@@ -36,6 +37,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentPlaceHolders: Array<string> = [];
 
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
+  _canvas: string = "";
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -125,6 +127,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
        return MarkerType[MarkerType.Avatar];
     }
     return this._markerField.value;
+  }
+
+
+  updated(changedProperties: any) {
+    if (this._canvas) {
+      let canvas_code = prefix_canvas('preview-canvas') + this._canvas;
+      var renderCanvas = new Function (canvas_code);
+      renderCanvas.apply(this);
+    }
   }
 
   /**
@@ -228,9 +239,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
    *   Generate surface from template and form
    */
   generateSurface() {
-    /** Html/SVG */
+    /** Html/SVG/JS */
     let surface: any = JSON.parse(this._currentTemplate.surface);
-    let code: string = surface.svg? surface.svg : surface.html;
+    let code: string = "";
+    if (surface.svg) code = surface.svg;
+    if (surface.html) code = surface.html;
+    if (surface.canvas) code = surface.canvas;
+
     /** Create substitution map */
     let subMap: Map<string, string> = new Map();
     for (let placeholder of this._currentPlaceHolders) {
@@ -246,11 +261,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     })
     //console.log({code})
     /** Replace field */
-    if (surface.svg) {
-      surface.svg = code
-    } else {
-      surface.html = code
-    }
+    if (surface.svg) surface.svg = code;
+    if (surface.html) surface.html = code ;
+    if (surface.canvas) surface.canvas = code;
 
     /** Size */
     if (this._widthField) {
@@ -341,23 +354,36 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const w: number = 200;
     const h: number = 200 * ratio;
     let uiItems = this._uiField? renderUiItems(this._uiField.value, w / surface.size.x, h / surface.size.y) : html ``;
-    const preview = surface.html?
-      html`
-        ${uiItems}
-        <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
+
+    var preview;
+    if (surface.html) {
+      preview =
+        html`
+          ${uiItems}
+          <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
             ${unsafeHTML(surface.html)}
-        </div>
-        `
-      : html`<svg xmlns="http://www.w3.org/2000/svg"
-                  width="${w}px"
-                  height="${h}px"
-                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
-                  preserveAspectRatio="none"
-                  id="surface-preview-svg">
+          </div>
+        `;
+    }
+    if (surface.svg) {
+      preview = html`
+        <svg xmlns="http://www.w3.org/2000/svg"
+             width="${w}px"
+             height="${h}px"
+             viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+             preserveAspectRatio="none"
+             id="surface-preview-svg">
           ${uiItems}
           ${unsafeSVG(surface.svg)}
         </svg>`
       ;
+    }
+    if (surface.canvas) {
+      this._canvas = surface.canvas;
+      preview = html`
+      <canvas id="preview-canvas" width="${w}" height="${h}"
+              style="border:1px solid #324acb;">`
+    }
     return html`
       <div id="thumbnail">${preview}</div>
     `

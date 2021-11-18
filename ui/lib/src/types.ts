@@ -69,6 +69,12 @@ export enum MarkerType {
   Letter,
 }
 
+export enum TemplateType {
+  Html = 'html',
+  Svg = 'svg',
+  Canvas = 'canvas',
+}
+
 export interface TemplateEntry  {
   name: string;
   surface: string;

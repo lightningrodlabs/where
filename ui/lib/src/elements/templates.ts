@@ -59,3 +59,24 @@ export const quadrant_template_svg = `
   </g>
  </g>
 `;
+
+
+export function prefix_canvas(id: string): string {
+  return `
+var c = this.shadowRoot.getElementById("${id}");
+var ctx = c.getContext("2d");
+  `;
+}
+
+export const tvstatic_template_canvas = `
+  const tvHeight = c.offsetHeight;
+  const tvWidth = c.offsetWidth;
+  const smallestPixel = 6;
+  for (var v=0; v < tvHeight; v += smallestPixel) {
+    for (var h=0; h < tvWidth; h += smallestPixel) {
+      lum = Math.floor( Math.random() * 50 );
+      ctx.fillStyle = "hsl(0, 0%," + lum + "%)";
+      ctx.fillRect(h,v, smallestPixel, smallestPixel);
+    }
+  }
+`;

@@ -1,23 +1,17 @@
-import { html, css, LitElement } from "lit";
-import { state, query } from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
+import {query, state} from "lit/decorators.js";
 
-import { sharedStyles } from "../sharedStyles";
-import { contextProvided } from "@lit-labs/context";
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { WhereStore } from "../where.store";
-import {whereContext, Coord, Space, TemplateEntry} from "../types";
-import {
-  Dialog,
-  TextField,
-  Button,
-  Formfield,
-  TextArea,
-  Select,
-  ListItem, Checkbox
-} from "@scoped-elements/material-web";
-import {renderTemplate} from "../sharedRender";
+import {sharedStyles} from "../sharedStyles";
+import {contextProvided} from "@lit-labs/context";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
+import {WhereStore} from "../where.store";
+import {Coord, TemplateEntry, TemplateType, whereContext} from "../types";
+import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import parser from "fast-xml-parser";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
+import {prefix_canvas} from "./templates";
+import {unsafeHTML} from "lit/directives/unsafe-html.js";
+import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 
 function isValidXml(input: string) {
   if (input === undefined || input === null) {
@@ -61,7 +55,8 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  _currentType = "html";
+  _currentType: TemplateType = TemplateType.Html;
+  _canvas: string = "";
 
   _templateToPreload?: EntryHashB64;
 
@@ -72,6 +67,14 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   @query('#type-field')
   _typeField!: Select;
 
+  updated(changedProperties: any) {
+    if (this._canvas) {
+      let canvas_code = prefix_canvas('template-canvas') + this._canvas;
+      var renderCanvas = new Function (canvas_code);
+      renderCanvas.apply(this);
+    }
+  }
+
   /** preload fields with  current space values */
   loadPreset(templateEh: EntryHashB64) {
     const templateToPreload = this._store.template(templateEh);
@@ -79,9 +82,18 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
     this._nameField.value = 'Fork of ' + templateToPreload.name;
 
-    this._typeField.value = surface.html? 'html' : 'svg';
-
-    this._surfaceField.value = surface.html? surface.html : surface.svg;
+    if (surface.html) {
+      this._typeField.value = TemplateType.Html;
+      this._surfaceField.value = surface.html;
+    }
+    if (surface.svg) {
+      this._typeField.value = TemplateType.Svg;
+      this._surfaceField.value = surface.svg;
+    }
+    if (surface.canvas) {
+      this._typeField.value = TemplateType.Canvas;
+      this._surfaceField.value = surface.canvas;
+    }
 
     if (surface.size) {
       let widthField = this.shadowRoot!.getElementById("width-field") as TextField;
@@ -101,7 +113,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
       }
     }
     // check surface description validity
-    if (this._surfaceField) {
+    if (this._surfaceField && this._currentType != TemplateType.Canvas) {
       if (!isValidXml(this._surfaceField.value)) {
         isValid = false;
         this._surfaceField.setCustomValidity("Invalid XML")
@@ -126,11 +138,17 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
       surface.size = {x, y}
     }
     /** code */
-    if (this._currentType === 'svg') {
+    if (this._currentType === TemplateType.Svg) {
       surface.svg = this._surfaceField.value
-    } else {
+    }
+    if (this._currentType === TemplateType.Html) {
       surface.html = this._surfaceField.value
     }
+    if (this._currentType === TemplateType.Canvas) {
+      //const final = canvas_prefix + this._surfaceField.value;
+      surface.canvas = this._surfaceField.value
+    }
+
     /** Create TemplateEntry */
     return {
       name: this._nameField.value,
@@ -138,10 +156,47 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  private  previewTemplate() {
+  private previewTemplate() {
     if (!this._currentType || !this._nameField || !this._surfaceField) return html``
     const template = this.createTemplate()
-    return renderTemplate(template)
+    return this.renderTemplate(template)
+  }
+
+  private renderTemplate(template: TemplateEntry) {
+    if (template.surface === "") {
+      return html``
+    }
+    let surface: any = JSON.parse(template.surface);
+    const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
+    const w: number = 200;
+    const h: number = 200 * ratio;
+
+    var preview;
+    if (surface.html) {
+      preview = html`
+        <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
+            ${unsafeHTML(surface.html)}
+        </div>`;
+    }
+    if (surface.svg) {
+      preview = html`
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="${w}px"
+           height="${h}px"
+           viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+           preserveAspectRatio="none"
+           id="surface-preview-svg">
+        ${unsafeSVG(surface.svg)}
+      </svg>`
+      ;
+    }
+    // canvas
+    if (surface.canvas) {
+      this._canvas = surface.canvas;
+      preview = html`<canvas id="template-canvas" width="${w}" height="${h}">`
+    }
+    //
+    return html`${preview}`
   }
 
   private async handlePreview(e: any) {
@@ -179,7 +234,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     field.value = ''
   }
 
-  private handleTypeSelect(t: string): void {
+  private handleTypeSelect(t: TemplateType): void {
     this._currentType = t;
   }
 
@@ -190,12 +245,13 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
   <mwc-select required id="type-field" label="Type" @select=${this.handleTypeSelect}>
-    <mwc-list-item @request-selected=${() => this.handleTypeSelect("html")} selected value="html">HTML</mwc-list-item>
-    <mwc-list-item @request-selected=${() => this.handleTypeSelect("svg")} value="svg">SVG</mwc-list-item>
+    <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Html)} selected value="html">HTML</mwc-list-item>
+    <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Svg)} value="svg">SVG</mwc-list-item>
+    <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Canvas)} value="canvas">Canvas</mwc-list-item>
   </mwc-select>
 
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextArea).reportValidity()}
-                id="surface-field" placeholder="HTML/SVG here..." helper="No <svg> / <html> tag is required" rows="10" cols="60" required></mwc-textarea>
+                id="surface-field" placeholder="HTML/SVG/JS here..." helper="No <svg> / <html> tag is required" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}
                  id="width-field" minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>

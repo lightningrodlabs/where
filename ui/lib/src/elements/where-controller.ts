@@ -26,7 +26,14 @@ import {
   ProfilesStore,
   Profile,
 } from "@holochain-open-dev/profiles";
-import {box_template_html, map2D_template_html, quadrant_template_svg, triangle_template_svg} from "./templates";
+import {
+  box_template_html,
+  map2D_template_html,
+  quadrant_template_svg,
+  triangle_template_svg,
+  prefix_canvas,
+  tvstatic_template_canvas
+} from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH, renderSurface} from "../sharedRender";
 
@@ -153,6 +160,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.subscribeProfile();
   }
 
+  updated(changedProperties: any) {
+    console.log("where.controller updated: " + this._currentSpaceEh)
+    let space: Space = this._currentSpaceEh == ""? this._spaces.value[0] : this._spaces.value[this._currentSpaceEh];
+    if (space.surface.canvas) {
+      let canvas_code = prefix_canvas('myCanvas') + space.surface.canvas;
+      var renderCanvas = new Function (canvas_code);
+      renderCanvas.apply(this);
+    }
+  }
+
 
   private _getFirstVisible(spaces: Dictionary<Space>): EntryHashB64 {
     if (Object.keys(spaces).length == 0) {
@@ -242,6 +259,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
          html: map2D_template_html
       }),
     })
+    const canvasEh = await this._store.addTemplate({
+      name: "Canvas TV",
+      surface: JSON.stringify({
+        canvas: tvstatic_template_canvas,
+        size: { x: 500, y: 500 },
+      }),
+    })
     const quadEh = await this._store.addTemplate({
       name: "Quadrant",
       surface: JSON.stringify({
@@ -265,6 +289,23 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     })
 
     /** Spaces */
+
+    await this._store.addSpace({
+      name: "Canvas",
+      origin: canvasEh,
+      visible: true,
+      surface: {
+        canvas: tvstatic_template_canvas,
+        size: { x: 500, y: 500 },
+      },
+      meta: {
+        ui: `[]`,
+        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
+        subMap:  "[]",
+      },
+      locations: [],
+    });
+
     await this._store.addSpace({
       name: "Ecuador",
       origin: mapEh,

@@ -16,6 +16,11 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
+import {prefix_canvas} from "./templates";
+
+//declare global {
+//  interface Window { requestAnimFrame: any; }
+//}
 
 /**
  * @element where-space
@@ -68,6 +73,23 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.hideFab);
   }
 
+
+  updated(changedProperties: any) {
+    //console.log("*** updated() called!");
+    const space: Space = this._spaces.value[this.currentSpaceEh];
+    if (space.surface.canvas) {
+      //console.log(" - has canvas");
+      const canvas_code = prefix_canvas('space-canvas') + space.surface.canvas;
+      var renderCanvas = new Function (canvas_code);
+      renderCanvas.apply(this);
+
+      //var c = this.shadowRoot!.getElementById("myCanvas") as HTMLCanvasElement;
+      //var ctx = c.getContext("2d");
+      //if (ctx == null) {
+      //  return;
+      //}
+    }
+  }
 
   connectedCallback() {
     super.connectedCallback();
@@ -308,8 +330,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   renderActiveSurface(surface: any, w: number, h: number) {
-    return surface.html?
-      html`<div
+    if (surface.html) {
+      return html`<div
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
@@ -318,7 +340,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       >
         ${unsafeHTML(surface.html)}
       </div>`
-      : html`<svg xmlns="http://www.w3.org/2000/svg"
+    }
+    if (surface.svg) {
+      return html`<svg xmlns="http://www.w3.org/2000/svg"
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
                   width="${w}px"
@@ -330,7 +354,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         >
           ${unsafeSVG(surface.svg)}
         </svg>`
-    ;
+      ;
+    }
+    // canvas
+    return html`<canvas id="space-canvas"
+                        width="${w}"
+                        height="${h}"
+                        style="border:1px solid #2278da;"
+                        @click=${this.handleClick}
+    >`
   }
 
 

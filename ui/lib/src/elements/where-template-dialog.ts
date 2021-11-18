@@ -84,15 +84,19 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
     if (surface.html) {
       this._typeField.value = TemplateType.Html;
+      this._currentType = TemplateType.Html;
       this._surfaceField.value = surface.html;
     }
     if (surface.svg) {
       this._typeField.value = TemplateType.Svg;
+      this._currentType = TemplateType.Svg;
       this._surfaceField.value = surface.svg;
     }
     if (surface.canvas) {
       this._typeField.value = TemplateType.Canvas;
+      this._currentType = TemplateType.Canvas;
       this._surfaceField.value = surface.canvas;
+      this._canvas = surface.canvas;
     }
 
     if (surface.size) {

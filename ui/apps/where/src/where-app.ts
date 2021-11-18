@@ -52,7 +52,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     return html`
 <!--        <profile-prompt></profile-prompt>-->
 <!--        <where-controller></where-controller>-->
-      <where-controller dummy></where-controller>
+      <where-controller id="controller" dummy></where-controller>
     `;
   }
 

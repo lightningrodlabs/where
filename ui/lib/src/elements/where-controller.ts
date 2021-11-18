@@ -160,9 +160,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.subscribeProfile();
   }
 
-  updated(changedProperties: any) {
-    console.log("where.controller updated: " + this._currentSpaceEh)
-    let space: Space = this._currentSpaceEh == ""? this._spaces.value[0] : this._spaces.value[this._currentSpaceEh];
+  async updated(changedProperties: any) {
+    console.log(this._currentSpaceEh)
+    let spaceEh: string = this._currentSpaceEh;
+    if (spaceEh == "") {
+      spaceEh = this._getFirstVisible(this._spaces.value);
+    }
+    console.log("where.controller updated: " + spaceEh);
+    let space: Space = this._spaces.value[spaceEh];
     if (space.surface.canvas) {
       let canvas_code = prefix_canvas('myCanvas') + space.surface.canvas;
       var renderCanvas = new Function (canvas_code);

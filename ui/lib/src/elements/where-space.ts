@@ -18,9 +18,30 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "./templates";
 
-//declare global {
-//  interface Window { requestAnimFrame: any; }
-//}
+
+// // Canvas Animation experiment
+// function draw() {
+//   let where_space = getWhereSpace();
+//   const space: Space = where_space._spaces.value[where_space.currentSpaceEh];
+//   if (space.surface.canvas) {
+//     const canvas_code = prefix_canvas('space-canvas') + space.surface.canvas;
+//     var renderCanvas = new Function (canvas_code);
+//     renderCanvas.apply(where_space);
+//     window.requestAnimationFrame(draw);
+//   }
+// }
+//
+// function getWhereSpace(): WhereSpace {
+//   let where_app = document.getElementsByTagName('where-app');
+//   let where_controller = where_app[0].shadowRoot!.getElementById('controller');
+//   let drawer = where_controller!.shadowRoot!.getElementById('my-drawer');
+//   let where_space = drawer!.getElementsByTagName('where-space')[0] as WhereSpace;
+//   //console.log({where_space})
+//   return where_space;
+// }
+
+
+
 
 /**
  * @element where-space
@@ -88,6 +109,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       //if (ctx == null) {
       //  return;
       //}
+
+      //window.requestAnimationFrame(draw);
     }
   }
 

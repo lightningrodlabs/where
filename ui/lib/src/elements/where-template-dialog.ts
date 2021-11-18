@@ -70,8 +70,12 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   updated(changedProperties: any) {
     if (this._canvas) {
       let canvas_code = prefix_canvas('template-canvas') + this._canvas;
-      var renderCanvas = new Function (canvas_code);
-      renderCanvas.apply(this);
+      try {
+        var renderCanvas = new Function (canvas_code);
+        renderCanvas.apply(this);
+      } catch(err) {
+        console.log("render template failed");
+      }
     }
   }
 

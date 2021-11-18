@@ -133,8 +133,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   updated(changedProperties: any) {
     if (this._canvas) {
       let canvas_code = prefix_canvas('preview-canvas') + this._canvas;
-      var renderCanvas = new Function (canvas_code);
-      renderCanvas.apply(this);
+      try {
+        var renderCanvas = new Function(canvas_code);
+        renderCanvas.apply(this);
+      } catch (e) {console.log("render canvas failed");}
     }
   }
 
@@ -294,7 +296,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //console.log({surface})
     // - Parse template
     const regex = /%%([a-zA-Z_0-9\-]+)%%/gm;
-    let code = surface.svg? surface.svg : surface.html;
+    var code;
+    if (surface.svg) code = surface.svg;
+    if (surface.html) code = surface.html;
+    if (surface.canvas) code = surface.canvas;
+
     let names: Set<string> = new Set()
     try {
       //let match = regex.exec(code);

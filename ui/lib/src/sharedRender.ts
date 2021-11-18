@@ -42,7 +42,8 @@ export function renderUiItems(ui: string, zx: number, zy: number) {
 }
 
 
-export function renderSurface(surface: any, w: number, h: number) {
+export function renderSurface(space: any, w: number, h: number) {
+  const surface = space.surface;
   if (surface.html) {
     return html`<div style="width: ${w}px; height: ${h}px;" >
         ${unsafeHTML(surface.html)}
@@ -60,7 +61,7 @@ export function renderSurface(surface: any, w: number, h: number) {
   }
   // canvas
   return html`
-    <canvas id="myCanvas" width="${w}" height="${h}"
+    <canvas id="${space.name}-canvas" width="${w}" height="${h}"
             style="border:1px solid #2278da;">`
 }
 

@@ -68,10 +68,20 @@ var ctx = c.getContext("2d");
   `;
 }
 
+
+export function generate_surface(template: string, subMap: Map<string, string>): string {
+  subMap.forEach((value, key, map) => {
+    let pattern = "%%" + key + "%%"
+    var regex = new RegExp(pattern, "g");
+    template = template.replace(regex, value)
+  })
+  return template;
+}
+
 export const tvstatic_template_canvas = `
   const tvHeight = c.offsetHeight;
   const tvWidth = c.offsetWidth;
-  const smallestPixel = 6;
+  const smallestPixel = %%pixel-size%%;
   for (var v=0; v < tvHeight; v += smallestPixel) {
     for (var h=0; h < tvWidth; h += smallestPixel) {
       lum = Math.floor( Math.random() * 50 );

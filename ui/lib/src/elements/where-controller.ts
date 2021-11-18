@@ -32,7 +32,7 @@ import {
   quadrant_template_svg,
   triangle_template_svg,
   prefix_canvas,
-  tvstatic_template_canvas
+  tvstatic_template_canvas, generate_surface
 } from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH, renderSurface} from "../sharedRender";
@@ -161,17 +161,28 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   async updated(changedProperties: any) {
-    console.log(this._currentSpaceEh)
-    let spaceEh: string = this._currentSpaceEh;
-    if (spaceEh == "") {
-      spaceEh = this._getFirstVisible(this._spaces.value);
-    }
-    console.log("where.controller updated: " + spaceEh);
-    let space: Space = this._spaces.value[spaceEh];
-    if (space.surface.canvas) {
-      let canvas_code = prefix_canvas('myCanvas') + space.surface.canvas;
-      var renderCanvas = new Function (canvas_code);
-      renderCanvas.apply(this);
+    // Render canvas for each space
+    for (let spaceEh in this._spaces.value) {
+      let space: Space = this._spaces.value[spaceEh];
+      if (space.surface.canvas) {
+        const id = space.name + '-canvas'
+        const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
+        if (!canvas) {
+          console.log("CANVAS not found for " + id);
+          continue;
+        }
+        //console.log({canvas})
+        var ctx = canvas.getContext("2d");
+        if (!ctx) {
+          console.log("CONTEXT not found for " + id);
+          continue;
+        }
+        //console.log({ctx})
+        console.log("Rendering CANVAS for " + id)
+        let canvas_code = prefix_canvas(id) + space.surface.canvas;
+        var renderCanvas = new Function(canvas_code);
+        renderCanvas.apply(this);
+      }
     }
   }
 
@@ -265,7 +276,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       }),
     })
     const canvasEh = await this._store.addTemplate({
-      name: "Canvas TV",
+      name: "TV Static",
       surface: JSON.stringify({
         canvas: tvstatic_template_canvas,
         size: { x: 500, y: 500 },
@@ -296,22 +307,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     /** Spaces */
 
     await this._store.addSpace({
-      name: "Canvas",
-      origin: canvasEh,
-      visible: true,
-      surface: {
-        canvas: tvstatic_template_canvas,
-        size: { x: 500, y: 500 },
-      },
-      meta: {
-        ui: `[]`,
-        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
-        subMap:  "[]",
-      },
-      locations: [],
-    });
-
-    await this._store.addSpace({
       name: "Ecuador",
       origin: mapEh,
       visible: true,
@@ -323,6 +318,25 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         ui: `[]`,
         multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
         subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
+      },
+      locations: [],
+    });
+
+    let subMapJson = "[[\"pixel-size\",\"6\"]]";
+    const subMap = new Map(JSON.parse(subMapJson)) as Map<string, string>;
+
+    await this._store.addSpace({
+      name: "Canvas Sample",
+      origin: canvasEh,
+      visible: true,
+      surface: {
+        canvas: generate_surface(tvstatic_template_canvas, subMap),
+        size: { x: 500, y: 500 },
+      },
+      meta: {
+        ui: `[]`,
+        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
+        subMap:  subMapJson,
       },
       locations: [],
     });
@@ -548,7 +562,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
             <span slot="secondary">${this._store.template(space.origin).name}</span>
-            <span slot="graphic" style="width:75px;">${renderSurface(space.surface, 70, 56)}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(space, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.refresh()}></mwc-icon-button> -->
           </mwc-list-item>

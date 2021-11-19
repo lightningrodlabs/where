@@ -1,4 +1,4 @@
-import { ContextProvider } from "@lit-labs/context";
+import {contextProvided, ContextProvider} from "@lit-labs/context";
 import { state } from "lit/decorators.js";
 import {
   WhereController,
@@ -50,9 +50,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this.loaded) return html`<span>Loading...</span>`;
     return html`
-        <profile-prompt></profile-prompt>
-        <where-controller></where-controller>
-<!--      <where-controller dummy></where-controller>-->
+        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;">
+            <where-controller examples></where-controller>
+        </profile-prompt>
+<!--      <where-controller id="controller" dummy examples></where-controller>-->
     `;
   }
 

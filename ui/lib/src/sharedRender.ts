@@ -42,12 +42,15 @@ export function renderUiItems(ui: string, zx: number, zy: number) {
 }
 
 
-export function renderSurface(surface: any, w: number, h: number) {
-  return surface.html?
-    html`<div style="width: ${w}px; height: ${h}px;" >
+export function renderSurface(space: any, w: number, h: number) {
+  const surface = space.surface;
+  if (surface.html) {
+    return html`<div style="width: ${w}px; height: ${h}px;" >
         ${unsafeHTML(surface.html)}
       </div>`
-    : html`<svg xmlns="http://www.w3.org/2000/svg"
+  }
+  if (surface.svg) {
+    return html`<svg xmlns="http://www.w3.org/2000/svg"
                   width="${w}px"
                   height="${h}px"
                   viewBox="0 0 ${surface.size.x} ${surface.size.y}"
@@ -55,34 +58,12 @@ export function renderSurface(surface: any, w: number, h: number) {
           ${unsafeSVG(surface.svg)}
         </svg>`
     ;
-}
-
-
-export function renderTemplate(template: TemplateEntry) {
-  if (template.surface === "") {
-    return html``
   }
-  let surface: any = JSON.parse(template.surface);
-  const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
-  const w: number = 200;
-  const h: number = 200 * ratio;
-  const preview = surface.html?
-    html`
-        <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
-            ${unsafeHTML(surface.html)}
-        </div>`
-    : html`<svg xmlns="http://www.w3.org/2000/svg"
-                  width="${w}px"
-                  height="${h}px"
-                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
-                  preserveAspectRatio="none"
-                  id="surface-preview-svg">
-          ${unsafeSVG(surface.svg)}
-        </svg>`
-  ;
-  return html`${preview}`
+  // canvas
+  return html`
+    <canvas id="${space.name}-canvas" width="${w}" height="${h}"
+            style="border:1px solid #2278da;">`
 }
-
 
 export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   let marker;

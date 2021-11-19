@@ -32,7 +32,7 @@ fn get_spaces_path() -> Path {
 fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let _header_hash = create_entry(&input)?;
     let hash = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(hash.clone().into(), Message::NewSpace(input)))?;
+    emit_signal(&SignalPayload::new(hash.clone().into(), agent_info()?.agent_latest_pubkey.into(), Message::NewSpace(input)))?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;

@@ -10,6 +10,7 @@ use crate::here::*;
     #[serde(tag = "type", content = "content")]
 pub enum Message {
     Ping(AgentPubKeyB64),
+    Pong(AgentPubKeyB64),
     NewSpace(Space),
     NewTemplate(Template),
     NewHere(HereOutput),
@@ -20,13 +21,15 @@ pub enum Message {
     #[serde(rename_all = "camelCase")]
 pub struct SignalPayload {
     space_hash: EntryHashB64,
+    from: AgentPubKeyB64,
     message: Message,
 }
 
 impl SignalPayload {
-   pub fn new(space_hash: EntryHashB64, message: Message) -> Self {
+   pub fn new(space_hash: EntryHashB64, from: AgentPubKeyB64, message: Message) -> Self {
         SignalPayload {
             space_hash,
+            from,
             message,
         }
     }

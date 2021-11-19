@@ -27,7 +27,7 @@ fn get_templates_path() -> Path {
 fn create_template(input: Template) -> ExternResult<EntryHashB64> {
     let _hh = create_entry(&input)?;
     let eh = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(eh.clone().into(), Message::NewTemplate(input)))?;
+    emit_signal(&SignalPayload::new(eh.clone().into(), agent_info()?.agent_latest_pubkey.into(),Message::NewTemplate(input)))?;
     let path = get_templates_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;

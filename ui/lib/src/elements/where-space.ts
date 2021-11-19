@@ -15,7 +15,7 @@ import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
-import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
+import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "./templates";
 
 
@@ -58,7 +58,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @query('#hide-here-fab') hideFab!: Fab;
 
   //@property() avatar = "";
-  @property() currentSpaceEh = "";
+  @property() currentSpaceEh: null | EntryHashB64 = "";
 
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
@@ -97,6 +97,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   updated(changedProperties: any) {
     //console.log("*** updated() called!");
+    if (!this.currentSpaceEh) {
+      return;
+    }
     const space: Space = this._spaces.value[this.currentSpaceEh];
     if (space.surface.canvas) {
       //console.log(" - has canvas");
@@ -129,14 +132,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private _handleWheel = (e: WheelEvent) => {
-    if (e.target) {
+    if (e.target && this.currentSpaceEh) {
       e.preventDefault();
       this._store.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
    }
   };
 
   updateZoom(delta: number): void {
-    this._store.updateZoom(this.currentSpaceEh, delta);
+    this._store.updateZoom(this.currentSpaceEh!, delta);
   }
 
   get myNickName(): string {
@@ -145,31 +148,28 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.currentTarget.getBoundingClientRect();
-    const z = this._zooms.value[this.currentSpaceEh];
+    const z = this._zooms.value[this.currentSpaceEh!];
     const x = (event.clientX - rect.left) / z; //x position within the element.
     const y = (event.clientY - rect.top) / z; //y position within the element.
     return { x, y };
   }
 
   private canCreate(): boolean {
-    if (this._store.space(this.currentSpaceEh).meta!.multi) {
+    if (this._store.space(this.currentSpaceEh!).meta!.multi) {
       return true;
     }
-    const myIdx = this._store.getAgentIdx(this.currentSpaceEh, this.myNickName);
+    const myIdx = this._store.getAgentIdx(this.currentSpaceEh!, this.myNickName);
     return myIdx == -1;
   }
 
   private canUpdateLocation(idx: number): boolean {
-    const locInfo = this._store.space(this.currentSpaceEh).locations[idx]!;
+    const locInfo = this._store.space(this.currentSpaceEh!).locations[idx]!;
     // TODO: should check agent key instead
     return locInfo.location.meta.name == this.myNickName;
   }
 
   private handleClick(event: any): void {
-    if (event == null || !this.canCreate()) {
-      return;
-    }
-    if (!this.currentSpaceEh) {
+    if (!this.currentSpaceEh || event == null || !this.canCreate()) {
       return;
     }
     const space: Space = this._spaces.value[this.currentSpaceEh];
@@ -255,7 +255,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const tagValue = tag ? tag.value : ""
     const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
     const emojiValue = emoji ? emoji.innerHTML : ""
-    const markerType = this._spaces.value[this.currentSpaceEh].meta!.markerType;
+    const markerType = this._spaces.value[this.currentSpaceEh!].meta!.markerType;
 
     const location: Location = {
       coord: this.dialogCoord,
@@ -270,14 +270,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     };
     if (this.dialogCanEdit) {
       this._store.updateLocation(
-        this.currentSpaceEh,
+        this.currentSpaceEh!,
         this.dialogIdx,
         this.dialogCoord,
         tagValue,
         emojiValue
       );
     } else {
-      this._store.addLocation(this.currentSpaceEh, location);
+      this._store.addLocation(this.currentSpaceEh!, location);
     }
     if (tag) tag.value = "";
   }
@@ -310,7 +310,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         const idx = parseInt(data);
         if (ev.target) {
           const coord = this.getCoordsFromEvent(ev);
-          this._store.updateLocation(this.currentSpaceEh, idx, coord);
+          this._store.updateLocation(this.currentSpaceEh!, idx, coord);
         }
       }
     }
@@ -337,7 +337,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.canUpdateLocation(idx)) {
       return;
     }
-    const space = this._store.space(this.currentSpaceEh);
+    const space = this._store.space(this.currentSpaceEh!);
     const locInfo = space.locations[idx]!;
     this.openLocationDialog(
       {
@@ -391,12 +391,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   handleDeleteClick(ev: any) {
     const idx = this.getIdx(ev.target)!;
-    this._store.deleteLocation(this.currentSpaceEh, idx).then(() => {});
+    this._store.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
   }
 
   canEditLocation(space: Space | undefined) {
     if (!space) {
-      space = this._spaces.value[this.currentSpaceEh];
+      space = this._spaces.value[this.currentSpaceEh!];
     }
     const useEmoji = space.meta?.markerType == MarkerType[MarkerType.Emoji];
     return space.meta?.canTag || useEmoji;
@@ -447,7 +447,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   async resetMyLocations() {
-    await this._store.deleteAllMyLocations(this.currentSpaceEh);
+    await this._store.deleteAllMyLocations(this.currentSpaceEh!);
   }
 
   toggleHideHere() {
@@ -462,7 +462,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private handleZoomSlider(input: number): void {
     /** update zoom from absolute value */
     const zoom = Math.min(input, 999);
-    const cur: number = (this._zooms.value[this.currentSpaceEh] * 100);
+    const cur: number = (this._zooms.value[this.currentSpaceEh!] * 100);
     const delta = (zoom - cur) / 100;
     this.updateZoom(delta);
   }

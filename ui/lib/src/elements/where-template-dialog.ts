@@ -262,9 +262,9 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
                 id="surface-field" placeholder="HTML/SVG/JS here..." helper="No <svg> / <html> tag is required" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}
-                 id="width-field" minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+                 id="width-field" minlength="1" maxlength="4" label="Width" autoValidate=true></mwc-textfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("height-field") as TextField).reportValidity()}
-                 id="height-field" minlength="1" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+                 id="height-field" minlength="1" maxlength="4" label="Height" autoValidate=true></mwc-textfield>
   <div id="thumbnail">${this.previewTemplate()}</div>
 <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>

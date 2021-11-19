@@ -147,9 +147,17 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Check validity */
     // nameField
     let isValid = this._nameField.validity.valid
-    //&& this._urlField.validity.valid
+    && this._widthField.validity.valid
+    && this._heightField.validity.valid
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
+    }
+    // width & height fields
+    if (!this._widthField.validity.valid) {
+      this._widthField.reportValidity()
+    }
+    if (!this._heightField.validity.valid) {
+      this._heightField.reportValidity()
     }
     // uiField
     try {
@@ -280,9 +288,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
 
   renderTemplateFields() {
-    // if (!this._currentTemplate || this._currentTemplate.surface === "") {
-    //   return html``
-    // }
+    if (!this._currentTemplate || this._currentTemplate.surface === "") {
+      return html``
+    }
 
     let surface: any = JSON.parse(this._currentTemplate.surface);
 
@@ -312,7 +320,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       }
       //console.log({names})
     } catch(err) {
-      console.error('No placeholder found in template');
+      console.info('No variable found in template');
     }
     this._currentPlaceHolders = Array.from(names)
     // - Generate textField for each placeholder
@@ -445,8 +453,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   ${selectedTemplateUi}
 
-  <mwc-textfield id="width-field" class="rounded" outlined minlength="1" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-  <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="1" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+  <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+  <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
 
   <mwc-formfield label="Multi-locations per user">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>

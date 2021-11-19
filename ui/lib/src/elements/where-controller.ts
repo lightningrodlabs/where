@@ -26,14 +26,7 @@ import {
   ProfilesStore,
   Profile,
 } from "@holochain-open-dev/profiles";
-import {
-  box_template_html,
-  map2D_template_html,
-  quadrant_template_svg,
-  triangle_template_svg,
-  prefix_canvas,
-  tvstatic_template_canvas, generate_surface
-} from "./templates";
+import {prefix_canvas} from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH, renderSurface} from "../sharedRender";
 import {addHardcodedSpaces} from "./examples";
@@ -65,7 +58,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
-
+  _agentPresences = new StoreSubscriber(this, () => this._store.agentPresences);
 
   /** Private properties */
 
@@ -262,6 +255,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("   selected space: " + spaceEh);
     this._currentSpaceEh = spaceEh;
     await this.selectTemplateOf(spaceEh);
+    await this.pingOthers();
   }
 
 
@@ -295,7 +289,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async pingOthers() {
     if (this._currentSpaceEh) {
-      console.log("refresh: Pinging All")
+      // console.log("Pinging All")
       await this._store.pingOthers(this._currentSpaceEh, this._profiles.myAgentPubKey)
     }
   }
@@ -305,6 +299,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("refresh: Pulling data from DHT")
     await this._store.pullSpaces()
     await this._profiles.fetchAllProfiles()
+    await this.pingOthers()
+    this.requestUpdate();
   }
 
 
@@ -386,14 +382,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   determineAgentStatus(key: AgentPubKeyB64) {
-    const status = "neutral";
+    const status = "primary"; // "neutral"
     if (key == this._profiles.myAgentPubKey) {
       return "success";
     }
-    const lastPingTime: number = this._store.agentPresences[key];
+    const lastPingTime: number = this._agentPresences.value[key];
     const currentTime: number = Math.floor(Date.now()/1000);
     const diff: number = currentTime - lastPingTime;
-    if (diff < 10) {
+    if (diff < 30) {
       return "success";
     }
     if (diff < 5 * 60) {
@@ -494,7 +490,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- APP BODY -->
     <div class="appBody">
       ${this._currentSpaceEh ?
-        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh}></where-space>`
+        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick}></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">No space found</div>`}
       <div class="folks">
         ${folks}
@@ -514,6 +510,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 `;
   }
 
+  private async handleSpaceClick(event: any) {
+    await this.pingOthers();
+  }
 
   static get scopedElements() {
     return {

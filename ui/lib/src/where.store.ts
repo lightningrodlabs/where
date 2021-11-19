@@ -30,6 +30,8 @@ export class WhereStore {
   private spacesStore: Writable<Dictionary<Space>> = writable({});
   /** SpaceEh -> zoomPct */
   private zoomsStore: Writable<Dictionary<number>> = writable({});
+  /** agentPubKey -> timestamp */
+  private agentPresenceStore: Writable<Dictionary<number>> = writable({});
 
   /** Static info */
   myAgentPubKey: AgentPubKeyB64;
@@ -39,14 +41,15 @@ export class WhereStore {
   public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
   public zooms: Readable<Dictionary<number>> = derived(this.zoomsStore, i => i)
 
-  public agentPresences: Dictionary<number> = {};
+  public agentPresences: Readable<Dictionary<number>> = derived(this.agentPresenceStore, i => i)
+
 
 
   constructor(
     protected cellClient: CellClient,
-  profilesStore: ProfilesStore,
-  zomeName = 'hc_zome_where'
-  ) {
+    profilesStore: ProfilesStore,
+    zomeName: string = 'hc_zome_where')
+  {
     this.myAgentPubKey = serializeHash(cellClient.cellId[1]);
     this.profiles = profilesStore;
     this.service = new WhereService(cellClient, zomeName);
@@ -55,14 +58,24 @@ export class WhereStore {
       if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
         return
       }
-      const currentTimeInSeconds: number = Math.floor(Date.now()/1000);
-      console.log("[" + currentTimeInSeconds + "] SIGNAL",signal)
+      console.log("SIGNAL", signal)
       const payload = signal.data.payload
+      // Update agent's presence stat
+      this.updatePresence(payload.from)
+      // Send pong response
+      if (payload.message.type != "Pong") {
+        //console.log("PONGING ", payload.from)
+        const response: Signal = {
+          spaceHash: payload.spaceHash,
+          from: this.myAgentPubKey,
+          message: {type: 'Pong', content: this.myAgentPubKey}
+        };
+        this.service.notify(response, [payload.from])
+      }
+      // Handle signal
       switch(payload.message.type) {
         case "Ping":
-          const from = payload.message.content;
-          this.agentPresences[from] = currentTimeInSeconds;
-          return from;
+        case "Pong":
           break;
       case "NewTemplate":
         if (!get(this.templates)[payload.spaceHash]) {
@@ -109,6 +122,15 @@ export class WhereStore {
 
   }
 
+  private updatePresence(from: AgentPubKeyB64) {
+    const currentTimeInSeconds: number = Math.floor(Date.now()/1000);
+    this.agentPresenceStore.update(agentPresences => {
+      agentPresences[from] = currentTimeInSeconds;
+      return agentPresences;
+    })
+    return from;
+  }
+
   private others(): Array<AgentPubKeyB64> {
     return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
   }
@@ -130,11 +152,10 @@ export class WhereStore {
 
 
   pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
-    const signal: Signal = {spaceHash, message: {type: 'Ping', content: myKey}};
+    const signal: Signal = {spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})
     this.service.notify(signal, this.others());
   }
-
 
   async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
     // const templates = await service.getTemplates();
@@ -151,7 +172,7 @@ export class WhereStore {
       return templates
     })
     this.service.notify(
-      {spaceHash: eh64, message: {type:"NewTemplate", content:template}}
+      {spaceHash: eh64, from: this.myAgentPubKey, message: {type:"NewTemplate", content:template}}
       , this.others());
     return eh64
   }
@@ -190,7 +211,7 @@ export class WhereStore {
       zooms[spaceEh] = 1
       return zooms
     })
-    this.service.notify({spaceHash:spaceEh, message: {type:"NewSpace", content:s}}, this.others());
+    this.service.notify({spaceHash:spaceEh, from: this.myAgentPubKey, message: {type:"NewSpace", content:s}}, this.others());
     return spaceEh
   }
 
@@ -227,6 +248,7 @@ export class WhereStore {
     })
     this.service.notify({
       spaceHash: spaceEh,
+      from: this.myAgentPubKey,
       message: {
         type: "NewHere",
         content: {entry ,hash, author: this.myAgentPubKey}
@@ -254,7 +276,7 @@ export class WhereStore {
       spaces[spaceHash].locations[idx] = null
       return spaces
     })
-    await this.service.notify({spaceHash, message: {type: "DeleteHere", content:locInfo.hash}}, this.others());
+    await this.service.notify({spaceHash, from: this.myAgentPubKey, message: {type: "DeleteHere", content:locInfo.hash}}, this.others());
   }
 
 
@@ -277,8 +299,8 @@ export class WhereStore {
       return spaces
     })
     const entry = hereFromLocation(locInfo.location)
-    await this.service.notify({spaceHash, message: {type: "DeleteHere", content:oldHash}}, this.others());
-    await this.service.notify({spaceHash, message: {type: "NewHere", content: {entry, hash, author: this.myAgentPubKey}}}, this.others());
+    await this.service.notify({spaceHash, from: this.myAgentPubKey, message: {type: "DeleteHere", content:oldHash}}, this.others());
+    await this.service.notify({spaceHash, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, hash, author: this.myAgentPubKey}}}, this.others());
   }
 
     getAgentIdx (space: string, agent: string) : number {

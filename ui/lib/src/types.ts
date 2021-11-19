@@ -83,17 +83,20 @@ export interface TemplateEntry  {
 
 export type Signal =
   | {
-    spaceHash: EntryHashB64,message: { type: "Ping", content: AgentPubKeyB64 }
+    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "Ping", content: AgentPubKeyB64 }
+  }
+  | {
+  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "Pong", content: AgentPubKeyB64 }
+}
+    | {
+    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewSpace", content:  SpaceEntry}
   }
     | {
-    spaceHash: EntryHashB64, message: {type: "NewSpace", content:  SpaceEntry}
+    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewHere", content:  HereInfo}
   }
     | {
-    spaceHash: EntryHashB64, message: {type: "NewHere", content:  HereInfo}
+    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "DeleteHere", content: HeaderHashB64}
   }
     | {
-    spaceHash: EntryHashB64, message: {type: "DeleteHere", content: HeaderHashB64}
-  }
-    | {
-    spaceHash: EntryHashB64, message: {type: "NewTemplate", content: TemplateEntry}
+    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewTemplate", content: TemplateEntry}
   }

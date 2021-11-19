@@ -69,7 +69,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
+  //_knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
 
   private dialogCoord = { x: 0, y: 0 };
   private dialogCanEdit = false;

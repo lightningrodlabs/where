@@ -36,6 +36,8 @@ import {
 } from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH, renderSurface} from "../sharedRender";
+import {addHardcodedSpaces} from "./examples";
+
 
 /**
  * @element where-controller
@@ -61,13 +63,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
 
+
   /** Private properties */
 
   @state() _currentSpaceEh = "";
   @state() _currentTemplateEh = "";
 
-  private initialized = false;
-  private initializing = false;
+  private _initialized = false;
+  private _initializing = false;
 
 
   get archiveDialogElem() : WhereArchiveDialog {
@@ -90,7 +93,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
-  randomRobotName(): string {
+  get myNickName(): string {
+    return this._myProfile.value.nickname;
+  }
+  get myAvatar(): string {
+    return this._myProfile.value.fields.avatar;
+  }
+  get myColor(): string {
+    return this._myProfile.value.fields.color;
+  }
+
+  private randomRobotName(): string {
     const charCodeA = "A".charCodeAt(0);
     const charCode0 = "0".charCodeAt(0);
 
@@ -105,7 +118,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   }
 
-  async createDummyProfile() {
+  private async createDummyProfile() {
     const nickname: string = this.randomRobotName();
     console.log(nickname);
     const color: string = randomColor({luminosity: 'light'});
@@ -129,17 +142,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       console.log("updateProfile() failed");
       console.log(e);
     }
-  }
-
-
-  get myNickName(): string {
-    return this._myProfile.value.nickname;
-  }
-  get myAvatar(): string {
-    return this._myProfile.value.fields.avatar;
-  }
-  get myColor(): string {
-    return this._myProfile.value.fields.color;
   }
 
   private subscribeProfile() {
@@ -187,7 +189,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  private _getFirstVisible(spaces: Dictionary<Space>): EntryHashB64 {
+  private getFirstVisibleSpace(spaces: Dictionary<Space>): EntryHashB64 {
     if (Object.keys(spaces).length == 0) {
       return "";
     }
@@ -201,25 +203,25 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  async checkInit() {
-    if (this.initialized || this.initializing) {
-      this.initialized = true;
+  private async checkInit() {
+    if (this._initialized || this._initializing) {
+      this._initialized = true;
       return;
     }
-    this.initializing = true  // because checkInit gets call whenever profiles changes...
+    this._initializing = true  // because checkInit gets call whenever profiles changes...
     let spaces = await this._store.pullSpaces();
     let templates = await this._store.updateTemplates();
     /** load up a space if there are none */
     if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
       console.log("no spaces found, initializing")
-      await this.addHardcodedSpaces();
+      //await addHardcodedSpaces(this._store);
       spaces = await this._store.pullSpaces();
     }
     if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
       console.error("No spaces or templates found")
     }
 
-    await this.selectSpace(this._getFirstVisible(spaces))
+    await this.selectSpace(this.getFirstVisibleSpace(spaces))
     console.log("   starting space: ",  spaces[this._currentSpaceEh].name, this._currentSpaceEh);
     console.log("starting template: ", templates[this._currentTemplateEh].name, this._currentTemplateEh);
 
@@ -241,8 +243,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
     menu.anchor = button
     // - Done
-    this.initializing = false
-    this.initialized = true
+    this._initializing = false
+    this._initialized = true
   }
 
 
@@ -266,154 +268,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
-
-  async addHardcodedSpaces() {
-    /** Templates */
-    const mapEh = await this._store.addTemplate({
-      name: "Map2D",
-      surface: JSON.stringify({
-         html: map2D_template_html
-      }),
-    })
-    const canvasEh = await this._store.addTemplate({
-      name: "TV Static",
-      surface: JSON.stringify({
-        canvas: tvstatic_template_canvas,
-        size: { x: 500, y: 500 },
-      }),
-    })
-    const quadEh = await this._store.addTemplate({
-      name: "Quadrant",
-      surface: JSON.stringify({
-        svg: quadrant_template_svg,
-        size: { x: 600, y: 600 },
-      }),
-    })
-    const boxEh = await this._store.addTemplate({
-      name: "Box",
-      surface: JSON.stringify({
-        html: box_template_html,
-        size: { x: 1000, y: 700 },
-      }),
-    })
-    const triangleEh = await this._store.addTemplate({
-      name: "Iron Triangle",
-      surface: JSON.stringify({
-        svg: triangle_template_svg,
-        size: { x: 650, y: 460 },
-      }),
-    })
-
-    /** Spaces */
-
-    await this._store.addSpace({
-      name: "Ecuador",
-      origin: mapEh,
-      visible: true,
-      surface: {
-        html: `<img src=\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-        size: { x: 800, y: 652 },
-      },
-      meta: {
-        ui: `[]`,
-        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
-        subMap:  "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
-      },
-      locations: [],
-    });
-
-    let subMapJson = "[[\"pixel-size\",\"6\"]]";
-    const subMap = new Map(JSON.parse(subMapJson)) as Map<string, string>;
-
-    await this._store.addSpace({
-      name: "Canvas Sample",
-      origin: canvasEh,
-      visible: true,
-      surface: {
-        canvas: generate_surface(tvstatic_template_canvas, subMap),
-        size: { x: 500, y: 500 },
-      },
-      meta: {
-        ui: `[]`,
-        multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
-        subMap:  subMapJson,
-      },
-      locations: [],
-    });
-
-    await this._store.addSpace({
-      name: "earth",
-      origin: mapEh,
-      visible: true,
-      surface: {
-        html: `<img src=\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-        size: { x: 1000, y: 400 },
-      },
-      meta: {
-        markerType: MarkerType[MarkerType.Avatar],
-        subMap: "[[\"ImageUrl\",\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\"]]",
-        ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
-      },
-      locations: [],
-    });
-
-    await this._store.addSpace({
-      name: "Abstract",
-      origin: boxEh,
-      visible: true,
-      surface: {
-        size: { x: 1000, y: 700 },
-        html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
-      },
-      meta: {
-        markerType: MarkerType[MarkerType.Letter],
-        subMap: "[[\"style\",\"background-image:linear-gradient(to bottom right, red, yellow);\"]]",
-        ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
-        multi: "true"
-      },
-      locations: [],
-    });
-
-    await this._store.addSpace({
-      name: "Zodiac",
-      origin: mapEh,
-      visible: true,
-      surface: {
-        html: `<img src=\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-        size: { x: 626, y: 626 },
-      },
-      meta: {
-        ui: `[]`,
-        multi: "false", canTag: "true", markerType: MarkerType[MarkerType.Color],
-        subMap: "[[\"ImageUrl\",\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\"]]"
-      },
-      locations: [],
-    });
-
-    //// Used for debugging
-    // await this._store.addSpace({
-    //   name: "Political Compass Img",
-    //   origin: mapEh,
-    //   visible: true,
-    //   surface: {
-    //     html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-    //     size: { x: 600, y: 600 },
-    //   },
-    //   meta: {
-    //     ui: `[]`,
-    //     multi: "false", markerType: MarkerType[MarkerType.Avatar],
-    //     subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
-    //   },
-    //   locations: [],
-    // });
-  }
-
-
   async archiveSpace() {
     await this._store.hideSpace(this._currentSpaceEh);
     /** Select first space */
     const spaces = await this._store.pullSpaces();
-    const firstSpaceEh = this._getFirstVisible(spaces);
+    const firstSpaceEh = this.getFirstVisibleSpace(spaces);
     console.log({firstSpaceEh})
     this._currentSpaceEh = firstSpaceEh;
     this.requestUpdate();
@@ -459,7 +318,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     /** Check if current space has been archived */
     if (e.detail.includes(this._currentSpaceEh)) {
       /** Select first visible space */
-      const firstSpaceEh = this._getFirstVisible(spaces);
+      const firstSpaceEh = this.getFirstVisibleSpace(spaces);
       this._currentSpaceEh = firstSpaceEh;
       this.requestUpdate();
     }

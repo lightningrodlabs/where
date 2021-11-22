@@ -176,7 +176,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           continue;
         }
         //console.log({ctx})
-        console.log("Rendering CANVAS for " + id)
+        //console.log("Rendering CANVAS for " + id)
         try {
           let canvas_code = prefix_canvas(id) + space.surface.canvas;
           var renderCanvas = new Function(canvas_code);

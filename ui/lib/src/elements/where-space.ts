@@ -174,7 +174,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     const space: Space = this._spaces.value[this.currentSpaceEh];
     const coord = this.getCoordsFromEvent(event);
-    const useEmoji = space.meta?.markerType == MarkerType[MarkerType.Emoji];
+    const useEmoji = space.meta?.markerType == MarkerType.Emoji;
     if (this.canEditLocation(space)) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
@@ -191,7 +191,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const location: Location = {
         coord,
         meta: {
-          markerType: space.meta!.markerType,
+          markerType: MarkerType[space.meta.markerType],
           tag: "",
           img: this._myProfile.value.fields.avatar,
           color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
@@ -261,10 +261,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       coord: this.dialogCoord,
       meta: {
         name: this._myProfile.value.nickname,
-        markerType,
+        markerType: MarkerType[markerType],
         tag: tagValue,
         emoji: emojiValue,
-        img: markerType == MarkerType[MarkerType.Avatar]? this._myProfile.value.fields['avatar']: "",
+        img: markerType == MarkerType.Avatar? this._myProfile.value.fields['avatar']: "",
         color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#858585",
       },
     };
@@ -398,8 +398,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!space) {
       space = this._spaces.value[this.currentSpaceEh!];
     }
-    const useEmoji = space.meta?.markerType == MarkerType[MarkerType.Emoji];
-    return space.meta?.canTag || useEmoji;
+    const useEmoji = space.meta.markerType == MarkerType.Emoji;
+    return space.meta.canTag || useEmoji;
   }
 
 
@@ -530,7 +530,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       return html``;
     }
     let maybeEmojiForm = html``;
-    if (space!.meta?.markerType == MarkerType[MarkerType.Emoji]) {
+    if (space!.meta.markerType == MarkerType.Emoji) {
       maybeEmojiForm = html`
         <div id="edit-location-emoji-preview" class="location-marker emoji-marker">
           Emoji*

@@ -4,7 +4,7 @@ import { sharedStyles } from "../sharedStyles";
 import { contextProvided } from "@lit-labs/context";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { WhereStore } from "../where.store";
-import {whereContext, Space, } from "../types";
+import {whereContext} from "../types";
 import {
   Dialog,
   Button,

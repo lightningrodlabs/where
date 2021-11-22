@@ -59,7 +59,32 @@ export interface Space  {
   surface: any;
   visible: boolean;
   locations: (LocationInfo | null)[];
-  meta?: Dictionary<string>;
+  meta: SpaceMeta;
+}
+
+
+export interface SpaceMeta {
+  subMap: Map<string, string>,
+  markerType: MarkerType,
+  multi: boolean,
+  canTag: boolean,
+  tagVisible: boolean,
+  ui: UiItem[],
+}
+
+
+export interface UiItem {
+  box: UiBox,
+  style: string,
+  content: string,
+}
+
+
+export interface UiBox {
+  width: number,
+  height: number,
+  left: number,
+  top: number,
 }
 
 export enum MarkerType {

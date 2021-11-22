@@ -191,12 +191,7 @@ export class WhereStore {
   }
 
   async addSpace(space: Space) : Promise<EntryHashB64> {
-    const s: SpaceEntry = {
-      name: space.name,
-      origin: space.origin,
-      surface: JSON.stringify(space.surface),
-      meta: space.meta,
-    };
+    const s = this.service.spaceIntoEntry(space)
     const spaceEh: EntryHashB64 = await this.service.createSpace(s)
     for (const locInfo of space.locations) {
       if (locInfo) {

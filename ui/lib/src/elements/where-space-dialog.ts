@@ -5,7 +5,7 @@ import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {Dictionary, MarkerType, Space, TemplateEntry, whereContext} from "../types";
+import {Dictionary, MarkerType, Space, TemplateEntry, UiItem, whereContext} from "../types";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {
   Button,
@@ -94,37 +94,32 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
     this._nameField.value = 'Fork of ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
-    this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
-    this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
-    this._tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
-    this._tagVisibleChk.checked = originalSpace.meta!["canTag"] && originalSpace.meta!["tagVisible"] ? true : false;
-    this._markerField.value = originalSpace.meta!["markerType"];
+    this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
+    this._multiChk.checked = originalSpace.meta.multi;
+    this._tagChk.checked = originalSpace.meta.canTag;
+    this._tagVisibleChk.checked = originalSpace.meta.canTag && originalSpace.meta.tagVisible;
+    this._markerField.value = MarkerType[originalSpace.meta.markerType];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
     this.handleTagSelect()
 
     /** Templated fields */
-    try {
-      const subMap = new Map(JSON.parse(originalSpace.meta!["subMap"])) as Map<string, string>;
-      for (let [key, value] of subMap) {
-        let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
-        if (!field) {
-          console.log('Textfield not found: ' + key + '-gen')
-          continue;
-        }
-        console.log('field ' + key + ' - ' + value)
-        field.value = value
-        field.label = key
+    for (let [key, value] of originalSpace.meta.subMap!) {
+      let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
+      if (!field) {
+        console.log('Textfield not found: ' + key + '-gen')
+        continue;
       }
-    } catch (e) {
-      console.error("Failed parsing subMap() for space " + originalSpace)
-      console.error(e)
+      console.log('field ' + key + ' - ' + value)
+      field.value = value
+      field.label = key
     }
   }
 
+
   private determineMarkerType(): string {
-     if (!this._markerField) {
-       return MarkerType[MarkerType.Avatar];
+    if (!this._markerField) {
+      return MarkerType[MarkerType.Avatar];
     }
     return this._markerField.value;
   }
@@ -160,8 +155,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       this._heightField.reportValidity()
     }
     // uiField
+    let ui: UiItem[] = [];
     try {
-      const _ = JSON.parse(this._uiField.value)
+      ui = JSON.parse(this._uiField.value)
     }
     catch (e) {
       isValid = false;
@@ -171,14 +167,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!isValid) return
 
     // - Get checkbox values
-    const multi = this._multiChk.checked ? "true" : ""
-    const canTag = this._tagChk.checked ? "true" : ""
-    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked ? "true" : ""
-    const markerType = this.determineMarkerType();
+    const multi = this._multiChk.checked
+    const canTag = this._tagChk.checked
+    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked
+    const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
 
     let {surface, subMap} = this.generateSurface();
-    const subMapJson = JSON.stringify(Array.from(subMap.entries()));
-    console.log({subMapJson});
 
     // - Create space
     //console.log("this._templateField.value = " + this._templateField.value);
@@ -188,12 +182,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       visible: true,
       surface,
       meta: {
-        subMap: subMapJson,
+        subMap,
+        markerType,
         multi,
         canTag,
-        markerType,
         tagVisible,
-        ui: this._uiField.value
+        ui,
       },
       locations: [],
     };
@@ -367,8 +361,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const ratio: number = (surface.size && surface.size.x > 0)? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
-    let uiItems = this._uiField? renderUiItems(this._uiField.value, w / surface.size.x, h / surface.size.y) : html ``;
-
+    let uiItems = html ``;
+    try {
+      const ui = JSON.parse(this._uiField.value);
+      uiItems = this._uiField ? renderUiItems(ui, w / surface.size.x, h / surface.size.y) : html``;
+    } catch (e) {
+      console.error("Failed to parse uiField");
+    }
     var preview;
     if (surface.html) {
       preview =
@@ -403,10 +402,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     `
   }
 
-  handleMarkerSelect(markerType: string) {
-    console.log({markerType})
-    //this.requestUpdate()
-  }
+  // handleMarkerSelect(markerType: string) {
+  //   console.log({markerType})
+  //   //this.requestUpdate()
+  // }
 
   handleTagSelect() {
     this._tagVisibleChk.disabled = !this._tagChk.checked
@@ -416,6 +415,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       this._currentTemplate = this._templates.value[Object.keys(this._templates.value)[0]]
+      console.log("_currentTemplate:")
       console.log(this._currentTemplate)
     }
     let selectedTemplateUi = this.renderTemplateFields()

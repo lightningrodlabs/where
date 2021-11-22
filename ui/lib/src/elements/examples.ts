@@ -57,15 +57,15 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 800, y: 652},
     },
     meta: {
-      ui: `[]`,
-      multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
-      subMap: "[[\"ImageUrl\",\"https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg\"]]",
+      ui: [],
+      markerType: MarkerType.Emoji,
+      multi: true, canTag: true, tagVisible: false,
+      subMap: new Map([["ImageUrl","https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg"]]),
     },
     locations: [],
   });
 
-  let subMapJson = "[[\"pixel-size\",\"6\"]]";
-  const subMap = new Map(JSON.parse(subMapJson)) as Map<string, string>;
+  const subMap = new Map([["pixel-size","6"]]) as Map<string, string>;
 
   await store.addSpace({
     name: "Canvas Sample",
@@ -76,9 +76,10 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 500, y: 500},
     },
     meta: {
-      ui: `[]`,
-      multi: "true", canTag: "true", markerType: MarkerType[MarkerType.Emoji],
-      subMap: subMapJson,
+      ui: [],
+      markerType: MarkerType.Emoji,
+      multi: true, canTag: true, tagVisible: false,
+      subMap,
     },
     locations: [],
   });
@@ -92,9 +93,10 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 1000, y: 400},
     },
     meta: {
-      markerType: MarkerType[MarkerType.Avatar],
-      subMap: "[[\"ImageUrl\",\"https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg\"]]",
-      ui: `[{"box":{"left":100,"top":10,"width":100,"height":50},"style":"padding:10px;background-color:#ffffffb8;border-radius: 10px;","content":"Land of the Lost"}]`
+      markerType: MarkerType.Avatar,
+      multi: false, canTag: false, tagVisible: false,
+      subMap: new Map([["ImageUrl","https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg"]]),
+      ui: [{box:{left:100,top:10,width:100,height:50},style:"padding:10px;background-color:#ffffffb8;border-radius: 10px;",content:"Land of the Lost"}]
     },
     locations: [],
   });
@@ -108,10 +110,10 @@ export async function addHardcodedSpaces(store: WhereStore) {
       html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
     },
     meta: {
-      markerType: MarkerType[MarkerType.Letter],
-      subMap: "[[\"style\",\"background-image:linear-gradient(to bottom right, red, yellow);\"]]",
-      ui: `[{"box":{"left":200,"top":200,"width":200,"height":200},"style":"background-image: linear-gradient(to bottom right, blue, red);","content":""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}]`,
-      multi: "true"
+      markerType: MarkerType.Letter,
+      subMap: new Map([["style","background-image:linear-gradient(to bottom right, red, yellow);"]]),
+      ui: [{box:{left:200,top:200,width:200,height:200},style:"background-image: linear-gradient(to bottom right, blue, red);",content:""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}],
+      multi: true, tagVisible: false, canTag: false,
     },
     locations: [],
   });
@@ -125,27 +127,11 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 626, y: 626},
     },
     meta: {
-      ui: `[]`,
-      multi: "false", canTag: "true", markerType: MarkerType[MarkerType.Color],
-      subMap: "[[\"ImageUrl\",\"https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg\"]]"
+      ui: [],
+      markerType: MarkerType.Color,
+      multi: false, canTag: true, tagVisible: false,
+      subMap: new Map([["ImageUrl","https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg"]])
     },
     locations: [],
   });
-
-//// Used for debugging
-// await this._store.addSpace({
-//   name: "Political Compass Img",
-//   origin: mapEh,
-//   visible: true,
-//   surface: {
-//     html: `<img src=\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\" style=\"max-width:100%;max-height:100%;width:100%;height:100%;\" />`,
-//     size: { x: 600, y: 600 },
-//   },
-//   meta: {
-//     ui: `[]`,
-//     multi: "false", markerType: MarkerType[MarkerType.Avatar],
-//     subMap: "[[\"ImageUrl\",\"https://upload.wikimedia.org/wikipedia/commons/6/64/Political_Compass_standard_model.svg\"]]"
-//   },
-//   locations: [],
-// });
 }

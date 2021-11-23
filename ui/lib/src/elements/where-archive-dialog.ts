@@ -80,7 +80,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
     `
   )}
 </mwc-list>
-<mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
+<mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
 </mwc-dialog>
 `

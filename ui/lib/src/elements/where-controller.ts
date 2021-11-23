@@ -328,11 +328,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async openEmojiGroupDialog(group?: EmojiGroupEntry) {
     const dialog = this.emojiGroupDialogElem;
-    //dialog.clearAllFields();
+    dialog.clearAllFields();
     dialog.open(group);
-    //if (group) {
-    //  dialog.loadPreset(group);
-    // }
+    if (group) {
+     dialog.loadPreset(group);
+    }
   }
 
 
@@ -551,6 +551,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-space-dialog" : WhereSpaceDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
+      "where-emoji-group-dialog" : WhereEmojiGroupDialog,
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,

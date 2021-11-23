@@ -10,7 +10,7 @@ import {
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry, Signal,
+  TemplateEntry, Signal, EmojiGroupEntry,
 } from './types';
 import {
   ProfilesStore,
@@ -24,6 +24,8 @@ export class WhereStore {
   private service : WhereService
   private profiles: ProfilesStore
 
+  /** EmojiGroupEh -> EmojiGroup */
+  private emojiGroupStore: Writable<Dictionary<EmojiGroupEntry>> = writable({});
   /** TemplateEh -> Template */
   private templatesStore: Writable<Dictionary<TemplateEntry>> = writable({});
   /** SpaceEh -> Space */
@@ -37,10 +39,10 @@ export class WhereStore {
   myAgentPubKey: AgentPubKeyB64;
 
   /** Readable stores */
+  public emojiGroups: Readable<Dictionary<EmojiGroupEntry>> = derived(this.emojiGroupStore, i => i)
   public templates: Readable<Dictionary<TemplateEntry>> = derived(this.templatesStore, i => i)
   public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
   public zooms: Readable<Dictionary<number>> = derived(this.zoomsStore, i => i)
-
   public agentPresences: Readable<Dictionary<number>> = derived(this.agentPresenceStore, i => i)
 
 
@@ -58,7 +60,7 @@ export class WhereStore {
       if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
         return
       }
-      console.log("SIGNAL", signal)
+      //console.debug("SIGNAL", signal)
       const payload = signal.data.payload
       // Update agent's presence stat
       this.updatePresence(payload.from)
@@ -76,6 +78,14 @@ export class WhereStore {
       switch(payload.message.type) {
         case "Ping":
         case "Pong":
+          break;
+        case "NewEmojiGroup":
+          if (!get(this.emojiGroups)[payload.spaceHash]) {
+            this.emojiGroupStore.update(emojiGroups => {
+              emojiGroups[payload.spaceHash] = payload.message.content
+              return emojiGroups
+            })
+          }
           break;
       case "NewTemplate":
         if (!get(this.templates)[payload.spaceHash]) {
@@ -176,6 +186,23 @@ export class WhereStore {
       , this.others());
     return eh64
   }
+
+  async updateEmojiGroups() : Promise<Dictionary<EmojiGroupEntry>> {
+    return get(this.emojiGroupStore)
+  }
+
+  async addEmojiGroup(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
+    const eh64: EntryHashB64 = await this.service.createEmojiGroup(emojiGroup)
+    this.emojiGroupStore.update(emojiGroups => {
+      emojiGroups[eh64] = emojiGroup
+      return emojiGroups
+    })
+    this.service.notify(
+      {spaceHash: eh64, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content:emojiGroup}}
+      , this.others());
+    return eh64
+  }
+
 
   async pullSpaces() : Promise<Dictionary<Space>> {
     const _templates = await this.service.getTemplates(); // required for data integrity of 'origin' field in Space

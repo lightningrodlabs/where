@@ -9,7 +9,7 @@ import {
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, SpaceMeta, MarkerType,
+  Dictionary, SpaceMeta, MarkerType, EmojiGroupEntry,
 } from './types';
 
 
@@ -75,6 +75,10 @@ export class WhereService {
     return this.callZome('delete_here', hereHh);
   }
 
+  async createEmojiGroup(template: EmojiGroupEntry): Promise<EntryHashB64> {
+    return this.callZome('create_emoji_group', template);
+  }
+
   async createTemplate(template: TemplateEntry): Promise<EntryHashB64> {
     return this.callZome('create_template', template);
   }
@@ -120,7 +124,7 @@ export class WhereService {
       surface: JSON.stringify(space.surface),
       meta: this.metaIntoEntry(space.meta),
     }
-    console.log(s)
+    //console.log(s)
     return s
   }
 

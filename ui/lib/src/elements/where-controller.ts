@@ -7,12 +7,13 @@ import {Unsubscriber} from "svelte/store";
 
 import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
+import {whereContext, Space, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
 import { WhereArchiveDialog } from "./where-archive-dialog";
+import { WhereEmojiGroupDialog } from "./where-emoji-group-dialog";
 import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
@@ -87,6 +88,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   get spaceDialogElem() : WhereSpaceDialog {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  }
+
+  get emojiGroupDialogElem() : WhereEmojiGroupDialog {
+    return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
   }
 
   get myNickName(): string {
@@ -321,6 +326,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  async openEmojiGroupDialog(group?: EmojiGroupEntry) {
+    const dialog = this.emojiGroupDialogElem;
+    //dialog.clearAllFields();
+    dialog.open(group);
+    //if (group) {
+    //  dialog.loadPreset(group);
+    // }
+  }
+
+
+
   private async handleSpaceSelected(e: any): Promise<void> {
     const index = e.detail.index;
     if (index < 0) {
@@ -340,6 +356,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       this.requestUpdate();
     }
   }
+
 
   handleViewArchiveSwitch(e: any) {
     // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
@@ -430,10 +447,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         if (!space.visible) {
           return html ``;
         }
+        const template = this._store.template(space.origin);
         return html`
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
-            <span slot="secondary">${this._store.template(space.origin).name}</span>
+            <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(space, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
@@ -459,6 +477,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </mwc-list-item>
     <li divider role="separator"></li>
     </mwc-list>
+    <mwc-button icon="add_circle" @click=${() => this.openEmojiGroupDialog()}>Emoji Group</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
     <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
@@ -497,6 +516,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       </div>
     </div>
     <!-- DIALOGS -->
+    <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile.value ? html`` : html`

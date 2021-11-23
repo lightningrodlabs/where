@@ -92,6 +92,7 @@ export enum MarkerType {
   Avatar,
   Color,
   Letter,
+  EmojiGroup,
 }
 
 export enum TemplateType {
@@ -105,6 +106,11 @@ export interface TemplateEntry  {
   surface: string;
 }
 
+export interface EmojiGroupEntry {
+  name: string,
+  description: string,
+  unicodes: string[],
+}
 
 export type Signal =
   | {
@@ -125,3 +131,6 @@ export type Signal =
     | {
     spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewTemplate", content: TemplateEntry}
   }
+  | {
+  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EmojiGroupEntry}
+}

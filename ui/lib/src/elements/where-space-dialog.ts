@@ -33,7 +33,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   @property() myProfile: Profile| undefined = undefined;
 
-  @state() _currentTemplate: TemplateEntry = {name: "__dummy", surface:""};
+  @state() _currentTemplate: null | TemplateEntry = null;
   @state() _currentPlaceHolders: Array<string> = [];
 
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
@@ -244,7 +244,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
    */
   generateSurface() {
     /** Html/SVG/JS */
-    let surface: any = JSON.parse(this._currentTemplate.surface);
+    let surface: any = JSON.parse(this._currentTemplate!.surface);
     let code: string = "";
     if (surface.svg) code = surface.svg;
     if (surface.html) code = surface.html;
@@ -366,7 +366,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       const ui = JSON.parse(this._uiField.value);
       uiItems = this._uiField ? renderUiItems(ui, w / surface.size.x, h / surface.size.y) : html``;
     } catch (e) {
-      console.error("Failed to parse uiField");
+      console.warn("Failed to parse uiField. Could be empty");
+      //console.error(e)
     }
     var preview;
     if (surface.html) {
@@ -414,9 +415,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      this._currentTemplate = this._templates.value[Object.keys(this._templates.value)[0]]
-      console.log("_currentTemplate:")
-      console.log(this._currentTemplate)
+      let firstTemplate = Object.keys(this._templates.value)[0];
+      //console.log(firstTemplate)
+      this._currentTemplate = this._templates.value[firstTemplate]? this._templates.value[firstTemplate] : null
+      console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
     }
     let selectedTemplateUi = this.renderTemplateFields()
     //console.log({selectedTemplateUi})
@@ -444,7 +446,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         ([key, template]) => html`
         <mwc-list-item
           @request-selected=${() => this.handleTemplateSelect(key)}
-          .selected=${this._templates.value[key].name === this._currentTemplate.name}
+          .selected=${this._templates.value[key].name === this._currentTemplate!.name}
           value="${key}"
           >${template.name}
         </mwc-list-item>

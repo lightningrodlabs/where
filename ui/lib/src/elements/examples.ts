@@ -79,25 +79,6 @@ export async function addHardcodedSpaces(store: WhereStore) {
     locations: [],
   });
 
-  let subMap = new Map([["pixel-size","6"]]) as Map<string, string>;
-
-  await store.addSpace({
-    name: "Canvas Sample",
-    origin: canvasEh,
-    visible: true,
-    surface: {
-      canvas: generate_surface(tvstatic_template_canvas, subMap),
-      size: {x: 500, y: 500},
-    },
-    meta: {
-      ui: [],
-      markerType: MarkerType.Color, singleEmoji: "", emojiGroup: null,
-      multi: true, canTag: true, tagVisible: false,
-      subMap,
-    },
-    locations: [],
-  });
-
   await store.addSpace({
     name: "earth",
     origin: mapEh,
@@ -149,7 +130,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     locations: [],
   });
 
-  subMap = new Map([["param1","Cost"], ["param2","Quality"], ["param3","Time"]]) as Map<string, string>;
+  let subMap = new Map([["param1","Cost"], ["param2","Quality"], ["param3","Time"]]) as Map<string, string>;
 
   await store.addSpace({
     name: "Project Triangle",
@@ -168,4 +149,39 @@ export async function addHardcodedSpaces(store: WhereStore) {
     locations: [],
   });
 
+  subMap = new Map([["ImageUrl","https://i1.wp.com/www.pedrosolorzano.com/wp-content/uploads/2019/08/blobtreepedro.jpg"]]) as Map<string, string>;
+  await store.addSpace({
+    name: "Blob Tree",
+    origin: mapEh,
+    visible: true,
+    surface: {
+      html: generate_surface(map2D_template_html, subMap),
+      size: {x: 650, y: 920},
+    },
+    meta: {
+      ui: [{box:{left:10,top:45,width:170,height:20},style:"padding:10px;background-color:#fffffffa;border-radius:10px;border:2px solid violet;font-size:large;",content:"How are you feeling?"}],
+      markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: heartsEh,
+      multi: true, canTag: false, tagVisible: false,
+      subMap,
+    },
+    locations: [],
+  });
+
+  subMap = new Map([["pixel-size","6"]]) as Map<string, string>;
+  await store.addSpace({
+    name: "Canvas Sample",
+    origin: canvasEh,
+    visible: true,
+    surface: {
+      canvas: generate_surface(tvstatic_template_canvas, subMap),
+      size: {x: 500, y: 500},
+    },
+    meta: {
+      ui: [],
+      markerType: MarkerType.Color, singleEmoji: "", emojiGroup: null,
+      multi: true, canTag: true, tagVisible: true,
+      subMap,
+    },
+    locations: [],
+  });
 }

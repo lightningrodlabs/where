@@ -5,6 +5,7 @@ use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 use crate::template::*;
 use crate::space::*;
 use crate::here::*;
+use crate::emoji_group::*;
 
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
     #[serde(tag = "type", content = "content")]
@@ -13,6 +14,7 @@ pub enum Message {
     Pong(AgentPubKeyB64),
     NewSpace(Space),
     NewTemplate(Template),
+    NewEmojiGroup(EmojiGroup),
     NewHere(HereOutput),
     DeleteHere(HeaderHashB64)
 }

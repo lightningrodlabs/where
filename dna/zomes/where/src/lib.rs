@@ -7,6 +7,7 @@ pub mod space;
 pub mod signals;
 pub mod here;
 pub mod template;
+pub mod emoji_group;
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -24,6 +25,7 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 
 entry_defs![
     Path::entry_def(),
+    emoji_group::EmojiGroup::entry_def(),
     template::Template::entry_def(),
     space::Space::entry_def(),
     here::Here::entry_def()

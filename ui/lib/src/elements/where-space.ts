@@ -5,7 +5,7 @@ import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
-import {Coord, Location, LocationInfo, Space, whereContext, LocOptions, MarkerType} from "../types";
+import {Coord, Location, LocationInfo, Space, whereContext, LocOptions, MarkerType, EmojiGroupEntry} from "../types";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
@@ -58,7 +58,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @query('#hide-here-fab') hideFab!: Fab;
 
   //@property() avatar = "";
-  @property() currentSpaceEh: null | EntryHashB64 = "";
+  @property() currentSpaceEh: null | EntryHashB64 = null;
 
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
@@ -69,6 +69,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
+  _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
   //_knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
 
   private dialogCoord = { x: 0, y: 0 };
@@ -173,15 +174,19 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       return;
     }
     const space: Space = this._spaces.value[this.currentSpaceEh];
+    //console.log("handleClick: " + space.name)
+    //console.log(space.meta?.singleEmoji)
     const coord = this.getCoordsFromEvent(event);
-    const useEmoji = space.meta?.markerType == MarkerType.Emoji;
+    const useEmoji = space.meta?.markerType == MarkerType.AnyEmoji
+      || space.meta?.markerType == MarkerType.SingleEmoji
+      || space.meta?.markerType == MarkerType.EmojiGroup
     if (this.canEditLocation(space)) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
       this.dialogCanEdit = false;
       const options: LocOptions = {
         tag: space.meta?.canTag ? "" : null,
-        emoji: useEmoji? "" : null,
+        emoji: useEmoji? space.meta?.singleEmoji : null,
         name: this.myNickName,
         img: this._myProfile.value.fields.avatar,
         canEdit: false,
@@ -196,6 +201,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           img: this._myProfile.value.fields.avatar,
           color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
           name: this.myNickName,
+          emoji: space.meta?.singleEmoji,
         },
       };
       this._store.addLocation(this.currentSpaceEh, location);
@@ -209,19 +215,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     idx?: number
   ) {
     const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    const emojiPickerElem = this.shadowRoot!.getElementById("edit-location-emoji");
-
-    if (!tagElem && !emojiPickerElem) {
-      return;
-    }
-
+    const emojiPickerElem = this.shadowRoot!.getElementById("edit-location-emoji-picker");
     const emojiPreviewElem = this.shadowRoot!.getElementById("edit-location-emoji-preview");
 
     if (emojiPreviewElem) {
-      const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
-      if (emoji) {
-        emojiPickerElem?.addEventListener('emoji-click', (event: any ) => emoji.innerHTML = event?.detail?.unicode);
-        emoji.innerHTML = `${options.emoji}`
+      const emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+      if (emojiMarkerElem) {
+        emojiPickerElem?.addEventListener('emoji-click', (event: any ) => emojiMarkerElem.innerHTML = event?.detail?.unicode);
+        emojiMarkerElem.innerHTML = `${options.emoji}`
       }
     }
 
@@ -253,9 +254,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** handle "ok" */
     const tagValue = tag ? tag.value : ""
-    const emoji = this.shadowRoot!.getElementById("edit-location-emoji-marker");
-    const emojiValue = emoji ? emoji.innerHTML : ""
-    const markerType = this._spaces.value[this.currentSpaceEh!].meta!.markerType;
+    const emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+    let emojiValue = ""
+    let markerType = MarkerType.Letter
+    if(this.currentSpaceEh) {
+      const currentSpace = this._spaces.value[this.currentSpaceEh]
+      markerType = currentSpace.meta!.markerType;
+      emojiValue = currentSpace.meta!.singleEmoji;
+    }
+    if (emojiMarkerElem) {
+      emojiValue = emojiMarkerElem.innerHTML
+    }
 
     const location: Location = {
       coord: this.dialogCoord,
@@ -394,12 +403,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this._store.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
   }
 
+
   canEditLocation(space: Space | undefined) {
-    if (!space) {
+    if (!space && this.currentSpaceEh) {
       space = this._spaces.value[this.currentSpaceEh!];
     }
-    const useEmoji = space.meta.markerType == MarkerType.Emoji;
-    return space.meta.canTag || useEmoji;
+    const canPickEmoji = space!.meta.markerType == MarkerType.AnyEmoji
+                      || space!.meta.markerType == MarkerType.EmojiGroup;
+    return space!.meta.canTag || canPickEmoji;
   }
 
 
@@ -410,16 +421,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const x = locInfo.location.coord.x * z;
     const y = locInfo.location.coord.y * z;
     /** Render Marker */
-      // TODO: should check agent key and not nickname
+    // TODO: should check agent key and not nickname
     const isMe = locInfo.location.meta.name == this.myNickName;
     let marker = renderMarker(locInfo.location.meta, isMe);
-
-    /** Render Location Marker and Dialog */
-    // Handle my Locations differently
+    /** Extra elements for when its my Location */
     let maybeMeClass  = "";
     let maybeDeleteBtn = html ``;
     let maybeEditBtn = html ``;
-
     if (isMe) {
       maybeMeClass = "me";
       maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
@@ -427,7 +435,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
       }
     };
-
+    /** Render Location */
     return html`
       <div
         .draggable=${true}
@@ -525,28 +533,60 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+  async handleEmojiButtonClick(unicode: string) {
+    // console.log("handleEmojiButtonClick: " + unicode)
+    let emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+    emojiMarkerElem!.innerHTML = `${unicode}`
+    this.requestUpdate()
+  }
+
+
   renderLocationDialog(space: Space | undefined) {
     if (!this.canEditLocation(space)) {
       return html``;
     }
-    let maybeEmojiForm = html``;
-    if (space!.meta.markerType == MarkerType.Emoji) {
-      maybeEmojiForm = html`
+    /** Render EmojiPreview */
+    let maybeEmojiPreview = html``;
+    if (space!.meta.markerType == MarkerType.AnyEmoji || space!.meta.markerType == MarkerType.EmojiGroup) {
+      maybeEmojiPreview = html`
         <div id="edit-location-emoji-preview" class="location-marker emoji-marker">
-          Emoji*
+          Emoji:
           <div id="edit-location-emoji-marker"></div>
-        </div>
-        <emoji-picker id="edit-location-emoji" class="light"></emoji-picker>
+        </div>`
+    }
+    /** Render Emoji Picker / Selector */
+    let maybeEmojiPicker = html``;
+    if (space!.meta.markerType == MarkerType.AnyEmoji) {
+      maybeEmojiPicker = html`
+        <emoji-picker id="edit-location-emoji-picker" class="light"></emoji-picker>
       `;
     }
+    if (space!.meta.markerType == MarkerType.EmojiGroup) {
+      const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[space!.meta.emojiGroup!];
+      const emojis = Object.entries(emojiGroup.unicodes).map(
+        ([key, unicode]) => {
+          return html`
+          <mwc-icon-button style="cursor: pointer;" class="unicode-button" @click=${(e:any) => this.handleEmojiButtonClick(unicode)} >${unicode}</mwc-icon-button>
+          `
+        }
+      )
+      maybeEmojiPicker = html`
+          <h4 style="margin-bottom: 0px">${emojiGroup.name}</h4>
+          <div class="unicodes-container" style="min-height:40px;font-size: 30px;line-height: 40px">
+            ${emojis}
+          </div>
+      `;
+    }
+    /** Render Tag field */
     const tagForm = space!.meta?.canTag
       ? html`<mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>`
       : html``;
-
+    /** Render */
     return html`
         <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialogClosing}>
           ${tagForm}
-          ${maybeEmojiForm}
+          ${maybeEmojiPreview}
+          ${maybeEmojiPicker}
           <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
           <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
         </mwc-dialog>

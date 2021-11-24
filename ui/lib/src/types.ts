@@ -69,6 +69,8 @@ export interface SpaceMeta {
   multi: boolean,
   canTag: boolean,
   tagVisible: boolean,
+  singleEmoji: string,
+  emojiGroup: EntryHashB64 | null,
   ui: UiItem[],
 }
 
@@ -88,10 +90,11 @@ export interface UiBox {
 }
 
 export enum MarkerType {
-  Emoji,
+  AnyEmoji,
   Avatar,
   Color,
   Letter,
+  SingleEmoji,
   EmojiGroup,
 }
 

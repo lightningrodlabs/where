@@ -15,7 +15,6 @@ import {
   TextField
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
-import {WhereArchiveDialog} from "./where-archive-dialog";
 import {Picker} from "emoji-picker-element";
 import {EMOJI_WIDTH} from "../sharedRender";
 
@@ -39,11 +38,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   _currentGroup: EmojiGroupEntry | null = null;
 
 
-
   @query('#name-field')
   _nameField!: TextField;
-  @query('#group-field')
-  _groupField!: Select;
 
 
   get emojiPickerElem() : Picker {
@@ -73,7 +69,6 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   /** preload fields with current emojiGroup values */
   async loadPreset(emojiGroup: EmojiGroupEntry) {
     this._nameField.value = 'Fork of ' + emojiGroup.name;
-    this._groupField.value = emojiGroup.name;
     this._currentUnicodes = emojiGroup.unicodes
     this._currentGroup = emojiGroup
   }
@@ -106,7 +101,6 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   clearAllFields(e?: any) {
     this._nameField.value = "";
     this._currentUnicodes = [];
-    this._groupField.value = "";
   }
 
   private async handleResetGroup(e: any) {
@@ -181,18 +175,19 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     )
     /** Render */
     return html`
-<mwc-dialog id="emoji-group-dialog" heading="Emoji Groups" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="emoji-group-dialog" heading="New Emoji Group" @opened=${this.handleDialogOpened}>
   <!-- Name -->
-  <mwc-textfield outlined dialogInitialFocus type="text"
+  <mwc-textfield id="name-field" dialogInitialFocus type="text"
+                 style="display: block;"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <!-- Group Combo box -->
-  <mwc-select outlined id="group-field" label="Existing" @closing=${(e:any)=>e.stopPropagation()} @select=${this.handleGroupSelect}>
+                 minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+  <!-- Group Combo box
+  <mwc-select outlined id="group-field" label="Existing groups" @closing=${(e:any)=>e.stopPropagation()} @select=${this.handleGroupSelect}>
     ${groups}
-  </mwc-select>
+  </mwc-select>-->
   <!-- Display Unicode List / Grid -->
-  <div style="min-height:40px;">
-    <div id="unicodes-div">
+  <div style="margin:10px 0px 10px 0px;">
+    <div class="unicodes-container">
       ${emojis}
     </div>
   </div>
@@ -206,11 +201,6 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 `
   }
 
-  // render() {
-  //   return html`<mwc-dialog id="emoji-group-dialog" heading="Emoji Groups">
-  //   <mwc-button id="primary-action-button" slot="primaryAction">ok</mwc-button>
-  //   </mwc-dialog>`
-  // }
 
   static get scopedElements() {
     return {
@@ -224,18 +214,23 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     };
   }
 
+//--font-family: "Apple Color AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto Color AnyEmoji","EmojiOne Color","Android AnyEmoji",sans-serif
+
   static get styles() {
     return [
       sharedStyles,
       css`
+        emoji-picker {
+          width: auto;
+          height: 360px;
+        }
+        mwc-textfield {
+          margin-top: 5px;
+        }
         mwc-textfield.rounded {
           --mdc-shape-small: 28px;
           width: 110px;
           margin-top:10px;
-        }
-        .unicode-button {
-          --mdc-icon-button-size: ${EMOJI_WIDTH}px;
-          --mdc-icon-size: ${EMOJI_WIDTH}px;
         }
       `
     ];

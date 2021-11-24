@@ -71,6 +71,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   const myStyle = `background-color:${locMeta.color}; border:${locMeta.color} 2px solid`;
 
   //console.log("locMeta.markerType: " + locMeta.markerType)
+  //console.log({locMeta})
   switch (locMeta.markerType) {
     case MarkerType[MarkerType.Avatar]:
       // Use an image url if stored in the Location, otherwise use the agent's avatar
@@ -84,7 +85,9 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
       const pin = render_pin(locMeta.color)
       marker = html`<div class="pin-marker">${pin}</div>`
       break;
-    case MarkerType[MarkerType.Emoji]:
+    case MarkerType[MarkerType.SingleEmoji]:
+    case MarkerType[MarkerType.EmojiGroup]:
+    case MarkerType[MarkerType.AnyEmoji]:
       marker = html `<sl-avatar class="${classes} emoji-marker" initials=${locMeta.emoji}></sl-avatar>`
       break;
     case MarkerType[MarkerType.Letter]:

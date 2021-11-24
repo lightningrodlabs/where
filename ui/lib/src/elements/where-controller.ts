@@ -90,10 +90,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
-  get emojiGroupDialogElem() : WhereEmojiGroupDialog {
-    return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
-  }
-
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
@@ -326,17 +322,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  async openEmojiGroupDialog(group?: EmojiGroupEntry) {
-    const dialog = this.emojiGroupDialogElem;
-    dialog.clearAllFields();
-    dialog.open(group);
-    if (group) {
-     dialog.loadPreset(group);
-    }
-  }
-
-
-
   private async handleSpaceSelected(e: any): Promise<void> {
     const index = e.detail.index;
     if (index < 0) {
@@ -477,7 +462,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </mwc-list-item>
     <li divider role="separator"></li>
     </mwc-list>
-    <mwc-button icon="add_circle" @click=${() => this.openEmojiGroupDialog()}>Emoji Group</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
     <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
@@ -516,7 +500,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       </div>
     </div>
     <!-- DIALOGS -->
-    <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile.value ? html`` : html`
@@ -551,7 +534,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-space-dialog" : WhereSpaceDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
-      "where-emoji-group-dialog" : WhereEmojiGroupDialog,
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,

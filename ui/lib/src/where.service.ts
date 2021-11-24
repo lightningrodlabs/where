@@ -179,6 +179,8 @@ export class WhereService {
       canTag: false,
       tagVisible: false,
       ui: [],
+      singleEmoji: "",
+      emojiGroup: null,
     } as SpaceMeta
   }
 }

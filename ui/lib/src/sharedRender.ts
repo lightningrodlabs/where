@@ -1,7 +1,7 @@
 import {html, svg} from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {Dictionary, MarkerType, TemplateEntry} from "./types";
+import {Dictionary, MarkerType, TemplateEntry, UiItem} from "./types";
 import {SlAvatar} from "@scoped-elements/shoelace";
 
 export const MARKER_WIDTH = 40;
@@ -18,10 +18,10 @@ function getInitials(nickname: string): string {
   return initials;
 }
 
-export function renderUiItems(ui: string, zx: number, zy: number) {
+export function renderUiItems(ui: UiItem[], zx: number, zy: number) {
   let uiItems = html``
   try {
-    uiItems = JSON.parse(ui).map((item: any) => {
+    for (const item of ui) {
       return html`
             <div
               class="ui-item"
@@ -34,7 +34,7 @@ export function renderUiItems(ui: string, zx: number, zy: number) {
               ${item.content}
             </div>
           `;
-    });
+    };
   } catch (e) {
     console.error("Invalid meta.ui: " + e)
   }
@@ -71,6 +71,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   const myStyle = `background-color:${locMeta.color}; border:${locMeta.color} 2px solid`;
 
   //console.log("locMeta.markerType: " + locMeta.markerType)
+  //console.log({locMeta})
   switch (locMeta.markerType) {
     case MarkerType[MarkerType.Avatar]:
       // Use an image url if stored in the Location, otherwise use the agent's avatar
@@ -84,7 +85,9 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
       const pin = render_pin(locMeta.color)
       marker = html`<div class="pin-marker">${pin}</div>`
       break;
-    case MarkerType[MarkerType.Emoji]:
+    case MarkerType[MarkerType.SingleEmoji]:
+    case MarkerType[MarkerType.EmojiGroup]:
+    case MarkerType[MarkerType.AnyEmoji]:
       marker = html `<sl-avatar class="${classes} emoji-marker" initials=${locMeta.emoji}></sl-avatar>`
       break;
     case MarkerType[MarkerType.Letter]:

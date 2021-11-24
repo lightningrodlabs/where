@@ -5,15 +5,14 @@ import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {Dictionary, MarkerType, Space, TemplateEntry, whereContext} from "../types";
-import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
+import {Dictionary, EmojiGroupEntry, MarkerType, Space, TemplateEntry, UiItem, whereContext} from "../types";
+import {EMOJI_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {
   Button,
   Checkbox,
   Dialog,
-  Formfield,
+  Formfield, IconButton,
   ListItem,
-  Radio,
   Select,
   TextArea,
   TextField
@@ -25,28 +24,33 @@ import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "./templates";
+import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
+import {Picker} from "emoji-picker-element";
 
 /**
  * @element where-space-dialog
  */
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
+  /** Public properties */
   @property() myProfile: Profile| undefined = undefined;
-
-  @state() _currentTemplate: TemplateEntry = {name: "__dummy", surface:""};
-  @state() _currentPlaceHolders: Array<string> = [];
-
-  _useTemplateSize: boolean = true // have size fields set to default only when changing template
-  _canvas: string = "";
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
-
   _templates = new StoreSubscriber(this, () => this._store.templates);
+  _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
 
   /** Private properties */
+  @state() _currentTemplate: null | TemplateEntry = null;
+  @state() _currentPlaceHolders: Array<string> = [];
   _spaceToPreload?: EntryHashB64;
+  _useTemplateSize: boolean = true // have size fields set to default only when changing template
+  _canvas: string = "";
+
+  _currentEmojiGroupEh: null | EntryHashB64 = null;
+  _currentSingleEmoji: string = ""
+
 
   @query('#name-field')
   _nameField!: TextField;
@@ -67,8 +71,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _multiChk!: Checkbox;
 
   @query('#marker-select')
-  _markerField!: Select;
+  _markerTypeField!: Select;
 
+
+  get emojiGroupDialogElem() : WhereEmojiGroupDialog {
+    return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
+  }
 
   /**
    *
@@ -83,7 +91,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     dialog.open = true
   }
 
-
   /**
    *
    */
@@ -92,51 +99,61 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!originalSpace) {
       return;
     }
+    this._currentSingleEmoji = originalSpace.meta.singleEmoji
+    this._currentEmojiGroupEh = originalSpace.meta.emojiGroup;
     this._nameField.value = 'Fork of ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
-    this._uiField.value = originalSpace.meta!["ui"] ? originalSpace.meta!["ui"] : "[\n]";
-    this._multiChk.checked = originalSpace.meta!["multi"] ? true : false;
-    this._tagChk.checked = originalSpace.meta!["canTag"] ? true : false;
-    this._tagVisibleChk.checked = originalSpace.meta!["canTag"] && originalSpace.meta!["tagVisible"] ? true : false;
-    this._markerField.value = originalSpace.meta!["markerType"];
+    this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
+    this._multiChk.checked = originalSpace.meta.multi;
+    this._tagChk.checked = originalSpace.meta.canTag;
+    this._tagVisibleChk.checked = originalSpace.meta.canTag && originalSpace.meta.tagVisible;
+    this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
     this.handleTagSelect()
 
     /** Templated fields */
-    try {
-      const subMap = new Map(JSON.parse(originalSpace.meta!["subMap"])) as Map<string, string>;
-      for (let [key, value] of subMap) {
-        let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
-        if (!field) {
-          console.log('Textfield not found: ' + key + '-gen')
-          continue;
-        }
-        console.log('field ' + key + ' - ' + value)
-        field.value = value
-        field.label = key
+    for (let [key, value] of originalSpace.meta.subMap!) {
+      let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
+      if (!field) {
+        console.log('Textfield not found: ' + key + '-gen')
+        continue;
       }
-    } catch (e) {
-      console.error("Failed parsing subMap() for space " + originalSpace)
-      console.error(e)
+      console.log('field ' + key + ' - ' + value)
+      field.value = value
+      field.label = key
     }
   }
 
   private determineMarkerType(): string {
-     if (!this._markerField) {
-       return MarkerType[MarkerType.Avatar];
+    if (!this._markerTypeField) {
+      return MarkerType[MarkerType.Avatar];
     }
-    return this._markerField.value;
+    return this._markerTypeField.value;
   }
 
 
   updated(changedProperties: any) {
+    //console.log("Updated space-dialog: " + changedProperties)
+    /** Execute Canvas code */
     if (this._canvas) {
       let canvas_code = prefix_canvas('preview-canvas') + this._canvas;
       try {
         var renderCanvas = new Function(canvas_code);
         renderCanvas.apply(this);
       } catch (e) {console.log("render canvas failed");}
+    }
+    /** Setup emoji picker */
+    let emojiPickerElem = this.shadowRoot!.getElementById("emoji-picker") as Picker;
+    if (emojiPickerElem) {
+      emojiPickerElem.addEventListener('emoji-click', (event: any) => {
+        const unicode = event?.detail?.unicode
+        //console.log("emoji-click: " + unicode)
+        let emojiPreview = this.shadowRoot!.getElementById("space-unicodes");
+        emojiPreview!.innerHTML = unicode
+        this._currentSingleEmoji = unicode
+        this.requestUpdate()
+      });
     }
   }
 
@@ -160,8 +177,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       this._heightField.reportValidity()
     }
     // uiField
+    let ui: UiItem[] = [];
     try {
-      const _ = JSON.parse(this._uiField.value)
+      ui = JSON.parse(this._uiField.value)
     }
     catch (e) {
       isValid = false;
@@ -171,15 +189,16 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!isValid) return
 
     // - Get checkbox values
-    const multi = this._multiChk.checked ? "true" : ""
-    const canTag = this._tagChk.checked ? "true" : ""
-    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked ? "true" : ""
-    const markerType = this.determineMarkerType();
+    const multi = this._multiChk.checked
+    const canTag = this._tagChk.checked
+    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked
+    const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
 
     let {surface, subMap} = this.generateSurface();
-    const subMapJson = JSON.stringify(Array.from(subMap.entries()));
-    console.log({subMapJson});
 
+    const singleEmojiElem = this.shadowRoot!.getElementById("space-unicodes");
+    //console.log({singleEmojiElem})
+    const singleEmoji = singleEmojiElem? singleEmojiElem.innerText: "";
     // - Create space
     //console.log("this._templateField.value = " + this._templateField.value);
     const space: Space = {
@@ -188,12 +207,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       visible: true,
       surface,
       meta: {
-        subMap: subMapJson,
+        subMap,
+        markerType,
         multi,
         canTag,
-        markerType,
         tagVisible,
-        ui: this._uiField.value
+        ui,
+        singleEmoji,
+        emojiGroup: this._currentEmojiGroupEh,
       },
       locations: [],
     };
@@ -219,6 +240,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._widthField.value = ''
     this._heightField.value = ''
     this._uiField.value = '[]'
+    this._currentSingleEmoji = "😀"
+    this._currentEmojiGroupEh = null;
     this.handleTagSelect()
   }
 
@@ -250,7 +273,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
    */
   generateSurface() {
     /** Html/SVG/JS */
-    let surface: any = JSON.parse(this._currentTemplate.surface);
+    let surface: any = JSON.parse(this._currentTemplate!.surface);
     let code: string = "";
     if (surface.svg) code = surface.svg;
     if (surface.html) code = surface.html;
@@ -325,7 +348,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentPlaceHolders = Array.from(names)
     // - Generate textField for each placeholder
     return html`${this._currentPlaceHolders.map((name)=> html`
-      <mwc-textfield outlined id="${name}-gen" required label="${name}" value="" @input="${name==='ImageUrl'?this.handleImageUrlField:null}"></mwc-textfield>`
+      <mwc-textfield outlined id="${name}-gen" label="${name}" value="" @input="${name==='ImageUrl'?this.handleImageUrlField:null}"></mwc-textfield>`
     )}`
   }
 
@@ -348,11 +371,22 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  renderMarkerPreview(markerType?: string) {
+  renderMarkerTypePreview(markerType?: string) {
     let locMeta: Dictionary<string> = {};
     locMeta.markerType = markerType? markerType : this.determineMarkerType();
     locMeta.img = this.myProfile!.fields.avatar;
-    locMeta.emoji = "😀";
+    switch (markerType) {
+      case MarkerType[MarkerType.EmojiGroup]:
+        locMeta.emoji = "⚽️";
+        break
+      case MarkerType[MarkerType.AnyEmoji]:
+        locMeta.emoji = "😀";
+        break
+      case MarkerType[MarkerType.SingleEmoji]:
+      default:
+        locMeta.emoji = "🐹";
+        break;
+    }
     locMeta.color = this.myProfile!.fields.color;
     locMeta.name = this.myProfile!.nickname;
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
@@ -367,8 +401,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const ratio: number = (surface.size && surface.size.x > 0)? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
-    let uiItems = this._uiField? renderUiItems(this._uiField.value, w / surface.size.x, h / surface.size.y) : html ``;
-
+    let uiItems = html ``;
+    try {
+      const ui = JSON.parse(this._uiField.value);
+      uiItems = this._uiField ? renderUiItems(ui, w / surface.size.x, h / surface.size.y) : html``;
+    } catch (e) {
+      console.warn("Failed to parse uiField. Could be empty");
+      //console.error(e)
+    }
     var preview;
     if (surface.html) {
       preview =
@@ -403,20 +443,59 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     `
   }
 
-  handleMarkerSelect(markerType: string) {
-    console.log({markerType})
-    //this.requestUpdate()
-  }
+  // handleMarkerSelect(markerType: string) {
+  //   console.log({markerType})
+  //   //this.requestUpdate()
+  // }
 
   handleTagSelect() {
     this._tagVisibleChk.disabled = !this._tagChk.checked
     this._tagVisibleChk.hidden = !this._tagChk.checked
   }
 
+  handleEmojiGroupSelect(e?: any) {
+    console.log("handleEmojiGroupSelect")
+    console.log({e})
+    const selectedName = e.explicitOriginalTarget.value;
+    console.log("selectedName: " + selectedName)
+    if (!selectedName || selectedName == "") {
+      return;
+    }
+    /** Build emoji list */
+    //const maybeEmojiGroupSelector = this.shadowRoot!.getElementById("emoji-group-field") as Select;
+    let unicodes = ""
+    // FIXME: should retrieve group by eh instead of name
+    for (const [eh, group] of Object.entries(this._emojiGroups.value)) {
+      if (group.name == selectedName) {
+        unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
+        this._currentEmojiGroupEh = eh;
+        break;
+      }
+    }
+    //const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[maybeEmojiGroupSelector.value];
+    console.log("unicodes string: " + unicodes)
+    let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
+    unicodeContainer!.innerHTML = unicodes
+  }
+
+
+
+  async openEmojiGroupDialog(group?: EmojiGroupEntry) {
+    const dialog = this.emojiGroupDialogElem;
+    dialog.clearAllFields();
+    dialog.open(group);
+    if (group) {
+      dialog.loadPreset(group);
+    }
+  }
+
   render() {
+    /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      this._currentTemplate = this._templates.value[Object.keys(this._templates.value)[0]]
-      console.log(this._currentTemplate)
+      let firstTemplate = Object.keys(this._templates.value)[0];
+      //console.log(firstTemplate)
+      this._currentTemplate = this._templates.value[firstTemplate]? this._templates.value[firstTemplate] : null
+      console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
     }
     let selectedTemplateUi = this.renderTemplateFields()
     //console.log({selectedTemplateUi})
@@ -425,26 +504,69 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "style": "background-color:white;border-radius:10px;",
       "content": "Land of the Lost"}`
 
+    /** Render emoji picker / selector */
+    let maybeEmojiPicker = html ``
+    const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
+    switch (markerType) {
+      case MarkerType.SingleEmoji:
+        let emoji = this._currentSingleEmoji != "" ? this._currentSingleEmoji : "😀";
+        maybeEmojiPicker = html`
+            <span id="space-unicodes" style="margin-top:20px;font-size:${EMOJI_WIDTH}px;display:inline-flex;">${emoji}</span>
+          <details style="margin-top:10px;">
+            <summary>Emoji Picker</summary>
+            <emoji-picker id="emoji-picker" class="light" style="height: 300px;"></emoji-picker>
+          </details>
+        `
+        break;
+      case MarkerType.EmojiGroup:
+        /** Build group list */
+        const groups = Object.entries(this._emojiGroups.value).map(
+          ([key, emojiGroup]) => {
+            return html`
+                     <mwc-list-item class="emoji-group-li" value="${emojiGroup.name}" .selected=${key == this._currentEmojiGroupEh}>
+                       ${emojiGroup.name}
+                     </mwc-list-item>
+                   `
+          }
+        )
+        /** Get current unicodes */
+        let unicodes = ""
+        if (this._currentEmojiGroupEh) {
+          const currentGroup = this._emojiGroups.value[this._currentEmojiGroupEh];
+          unicodes = currentGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
+        }
+        /** Render */
+        maybeEmojiPicker = html`
+          <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog()}></mwc-icon-button>
+          <mwc-select id="emoji-group-field" required style="" label="Name" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
+            ${groups}
+          </mwc-select>
+          <!-- Display Unicode List / Grid -->
+          <!-- <div style="min-height:40px;"> -->
+            <div id="space-unicodes" class="unicodes-container" style="font-size:28px;margin-top:10px;padding-top:8px;padding-bottom:2px">${unicodes}</div>
+          <!-- </div> -->
+        `
+        break;
+      default:
+        break;
+    }
+
+    /** Main Render */
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
-  ${this.renderSurfacePreview()}
-  <mwc-textfield dialogInitialFocus type="text"
+  <mwc-textfield outlined dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <!--  Marker Select -->
-  <mwc-select label="Marker type" id="marker-select" @closing=${(e:any)=>e.stopPropagation()}>
-    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerPreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Emoji]}">Emoji ${this.renderMarkerPreview(MarkerType[MarkerType.Emoji])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Color]}">Colored Pin ${this.renderMarkerPreview(MarkerType[MarkerType.Color])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerPreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
-  </mwc-select>
+
   <!--  Template Select -->
+  <h3 style="margin-bottom: 15px;">Template</h3>
+  ${this.renderSurfacePreview()}
   <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
       ${Object.entries(this._templates.value).map(
         ([key, template]) => html`
         <mwc-list-item
           @request-selected=${() => this.handleTemplateSelect(key)}
-          .selected=${this._templates.value[key].name === this._currentTemplate.name}
+          .selected=${this._templates.value[key].name === this._currentTemplate!.name}
           value="${key}"
           >${template.name}
         </mwc-list-item>
@@ -456,7 +578,25 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
   <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
 
-  <mwc-formfield label="Multi-locations per user">
+  <details style="margin-top:10px;">
+  <summary>Extra UI elements</summary>
+    <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
+                  id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60">
+    </mwc-textarea>
+  </details>
+
+  <!--  Marker Select -->
+  <h3 style="margin-top:30px;margin-bottom:15px;">Marker</h3>
+  <mwc-select label="Marker type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
+    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerTypePreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Color]}">Colored Pin ${this.renderMarkerTypePreview(MarkerType[MarkerType.Color])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Single Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.SingleEmoji])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji Group ${this.renderMarkerTypePreview(MarkerType[MarkerType.EmojiGroup])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.AnyEmoji])}</mwc-list-item>
+  </mwc-select>
+  ${maybeEmojiPicker}
+  <mwc-formfield label="Multiple markers per user" style="margin-top:10px">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
   <mwc-formfield label="Enable tags" @click=${this.handleTagSelect}>
@@ -465,18 +605,32 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-formfield label="Tag allways visible">
     <mwc-checkbox id="tag-visible-chk"></mwc-checkbox>
   </mwc-formfield>
-
-
-<details style="margin-top:10px;">
-<summary>Extra UI elements</summary>
-  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
-                id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60"></mwc-textarea>
-                </details>
-  <mwc-button id="primary-action-button" slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
+  <!-- Dialog buttons -->
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
+  <!-- Inner emoji group dialog -->
+  <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
 </mwc-dialog>
 `
+  }
+
+
+  handleMarkerTypeSelect(e: any) {
+    //console.log({e})
+    this.requestUpdate()
+  }
+
+  handleGroupAdded(eh: EntryHashB64) {
+    this._currentEmojiGroupEh = eh;
+    const emojiGroup = this._emojiGroups.value[eh];
+    const unicodes = emojiGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
+    let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
+    unicodeContainer!.innerHTML = unicodes
+    let emojiGroupField = this.shadowRoot!.getElementById("emoji-group-field") as Select;
+    console.log({emojiGroupField})
+    //console.log("handleGroupAdded")
+    emojiGroupField.select(emojiGroupField.children.length - 1);
   }
 
 
@@ -486,17 +640,23 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "mwc-select": Select,
       "mwc-list-item": ListItem,
       "mwc-button": Button,
+      "mwc-icon-button": IconButton,
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
       "mwc-textarea": TextArea,
       "mwc-formfield": Formfield,
       "mwc-checkbox": Checkbox,
+      "where-emoji-group-dialog" : WhereEmojiGroupDialog,
+      "emoji-picker": customElements.get('emoji-picker'),
     };
   }
   static get styles() {
     return [
       sharedStyles,
       css`
+        emoji-picker {
+          width: auto;
+        }
         mwc-dialog div, mwc-formfield, mwc-select {
           display: flex;
         }
@@ -536,6 +696,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
         #marker-select {
           margin-top: 5px;
+          display: inline-flex;
         }
 
         .location-marker {

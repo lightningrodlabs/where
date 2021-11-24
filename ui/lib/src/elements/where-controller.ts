@@ -7,12 +7,13 @@ import {Unsubscriber} from "svelte/store";
 
 import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Space, Dictionary, Signal, Coord, MarkerType} from "../types";
+import {whereContext, Space, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
 import { WhereArchiveDialog } from "./where-archive-dialog";
+import { WhereEmojiGroupDialog } from "./where-emoji-group-dialog";
 import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
@@ -176,7 +177,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           continue;
         }
         //console.log({ctx})
-        console.log("Rendering CANVAS for " + id)
+        //console.log("Rendering CANVAS for " + id)
         try {
           let canvas_code = prefix_canvas(id) + space.surface.canvas;
           var renderCanvas = new Function(canvas_code);
@@ -341,6 +342,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
   handleViewArchiveSwitch(e: any) {
     // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
     // this.canViewArchive = e.originalTarget.checked;
@@ -430,10 +432,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         if (!space.visible) {
           return html ``;
         }
+        const template = this._store.template(space.origin);
         return html`
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${space.name}</span>
-            <span slot="secondary">${this._store.template(space.origin).name}</span>
+            <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(space, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->

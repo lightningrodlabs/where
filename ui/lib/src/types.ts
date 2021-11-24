@@ -59,14 +59,43 @@ export interface Space  {
   surface: any;
   visible: boolean;
   locations: (LocationInfo | null)[];
-  meta?: Dictionary<string>;
+  meta: SpaceMeta;
+}
+
+
+export interface SpaceMeta {
+  subMap: Map<string, string>,
+  markerType: MarkerType,
+  multi: boolean,
+  canTag: boolean,
+  tagVisible: boolean,
+  singleEmoji: string,
+  emojiGroup: EntryHashB64 | null,
+  ui: UiItem[],
+}
+
+
+export interface UiItem {
+  box: UiBox,
+  style: string,
+  content: string,
+}
+
+
+export interface UiBox {
+  width: number,
+  height: number,
+  left: number,
+  top: number,
 }
 
 export enum MarkerType {
-  Emoji,
+  AnyEmoji,
   Avatar,
   Color,
   Letter,
+  SingleEmoji,
+  EmojiGroup,
 }
 
 export enum TemplateType {
@@ -80,6 +109,11 @@ export interface TemplateEntry  {
   surface: string;
 }
 
+export interface EmojiGroupEntry {
+  name: string,
+  description: string,
+  unicodes: string[],
+}
 
 export type Signal =
   | {
@@ -100,3 +134,6 @@ export type Signal =
     | {
     spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewTemplate", content: TemplateEntry}
   }
+  | {
+  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EmojiGroupEntry}
+}

@@ -32,4 +32,13 @@ export const sharedStyles = css`
     font-size: 26px;
     margin-top: -3px;
   }
+  .unicode-button {
+    --mdc-icon-button-size: ${EMOJI_WIDTH}px;
+    --mdc-icon-size: ${EMOJI_WIDTH}px;
+  }
+  .unicodes-container {
+    border: 1px solid grey;
+    padding: 5px;
+    min-height: ${EMOJI_WIDTH}px;
+  }
 `;

@@ -93,6 +93,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
     await this.initFab(this.hideFab);
+
+    const dialog = this.shadowRoot!.getElementById("edit-location")
+
+    dialog!.addEventListener("wheel",
+    (e: WheelEvent) => {
+      // console.log(" ==>> handle wheel for edit-location")
+      e.stopPropagation();
+    }
+    );
   }
 
 
@@ -177,16 +186,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     //console.log("handleClick: " + space.name)
     //console.log(space.meta?.singleEmoji)
     const coord = this.getCoordsFromEvent(event);
-    const useEmoji = space.meta?.markerType == MarkerType.AnyEmoji
-      || space.meta?.markerType == MarkerType.SingleEmoji
-      || space.meta?.markerType == MarkerType.EmojiGroup
     if (this.canEditLocation(space)) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
       this.dialogCanEdit = false;
       const options: LocOptions = {
         tag: space.meta?.canTag ? "" : null,
-        emoji: useEmoji? space.meta?.singleEmoji : null,
+        emoji: "",
         name: this.myNickName,
         img: this._myProfile.value.fields.avatar,
         canEdit: false,
@@ -435,6 +441,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
       }
     };
+    /** adjust details position if too low */
+    const details_height = 40
+      + (locInfo.location.meta.tag? 20 : 0)
+      + (isMe? 40 : 0)
+    const details_y = space.surface.size.y * z - y < details_height? y - details_height : y;
     /** Render Location */
     return html`
       <div
@@ -445,7 +456,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       ${marker}
       ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
       </div>
-      <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
+      <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.name}</h3>
         <p>${locInfo.location.meta.tag}</p>
         ${maybeEditBtn}
@@ -528,8 +539,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         ${uiItems}
         ${locationItems}
         ${fabs}
-        ${maybeLocationDialog}
       </div>
+      ${maybeLocationDialog}
     `;
   }
 
@@ -549,8 +560,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let maybeEmojiPreview = html``;
     if (space!.meta.markerType == MarkerType.AnyEmoji || space!.meta.markerType == MarkerType.EmojiGroup) {
       maybeEmojiPreview = html`
-        <div id="edit-location-emoji-preview" class="location-marker emoji-marker">
-          Emoji:
+        <div id="edit-location-emoji-preview">
+          <span style="margin:10px;">Emoji</span>
           <div id="edit-location-emoji-marker"></div>
         </div>`
     }
@@ -579,7 +590,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** Render Tag field */
     const tagForm = space!.meta?.canTag
-      ? html`<mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>`
+      ? html`<mwc-textfield id="edit-location-tag" label="Tag"></mwc-textfield>`
       : html``;
     /** Render */
     return html`
@@ -611,7 +622,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          overflow: auto;
+          overflow: visible;
           min-width:160px;
         }
 
@@ -622,6 +633,16 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           font-size: ${EMOJI_WIDTH}px;
           display:inline-block;
           margin-top:10px;
+          color:black;
+        }
+
+        #edit-location-emoji-preview {
+          display: inline-flex;
+          line-height: 40px;
+          background-color: whitesmoke;
+          width: 100%;
+          margin-top: 5px;
+          color: rgba(0, 0, 0, 0.6);
         }
 
         .location-marker {

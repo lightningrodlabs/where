@@ -119,7 +119,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         console.log('Textfield not found: ' + key + '-gen')
         continue;
       }
-      console.log('field ' + key + ' - ' + value)
+      // console.log('field ' + key + ' - ' + value)
       field.value = value
       field.label = key
     }
@@ -384,7 +384,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         break
       case MarkerType[MarkerType.SingleEmoji]:
       default:
-        locMeta.emoji = "🐹";
+        locMeta.emoji = "♥️";
         break;
     }
     locMeta.color = this.myProfile!.fields.color;
@@ -480,7 +480,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
 
 
-  async openEmojiGroupDialog(group?: EmojiGroupEntry) {
+  async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
+    let group = undefined;
+    if (groupEh) {
+      group = this._emojiGroups.value[groupEh]
+    }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
     dialog.open(group);
@@ -513,7 +517,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         maybeEmojiPicker = html`
             <span id="space-unicodes" style="margin-top:20px;font-size:${EMOJI_WIDTH}px;display:inline-flex;">${emoji}</span>
           <details style="margin-top:10px;">
-            <summary>Emoji Picker</summary>
+            <summary>Select Emoji</summary>
             <emoji-picker id="emoji-picker" class="light" style="height: 300px;"></emoji-picker>
           </details>
         `
@@ -537,8 +541,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
         /** Render */
         maybeEmojiPicker = html`
-          <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog()}></mwc-icon-button>
-          <mwc-select id="emoji-group-field" required style="" label="Name" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
+          <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(null)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(this._currentEmojiGroupEh)}></mwc-icon-button>
+          <mwc-select id="emoji-group-field" required style="" label="Subset" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
             ${groups}
           </mwc-select>
           <!-- Display Unicode List / Grid -->
@@ -591,8 +596,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerTypePreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.Color]}">Colored Pin ${this.renderMarkerTypePreview(MarkerType[MarkerType.Color])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Single Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.SingleEmoji])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji Group ${this.renderMarkerTypePreview(MarkerType[MarkerType.EmojiGroup])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.SingleEmoji])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType[MarkerType.EmojiGroup])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.AnyEmoji])}</mwc-list-item>
   </mwc-select>
   ${maybeEmojiPicker}
@@ -691,12 +696,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
 
         mwc-list-item {
-          height: 60px;
+          height: 50px;
+          line-height: 40px;
         }
 
         #marker-select {
           margin-top: 5px;
           display: inline-flex;
+          min-width: 230px;
         }
 
         .location-marker {

@@ -10,6 +10,10 @@ export const sharedStyles = css`
     display: flex;
     flex-direction: row;
   }
+  .emoji-marker {
+    font-size: ${EMOJI_WIDTH}px;
+    cursor: pointer;
+  }
   .emoji-marker::part(base) {
     background-color: #fafafa;
     font-size: ${EMOJI_WIDTH}px;
@@ -21,7 +25,7 @@ export const sharedStyles = css`
   sl-avatar {
     --size: ${MARKER_WIDTH}px;
     border-radius: 100%;
-    border: black 1px solid;
+    border: black 2px solid;
     /*background-color: #fafafa;*/
   }
   sl-avatar::part(base) {
@@ -40,5 +44,8 @@ export const sharedStyles = css`
     border: 1px solid grey;
     padding: 5px;
     min-height: ${EMOJI_WIDTH}px;
+    color:black;
+    background-color: whitesmoke;
+    line-height: 40px;
   }
 `;

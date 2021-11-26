@@ -357,9 +357,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   handleMenuSelect(e: any) {
     const menu = e.currentTarget as Menu;
-    console.log("handleMenuSelect: " + menu)
+    // console.log("handleMenuSelect: " + menu)
     const selected = menu.selected as ListItem;
-    console.log({selected})
+    //console.log({selected})
     switch (selected.value) {
       case "fork_template":
         this.openTemplateDialog(this._currentTemplateEh)

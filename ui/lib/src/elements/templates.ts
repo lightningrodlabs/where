@@ -12,7 +12,6 @@ export const map2D_template_html =
 
 export const triangle_template_svg =
 `<g class="layer">
-  <title>Layer 1</title>
   <rect fill="red" height="0" id="svg_5" stroke="#000000" stroke-width="5" width="0" x="298" y="95"/>
   <path d="m111.45499,420.32195l221.14285,-386.99999l221.14285,386.99999l-442.2857,0z" fill="#fbfcc7" id="svg_4" stroke="#b2b2b2" stroke-width="2"/>
   <circle cx="333.5" cy="271" fill="#000000" id="svg_6" r="37.10632" stroke="#000000" stroke-width="2"/>

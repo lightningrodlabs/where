@@ -480,7 +480,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
 
 
-  async openEmojiGroupDialog(group?: EmojiGroupEntry) {
+  async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
+    let group = undefined;
+    if (groupEh) {
+      group = this._emojiGroups.value[groupEh]
+    }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
     dialog.open(group);
@@ -537,7 +541,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
         /** Render */
         maybeEmojiPicker = html`
-          <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog()}></mwc-icon-button>
+          <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(null)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(this._currentEmojiGroupEh)}></mwc-icon-button>
           <mwc-select id="emoji-group-field" required style="" label="Subset" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
             ${groups}
           </mwc-select>

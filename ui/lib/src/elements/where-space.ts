@@ -177,16 +177,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     //console.log("handleClick: " + space.name)
     //console.log(space.meta?.singleEmoji)
     const coord = this.getCoordsFromEvent(event);
-    const useEmoji = space.meta?.markerType == MarkerType.AnyEmoji
-      || space.meta?.markerType == MarkerType.SingleEmoji
-      || space.meta?.markerType == MarkerType.EmojiGroup
     if (this.canEditLocation(space)) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
       this.dialogCanEdit = false;
       const options: LocOptions = {
         tag: space.meta?.canTag ? "" : null,
-        emoji: useEmoji? space.meta?.singleEmoji : null,
+        emoji: "",
         name: this.myNickName,
         img: this._myProfile.value.fields.avatar,
         canEdit: false,

@@ -46,5 +46,6 @@ export const sharedStyles = css`
     min-height: ${EMOJI_WIDTH}px;
     color:black;
     background-color: whitesmoke;
+    line-height: 40px;
   }
 `;

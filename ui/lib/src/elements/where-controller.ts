@@ -359,7 +359,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const menu = e.currentTarget as Menu;
     console.log("handleMenuSelect: " + menu)
     const selected = menu.selected as ListItem;
-    console.log({selected})
+    //console.log({selected})
     switch (selected.value) {
       case "fork_template":
         this.openTemplateDialog(this._currentTemplateEh)
@@ -367,9 +367,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       case "fork_space":
         this.openSpaceDialog(this._currentSpaceEh)
         break;
-//      case "fork_emoji_group":
-  //      this.openEmojiGroupDialog(this._currentEmojiGroupEh)
-    //    break;
       case "archive_space":
         this.archiveSpace()
         break;

@@ -119,7 +119,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         console.log('Textfield not found: ' + key + '-gen')
         continue;
       }
-      console.log('field ' + key + ' - ' + value)
+      // console.log('field ' + key + ' - ' + value)
       field.value = value
       field.label = key
     }

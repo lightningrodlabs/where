@@ -93,6 +93,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
     await this.initFab(this.hideFab);
+
+    const dialog = this.shadowRoot!.getElementById("edit-location")
+
+    dialog!.addEventListener("wheel",
+    (e: WheelEvent) => {
+      // console.log(" ==>> handle wheel for edit-location")
+      e.stopPropagation();
+    }
+    );
   }
 
 
@@ -530,8 +539,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         ${uiItems}
         ${locationItems}
         ${fabs}
-        ${maybeLocationDialog}
       </div>
+      ${maybeLocationDialog}
     `;
   }
 

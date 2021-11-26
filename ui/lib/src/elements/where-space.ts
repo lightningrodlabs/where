@@ -435,6 +435,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
       }
     };
+    /** adjust details position if too low */
+    const details_height = 40
+      + (locInfo.location.meta.tag? 20 : 0)
+      + (isMe? 40 : 0)
+    const details_y = space.surface.size.y * z - y < details_height? y - details_height : y;
     /** Render Location */
     return html`
       <div
@@ -445,7 +450,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       ${marker}
       ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
       </div>
-      <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${y}px;">
+      <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.name}</h3>
         <p>${locInfo.location.meta.tag}</p>
         ${maybeEditBtn}
@@ -611,7 +616,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          overflow: auto;
+          overflow: visible;
           min-width:160px;
         }
 

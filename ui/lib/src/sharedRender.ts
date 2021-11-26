@@ -88,10 +88,11 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
     case MarkerType[MarkerType.SingleEmoji]:
     case MarkerType[MarkerType.EmojiGroup]:
     case MarkerType[MarkerType.AnyEmoji]:
-      marker = html `<sl-avatar class="${classes} emoji-marker" initials=${locMeta.emoji}></sl-avatar>`
+      //marker = html `<sl-avatar class="${classes} emoji-marker" initials=${locMeta.emoji}></sl-avatar>`
+      marker = html `<div class="emoji-marker">${locMeta.emoji}</div>`
       break;
     case MarkerType[MarkerType.Letter]:
-      marker = html `<sl-avatar class="${classes} initials-marker"  initials=${getInitials(locMeta.name)}></sl-avatar>`
+      marker = html `<sl-avatar class="${classes} initials-marker" initials=${getInitials(locMeta.name)}></sl-avatar>`
       break;
     default:
       break;

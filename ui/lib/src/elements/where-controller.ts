@@ -367,6 +367,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       case "fork_space":
         this.openSpaceDialog(this._currentSpaceEh)
         break;
+//      case "fork_emoji_group":
+  //      this.openEmojiGroupDialog(this._currentEmojiGroupEh)
+    //    break;
       case "archive_space":
         this.archiveSpace()
         break;

@@ -554,8 +554,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let maybeEmojiPreview = html``;
     if (space!.meta.markerType == MarkerType.AnyEmoji || space!.meta.markerType == MarkerType.EmojiGroup) {
       maybeEmojiPreview = html`
-        <div id="edit-location-emoji-preview" class="location-marker emoji-marker">
-          Emoji:
+        <div id="edit-location-emoji-preview">
+          <span style="margin:10px;">Emoji</span>
           <div id="edit-location-emoji-marker"></div>
         </div>`
     }
@@ -584,7 +584,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** Render Tag field */
     const tagForm = space!.meta?.canTag
-      ? html`<mwc-textfield id="edit-location-tag" placeholder="Tag"></mwc-textfield>`
+      ? html`<mwc-textfield id="edit-location-tag" label="Tag"></mwc-textfield>`
       : html``;
     /** Render */
     return html`
@@ -627,6 +627,16 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           font-size: ${EMOJI_WIDTH}px;
           display:inline-block;
           margin-top:10px;
+          color:black;
+        }
+
+        #edit-location-emoji-preview {
+          display: inline-flex;
+          line-height: 40px;
+          background-color: whitesmoke;
+          width: 100%;
+          margin-top: 5px;
+          color: rgba(0, 0, 0, 0.6);
         }
 
         .location-marker {

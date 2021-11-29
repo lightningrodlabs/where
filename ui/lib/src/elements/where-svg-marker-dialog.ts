@@ -146,7 +146,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
   <div id="svg-marker-thumbnail">${this.previewSvgMarker()}</div>
   <!-- SVG field -->
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("svg-field") as TextArea).reportValidity()}
-                id="svg-field" placeholder="SVG here..." helper="No <svg> tag is required. Use %%color%% for using user's color" rows="10" cols="60" required></mwc-textarea>
+                id="svg-field" placeholder="SVG here..." helper="No <svg> tag is required. Use %%color%% to use profile color" rows="10" cols="60" required></mwc-textarea>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>

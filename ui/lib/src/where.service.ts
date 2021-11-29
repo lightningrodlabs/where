@@ -9,7 +9,7 @@ import {
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, SpaceMeta, MarkerType, EmojiGroupEntry,
+  Dictionary, SpaceMeta, MarkerType, EmojiGroupEntry, SvgMarkerEntry,
 } from './types';
 
 
@@ -77,6 +77,10 @@ export class WhereService {
 
   async createEmojiGroup(template: EmojiGroupEntry): Promise<EntryHashB64> {
     return this.callZome('create_emoji_group', template);
+  }
+
+  async createSvgMarker(entry: SvgMarkerEntry): Promise<EntryHashB64> {
+    return this.callZome('create_svg_marker', entry);
   }
 
   async createTemplate(template: TemplateEntry): Promise<EntryHashB64> {
@@ -181,6 +185,7 @@ export class WhereService {
       ui: [],
       singleEmoji: "",
       emojiGroup: null,
+      svgMarker: null,
     } as SpaceMeta
   }
 }

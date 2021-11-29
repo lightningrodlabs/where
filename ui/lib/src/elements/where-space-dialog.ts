@@ -1,12 +1,21 @@
-import {css, html, LitElement} from "lit";
+import {css, html, LitElement, svg} from "lit";
 import {property, query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {Dictionary, EmojiGroupEntry, MarkerType, Space, TemplateEntry, UiItem, whereContext} from "../types";
-import {EMOJI_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
+import {
+  Dictionary,
+  EmojiGroupEntry,
+  MarkerType,
+  Space,
+  SvgMarkerEntry,
+  TemplateEntry,
+  UiItem,
+  whereContext
+} from "../types";
+import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
 import {
   Button,
   Checkbox,
@@ -26,6 +35,8 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "./templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
 import {Picker} from "emoji-picker-element";
+import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
+
 
 /**
  * @element where-space-dialog
@@ -40,6 +51,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _store!: WhereStore;
   _templates = new StoreSubscriber(this, () => this._store.templates);
   _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
+  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
 
   /** Private properties */
   @state() _currentTemplate: null | TemplateEntry = null;
@@ -50,7 +62,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   _currentEmojiGroupEh: null | EntryHashB64 = null;
   _currentSingleEmoji: string = ""
-
+  @state() _currentSvgMarkerEh: null | EntryHashB64 = null;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -78,6 +90,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
   }
 
+  get svgMarkerDialogElem() : WhereSvgMarkerDialog {
+    return this.shadowRoot!.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
+  }
+
   /**
    *
    */
@@ -99,8 +115,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!originalSpace) {
       return;
     }
-    this._currentSingleEmoji = originalSpace.meta.singleEmoji
+    this._currentSingleEmoji = originalSpace.meta.singleEmoji;
     this._currentEmojiGroupEh = originalSpace.meta.emojiGroup;
+    this._currentSvgMarkerEh = originalSpace.meta.svgMarker;
     this._nameField.value = 'Fork of ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
     this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
@@ -200,7 +217,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //console.log({singleEmojiElem})
     const singleEmoji = singleEmojiElem? singleEmojiElem.innerText: "";
     // - Create space
-    //console.log("this._templateField.value = " + this._templateField.value);
+    // console.log("handleOk() svgMarker = " + this._currentSvgMarkerEh);
     const space: Space = {
       name: this._nameField.value,
       origin: this._templateField.value,
@@ -215,6 +232,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         ui,
         singleEmoji,
         emojiGroup: this._currentEmojiGroupEh,
+        svgMarker: this._currentSvgMarkerEh,
       },
       locations: [],
     };
@@ -242,6 +260,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._uiField.value = '[]'
     this._currentSingleEmoji = "😀"
     this._currentEmojiGroupEh = null;
+    this._currentSvgMarkerEh = null;
     this.handleTagSelect()
   }
 
@@ -455,7 +474,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   handleEmojiGroupSelect(e?: any) {
     console.log("handleEmojiGroupSelect")
-    console.log({e})
+    //console.log({e})
     const selectedName = e.explicitOriginalTarget.value;
     console.log("selectedName: " + selectedName)
     if (!selectedName || selectedName == "") {
@@ -478,6 +497,30 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     unicodeContainer!.innerHTML = unicodes
   }
 
+  handleSvgMarkerSelect(e?: any) {
+    console.log("handleSvgMarkerSelect")
+    //console.log({e})
+    //const selectedName = e.explicitOriginalTarget.value;
+    const selectedName = e.currentTarget.value;
+    console.log("selectedName: " + selectedName)
+    if (!selectedName || selectedName == "") {
+      return;
+    }
+
+    //let container = this.shadowRoot!.getElementById("svg-marker-container");
+    //container!.innerHTML = ""
+
+    /** Find svg marker and set to preview */
+    // FIXME: should retrieve svgMarker by eh instead of name
+    for (const [eh, svgMarker] of Object.entries(this._svgMarkers.value)) {
+      if (svgMarker.name == selectedName) {
+        // console.log("svg marker found: " + selectedName)
+        this._currentSvgMarkerEh = eh;
+        break;
+      }
+    }
+  }
+
 
 
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
@@ -492,6 +535,20 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       dialog.loadPreset(group);
     }
   }
+
+  async openSvgMarkerDialog(eh: EntryHashB64 | null) {
+    let svgMarker = undefined;
+    if (eh) {
+      svgMarker = this._svgMarkers.value[eh]
+    }
+    const dialog = this.svgMarkerDialogElem;
+    dialog.clearAllFields();
+    dialog.open(svgMarker);
+    if (svgMarker) {
+      dialog.loadPreset(svgMarker);
+    }
+  }
+
 
   render() {
     /** Determine currentTemplate */
@@ -509,12 +566,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "content": "Land of the Lost"}`
 
     /** Render emoji picker / selector */
-    let maybeEmojiPicker = html ``
+    let maybeMarkerTypeItems = html ``
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
     switch (markerType) {
       case MarkerType.SingleEmoji:
         let emoji = this._currentSingleEmoji != "" ? this._currentSingleEmoji : "😀";
-        maybeEmojiPicker = html`
+        maybeMarkerTypeItems = html`
             <span id="space-unicodes" style="margin-top:20px;font-size:${EMOJI_WIDTH}px;display:inline-flex;">${emoji}</span>
           <details style="margin-top:10px;">
             <summary>Select Emoji</summary>
@@ -540,7 +597,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           unicodes = currentGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
         }
         /** Render */
-        maybeEmojiPicker = html`
+        maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(null)}></mwc-icon-button>
           <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(this._currentEmojiGroupEh)}></mwc-icon-button>
           <mwc-select id="emoji-group-field" required style="" label="Subset" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
@@ -552,6 +609,42 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           <!-- </div> -->
         `
         break;
+
+      case MarkerType.SvgMarker:
+        /** Build marker list */
+        if (!this._currentSvgMarkerEh && Object.keys(this._svgMarkers.value).length > 0) {
+          this._currentSvgMarkerEh = Object.keys(this._svgMarkers.value)[0];
+        }
+        const markers = Object.entries(this._svgMarkers.value).map(
+          ([key, svgMarker]) => {
+            // console.log(" - " + svgMarker.name + ": " + key)
+            let currentMarker = renderSvgMarker(svgMarker.value)
+            return html`
+                     <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == this._currentSvgMarkerEh}>
+                       ${svgMarker.name}
+                       ${currentMarker}
+                     </mwc-list-item>
+                   `
+          }
+        )
+        /** Get current unicodes */
+        let selectedMarker = html``;
+        if (this._currentSvgMarkerEh) {
+          const marker = this._svgMarkers.value[this._currentSvgMarkerEh]
+          //console.log({marker})
+          selectedMarker = renderSvgMarker(marker.value)
+        }
+        /** Render */
+        maybeMarkerTypeItems = html`
+          <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(null)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(this._currentSvgMarkerEh)}></mwc-icon-button>
+          <mwc-select id="svg-marker-field" required style="display:inline-flex;width:230px;" label="Name" @closing=${(e:any)=>{e.stopPropagation(); this.handleSvgMarkerSelect(e)}}>
+            ${markers}
+          </mwc-select>
+          <div id="svg-marker-container">${selectedMarker}</div>
+        `
+        break;
+
       default:
         break;
     }
@@ -592,15 +685,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   <!--  Marker Select -->
   <h3 style="margin-top:30px;margin-bottom:15px;">Marker</h3>
-  <mwc-select label="Marker type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
+  <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
     <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Letter]}">Initials ${this.renderMarkerTypePreview(MarkerType[MarkerType.Letter])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Color]}">Colored Pin ${this.renderMarkerTypePreview(MarkerType[MarkerType.Color])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType[MarkerType.Initials])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">Colored SVG ${this.renderMarkerTypePreview(MarkerType[MarkerType.SvgMarker])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.SingleEmoji])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType[MarkerType.EmojiGroup])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.AnyEmoji])}</mwc-list-item>
   </mwc-select>
-  ${maybeEmojiPicker}
+  ${maybeMarkerTypeItems}
   <mwc-formfield label="Multiple markers per user" style="margin-top:10px">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
@@ -614,8 +707,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
-  <!-- Inner emoji group dialog -->
+  <!-- Inner dialogs -->
   <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
+  <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => this.handleSvgMarkerAdded(e.detail)}></where-svg-marker-dialog>
 </mwc-dialog>
 `
   }
@@ -638,6 +732,17 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     emojiGroupField.select(emojiGroupField.children.length - 1);
   }
 
+  handleSvgMarkerAdded(eh: EntryHashB64) {
+    this._currentSvgMarkerEh = eh;
+    //const svgMarker = this._svgMarkers.value[eh];
+    //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");
+    //svgMarkerContainer!.innerHTML = svgMarker.value
+    let svgMarkerField = this.shadowRoot!.getElementById("svg-marker-field") as Select;
+    console.log({svgMarkerField})
+    // Select last one
+    svgMarkerField.select(svgMarkerField.children.length - 1);
+  }
+
 
   static get scopedElements() {
     return {
@@ -652,6 +757,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "mwc-formfield": Formfield,
       "mwc-checkbox": Checkbox,
       "where-emoji-group-dialog" : WhereEmojiGroupDialog,
+      "where-svg-marker-dialog" : WhereSvgMarkerDialog,
       "emoji-picker": customElements.get('emoji-picker'),
     };
   }
@@ -661,6 +767,18 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       css`
         emoji-picker {
           width: auto;
+        }
+        .svg-marker-li {
+          line-height: 0;
+        }
+        #svg-marker-container {
+          display: inline-flex;
+          margin-top: 10px;
+          /*padding: 4px;*/
+          /*background-color: whitesmoke;*/
+          /*border: 1px solid gray;*/
+          min-width: 40px;
+          min-height: 40px;
         }
         mwc-dialog div, mwc-formfield, mwc-select {
           display: flex;

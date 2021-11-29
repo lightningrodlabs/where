@@ -174,7 +174,11 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     if (template.surface === "") {
       return html``
     }
+    // console.log("renderTemplate:" + template.surface);
     let surface: any = JSON.parse(template.surface);
+    if (surface.svg) {
+      console.log(surface.svg)
+    }
     const ratio: number = surface.size? surface.size.y / surface.size.x : 1;
     const w: number = 200;
     const h: number = 200 * ratio;
@@ -197,6 +201,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
         ${unsafeSVG(surface.svg)}
       </svg>`
       ;
+      // console.log(preview)
     }
     // canvas
     if (surface.canvas) {

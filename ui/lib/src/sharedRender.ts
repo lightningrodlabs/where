@@ -1,7 +1,7 @@
 import {html, svg} from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {Dictionary, MarkerType, TemplateEntry, UiItem} from "./types";
+import {Dictionary, MarkerType, SvgMarkerEntry, TemplateEntry, UiItem} from "./types";
 import {SlAvatar} from "@scoped-elements/shoelace";
 
 export const MARKER_WIDTH = 40;
@@ -42,29 +42,6 @@ export function renderUiItems(ui: UiItem[], zx: number, zy: number) {
 }
 
 
-export function renderSurface(space: any, w: number, h: number) {
-  const surface = space.surface;
-  if (surface.html) {
-    return html`<div style="width: ${w}px; height: ${h}px;" >
-        ${unsafeHTML(surface.html)}
-      </div>`
-  }
-  if (surface.svg) {
-    return html`<svg xmlns="http://www.w3.org/2000/svg"
-                  width="${w}px"
-                  height="${h}px"
-                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
-                  preserveAspectRatio="none">
-          ${unsafeSVG(surface.svg)}
-        </svg>`
-    ;
-  }
-  // canvas
-  return html`
-    <canvas id="${space.name}-canvas" width="${w}" height="${h}"
-            style="border:1px solid #2278da;">`
-}
-
 export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   let marker;
   const classes = isMe? "me" : "";
@@ -81,9 +58,10 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
         marker = html`<sl-avatar class=${classes} .image=${locMeta.img} style=${myStyle}><div slot="icon"></div></sl-avatar>`
       }
       break;
-    case MarkerType[MarkerType.Color]:
-      const pin = render_pin(locMeta.color)
-      marker = html`<div class="pin-marker">${pin}</div>`
+    case MarkerType[MarkerType.SvgMarker]:
+      //const pin = render_pin(locMeta.color)
+      const svgMarker = renderSvgMarker(locMeta.svgMarker)
+      marker = html`<div class="pin-marker">${svgMarker}</div>`
       break;
     case MarkerType[MarkerType.SingleEmoji]:
     case MarkerType[MarkerType.EmojiGroup]:
@@ -91,7 +69,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
       //marker = html `<sl-avatar class="${classes} emoji-marker" initials=${locMeta.emoji}></sl-avatar>`
       marker = html `<div class="emoji-marker">${locMeta.emoji}</div>`
       break;
-    case MarkerType[MarkerType.Letter]:
+    case MarkerType[MarkerType.Initials]:
       marker = html `<sl-avatar class="${classes} initials-marker" initials=${getInitials(locMeta.name)}></sl-avatar>`
       break;
     default:
@@ -99,6 +77,52 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   }
   //console.log({marker})
   return marker;
+}
+
+
+export function renderSurface(space: any, w: number, h: number) {
+  const surface = space.surface;
+  //html
+  if (surface.html) {
+    return html`<div style="width: ${w}px; height: ${h}px;" >
+        ${unsafeHTML(surface.html)}
+      </div>`
+  }
+  // svg
+  if (surface.svg) {
+    return html`<svg xmlns="http://www.w3.org/2000/svg"
+                  width="${w}px"
+                  height="${h}px"
+                  viewBox="0 0 ${surface.size.x} ${surface.size.y}"
+                  preserveAspectRatio="none">
+          ${unsafeSVG(surface.svg)}
+        </svg>`
+    ;
+  }
+  // canvas
+  return html`
+    <canvas id="${space.name}-canvas" width="${w}" height="${h}"
+            style="border:1px solid #2278da;">`
+}
+
+export function renderSvgMarker(svgStr: string) {
+  if (svgStr === "") {
+    return html``
+  }
+  //console.log("renderSvgMarker: " + svgMarker.value);
+
+  var preview = html`
+      <svg xmlns="http://www.w3.org/2000/svg"
+           width="${MARKER_WIDTH}px"
+           height="${MARKER_WIDTH}px"
+           viewBox="0 0 64 64"
+           preserveAspectRatio="none"
+           >
+        ${unsafeSVG(svgStr)}
+      </svg>`
+  ;
+
+  return preview
 }
 
 function render_pin(color: string) {

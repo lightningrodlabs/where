@@ -70,6 +70,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
   _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
+  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
   //_knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
 
   private dialogCoord = { x: 0, y: 0 };
@@ -199,6 +200,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
       this.openLocationDialog(options);
     } else {
+      const svgMarker = !space.meta?.svgMarker? "" : this._svgMarkers.value[space.meta.svgMarker].value;
       const location: Location = {
         coord,
         meta: {
@@ -208,6 +210,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
           name: this.myNickName,
           emoji: space.meta?.singleEmoji,
+          svgMarker,
         },
       };
       this._store.addLocation(this.currentSpaceEh, location);
@@ -261,12 +264,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** handle "ok" */
     const tagValue = tag ? tag.value : ""
     const emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
+    let svgMarker = ""
     let emojiValue = ""
-    let markerType = MarkerType.Letter
+    let markerType = MarkerType.Initials
     if(this.currentSpaceEh) {
       const currentSpace = this._spaces.value[this.currentSpaceEh]
       markerType = currentSpace.meta!.markerType;
       emojiValue = currentSpace.meta!.singleEmoji;
+      if (currentSpace.meta!.svgMarker) {
+        svgMarker = this._svgMarkers.value[currentSpace.meta!.svgMarker].value
+      }
+       currentSpace.meta!.svgMarker? currentSpace.meta!.svgMarker : "";
     }
     if (emojiMarkerElem) {
       emojiValue = emojiMarkerElem.innerHTML
@@ -281,6 +289,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         emoji: emojiValue,
         img: markerType == MarkerType.Avatar? this._myProfile.value.fields['avatar']: "",
         color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#858585",
+        svgMarker,
       },
     };
     if (this.dialogCanEdit) {

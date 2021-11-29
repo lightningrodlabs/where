@@ -210,6 +210,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this._initializing = true  // because checkInit gets call whenever profiles changes...
     let spaces = await this._store.pullSpaces();
     let templates = await this._store.updateTemplates();
+    let _emojiGroups = await this._store.updateEmojiGroups();
+    let _svgMarkers = await this._store.updateSvgMarkers();
     /** load spaces & templates if there are none */
     if (this.canLoadExamples && Object.keys(templates).length == 0) {
       await addHardcodedSpaces(this._store);

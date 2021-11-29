@@ -71,6 +71,7 @@ export interface SpaceMeta {
   tagVisible: boolean,
   singleEmoji: string,
   emojiGroup: EntryHashB64 | null,
+  svgMarker: EntryHashB64 | null,
   ui: UiItem[],
 }
 
@@ -92,8 +93,8 @@ export interface UiBox {
 export enum MarkerType {
   AnyEmoji,
   Avatar,
-  Color,
-  Letter,
+  SvgMarker,
+  Initials,
   SingleEmoji,
   EmojiGroup,
 }
@@ -107,6 +108,11 @@ export enum TemplateType {
 export interface TemplateEntry  {
   name: string;
   surface: string;
+}
+
+export interface SvgMarkerEntry  {
+  name: string;
+  value: string;
 }
 
 export interface EmojiGroupEntry {
@@ -136,4 +142,7 @@ export type Signal =
   }
   | {
   spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EmojiGroupEntry}
-}
+  }
+  | {
+  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: SvgMarkerEntry }
+  }

@@ -6,6 +6,7 @@ use crate::template::*;
 use crate::space::*;
 use crate::here::*;
 use crate::emoji_group::*;
+use crate::svg_marker::SvgMarker;
 
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
     #[serde(tag = "type", content = "content")]
@@ -14,6 +15,7 @@ pub enum Message {
     Pong(AgentPubKeyB64),
     NewSpace(Space),
     NewTemplate(Template),
+    NewSvgMarker(SvgMarker),
     NewEmojiGroup(EmojiGroup),
     NewHere(HereOutput),
     DeleteHere(HeaderHashB64)

@@ -618,7 +618,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         const markers = Object.entries(this._svgMarkers.value).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
-            let currentMarker = renderSvgMarker(svgMarker.value)
+            let currentMarker = renderSvgMarker(svgMarker.value, this.myProfile!.fields.color)
             return html`
                      <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == this._currentSvgMarkerEh}>
                        ${svgMarker.name}
@@ -632,7 +632,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         if (this._currentSvgMarkerEh) {
           const marker = this._svgMarkers.value[this._currentSvgMarkerEh]
           //console.log({marker})
-          selectedMarker = renderSvgMarker(marker.value)
+          selectedMarker = renderSvgMarker(marker.value, this.myProfile!.fields.color)
         }
         /** Render */
         maybeMarkerTypeItems = html`

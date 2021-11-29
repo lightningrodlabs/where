@@ -131,7 +131,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
   private previewSvgMarker() {
     if (!this._currentSvg || !this._nameField || !this._svgField) return html``
     const marker = this.createSvgMarker()
-    return renderSvgMarker(marker.value)
+    return renderSvgMarker(marker.value, "black")
   }
 
   render() {

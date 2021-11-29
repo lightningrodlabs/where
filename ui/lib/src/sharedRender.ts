@@ -60,7 +60,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
       break;
     case MarkerType[MarkerType.SvgMarker]:
       //const pin = render_pin(locMeta.color)
-      const svgMarker = renderSvgMarker(locMeta.svgMarker)
+      const svgMarker = renderSvgMarker(locMeta.svgMarker, locMeta.color)
       marker = html`<div class="pin-marker">${svgMarker}</div>`
       break;
     case MarkerType[MarkerType.SingleEmoji]:
@@ -105,11 +105,17 @@ export function renderSurface(space: any, w: number, h: number) {
             style="border:1px solid #2278da;">`
 }
 
-export function renderSvgMarker(svgStr: string) {
+export function renderSvgMarker(svgStr: string, color: string) {
   if (svgStr === "") {
     return html``
   }
   //console.log("renderSvgMarker: " + svgMarker.value);
+
+  try {
+    let pattern = "%%color%%";
+    var regex = new RegExp(pattern, "g");
+    svgStr = svgStr.replace(regex, color);
+  } catch (e) {}
 
   var preview = html`
       <svg xmlns="http://www.w3.org/2000/svg"

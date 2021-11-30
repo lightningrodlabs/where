@@ -382,7 +382,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
-          .id="${this.currentSpaceEh}-img"
+          id="space-div"
           @click=${this.handleClick}
       >
         ${unsafeHTML(surface.html)}
@@ -396,7 +396,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                   height="${h}px"
                   viewBox="0 0 ${surface.size.x} ${surface.size.y}"
                   preserveAspectRatio="none"
-          .id="${this.currentSpaceEh}-svg"
+          id="space-svg"
           @click=${this.handleClick}
         >
           ${unsafeSVG(surface.svg)}
@@ -585,9 +585,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     /** Set max size */
-    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 256 : 0) - 24; // minus drawer, avatar list, scroll bar
+    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 256 : 0) - 24; // minus drawer, folks, scroll bar
     const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
-    //console.log("max-width: ", maxW);
+    console.log("max-width: ", maxW);
     //console.log("max-height: ", maxH);
     /** render Surface */
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
@@ -633,8 +633,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          overflow: visible;
+          overflow: auto;
           min-width:160px;
+        }
+
+        #space-div {
+          width: 100%;
+          height: 100%;
         }
 
         #edit-location-tag {

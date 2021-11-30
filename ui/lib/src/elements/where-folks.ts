@@ -206,6 +206,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
         }
 
         .folk-row {
+          list-style: none;
           cursor: pointer;
         }
         .folk {

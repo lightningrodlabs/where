@@ -77,7 +77,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
-  @property() isDrawerOpen = false;
+  @property() neighborWidth = 0;
 
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
@@ -382,7 +382,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           @drop="${(e: DragEvent) => this.drop(e)}"
           @dragover="${(e: DragEvent) => this.allowDrop(e)}"
           style="width: ${w}px; height: ${h}px;"
-          .id="${this.currentSpaceEh}-img"
+          id="space-div"
           @click=${this.handleClick}
       >
         ${unsafeHTML(surface.html)}
@@ -396,7 +396,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                   height="${h}px"
                   viewBox="0 0 ${surface.size.x} ${surface.size.y}"
                   preserveAspectRatio="none"
-          .id="${this.currentSpaceEh}-svg"
+          id="space-svg"
           @click=${this.handleClick}
         >
           ${unsafeSVG(surface.svg)}
@@ -495,63 +495,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.updateZoom(delta);
   }
 
-  render() {
-    if (!this.currentSpaceEh) {
-      return;
-    }
-    /** Get current space and zoom level */
-    const space: Space = this._spaces.value[this.currentSpaceEh];
-    const z = this._zooms.value[this.currentSpaceEh];
-    /** Render all space's locations */
-    let locationItems = undefined;
-    if (this.hideFab && this.hideFab.icon === 'visibility') {
-      locationItems = space.locations.map((locationInfo, i) => {
-        if (this.soloAgent != null && locationInfo) {
-          if (this.soloAgent != locationInfo.authorPubKey) {
-            return;
-          }
-        }
-        return this.renderLocation(locationInfo, z, space, i)
-      });
-    }
-    /** Parse UI elements in surface meta */
-    let uiItems = html ``
-    if (space.meta && space.meta.ui) {
-      uiItems = renderUiItems(space.meta.ui, z, z)
-    }
-    /** Set viewed width and height and render Surface accordingly */
-    const w = space.surface.size.x * z;
-    const h = space.surface.size.y * z;
-    /** Set max size */
-    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 256 : 0) - 24; // minus drawer, avatar list, scroll bar
-    const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
-    //console.log("max-width: ", maxW);
-    //console.log("max-height: ", maxH);
-    /** render Surface */
-    const surfaceItem = this.renderActiveSurface(space.surface, w, h)
-    /** Render fabs */
-    const fabs = html`
-      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
-      <mwc-slider min="10" max="300" style="position:absolute;left:20px;top:-5px;width:120px;"
-                  @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
-      </mwc-slider>
-      <mwc-fab mini id="plus-fab" icon="add" style="left:120px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="delete" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
-      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
-    `;
-    /** Build LocationDialog if required */
-    const maybeLocationDialog =  this.renderLocationDialog(space);
-    /** Render layout - 1.01 because of scroll bars */
-    return html`
-      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
-        ${surfaceItem}
-        ${uiItems}
-        ${locationItems}
-        ${fabs}
-      </div>
-      ${maybeLocationDialog}
-    `;
-  }
 
   async handleEmojiButtonClick(unicode: string) {
     // console.log("handleEmojiButtonClick: " + unicode)
@@ -614,6 +557,65 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  render() {
+    if (!this.currentSpaceEh) {
+      return;
+    }
+    /** Get current space and zoom level */
+    const space: Space = this._spaces.value[this.currentSpaceEh];
+    const z = this._zooms.value[this.currentSpaceEh];
+    /** Render all space's locations */
+    let locationItems = undefined;
+    if (this.hideFab && this.hideFab.icon === 'visibility') {
+      locationItems = space.locations.map((locationInfo, i) => {
+        if (this.soloAgent != null && locationInfo) {
+          if (this.soloAgent != locationInfo.authorPubKey) {
+            return;
+          }
+        }
+        return this.renderLocation(locationInfo, z, space, i)
+      });
+    }
+    /** Parse UI elements in surface meta */
+    let uiItems = html ``
+    if (space.meta && space.meta.ui) {
+      uiItems = renderUiItems(space.meta.ui, z, z)
+    }
+    /** Set viewed width and height and render Surface accordingly */
+    const w = space.surface.size.x * z;
+    const h = space.surface.size.y * z;
+    /** Set max size */
+    const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
+    const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
+    console.log("max-width: ", maxW);
+    //console.log("max-height: ", maxH);
+    /** render Surface */
+    const surfaceItem = this.renderActiveSurface(space.surface, w, h)
+    /** Render fabs */
+    const fabs = html`
+      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
+      <mwc-slider min="10" max="300" style="position:absolute;left:20px;top:-5px;width:120px;"
+                  @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
+      </mwc-slider>
+      <mwc-fab mini id="plus-fab" icon="add" style="left:120px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="wrong_location" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
+    `;
+    /** Build LocationDialog if required */
+    const maybeLocationDialog =  this.renderLocationDialog(space);
+    /** Render layout - 1.01 because of scroll bars */
+    return html`
+      <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
+        ${surfaceItem}
+        ${uiItems}
+        ${locationItems}
+        ${fabs}
+      </div>
+      ${maybeLocationDialog}
+    `;
+  }
+
+
   static get scopedElements() {
     return {
       "sl-avatar": SlAvatar,
@@ -631,8 +633,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       css`
         .surface {
           position: relative;
-          overflow: visible;
+          overflow: auto;
           min-width:160px;
+        }
+
+        #space-div {
+          width: 100%;
+          height: 100%;
         }
 
         #edit-location-tag {

@@ -13,7 +13,6 @@ import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "./where-space-dialog";
 import { WhereTemplateDialog } from "./where-template-dialog";
 import { WhereArchiveDialog } from "./where-archive-dialog";
-import { WhereEmojiGroupDialog } from "./where-emoji-group-dialog";
 import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
@@ -31,6 +30,7 @@ import {prefix_canvas} from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH, renderSurface} from "../sharedRender";
 import {addHardcodedSpaces} from "./examples";
+import {WhereFolks} from "./where-folks";
 
 
 /**
@@ -59,7 +59,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
-  _agentPresences = new StoreSubscriber(this, () => this._store.agentPresences);
 
   /** Private properties */
 
@@ -84,6 +83,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   get spaceElem(): WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+  get folksElem(): WhereFolks {
+    return this.shadowRoot!.getElementById("where-folks") as WhereFolks;
   }
 
   get spaceDialogElem() : WhereSpaceDialog {
@@ -239,7 +242,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
         menuButton.style.marginRight = margin;
         if (this.spaceElem) {
-          this.spaceElem.isDrawerOpen = drawer.open;
+          this.spaceElem.neighborWidth = (drawer.open? 256 : 0) + this.folksElem.offsetWidth;
           this.spaceElem.requestUpdate();
         }
       });
@@ -384,50 +387,22 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
-
-  determineAgentStatus(key: AgentPubKeyB64) {
-    const status = "primary"; // "neutral"
-    if (key == this._profiles.myAgentPubKey) {
-      return "success";
-    }
-    const lastPingTime: number = this._agentPresences.value[key];
-    const currentTime: number = Math.floor(Date.now()/1000);
-    const diff: number = currentTime - lastPingTime;
-    if (diff < 30) {
-      return "success";
-    }
-    if (diff < 5 * 60) {
-      return "warning";
-    }
-    return "danger";
+  private async handleSpaceClick(event: any) {
+    await this.pingOthers();
   }
 
-  handleClickAvatar(e: any) {
-    console.log("Avatar clicked: " + e.currentTarget.alt)
-    //console.log(e.detail)
-    const key = e.currentTarget.alt
+  handleAvatarClicked(key: AgentPubKeyB64) {
+    console.log("Avatar clicked: " + key)
     if (this.spaceElem) {
       this.spaceElem.soloAgent = key == this.spaceElem.soloAgent? null : key;
       this.requestUpdate();
     }
   }
 
+  /**
+   *
+   */
   render() {
-    /** Build agent list */
-    const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
-      let opacity = 1.0;
-      if (this.spaceElem && this.spaceElem.soloAgent && this.spaceElem.soloAgent != key) {
-        opacity = 0.4;
-      }
-      return html`
-        <li class="folk">
-          <sl-tooltip content=${profile.nickname} style="opacity: ${opacity};">
-                <sl-avatar alt=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" ></sl-avatar>
-                <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
-          </sl-tooltip>
-        </li>`
-    })
-
     /** Build space list */
     const spaces = Object.entries(this._spaces.value).map(
       ([key, space]) => {
@@ -446,7 +421,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           `
       }
     )
-
 
     return html`
 <!--  DRAWER -->
@@ -469,7 +443,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
     <!-- <mwc-formfield label="View Archived">
       <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
-    </mwc-formfield>-->
+    </mwc-formfield> -->
 
     <!-- SPACE LIST -->
     <mwc-list id="spaces-list" activatable @selected=${this.handleSpaceSelected}>
@@ -495,11 +469,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- APP BODY -->
     <div class="appBody">
       ${this._currentSpaceEh ?
-        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick}></where-space>`
+        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} neighborWidth="150"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">No space found</div>`}
-      <div class="folks">
-        ${folks}
-      </div>
+      <where-folks id="where-folks" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-folks>
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
@@ -513,10 +485,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   </div>
 </mwc-drawer>
 `;
-  }
-
-  private async handleSpaceClick(event: any) {
-    await this.pingOthers();
   }
 
   static get scopedElements() {
@@ -537,6 +505,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
+      "where-folks": WhereFolks,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
       'sl-tooltip': SlTooltip,
@@ -556,26 +525,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
         .mdc-drawer__header {
           display:none;
-        }
-
-        .avatar-badge {
-          margin-left: 35px;
-          margin-top: -15px;
-          display: block;
-
-        }
-
-        sl-badge::part(base) {
-          border: 1px solid;
-          padding-top: 10px;
-        }
-
-        sl-tooltip sl-avatar {
-          /*--size: ${MARKER_WIDTH}px;*/
-        }
-
-        sl-tooltip {
-          display: inline;
         }
 
         mwc-top-app-bar {
@@ -605,18 +554,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           margin-top: 2px;
           margin-bottom: 0px;
           display:flex;
-        }
-
-        .folk {
-          list-style: none;
-          margin: 2px;
-          text-align: center;
-          font-size: 70%;
-        }
-
-        .folk > img {
-          width: 50px;
-          border-radius: 10000px;
         }
 
         mwc-textfield.rounded {

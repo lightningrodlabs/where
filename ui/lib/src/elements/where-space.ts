@@ -77,7 +77,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
-  @property() isDrawerOpen = false;
+  @property() neighborWidth = 0;
 
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
@@ -585,7 +585,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const w = space.surface.size.x * z;
     const h = space.surface.size.y * z;
     /** Set max size */
-    const maxW = window.innerWidth - 60 - (this.isDrawerOpen? 256 : 0) - 24; // minus drawer, folks, scroll bar
+    const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
     const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
     console.log("max-width: ", maxW);
     //console.log("max-height: ", maxH);

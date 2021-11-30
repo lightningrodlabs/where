@@ -238,7 +238,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
         menuButton.style.marginRight = margin;
         if (this.spaceElem) {
-          this.spaceElem.isDrawerOpen = drawer.open;
+          this.spaceElem.neighborWidth = (drawer.open? 256 : 0) + 60;
           this.spaceElem.requestUpdate();
         }
       });
@@ -465,7 +465,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- APP BODY -->
     <div class="appBody">
       ${this._currentSpaceEh ?
-        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick}></where-space>`
+        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} neighborWidth="60"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">No space found</div>`}
       <where-folks @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)}></where-folks>
     </div>

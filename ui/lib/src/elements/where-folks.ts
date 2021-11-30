@@ -8,13 +8,13 @@ import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
 import {whereContext, Space, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
-import {lightTheme, SlAvatar, SlBadge, SlTooltip} from '@scoped-elements/shoelace';
+import {lightTheme, SlAvatar, SlBadge, SlIcon, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField, List, Icon, Switch, Formfield, Slider, Menu,
+  Button, TextField, List, Icon, Switch, Formfield, Slider, Menu, Fab, IconButtonToggle,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
@@ -35,6 +35,9 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
   /** Public attributes */
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
+
+  @property() canShowTable: boolean = true;
+
 
   /** Dependencies */
 
@@ -69,10 +72,10 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
 
   handleClickAvatar(e: any) {
-    //console.log("Avatar clicked: " + e.currentTarget.alt)
-    this.dispatchEvent(new CustomEvent('avatar-clicked', { detail: e.currentTarget.alt, bubbles: true, composed: true }));
+    const key = e.currentTarget.id
+    console.log("Avatar clicked: " + key)
+    this.dispatchEvent(new CustomEvent('avatar-clicked', { detail: key, bubbles: true, composed: true }));
     //console.log(e.detail)
-    const key = e.currentTarget.alt
     this.soloAgent = key == this.soloAgent? null : key;
     //this.requestUpdate();
   }
@@ -81,27 +84,75 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
+    const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
+    const filterStr = filterField? filterField.value : "";
+    console.log("filterStr: " + filterStr);
+
+    const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
+      filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
+
+    //console.log({visibleProfiles})
+
     /** Build agent list */
-    const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=> {
+    const folks = visibleProfiles.map(([key, profile])=> {
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != key) {
         opacity = 0.4;
       }
       return html`
         <li class="folk" style="opacity: ${opacity};">
-          <sl-tooltip content=${profile.nickname}>
-                <sl-avatar alt=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" ></sl-avatar>
+          <sl-tooltip content=${profile.nickname} placement="right">
+                <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" ></sl-avatar>
                 <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
           </sl-tooltip>
         </li>`
     })
 
+    /** Build agent list */
+    const list_folks = visibleProfiles.map(([key, profile])=> {
+      let opacity = 1.0;
+      if (this.soloAgent && this.soloAgent != key) {
+        opacity = 0.4;
+      }
+      const status = this.determineAgentStatus(key);
+      const statusColor = this.status2color(status)
+      return html`
+        <li class="folk-row" style="opacity: ${opacity};" @click="${this.handleClickAvatar}" id=${key}>
+          <div style="background-color:${profile.fields['color']};border:1px solid black;width:9px;height:9px;display:inline-flex;"></div>
+          <span style="color:${statusColor};margin-left:2px">${profile.nickname}</span>
+        </li>`
+    })
+
+
     /** MAIN RENDER */
+    //       <mwc-fab mini id="reset-fab" icon="delete" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
     return html`
+      <!-- <mwc-toggle mini id="toggle-other-fab" onIcon="location_on"  offIcon="location_off" style=""></mwc-toggle> -->
+      <!-- <mwc-toggle mini id="toggle-view-fab" onIcon="visibility" offIcon="visibility_off" style="" @click=${() => this.toggleView()}></mwc-toggle> -->
+      <!-- <mwc-textfield id="filter-field" outlined icon="search" class="rounded" style="width: 180px" @input=${() =>this.requestUpdate()}></mwc-textfield> -->
+      <sl-input id="filter-field" placeholder="filter" clearable size="small" pill @input=${() =>this.requestUpdate()} @sl-clear=${() =>this.requestUpdate()}>
+        <mwc-icon style="color:gray;" slot="prefix">search</mwc-icon>
+      </sl-input>
+      <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch>
       <div class="folks">
-        ${folks}
+        ${this.canShowTable? list_folks : folks}
       </div>
     `
+  }
+
+  status2color(status: string): string {
+    switch(status) {
+      case "primary": return "rgb(14, 165, 233)"; break;
+      case "neutral": return "rgb(113, 113, 122)"; break;
+      case "success": return "rgb(34, 197, 94)"; break;
+      case "warning": return "rgb(245, 158, 11)"; break;
+      case "danger": return "rgb(239, 68, 68)"; break;
+      default: return "rgb(0, 0, 0)"; break;
+    }
+  }
+
+  toggleView() {
+    this.canShowTable = !this.canShowTable;
   }
 
   static get scopedElements() {
@@ -115,11 +166,12 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       "mwc-list-item": ListItem,
       "mwc-icon": Icon,
       "mwc-icon-button": IconButton,
+      "mwc-toggle": IconButtonToggle,
       "mwc-button": Button,
-      "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
       'sl-tooltip': SlTooltip,
       'sl-badge': SlBadge,
+      'sl-input': SlInput,
     };
   }
 
@@ -128,15 +180,38 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       lightTheme,
       sharedStyles,
       css`
+        mwc-textfield.rounded {
+          --mdc-shape-small: 28px;
+        }
+
+        #filter-field {
+          width:150px;
+          margin-left:3px;
+          /*display:inline-block;*/
+        }
+
+        #folks-switch {
+          margin: 10px 0px 10px 3px;
+          /*--mdc-switch-selected-handle-color: teal;*/
+          /*--mdc-switch-selected-track-color: lightseagreen;*/
+          --mdc-switch-unselected-handle-color: teal;
+          /*--mdc-switch-unselected-track-color: palegoldenrod;*/
+          /*--mdc-switch-unselected-icon-color: teal;*/
+        }
 
         .folks {
           /*background-color: red;*/
+          overflow-y: auto;
+          margin-left:5px;
         }
 
+        .folk-row {
+          cursor: pointer;
+        }
         .folk {
           list-style: none;
           margin: 2px;
-          text-align: center;
+          /*text-align: center;*/
           font-size: 70%;
           cursor: pointer;
         }
@@ -147,12 +222,12 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
         }
 
         .avatar-badge {
-          margin-left: 35px;
+          margin-left: 30px;
           margin-top: -15px;
           display: block;
         }
 
-        sl-badge::part(base) {
+        .avatar-badge::part(base) {
           border: 1px solid;
           padding-top: 10px;
         }

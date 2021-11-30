@@ -8,6 +8,7 @@ pub mod signals;
 pub mod here;
 pub mod template;
 pub mod emoji_group;
+pub mod svg_marker;
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -25,6 +26,7 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 
 entry_defs![
     Path::entry_def(),
+    svg_marker::SvgMarker::entry_def(),
     emoji_group::EmojiGroup::entry_def(),
     template::Template::entry_def(),
     space::Space::entry_def(),

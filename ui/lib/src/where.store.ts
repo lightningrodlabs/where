@@ -10,7 +10,7 @@ import {
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry, Signal, EmojiGroupEntry,
+  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry,
 } from './types';
 import {
   ProfilesStore,
@@ -24,6 +24,8 @@ export class WhereStore {
   private service : WhereService
   private profiles: ProfilesStore
 
+  /** SvgMarkerEh -> SvgMarker */
+  private svgMarkerStore: Writable<Dictionary<SvgMarkerEntry>> = writable({});
   /** EmojiGroupEh -> EmojiGroup */
   private emojiGroupStore: Writable<Dictionary<EmojiGroupEntry>> = writable({});
   /** TemplateEh -> Template */
@@ -39,6 +41,7 @@ export class WhereStore {
   myAgentPubKey: AgentPubKeyB64;
 
   /** Readable stores */
+  public svgMarkers: Readable<Dictionary<SvgMarkerEntry>> = derived(this.svgMarkerStore, i => i)
   public emojiGroups: Readable<Dictionary<EmojiGroupEntry>> = derived(this.emojiGroupStore, i => i)
   public templates: Readable<Dictionary<TemplateEntry>> = derived(this.templatesStore, i => i)
   public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
@@ -203,6 +206,21 @@ export class WhereStore {
     return eh64
   }
 
+  async updateSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
+    return get(this.svgMarkerStore)
+  }
+
+  async addSvgMarker(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
+    const eh64: EntryHashB64 = await this.service.createSvgMarker(svgMarker)
+    this.svgMarkerStore.update(svgMarkers => {
+      svgMarkers[eh64] = svgMarker
+      return svgMarkers
+    })
+    this.service.notify(
+      {spaceHash: eh64, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:svgMarker}}
+      , this.others());
+    return eh64
+  }
 
   async pullSpaces() : Promise<Dictionary<Space>> {
     const _templates = await this.service.getTemplates(); // required for data integrity of 'origin' field in Space

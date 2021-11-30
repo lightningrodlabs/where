@@ -60,6 +60,19 @@ export async function addHardcodedSpaces(store: WhereStore) {
   });
 
 
+  /** SVG Markers */
+
+  const pinEh = await store.addSvgMarker({
+    name: "Pin",
+    value: '<path data-name="layer1" d="M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" fill="%%color%%"></path>',
+  });
+
+  const otherEh = await store.addSvgMarker({
+    name: "Cross",
+    value: '<path d="m62.974825,55.511659l-7.426527,7.412329c-1.355295,1.369037 -3.568037,1.369037 -4.937175,0l-18.559378,-18.544683l-18.545536,18.544683c-1.369138,1.369037 -3.595723,1.369037 -4.951018,0l-7.426492,-7.412329c-1.369138,-1.369073 -1.369138,-3.581708 0,-4.950781l18.545536,-18.55849l-18.545536,-18.544647c-1.355331,-1.382915 -1.355331,-3.609357 0,-4.950781l7.426492,-7.426136c1.355295,-1.369073 3.58188,-1.369073 4.951018,0l18.545536,18.558454l18.559378,-18.558454c1.369138,-1.369073 3.595687,-1.369073 4.937175,0l7.426527,7.412329c1.369103,1.369037 1.369103,3.595515 0.013808,4.964588l-18.559378,18.544647l18.545571,18.55849c1.369103,1.369073 1.369103,3.581708 0,4.950781z" fill="%%color%%"/>',
+  });
+
+
   /** Spaces */
 
   await store.addSpace({
@@ -72,7 +85,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      markerType: MarkerType.AnyEmoji, singleEmoji: "", emojiGroup: null,
+      markerType: MarkerType.AnyEmoji, singleEmoji: "", emojiGroup: null, svgMarker: null,
       multi: true, canTag: true, tagVisible: false,
       subMap: new Map([["ImageUrl","https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg"]]),
     },
@@ -88,7 +101,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 1000, y: 400},
     },
     meta: {
-      markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: zodiacSignsEh,
+      markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: zodiacSignsEh, svgMarker: null,
       multi: false, canTag: false, tagVisible: false,
       subMap: new Map([["ImageUrl","https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg"]]),
       ui: [{box:{left:450,top:320,width:100,height:20},style:"padding:10px;background-color:#ffffffb8;border-radius: 10px;",content:"Place of Birth"}]
@@ -105,7 +118,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
     },
     meta: {
-      markerType: MarkerType.Letter, singleEmoji: "", emojiGroup: null,
+      markerType: MarkerType.Initials, singleEmoji: "", emojiGroup: null, svgMarker: null,
       subMap: new Map([["style","background-image:linear-gradient(to bottom right, red, yellow);"]]),
       ui: [{box:{left:200,top:200,width:200,height:200},style:"background-image: linear-gradient(to bottom right, blue, red);",content:""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}],
       multi: true, canTag: false, tagVisible: false,
@@ -123,7 +136,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      markerType: MarkerType.Avatar, singleEmoji: "", emojiGroup: null,
+      markerType: MarkerType.Avatar, singleEmoji: "", emojiGroup: null, svgMarker: null,
       multi: false, canTag: true, tagVisible: false,
       subMap: new Map([["ImageUrl","https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg"]])
     },
@@ -142,7 +155,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      markerType: MarkerType.SingleEmoji, singleEmoji: "💥", emojiGroup: null,
+      markerType: MarkerType.SingleEmoji, singleEmoji: "💥", emojiGroup: null, svgMarker: null,
       multi: false, canTag: true, tagVisible: true,
       subMap,
     },
@@ -160,7 +173,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [{box:{left:10,top:45,width:170,height:20},style:"padding:10px;background-color:#fffffffa;border-radius:10px;border:2px solid violet;font-size:large;",content:"How are you feeling?"}],
-      markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: heartsEh,
+      markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: heartsEh, svgMarker: null,
       multi: true, canTag: false, tagVisible: false,
       subMap,
     },
@@ -178,7 +191,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      markerType: MarkerType.Color, singleEmoji: "", emojiGroup: null,
+      markerType: MarkerType.SvgMarker, singleEmoji: "", emojiGroup: null, svgMarker: pinEh,
       multi: true, canTag: true, tagVisible: true,
       subMap,
     },

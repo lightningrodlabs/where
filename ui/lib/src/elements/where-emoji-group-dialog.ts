@@ -214,7 +214,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     };
   }
 
-//--font-family: "Apple Color AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto Color AnyEmoji","EmojiOne Color","Android AnyEmoji",sans-serif
+//--font-family: "Apple SvgMarker AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto SvgMarker AnyEmoji","EmojiOne SvgMarker","Android AnyEmoji",sans-serif
 
   static get styles() {
     return [

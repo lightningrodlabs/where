@@ -412,6 +412,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  private async handleSpaceClick(event: any) {
+    await this.pingOthers();
+  }
+
   render() {
     /** Build agent list */
     const folks = Object.entries(this._knownProfiles.value).map(([key, profile])=>{
@@ -513,10 +517,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   </div>
 </mwc-drawer>
 `;
-  }
-
-  private async handleSpaceClick(event: any) {
-    await this.pingOthers();
   }
 
   static get scopedElements() {

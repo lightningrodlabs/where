@@ -302,17 +302,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private drag(dragEvent: DragEvent) {
-    if (!dragEvent.currentTarget) {
+    const ev = dragEvent as any;
+    const target = dragEvent.currentTarget? dragEvent.currentTarget : ev.originalTarget;
+    if (!target) {
       return false;
     }
-    const w = dragEvent.currentTarget as HTMLElement;
-    const ev = dragEvent as any;
+    const w = target as HTMLElement;
     const idx = w.getAttribute("idx");
-    //console.log({ev})
-    // console.log("width: " + ev.originalTarget.clientWidth + " | " + ev.layerX)
-    const offsetX = (ev.originalTarget.clientWidth / 2) - ev.layerX;
-    const offsetY = (ev.originalTarget.clientHeight/ 2) - ev.layerY;
     //console.log(w)
+    //console.log({ev})
+    const offsetX = (target.clientWidth / 2) - ev.layerX;
+    const offsetY = (target.clientHeight/ 2) - ev.layerY;
     if (idx && dragEvent.dataTransfer) {
       if (this.canUpdateLocation(parseInt(idx))) {
         dragEvent.dataTransfer.setData("idx", `${idx}`);

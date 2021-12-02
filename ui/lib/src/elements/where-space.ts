@@ -301,16 +301,23 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     ev.preventDefault();
   }
 
-  private drag(ev: DragEvent) {
-    if (!ev.currentTarget) {
+  private drag(dragEvent: DragEvent) {
+    if (!dragEvent.currentTarget) {
       return false;
     }
-    const w = ev.currentTarget as HTMLElement;
+    const w = dragEvent.currentTarget as HTMLElement;
+    const ev = dragEvent as any;
     const idx = w.getAttribute("idx");
+    //console.log({ev})
+    // console.log("width: " + ev.originalTarget.clientWidth + " | " + ev.layerX)
+    const offsetX = (ev.originalTarget.clientWidth / 2) - ev.layerX;
+    const offsetY = (ev.originalTarget.clientHeight/ 2) - ev.layerY;
     //console.log(w)
-    if (idx && ev.dataTransfer) {
+    if (idx && dragEvent.dataTransfer) {
       if (this.canUpdateLocation(parseInt(idx))) {
-        ev.dataTransfer.setData("idx", `${idx}`);
+        dragEvent.dataTransfer.setData("idx", `${idx}`);
+        dragEvent.dataTransfer.setData("offsetX", `${offsetX}`);
+        dragEvent.dataTransfer.setData("offsetY", `${offsetY}`);
         return true;
       }
     }
@@ -319,16 +326,31 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private drop(ev: any) {
     ev.preventDefault();
-    if (ev.dataTransfer) {
-      const data = ev.dataTransfer.getData("idx");
-      if (data != "") {
-        const idx = parseInt(data);
-        if (ev.target) {
-          const coord = this.getCoordsFromEvent(ev);
-          this._store.updateLocation(this.currentSpaceEh!, idx, coord);
-        }
-      }
+    if (!ev.dataTransfer || !ev.target) {
+      return;
     }
+    const dataIdx = ev.dataTransfer.getData("idx");
+    if (dataIdx == "") {
+      return;
+    }
+    const idx = parseInt(dataIdx);
+    //
+    const dataX = ev.dataTransfer.getData("offsetX");
+    if (dataX == "") {
+      return;
+    }
+    const offsetX = parseInt(dataX);
+    //
+    const dataY = ev.dataTransfer.getData("offsetY");
+    if (dataY == "") {
+      return;
+    }
+    const offsetY = parseInt(dataY);
+    //console.log({ev})
+    let coord = this.getCoordsFromEvent(ev);
+    coord.x = coord.x + offsetX;
+    coord.y = coord.y + offsetY;
+    this._store.updateLocation(this.currentSpaceEh!, idx, coord);
   }
 
   getIdx(target: any): number | null {
@@ -452,9 +474,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         .draggable=${true}
         @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
         @dragstart="${(e: DragEvent) => this.drag(e)}"
-        idx="${i}" class="location-marker" style="left: ${x}px; top: ${y}px;">
+        idx="${i}" class="location-marker" style="left: ${x - (MARKER_WIDTH / 2)}px; top: ${y - (MARKER_WIDTH / 2)}px;">
       ${marker}
-      ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
+        ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.name}</h3>
@@ -654,8 +676,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
         .location-marker {
           position: absolute;
-          margin-top: -${MARKER_WIDTH / 2 + 5}px;
-          margin-left: -${MARKER_WIDTH / 2 + 5}px;
+          width: ${MARKER_WIDTH}px;
+          height: ${MARKER_WIDTH}px;
           z-index: 1;
         }
 
@@ -668,9 +690,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           pointer-events: none;
         }
 
-        .pin-marker {
-          margin-top: -15px;
-          margin-left: 5px;
+        .svg-marker {
+          width:${MARKER_WIDTH}px;
+          height:${MARKER_WIDTH}px;
+          /*margin-top: -15px;*/
+          /*margin-left: 5px;*/
         }
 
         #edit-location-dialog > .location-marker {

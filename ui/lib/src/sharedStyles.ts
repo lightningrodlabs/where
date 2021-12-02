@@ -12,6 +12,7 @@ export const sharedStyles = css`
   }
   .emoji-marker {
     font-size: ${EMOJI_WIDTH}px;
+    text-align: center;
     cursor: pointer;
   }
   .emoji-marker::part(base) {

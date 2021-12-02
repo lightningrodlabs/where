@@ -56,6 +56,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   /** Private properties */
   @state() _currentTemplate: null | TemplateEntry = null;
   @state() _currentPlaceHolders: Array<string> = [];
+  @state() _canTag: boolean = false;
+
   _spaceToPreload?: EntryHashB64;
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
   _canvas: string = "";
@@ -75,12 +77,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @query('#ui-field')
   _uiField!: TextArea;
 
+  @query('#multi-chk')
+  _multiChk!: Checkbox;
   @query('#tag-chk')
   _tagChk!: Checkbox;
   @query('#tag-visible-chk')
   _tagVisibleChk!: Checkbox;
-  @query('#multi-chk')
-  _multiChk!: Checkbox;
 
   @query('#marker-select')
   _markerTypeField!: Select;
@@ -122,12 +124,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._templateField.value = originalSpace.origin;
     this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
     this._multiChk.checked = originalSpace.meta.multi;
+    this._canTag = originalSpace.meta.canTag;
     this._tagChk.checked = originalSpace.meta.canTag;
-    this._tagVisibleChk.checked = originalSpace.meta.canTag && originalSpace.meta.tagVisible;
+    this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
+    this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
     this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
-    this.handleTagSelect()
 
     /** Templated fields */
     for (let [key, value] of originalSpace.meta.subMap!) {
@@ -207,8 +210,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     // - Get checkbox values
     const multi = this._multiChk.checked
-    const canTag = this._tagChk.checked
-    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked
+    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked;
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
 
     let {surface, subMap} = this.generateSurface();
@@ -227,7 +229,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         subMap,
         markerType,
         multi,
-        canTag,
+        canTag: this._tagChk.checked,
         tagVisible,
         ui,
         singleEmoji,
@@ -261,7 +263,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentSingleEmoji = "😀"
     this._currentEmojiGroupEh = null;
     this._currentSvgMarkerEh = null;
-    this.handleTagSelect()
+    // - Tags
+    this._canTag = false;
+    this._tagChk.checked = false;
+    this._tagVisibleChk.checked = false;
+    this._tagVisibleChk.disabled = true;
   }
 
   private async handleDialogOpened(e: any) {
@@ -462,14 +468,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     `
   }
 
-  // handleMarkerSelect(markerType: string) {
-  //   console.log({markerType})
-  //   //this.requestUpdate()
-  // }
-
-  handleTagSelect() {
+  handleCanTagClick(e: any) {
+    this._canTag = !this._canTag;
     this._tagVisibleChk.disabled = !this._tagChk.checked
-    this._tagVisibleChk.hidden = !this._tagChk.checked
   }
 
   handleEmojiGroupSelect(e?: any) {
@@ -694,14 +695,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.AnyEmoji])}</mwc-list-item>
   </mwc-select>
   ${maybeMarkerTypeItems}
-  <mwc-formfield label="Multiple markers per user" style="margin-top:10px">
+  <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Enable tags" @click=${this.handleTagSelect}>
-    <mwc-checkbox id="tag-chk"></mwc-checkbox>
+  <mwc-formfield label="Enable tag on marker">
+    <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Tag allways visible">
-    <mwc-checkbox id="tag-visible-chk"></mwc-checkbox>
+  <mwc-formfield label="Display tag on space" style="margin-left:10px">
+    <mwc-checkbox id="tag-visible-chk" .disabled="${!this._canTag}"></mwc-checkbox>
   </mwc-formfield>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>

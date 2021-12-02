@@ -86,7 +86,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   render() {
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField? filterField.value : "";
-    console.log("filterStr: " + filterStr);
+    // console.log("filterStr: " + filterStr);
 
     const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
       filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));

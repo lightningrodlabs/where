@@ -94,15 +94,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
     await this.initFab(this.hideFab);
-
-    const dialog = this.shadowRoot!.getElementById("edit-location")
-
-    dialog!.addEventListener("wheel",
-    (e: WheelEvent) => {
-      // console.log(" ==>> handle wheel for edit-location")
-      e.stopPropagation();
-    }
-    );
   }
 
 
@@ -250,7 +241,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   get locationDialogElem(): Dialog {
-    return this.shadowRoot!.getElementById("edit-location") as Dialog;
+    return this.shadowRoot!.getElementById("edit-location-dialog") as Dialog;
   }
 
 
@@ -546,7 +537,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       : html``;
     /** Render */
     return html`
-        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialogClosing}>
+        <mwc-dialog id="edit-location-dialog" heading="Location" @closing=${this.handleLocationDialogClosing} @wheel=${(e: any) => e.stopPropagation()}>
           ${tagForm}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
@@ -682,7 +673,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           margin-left: 5px;
         }
 
-        #edit-location > .location-marker {
+        #edit-location-dialog > .location-marker {
           margin-top: 9px;
           margin-left: 0px;
           margin-bottom: 10px;

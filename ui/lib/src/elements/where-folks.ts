@@ -86,14 +86,28 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   render() {
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField? filterField.value : "";
-    // console.log("filterStr: " + filterStr);
-
+  
     const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
       filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
 
     //console.log({visibleProfiles})
 
-    /** Build agent list */
+    // /** Build avatar agent list */
+    // const folks = visibleProfiles.map(([key, profile])=> {
+    //   let opacity = 1.0;
+    //   if (this.soloAgent && this.soloAgent != key) {
+    //     opacity = 0.4;
+    //   }
+    //   return html`
+    //     <li class="folk" style="opacity: ${opacity};">
+    //       <sl-tooltip content=${profile.nickname} placement="right">
+    //             <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" ></sl-avatar>
+    //             <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
+    //       </sl-tooltip>
+    //     </li>`
+    // })
+
+    /** Build avatar agent list */
     const folks = visibleProfiles.map(([key, profile])=> {
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != key) {
@@ -101,14 +115,15 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       }
       return html`
         <li class="folk" style="opacity: ${opacity};">
-          <sl-tooltip content=${profile.nickname} placement="right">
-                <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar} style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" ></sl-avatar>
-                <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
-          </sl-tooltip>
+              <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar}
+                         style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" >
+              </sl-avatar>
+              <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
+          <span style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">${profile.nickname}</span>
         </li>`
     })
 
-    /** Build agent list */
+    /** Build names agent list */
     const list_folks = visibleProfiles.map(([key, profile])=> {
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != key) {
@@ -118,11 +133,10 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       const statusColor = this.status2color(status)
       return html`
         <li class="folk-row" style="opacity: ${opacity};" @click="${this.handleClickAvatar}" id=${key}>
-          <div style="background-color:${profile.fields['color']};border:1px solid black;width:9px;height:9px;display:inline-flex;"></div>
+          <div style="background-color:${profile.fields['color']};width:9px;height:9px;display:inline-flex;border-radius:12px;border:1px solid gray;"></div>
           <span style="color:${statusColor};margin-left:2px">${profile.nickname}</span>
         </li>`
     })
-
 
     /** MAIN RENDER */
     //       <mwc-fab mini id="reset-fab" icon="delete" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
@@ -135,7 +149,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       </sl-input>
       <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch>
       <div class="folks">
-        ${this.canShowTable? list_folks : folks}
+        ${this.canShowTable? folks : list_folks}
       </div>
     `
   }
@@ -223,9 +237,8 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
         }
 
         .avatar-badge {
-          margin-left: 30px;
-          margin-top: -15px;
-          display: block;
+          margin-left: -15px;
+          vertical-align: bottom;
         }
 
         .avatar-badge::part(base) {

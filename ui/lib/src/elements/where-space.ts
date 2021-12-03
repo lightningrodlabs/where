@@ -418,6 +418,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     // canvas
     return html`<canvas id="space-canvas"
+                        @drop="${(e: DragEvent) => this.drop(e)}"
+                        @dragover="${(e: DragEvent) => this.allowDrop(e)}"
                         width="${w}"
                         height="${h}"
                         style="border:1px solid #2278da;"

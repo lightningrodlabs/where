@@ -10,9 +10,9 @@ import { sharedStyles } from "../sharedStyles";
 import {whereContext, Space, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
 import { WhereSpace } from "./where-space";
-import { WhereSpaceDialog } from "./where-space-dialog";
-import { WhereTemplateDialog } from "./where-template-dialog";
-import { WhereArchiveDialog } from "./where-archive-dialog";
+import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
+import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
+import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
 import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {

@@ -9,7 +9,7 @@ import {Coord, TemplateEntry, TemplateType, whereContext} from "../types";
 import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import parser from "fast-xml-parser";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {prefix_canvas} from "./templates";
+import {prefix_canvas} from "../elements/templates";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 

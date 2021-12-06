@@ -32,7 +32,7 @@ import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar} from "@scoped-elements/shoelace";
-import {prefix_canvas} from "../elements/templates";
+import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";

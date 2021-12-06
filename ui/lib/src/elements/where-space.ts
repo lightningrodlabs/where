@@ -16,7 +16,7 @@ import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
-import {prefix_canvas} from "./templates";
+import {prefix_canvas} from "../templates";
 
 
 // // Canvas Animation experiment

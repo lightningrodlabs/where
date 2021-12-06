@@ -5,8 +5,8 @@ import {
   triangle_template_svg,
   tvstatic_template_canvas
 } from "./templates";
-import {MarkerType} from "../types";
-import {WhereStore} from "../where.store";
+import {MarkerType} from "./types";
+import {WhereStore} from "./where.store";
 
 export async function addHardcodedSpaces(store: WhereStore) {
   /** Templates */

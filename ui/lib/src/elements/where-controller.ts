@@ -25,10 +25,10 @@ import {
   profilesStoreContext,
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
-import {prefix_canvas} from "./templates";
+import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {renderSurface} from "../sharedRender";
-import {addHardcodedSpaces} from "./examples";
+import {addHardcodedSpaces} from "../examples";
 import {WhereFolks} from "./where-folks";
 
 

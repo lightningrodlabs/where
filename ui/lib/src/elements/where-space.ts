@@ -94,15 +94,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
     await this.initFab(this.hideFab);
-
-    const dialog = this.shadowRoot!.getElementById("edit-location")
-
-    dialog!.addEventListener("wheel",
-    (e: WheelEvent) => {
-      // console.log(" ==>> handle wheel for edit-location")
-      e.stopPropagation();
-    }
-    );
   }
 
 
@@ -250,7 +241,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   get locationDialogElem(): Dialog {
-    return this.shadowRoot!.getElementById("edit-location") as Dialog;
+    return this.shadowRoot!.getElementById("edit-location-dialog") as Dialog;
   }
 
 
@@ -310,16 +301,23 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     ev.preventDefault();
   }
 
-  private drag(ev: DragEvent) {
-    if (!ev.currentTarget) {
+  private drag(dragEvent: DragEvent) {
+    const ev = dragEvent as any;
+    const target = dragEvent.currentTarget? dragEvent.currentTarget : ev.originalTarget;
+    if (!target) {
       return false;
     }
-    const w = ev.currentTarget as HTMLElement;
+    const w = target as HTMLElement;
     const idx = w.getAttribute("idx");
     //console.log(w)
-    if (idx && ev.dataTransfer) {
+    //console.log({ev})
+    const offsetX = (target.clientWidth / 2) - ev.layerX;
+    const offsetY = (target.clientHeight/ 2) - ev.layerY;
+    if (idx && dragEvent.dataTransfer) {
       if (this.canUpdateLocation(parseInt(idx))) {
-        ev.dataTransfer.setData("idx", `${idx}`);
+        dragEvent.dataTransfer.setData("idx", `${idx}`);
+        dragEvent.dataTransfer.setData("offsetX", `${offsetX}`);
+        dragEvent.dataTransfer.setData("offsetY", `${offsetY}`);
         return true;
       }
     }
@@ -328,16 +326,31 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private drop(ev: any) {
     ev.preventDefault();
-    if (ev.dataTransfer) {
-      const data = ev.dataTransfer.getData("idx");
-      if (data != "") {
-        const idx = parseInt(data);
-        if (ev.target) {
-          const coord = this.getCoordsFromEvent(ev);
-          this._store.updateLocation(this.currentSpaceEh!, idx, coord);
-        }
-      }
+    if (!ev.dataTransfer || !ev.target) {
+      return;
     }
+    const dataIdx = ev.dataTransfer.getData("idx");
+    if (dataIdx == "") {
+      return;
+    }
+    const idx = parseInt(dataIdx);
+    //
+    const dataX = ev.dataTransfer.getData("offsetX");
+    if (dataX == "") {
+      return;
+    }
+    const offsetX = parseInt(dataX);
+    //
+    const dataY = ev.dataTransfer.getData("offsetY");
+    if (dataY == "") {
+      return;
+    }
+    const offsetY = parseInt(dataY);
+    //console.log({ev})
+    let coord = this.getCoordsFromEvent(ev);
+    coord.x = coord.x + offsetX;
+    coord.y = coord.y + offsetY;
+    this._store.updateLocation(this.currentSpaceEh!, idx, coord);
   }
 
   getIdx(target: any): number | null {
@@ -405,6 +418,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     // canvas
     return html`<canvas id="space-canvas"
+                        @drop="${(e: DragEvent) => this.drop(e)}"
+                        @dragover="${(e: DragEvent) => this.allowDrop(e)}"
                         width="${w}"
                         height="${h}"
                         style="border:1px solid #2278da;"
@@ -461,9 +476,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         .draggable=${true}
         @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
         @dragstart="${(e: DragEvent) => this.drag(e)}"
-        idx="${i}" class="location-marker" style="left: ${x}px; top: ${y}px;">
+        idx="${i}" class="location-marker" style="left: ${x - (MARKER_WIDTH / 2)}px; top: ${y - (MARKER_WIDTH / 2)}px;">
       ${marker}
-      ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
+        ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.name}</h3>
@@ -546,7 +561,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       : html``;
     /** Render */
     return html`
-        <mwc-dialog id="edit-location" heading="Location" @closing=${this.handleLocationDialogClosing}>
+        <mwc-dialog id="edit-location-dialog" heading="Location" @closing=${this.handleLocationDialogClosing} @wheel=${(e: any) => e.stopPropagation()}>
           ${tagForm}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
@@ -587,7 +602,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Set max size */
     const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
     const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
-    console.log("max-width: ", maxW);
+    //console.log("max-width: ", maxW);
     //console.log("max-height: ", maxH);
     /** render Surface */
     const surfaceItem = this.renderActiveSurface(space.surface, w, h)
@@ -663,8 +678,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
         .location-marker {
           position: absolute;
-          margin-top: -${MARKER_WIDTH / 2 + 5}px;
-          margin-left: -${MARKER_WIDTH / 2 + 5}px;
+          width: ${MARKER_WIDTH}px;
+          height: ${MARKER_WIDTH}px;
           z-index: 1;
         }
 
@@ -677,12 +692,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           pointer-events: none;
         }
 
-        .pin-marker {
-          margin-top: -15px;
-          margin-left: 5px;
+        .svg-marker {
+          width:${MARKER_WIDTH}px;
+          height:${MARKER_WIDTH}px;
+          /*margin-top: -15px;*/
+          /*margin-left: 5px;*/
         }
 
-        #edit-location > .location-marker {
+        #edit-location-dialog > .location-marker {
           margin-top: 9px;
           margin-left: 0px;
           margin-bottom: 10px;

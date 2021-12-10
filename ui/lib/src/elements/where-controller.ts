@@ -19,16 +19,15 @@ import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField, Dialog, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu,
+  Button, TextField, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
   ProfilesStore,
-  Profile,
 } from "@holochain-open-dev/profiles";
 import {prefix_canvas} from "./templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
-import {MARKER_WIDTH, renderSurface} from "../sharedRender";
+import {renderSurface} from "../sharedRender";
 import {addHardcodedSpaces} from "./examples";
 import {WhereFolks} from "./where-folks";
 
@@ -60,6 +59,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
   _spaces = new StoreSubscriber(this, () => this._store.spaces);
 
+  @state() _canShowFolks: boolean = true;
+  @state() _neighborWidth: number = 150;
+
   /** Private properties */
 
   @state() _currentSpaceEh: null | EntryHashB64 = null;
@@ -68,6 +70,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   private _initialized: boolean = false;
   private _initializing: boolean = false;
 
+
+  get drawerElem() : Drawer {
+    return this.shadowRoot!.getElementById("my-drawer") as Drawer;
+  }
 
   get archiveDialogElem() : WhereArchiveDialog {
     return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
@@ -93,6 +99,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
+
   get myNickName(): string {
     return this._myProfile.value.nickname;
   }
@@ -102,6 +109,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   get myColor(): string {
     return this._myProfile.value.fields.color;
   }
+
 
   private randomRobotName(): string {
     const charCodeA = "A".charCodeAt(0);
@@ -233,18 +241,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       console.log("starting template: ", templates[this._currentTemplateEh!].name, this._currentTemplateEh);
     }
     /** Drawer */
-    const drawer = this.shadowRoot!.getElementById("my-drawer") as Drawer;
-    if (drawer) {
-      const container = drawer.parentNode!;
+    if (this.drawerElem) {
+      const container = this.drawerElem.parentNode!;
       container.addEventListener('MDCTopAppBar:nav', () => {
-        drawer.open = !drawer.open;
-        const margin = drawer.open? '256px' : '0px';
+        this.drawerElem.open = !this.drawerElem.open;
+        const margin = this.drawerElem.open? '256px' : '0px';
         const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
         menuButton.style.marginRight = margin;
-        if (this.spaceElem) {
-          this.spaceElem.neighborWidth = (drawer.open? 256 : 0) + this.folksElem.offsetWidth;
-          this.spaceElem.requestUpdate();
-        }
+        this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
       });
     }
     /** Menu */
@@ -403,6 +407,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
+
+    if (this.drawerElem) {
+      this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
+    }
+
     /** Build space list */
     const spaces = Object.entries(this._spaces.value).map(
       ([key, space]) => {
@@ -457,6 +466,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${this._currentSpaceEh? this._spaces.value[this._currentSpaceEh].name : "none"}</div>
+      <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
@@ -469,9 +479,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- APP BODY -->
     <div class="appBody">
       ${this._currentSpaceEh ?
-        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} neighborWidth="150"></where-space>`
+        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">No space found</div>`}
-      <where-folks id="where-folks" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-folks>
+      ${this._canShowFolks ?
+      html`<where-folks id="where-folks" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-folks>`
+    : html``}
+
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>

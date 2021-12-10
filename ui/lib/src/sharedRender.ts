@@ -61,7 +61,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
     case MarkerType[MarkerType.SvgMarker]:
       //const pin = render_pin(locMeta.color)
       const svgMarker = renderSvgMarker(locMeta.svgMarker, locMeta.color)
-      marker = html`<div class="pin-marker">${svgMarker}</div>`
+      marker = html`<div class="svg-marker">${svgMarker}</div>`
       break;
     case MarkerType[MarkerType.SingleEmoji]:
     case MarkerType[MarkerType.EmojiGroup]:

@@ -219,26 +219,25 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return;
     }
     this._initializing = true  // because checkInit gets call whenever profiles changes...
-    let spaces = await this._store.pullSpaces();
+    let spaces = await this._store.pullDht();
     let templates = await this._store.updateTemplates();
-    let _emojiGroups = await this._store.updateEmojiGroups();
-    let _svgMarkers = await this._store.updateSvgMarkers();
-    /** load spaces & templates if there are none */
+    // FIXME something is broken here as templates length will show 0
+    // FIXME need to make sure it works for all agents when only one agent has committed initial spaces
+    console.log("* templates found: " + Object.keys(templates).length);
+
+    /** load initial spaces & templates if there are none */
     if (this.canLoadExamples && Object.keys(templates).length == 0) {
       await addHardcodedSpaces(this._store);
     }
     if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
-      console.log("no spaces found, pulling from DHT")
-      spaces = await this._store.pullSpaces();
-    }
-    if (Object.keys(spaces).length == 0 || Object.keys(templates).length == 0) {
       console.warn("No spaces or templates found")
     }
+    /** Select first space */
     const firstSpaceEh = this.getFirstVisibleSpace(spaces);
     if (firstSpaceEh) {
       await this.selectSpace(firstSpaceEh);
       console.log("   starting space: ", spaces[firstSpaceEh].name, this._currentSpaceEh);
-      console.log("starting template: ", templates[this._currentTemplateEh!].name, this._currentTemplateEh);
+      console.log("starting template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
     }
     /** Drawer */
     if (this.drawerElem) {
@@ -270,7 +269,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   private async selectTemplateOf(spaceEh: EntryHashB64): Promise<void> {
-    const spaces = await this._store.pullSpaces();
+    const spaces = await this._store.pullDht();
     if (!spaces[spaceEh]) {
       return Promise.reject(new Error("Space not found"));
     }
@@ -289,7 +288,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async archiveSpace() {
     await this._store.hideSpace(this._currentSpaceEh!)
     /** Select first space */
-    const spaces = await this._store.pullSpaces()
+    const spaces = await this._store.pullDht()
     const firstSpaceEh = this.getFirstVisibleSpace(spaces)
     console.log({firstSpaceEh})
     this._currentSpaceEh = firstSpaceEh
@@ -307,7 +306,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._store.pullSpaces()
+    await this._store.pullDht()
     await this._profiles.fetchAllProfiles()
     await this.pingOthers()
     this.requestUpdate();
@@ -341,7 +340,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
   private async handleArchiveDialogClosing(e: any) {
-    const spaces = await this._store.pullSpaces();
+    const spaces = await this._store.pullDht();
     /** Check if current space has been archived */
     if (e.detail.includes(this._currentSpaceEh)) {
       /** Select first visible space */

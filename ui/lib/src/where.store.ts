@@ -1,4 +1,4 @@
-import { EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash } from '@holochain-open-dev/core-types';
+import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash, HoloHashed} from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 
@@ -222,9 +222,12 @@ export class WhereStore {
     return eh64
   }
 
-  async pullSpaces() : Promise<Dictionary<Space>> {
-    const _templates = await this.service.getTemplates(); // required for data integrity of 'origin' field in Space
+  async pullDht() : Promise<Dictionary<Space>> {
+    const svgMarkers = await this.service.getSvgMarkers();
+    const emojiGroups = await this.service.getEmojiGroups();
+    const templates = await this.service.getTemplates();
     const spaces = await this.service.getSpaces();
+    console.log(`Entries found: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
     //console.log({spaces})
     const hiddens = await this.service.getHiddenSpaceList();
     //console.log({hiddens})

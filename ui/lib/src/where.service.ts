@@ -43,6 +43,14 @@ export class WhereService {
     return serializeHash(this.cellClient.cellId[1]);
   }
 
+  async getSvgMarkers(): Promise<Array<HoloHashed<SvgMarkerEntry>>> {
+    return this.callZome('get_svg_markers', null);
+  }
+
+  async getEmojiGroups(): Promise<Array<HoloHashed<EmojiGroupEntry>>> {
+    return this.callZome('get_all_emoji_groups', null);
+  }
+
   async getTemplates(): Promise<Array<HoloHashed<TemplateEntry>>> {
     return this.callZome('get_templates', null);
   }

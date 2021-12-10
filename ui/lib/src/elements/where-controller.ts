@@ -221,9 +221,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this._initializing = true  // because checkInit gets call whenever profiles changes...
     let spaces = await this._store.pullDht();
     let templates = await this._store.updateTemplates();
-    // FIXME something is broken here as templates length will show 0
-    // FIXME need to make sure it works for all agents when only one agent has committed initial spaces
-    console.log("* templates found: " + Object.keys(templates).length);
 
     /** load initial spaces & templates if there are none */
     if (this.canLoadExamples && Object.keys(templates).length == 0) {

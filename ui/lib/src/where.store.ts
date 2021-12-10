@@ -163,7 +163,6 @@ export class WhereStore {
     }
   }
 
-
   pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
     const signal: Signal = {spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})
@@ -171,10 +170,13 @@ export class WhereStore {
   }
 
   async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
-    // const templates = await service.getTemplates();
-    // for (const s of templates) {
-    //   await updateSpaceFromEntry(s.hash, s.content)
-    // }
+    const templates = await this.service.getTemplates();
+    for (const t of templates) {
+      this.templatesStore.update(templates => {
+        templates[t.hash] = t.content
+        return templates
+      })
+    }
     return get(this.templatesStore)
   }
 
@@ -190,7 +192,25 @@ export class WhereStore {
     return eh64
   }
 
+  async updateSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
+    const markers = await this.service.getSvgMarkers();
+    for (const e of markers) {
+      this.svgMarkerStore.update(svgMarkers => {
+        svgMarkers[e.hash] = e.content
+        return svgMarkers
+      })
+    }
+    return get(this.svgMarkerStore)
+  }
+
   async updateEmojiGroups() : Promise<Dictionary<EmojiGroupEntry>> {
+    const groups = await this.service.getEmojiGroups();
+    for (const e of groups) {
+      this.emojiGroupStore.update(emojiGroups => {
+        emojiGroups[e.hash] = e.content
+        return emojiGroups
+      })
+    }
     return get(this.emojiGroupStore)
   }
 
@@ -206,10 +226,6 @@ export class WhereStore {
     return eh64
   }
 
-  async updateSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
-    return get(this.svgMarkerStore)
-  }
-
   async addSvgMarker(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
     const eh64: EntryHashB64 = await this.service.createSvgMarker(svgMarker)
     this.svgMarkerStore.update(svgMarkers => {
@@ -223,9 +239,10 @@ export class WhereStore {
   }
 
   async pullDht() : Promise<Dictionary<Space>> {
-    const svgMarkers = await this.service.getSvgMarkers();
-    const emojiGroups = await this.service.getEmojiGroups();
-    const templates = await this.service.getTemplates();
+    const svgMarkers = await this.updateSvgMarkers();
+    const emojiGroups = await this.updateEmojiGroups();
+    const templates = await this.updateTemplates();
+
     const spaces = await this.service.getSpaces();
     console.log(`Entries found: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
     //console.log({spaces})

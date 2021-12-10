@@ -14,7 +14,7 @@ For more details read the [design documents](DESIGN.md).
 ## Installation
 
 1. Install the holochain dev environment: https://developer.holochain.org/docs/install/
-2. Clone this repo: `git clone https://github.com/holochain/where && cd ./where`
+2. Clone this repo: `git clone https://github.com/lightningrodlabs/where && cd ./where`
 3. Enter the nix shell: `nix-shell`
 
 ## Prerequisites

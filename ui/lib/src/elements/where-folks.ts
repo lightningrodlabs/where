@@ -131,6 +131,11 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       }
       const status = this.determineAgentStatus(key);
       const statusColor = this.status2color(status)
+
+     // y.js style ; need code to generate darken value
+     // <div style="background-color:${profile.fields['color']};width:4px;height:17px;display:inline-flex;"></div>
+     // <div style="color:${statusColor};margin-left:8px;margin-top:-21px;">${profile.nickname}</div>
+
       return html`
         <li class="folk-row" style="opacity: ${opacity};" @click="${this.handleClickAvatar}" id=${key}>
           <div style="background-color:${profile.fields['color']};width:9px;height:9px;display:inline-flex;border-radius:12px;border:1px solid gray;"></div>

@@ -65,10 +65,12 @@ export interface Space  {
 
 export interface SpaceMeta {
   subMap: Map<string, string>,
+  canSlider: boolean,
   markerType: MarkerType,
   multi: boolean,
   canTag: boolean,
   tagVisible: boolean,
+  tagAsMarker: boolean,
   singleEmoji: string,
   emojiGroup: EntryHashB64 | null,
   svgMarker: EntryHashB64 | null,
@@ -97,6 +99,7 @@ export enum MarkerType {
   Initials,
   SingleEmoji,
   EmojiGroup,
+  Tag,
 }
 
 export enum TemplateType {

@@ -57,6 +57,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentTemplate: null | TemplateEntry = null;
   @state() _currentPlaceHolders: Array<string> = [];
   @state() _canTag: boolean = false;
+  @state() _canTagBeVisible: boolean = false;
+  @state() _canSlider: boolean = false;
 
   _spaceToPreload?: EntryHashB64;
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
@@ -83,6 +85,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _tagChk!: Checkbox;
   @query('#tag-visible-chk')
   _tagVisibleChk!: Checkbox;
+  @query('#tag-as-marker-chk')
+  _tagAsMarkerChk!: Checkbox;
+  @query('#can-slider-chk')
+  _canSliderChk!: Checkbox;
 
   @query('#marker-select')
   _markerTypeField!: Select;
@@ -126,8 +132,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._multiChk.checked = originalSpace.meta.multi;
     this._canTag = originalSpace.meta.canTag;
     this._tagChk.checked = originalSpace.meta.canTag;
+    this._canTagBeVisible = originalSpace.meta.tagVisible;
     this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
     this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
+    this._canSlider = originalSpace.meta.canSlider;
+
+    this._tagAsMarkerChk.disabled = !originalSpace.meta.tagVisible;
+    this._tagAsMarkerChk.checked = originalSpace.meta.tagAsMarker;
+
     this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
@@ -211,6 +223,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // - Get checkbox values
     const multi = this._multiChk.checked
     const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked;
+    const tagAsMarker =  this._tagAsMarkerChk.checked && !this._tagAsMarkerChk.disabled;
+    const canSlider = this._canSliderChk.checked && !this._canSliderChk.disabled;
+
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
 
     let {surface, subMap} = this.generateSurface();
@@ -227,10 +242,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       surface,
       meta: {
         subMap,
+        canSlider,
         markerType,
         multi,
         canTag: this._tagChk.checked,
         tagVisible,
+        tagAsMarker,
         ui,
         singleEmoji,
         emojiGroup: this._currentEmojiGroupEh,
@@ -265,9 +282,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentSvgMarkerEh = null;
     // - Tags
     this._canTag = false;
+    this._canTagBeVisible = false;
     this._tagChk.checked = false;
     this._tagVisibleChk.checked = false;
     this._tagVisibleChk.disabled = true;
+    this._tagAsMarkerChk.checked = false;
+    this._tagAsMarkerChk.disabled = true;
+    // - Slider
+    this._canSlider = false;
   }
 
   private async handleDialogOpened(e: any) {
@@ -473,6 +495,16 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._tagVisibleChk.disabled = !this._tagChk.checked
   }
 
+  handleCanTagBeVisibleClick(e: any) {
+    this._canTagBeVisible = !this._canTagBeVisible;
+    this._tagAsMarkerChk.disabled = !this._tagVisibleChk.checked
+  }
+
+  handleCanSliderClick(e: any) {
+    this._canSlider = !this._canSlider;
+    // FIXME toggle .disabled state of slider options
+  }
+
   handleEmojiGroupSelect(e?: any) {
     console.log("handleEmojiGroupSelect")
     //console.log({e})
@@ -653,12 +685,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Main Render */
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
+  <!-- Name -->
   <mwc-textfield outlined dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-
-  <!--  Template Select -->
-  <h3 style="margin-bottom: 15px;">Template</h3>
+  <!-- Template/Surface -->
+  <h3 style="margin-bottom: 15px;">Surface</h3>
   ${this.renderSurfacePreview()}
   <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
       ${Object.entries(this._templates.value).map(
@@ -671,20 +703,17 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         </mwc-list-item>
       `)}
   </mwc-select>
-
   ${selectedTemplateUi}
-
   <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
   <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
-
+  <!-- UI BOX -->
   <details style="margin-top:10px;">
   <summary>Extra UI elements</summary>
     <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
                   id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60">
     </mwc-textarea>
   </details>
-
-  <!--  Marker Select -->
+  <!--  Marker -->
   <h3 style="margin-top:30px;margin-bottom:15px;">Marker</h3>
   <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
     <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
@@ -693,16 +722,35 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.SingleEmoji])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType[MarkerType.EmojiGroup])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.AnyEmoji])}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Tag]}">Tag ${this.renderMarkerTypePreview(MarkerType[MarkerType.Tag])}</mwc-list-item>
   </mwc-select>
   ${maybeMarkerTypeItems}
   <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Enable tag on marker">
+  <mwc-formfield label="Enable tag per marker">
     <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Display tag on space" style="margin-left:10px">
-    <mwc-checkbox id="tag-visible-chk" .disabled="${!this._canTag}"></mwc-checkbox>
+  <mwc-formfield label="Display tag on surface" style="margin-left:10px">
+    <mwc-checkbox id="tag-visible-chk" .disabled="${!this._canTag}" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
+  </mwc-formfield>
+  <mwc-formfield label="Display tag as marker" style="margin-left:20px">
+    <mwc-checkbox id="tag-as-marker-chk" .disabled="${!this._canTagBeVisible || !this._canTag }"></mwc-checkbox>
+  </mwc-formfield>
+
+  <!--  Time Slider -->
+  <h3 style="margin-top:30px;margin-bottom:15px;">Slider</h3>
+  <mwc-formfield label="Use slider" style="margin-left:10px">
+    <mwc-checkbox id="can-slider-chk" @click=${this.handleCanSliderClick}></mwc-checkbox>
+  </mwc-formfield>
+  <mwc-textfield outlined type="text" .disabled="${!this._canSlider}"
+                 @input=${() => (this.shadowRoot!.getElementById("slider-axis-name-field") as TextField).reportValidity()}
+                 id="slider-axis-name-field" minlength="3" maxlength="64" label="Axis label" autoValidate=true required></mwc-textfield>
+  <mwc-formfield label="Custom">
+    <mwc-radio id="a1" name="a" checked></mwc-radio>
+  </mwc-formfield>
+  <mwc-formfield label="Auto time">
+    <mwc-radio name="a"></mwc-radio>
   </mwc-formfield>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>

@@ -186,10 +186,12 @@ export class WhereService {
   defaultSpaceMeta(): SpaceMeta {
     return  {
       subMap: new Map(),
+      canSlider: false,
       markerType: MarkerType.Avatar,
       multi: false,
       canTag: false,
       tagVisible: false,
+      tagAsMarker: false,
       ui: [],
       singleEmoji: "",
       emojiGroup: null,

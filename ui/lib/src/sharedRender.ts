@@ -72,6 +72,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
     case MarkerType[MarkerType.Initials]:
       marker = html `<sl-avatar class="${classes} initials-marker" initials=${getInitials(locMeta.name)}></sl-avatar>`
       break;
+    case MarkerType[MarkerType.Tag]:
     default:
       break;
   }

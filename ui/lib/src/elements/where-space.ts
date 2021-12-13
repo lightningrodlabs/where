@@ -5,12 +5,22 @@ import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
-import {Coord, Location, LocationInfo, Space, whereContext, LocOptions, MarkerType, EmojiGroupEntry} from "../types";
+import {
+  Coord,
+  Location,
+  LocationInfo,
+  Space,
+  whereContext,
+  LocOptions,
+  MarkerType,
+  EmojiGroupEntry,
+  UiItem
+} from "../types";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
-import {Button, Dialog, TextField, Fab, Slider} from "@scoped-elements/material-web";
+import {Button, Dialog, TextField, Fab, Slider, Radio} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
@@ -198,7 +208,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           markerType: MarkerType[space.meta.markerType],
           tag: "",
           img: this._myProfile.value.fields.avatar,
-          color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#a9d71f",
+          color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#000000",
           name: this.myNickName,
           emoji: space.meta?.singleEmoji,
           svgMarker,
@@ -248,10 +258,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private async handleLocationDialogClosing(e: any) {
     //console.log("handleLocationDialogClosing: " + e.detail.action)
     const tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    if (e.detail.action == "cancel") {
-      if (tag) tag.value = "";
-      return;
-    }
+    // if (e.detail.action == "cancel") {
+    //   if (tag) tag.value = "";
+    //   return;
+    // }
     /** handle "ok" */
     const tagValue = tag ? tag.value : ""
     const emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
@@ -455,11 +465,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const isMe = locInfo.location.meta.name == this.myNickName;
     let marker = renderMarker(locInfo.location.meta, isMe);
     /** Extra elements for when its my Location */
-    let maybeMeClass  = "";
+    let maybeMeClass  = "not-me";
     let maybeDeleteBtn = html ``;
     let maybeEditBtn = html ``;
+    let borderColor = locInfo.location.meta.color;
+
     if (isMe) {
       maybeMeClass = "me";
+      //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
       maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
       if (this.canEditLocation(space)) {
         maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
@@ -478,7 +491,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         @dragstart="${(e: DragEvent) => this.drag(e)}"
         idx="${i}" class="location-marker" style="left: ${x - (MARKER_WIDTH / 2)}px; top: ${y - (MARKER_WIDTH / 2)}px;">
       ${marker}
-        ${space.meta?.tagVisible && locInfo.location.meta.tag ? html`<div class="location-tag">${locInfo.location.meta.tag}</div>` : html`` }
+      ${space.meta?.tagVisible && locInfo.location.meta.tag?
+        html`<div class="location-tag" style="border:1px solid ${borderColor};">${locInfo.location.meta.tag}</div>`
+        : html`` }
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.name}</h3>
@@ -557,18 +572,44 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** Render Tag field */
     const tagForm = space!.meta?.canTag
-      ? html`<mwc-textfield id="edit-location-tag" label="Tag"></mwc-textfield>`
+      ? html`<mwc-textfield id="edit-location-tag" label="Tag" dialogInitialFocus
+                            minlength="1" type="text"></mwc-textfield>`
       : html``;
     /** Render */
     return html`
-        <mwc-dialog id="edit-location-dialog" heading="Location" @closing=${this.handleLocationDialogClosing} @wheel=${(e: any) => e.stopPropagation()}>
+        <mwc-dialog id="edit-location-dialog" heading="Location"
+                    scrimClickAction="" @wheel=${(e: any) => e.stopPropagation()}>
           ${tagForm}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
-          <mwc-button slot="primaryAction" dialogAction="ok">ok</mwc-button>
+          <mwc-button slot="primaryAction" @click="${this.handleLocationClick}">ok</mwc-button>
           <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
         </mwc-dialog>
     `;
+  }
+
+  // @input=${() => (this.shadowRoot!.getElementById("edit-location-tag") as TextField).reportValidity()} autoValidate=true
+  // @closing=${this.handleLocationDialogClosing}
+
+  private async handleLocationClick(e: any) {
+    /** Check validity */
+    const space = this._store.space(this.currentSpaceEh!)
+    // tag-field
+    const tagField = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    if (tagField && space.meta.tagAsMarker) {
+      let isValid = tagField.value !== "";
+      if (!isValid) {
+        tagField.setCustomValidity("Must not be empty")
+        tagField.reportValidity();
+        return;
+      }
+      tagField.setCustomValidity("")
+    }
+
+    this.handleLocationDialogClosing(null)
+
+    // - Close dialog
+    this.locationDialogElem.close();
   }
 
 
@@ -639,6 +680,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
       "mwc-button": Button,
+      "wmc-radio": Radio,
       "emoji-picker": customElements.get('emoji-picker'),
     };
   }
@@ -684,7 +726,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         }
 
         .me {
-          border: orange 2px solid;
+          border: orange 1px solid;
+        }
+
+        .not-me {
+          border: black 1px solid;
         }
 
         .location-marker > img {
@@ -712,7 +758,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         .location-tag {
           background-color: white;
           border-radius: 5px;
-          border: black 1px solid;
+          /**border: black 1px solid;*/
+          box-shadow: 1px 1px 4px #aaa;
           font-size: 75%;
           padding: 3px;
           width: 80px;

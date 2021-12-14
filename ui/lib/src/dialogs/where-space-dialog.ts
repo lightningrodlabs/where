@@ -6,10 +6,11 @@ import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {
+  defaultSpaceMeta,
   Dictionary,
   EmojiGroupEntry,
   MarkerType,
-  Space,
+  Space, SpaceMeta,
   SvgMarkerEntry,
   TemplateEntry,
   UiItem,
@@ -21,7 +22,7 @@ import {
   Checkbox,
   Dialog,
   Formfield, IconButton,
-  ListItem,
+  ListItem, Radio,
   Select,
   TextArea,
   TextField
@@ -55,21 +56,19 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
   @state() _currentTemplate: null | TemplateEntry = null;
+
   @state() _currentPlaceHolders: Array<string> = [];
-  @state() _canTag: boolean = false;
-  @state() _canTagBeVisible: boolean = false;
-  @state() _canSlider: boolean = false;
+
+  @state() _currentMeta: SpaceMeta = defaultSpaceMeta();
 
   _spaceToPreload?: EntryHashB64;
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
   _canvas: string = "";
 
-  _currentEmojiGroupEh: null | EntryHashB64 = null;
-  _currentSingleEmoji: string = ""
-  @state() _currentSvgMarkerEh: null | EntryHashB64 = null;
 
   @query('#name-field')
   _nameField!: TextField;
+  // - Surface
   @query('#template-field')
   _templateField!: Select;
   @query('#width-field')
@@ -78,21 +77,31 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _heightField!: TextField;
   @query('#ui-field')
   _uiField!: TextArea;
-
+  // - Marker
+  @query('#marker-select')
+  _markerTypeField!: Select;
   @query('#multi-chk')
   _multiChk!: Checkbox;
+  // - Tag
   @query('#tag-chk')
   _tagChk!: Checkbox;
   @query('#tag-visible-chk')
   _tagVisibleChk!: Checkbox;
   @query('#tag-as-marker-chk')
   _tagAsMarkerChk!: Checkbox;
+  @query('#predefined-tags-field')
+  _predefinedTagsField!: TextField;
+  // - Slider
   @query('#can-slider-chk')
   _canSliderChk!: Checkbox;
-
-  @query('#marker-select')
-  _markerTypeField!: Select;
-
+  @query('#slider-axis-label-field')
+  _sliderAxisLabelField!: TextField;
+  @query('#stop-count-field')
+  _stopCountField!: TextField;
+  @query('#can-modify-past-chk')
+  _canModifyPastChk!: Checkbox;
+  @query('#stop-labels-field')
+  _stopLabelsField!: TextField;
 
   get emojiGroupDialogElem() : WhereEmojiGroupDialog {
     return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
@@ -101,6 +110,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   get svgMarkerDialogElem() : WhereSvgMarkerDialog {
     return this.shadowRoot!.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
   }
+
+  get fixedStopRadioElem() : Radio {
+    return this.shadowRoot!.getElementById("fixed-stop-radio") as Radio;
+  }
+
+  get generativeStopRadioElem() : Radio {
+    return this.shadowRoot!.getElementById("generative-stop-radio") as Radio;
+  }
+
 
   /**
    *
@@ -123,26 +141,38 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!originalSpace) {
       return;
     }
-    this._currentSingleEmoji = originalSpace.meta.singleEmoji;
-    this._currentEmojiGroupEh = originalSpace.meta.emojiGroup;
-    this._currentSvgMarkerEh = originalSpace.meta.svgMarker;
+    console.log("loading preset: " + originalSpace.name)
+    this,this._currentMeta = originalSpace.meta
+
     this._nameField.value = 'Fork of ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
-    this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
-    this._multiChk.checked = originalSpace.meta.multi;
-    this._canTag = originalSpace.meta.canTag;
-    this._tagChk.checked = originalSpace.meta.canTag;
-    this._canTagBeVisible = originalSpace.meta.tagVisible;
-    this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
-    this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
-    this._canSlider = originalSpace.meta.canSlider;
-
-    this._tagAsMarkerChk.disabled = !originalSpace.meta.tagVisible;
-    this._tagAsMarkerChk.checked = originalSpace.meta.tagAsMarker;
-
-    this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
+    this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
+    // - Markers
+    this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
+    this._multiChk.checked = originalSpace.meta.multi;
+    // - Tags
+    this._tagChk.checked = originalSpace.meta.canTag;
+    this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
+    this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
+    this._tagAsMarkerChk.disabled = !originalSpace.meta.tagVisible;
+    this._tagAsMarkerChk.checked = originalSpace.meta.tagAsMarker;
+    this._predefinedTagsField.disabled = !originalSpace.meta.canTag;
+    this._predefinedTagsField.value = originalSpace.meta.predefinedTags.join();
+    // - Slider
+    this._canSliderChk.checked = originalSpace.meta.canSlider;
+    this._sliderAxisLabelField.value = originalSpace.meta.sliderAxisLabel;
+    this.fixedStopRadioElem.disabled = !originalSpace.meta.canSlider;
+    this.generativeStopRadioElem.disabled = !originalSpace.meta.canSlider;
+    this.fixedStopRadioElem.checked = originalSpace.meta.stopCount > 0;
+    this.generativeStopRadioElem.checked = originalSpace.meta.stopCount < 0;
+    this._stopCountField.value = originalSpace.meta.stopCount.toString();
+    this._stopLabelsField.value = originalSpace.meta.stopLabels.join();
+    this._stopCountField.disabled = !originalSpace.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this._stopLabelsField.disabled = !originalSpace.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this._canModifyPastChk.checked = originalSpace.meta.canModifyPast;
+    this._canModifyPastChk.disabled = !originalSpace.meta.canSlider || !this.generativeStopRadioElem.checked;
 
     /** Templated fields */
     for (let [key, value] of originalSpace.meta.subMap!) {
@@ -183,7 +213,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         //console.log("emoji-click: " + unicode)
         let emojiPreview = this.shadowRoot!.getElementById("space-unicodes");
         emojiPreview!.innerHTML = unicode
-        this._currentSingleEmoji = unicode
+        this._currentMeta.singleEmoji = unicode
         this.requestUpdate()
       });
     }
@@ -196,8 +226,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Check validity */
     // nameField
     let isValid = this._nameField.validity.valid
-    && this._widthField.validity.valid
-    && this._heightField.validity.valid
+    isValid &&= this._widthField.validity.valid
+    isValid &&= this._heightField.validity.valid
+
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
     }
@@ -213,46 +244,61 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     try {
       ui = JSON.parse(this._uiField.value)
     }
-    catch (e) {
+    catch(e) {
       isValid = false;
       this._uiField.setCustomValidity("Invalid UI Object: " + e)
       this._uiField.reportValidity()
     }
+    // Slider
+    if (this._canSliderChk.checked) {
+      isValid &&= this._sliderAxisLabelField.validity.valid
+      if (!this._sliderAxisLabelField.validity.valid) {
+        this._sliderAxisLabelField.reportValidity()
+      }
+      const isRadioChecked = this.fixedStopRadioElem.checked || this.generativeStopRadioElem.checked
+      isValid &&= isRadioChecked
+      if (!isRadioChecked) {
+        this._stopLabelsField.setCustomValidity("Stops type not selected")
+        this._stopLabelsField.reportValidity()
+      }
+      if (this.fixedStopRadioElem.checked) {
+        isValid &&= this._stopCountField.validity.valid;
+        if (!this._stopCountField.validity.valid) {
+          this._stopCountField.reportValidity()
+        }
+        // check stop label validity (must be empty or have correct number of labels)
+        if (this._stopLabelsField.value != "") {
+          const strs = this._stopLabelsField.value.split(",");
+          const isStopLabelsValid = strs.length == parseInt(this._stopCountField.value);
+          isValid &&= isStopLabelsValid
+          if (!isStopLabelsValid) {
+            this._stopLabelsField.setCustomValidity("Label count mismatch")
+            this._stopLabelsField.reportValidity()
+          }
+        }
+      }
+    }
+
+    // Finish Validation
     if (!isValid) return
 
-    // - Get checkbox values
-    const multi = this._multiChk.checked
-    const tagVisible =  this._tagVisibleChk.checked && this._tagChk.checked;
-    const tagAsMarker =  this._tagAsMarkerChk.checked && !this._tagAsMarkerChk.disabled;
-    const canSlider = this._canSliderChk.checked && !this._canSliderChk.disabled;
-
-    const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
-
     let {surface, subMap} = this.generateSurface();
+    this._currentMeta.subMap = subMap
+    this._currentMeta.ui = ui
 
-    const singleEmojiElem = this.shadowRoot!.getElementById("space-unicodes");
-    //console.log({singleEmojiElem})
-    const singleEmoji = singleEmojiElem? singleEmojiElem.innerText: "";
+    this._currentMeta.predefinedTags = this._predefinedTagsField.value.split(",")
+    this._currentMeta.sliderAxisLabel = this._sliderAxisLabelField.value;
+
+    this._currentMeta.stopCount = this._stopCountField.value? 2 : parseInt(this._stopCountField.value);
+    this._currentMeta.stopLabels = this._stopLabelsField.value.split(",")
+
     // - Create space
-    // console.log("handleOk() svgMarker = " + this._currentSvgMarkerEh);
     const space: Space = {
       name: this._nameField.value,
       origin: this._templateField.value,
       visible: true,
       surface,
-      meta: {
-        subMap,
-        canSlider,
-        markerType,
-        multi,
-        canTag: this._tagChk.checked,
-        tagVisible,
-        tagAsMarker,
-        ui,
-        singleEmoji,
-        emojiGroup: this._currentEmojiGroupEh,
-        svgMarker: this._currentSvgMarkerEh,
-      },
+      meta: this._currentMeta,
       locations: [],
     };
 
@@ -269,6 +315,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   resetAllFields(canResetName?: boolean) {
     if (canResetName === undefined || canResetName) this._nameField.value = ''
+    this._currentMeta = defaultSpaceMeta()
+    // - Surface
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
       // console.log('field ' + placeholder + ' - ' + field.value)
@@ -277,19 +325,22 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._widthField.value = ''
     this._heightField.value = ''
     this._uiField.value = '[]'
-    this._currentSingleEmoji = "😀"
-    this._currentEmojiGroupEh = null;
-    this._currentSvgMarkerEh = null;
+    // - Marker
+    this._markerTypeField.value = MarkerType[MarkerType.Tag]
+    this._multiChk.checked = false;
     // - Tags
-    this._canTag = false;
-    this._canTagBeVisible = false;
     this._tagChk.checked = false;
     this._tagVisibleChk.checked = false;
-    this._tagVisibleChk.disabled = true;
     this._tagAsMarkerChk.checked = false;
-    this._tagAsMarkerChk.disabled = true;
-    // - Slider
-    this._canSlider = false;
+    this._predefinedTagsField.value = ''
+    // - Sliders
+    this._canSliderChk.checked = false;
+    this._sliderAxisLabelField.value = ''
+    this.fixedStopRadioElem.checked = false;
+    this.generativeStopRadioElem.checked = false;
+    this._stopCountField.value = "2"
+    this._stopLabelsField.value = ''
+    this._canModifyPastChk.checked = false;
   }
 
   private async handleDialogOpened(e: any) {
@@ -491,18 +542,34 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   handleCanTagClick(e: any) {
-    this._canTag = !this._canTag;
-    this._tagVisibleChk.disabled = !this._tagChk.checked
+    this._currentMeta.canTag = !this._currentMeta.canTag;
+    this.requestUpdate()
   }
 
   handleCanTagBeVisibleClick(e: any) {
-    this._canTagBeVisible = !this._canTagBeVisible;
-    this._tagAsMarkerChk.disabled = !this._tagVisibleChk.checked
+    this._currentMeta.tagVisible = !this._currentMeta.tagVisible;
+    this.requestUpdate()
   }
 
   handleCanSliderClick(e: any) {
-    this._canSlider = !this._canSlider;
-    // FIXME toggle .disabled state of slider options
+    this._currentMeta.canSlider = !this._currentMeta.canSlider;
+    this.requestUpdate()
+  }
+
+  handleCanModifyPastClick(e: any) {
+    this._currentMeta.canModifyPast = !this._currentMeta.canModifyPast;
+    this.requestUpdate()
+  }
+
+  handleStopTypeChange(e: any) {
+    const fixedStopRadio = this.shadowRoot!.getElementById("fixed-stop-radio") as Radio;
+    this._currentMeta.stopCount = fixedStopRadio!.checked? parseInt(fixedStopRadio.value) : -parseInt(fixedStopRadio.value);
+    this.requestUpdate()
+  }
+
+  handleMarkerTypeSelect(e: any) {
+    //console.log({e})
+    this.requestUpdate()
   }
 
   handleEmojiGroupSelect(e?: any) {
@@ -520,7 +587,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     for (const [eh, group] of Object.entries(this._emojiGroups.value)) {
       if (group.name == selectedName) {
         unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
-        this._currentEmojiGroupEh = eh;
+        this._currentMeta.emojiGroup = eh;
         break;
       }
     }
@@ -548,13 +615,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     for (const [eh, svgMarker] of Object.entries(this._svgMarkers.value)) {
       if (svgMarker.name == selectedName) {
         // console.log("svg marker found: " + selectedName)
-        this._currentSvgMarkerEh = eh;
+        this._currentMeta.svgMarker = eh;
         break;
       }
     }
   }
-
-
 
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
@@ -603,7 +668,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
     switch (markerType) {
       case MarkerType.SingleEmoji:
-        let emoji = this._currentSingleEmoji != "" ? this._currentSingleEmoji : "😀";
+        let emoji = this._currentMeta.singleEmoji != "" ? this._currentMeta.singleEmoji : "😀";
         maybeMarkerTypeItems = html`
             <span id="space-unicodes" style="margin-top:20px;font-size:${EMOJI_WIDTH}px;display:inline-flex;">${emoji}</span>
           <details style="margin-top:10px;">
@@ -617,7 +682,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         const groups = Object.entries(this._emojiGroups.value).map(
           ([key, emojiGroup]) => {
             return html`
-                     <mwc-list-item class="emoji-group-li" value="${emojiGroup.name}" .selected=${key == this._currentEmojiGroupEh}>
+                     <mwc-list-item class="emoji-group-li" value="${emojiGroup.name}" .selected=${key == this._currentMeta.emojiGroup}>
                        ${emojiGroup.name}
                      </mwc-list-item>
                    `
@@ -625,14 +690,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         )
         /** Get current unicodes */
         let unicodes = ""
-        if (this._currentEmojiGroupEh) {
-          const currentGroup = this._emojiGroups.value[this._currentEmojiGroupEh];
+        if (this._currentMeta.emojiGroup) {
+          const currentGroup = this._emojiGroups.value[this._currentMeta.emojiGroup];
           unicodes = currentGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
         }
         /** Render */
         maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(null)}></mwc-icon-button>
-          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(this._currentEmojiGroupEh)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(this._currentMeta.emojiGroup)}></mwc-icon-button>
           <mwc-select id="emoji-group-field" required style="" label="Subset" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
             ${groups}
           </mwc-select>
@@ -645,15 +710,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
       case MarkerType.SvgMarker:
         /** Build marker list */
-        if (!this._currentSvgMarkerEh && Object.keys(this._svgMarkers.value).length > 0) {
-          this._currentSvgMarkerEh = Object.keys(this._svgMarkers.value)[0];
+        if (!this._currentMeta.svgMarker && Object.keys(this._svgMarkers.value).length > 0) {
+          this._currentMeta.svgMarker = Object.keys(this._svgMarkers.value)[0];
         }
         const markers = Object.entries(this._svgMarkers.value).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
             let currentMarker = renderSvgMarker(svgMarker.value, this.myProfile!.fields.color)
             return html`
-                     <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == this._currentSvgMarkerEh}>
+                     <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == this._currentMeta.svgMarker}>
                        ${svgMarker.name}
                        ${currentMarker}
                      </mwc-list-item>
@@ -662,15 +727,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         )
         /** Get current unicodes */
         let selectedMarker = html``;
-        if (this._currentSvgMarkerEh) {
-          const marker = this._svgMarkers.value[this._currentSvgMarkerEh]
+        if (this._currentMeta.svgMarker) {
+          const marker = this._svgMarkers.value[this._currentMeta.svgMarker]
           //console.log({marker})
           selectedMarker = renderSvgMarker(marker.value, this.myProfile!.fields.color)
         }
         /** Render */
         maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(null)}></mwc-icon-button>
-          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(this._currentSvgMarkerEh)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(this._currentMeta.svgMarker)}></mwc-icon-button>
           <mwc-select id="svg-marker-field" required style="display:inline-flex;width:230px;" label="Name" @closing=${(e:any)=>{e.stopPropagation(); this.handleSvgMarkerSelect(e)}}>
             ${markers}
           </mwc-select>
@@ -681,6 +746,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       default:
         break;
     }
+
+    const fixedRadio = this.shadowRoot!.getElementById("fixed-stop-radio") as Radio;
+    const isFixedSelected = fixedRadio && fixedRadio.checked;
 
     /** Main Render */
     return html`
@@ -714,7 +782,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     </mwc-textarea>
   </details>
   <!--  Marker -->
-  <h3 style="margin-top:30px;margin-bottom:15px;">Marker</h3>
+  <h3 style="margin-top:25px;margin-bottom:10px;">Markers</h3>
   <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
     <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
     <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType[MarkerType.Initials])}</mwc-list-item>
@@ -728,30 +796,53 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">
     <mwc-checkbox id="multi-chk"></mwc-checkbox>
   </mwc-formfield>
+  <!-- Tags -->
+  <h3 style="margin-top:25px;margin-bottom:10px;">Tags</h3>
   <mwc-formfield label="Enable tag per marker">
     <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
   </mwc-formfield>
   <mwc-formfield label="Display tag on surface" style="margin-left:10px">
-    <mwc-checkbox id="tag-visible-chk" .disabled="${!this._canTag}" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
+    <mwc-checkbox id="tag-visible-chk" .disabled="${!this._currentMeta.canTag}" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
   </mwc-formfield>
   <mwc-formfield label="Display tag as marker" style="margin-left:20px">
-    <mwc-checkbox id="tag-as-marker-chk" .disabled="${!this._canTagBeVisible || !this._canTag }"></mwc-checkbox>
+    <mwc-checkbox id="tag-as-marker-chk" .disabled="${!this._currentMeta.tagVisible || !this._currentMeta.canTag }"></mwc-checkbox>
   </mwc-formfield>
-
-  <!--  Time Slider -->
-  <h3 style="margin-top:30px;margin-bottom:15px;">Slider</h3>
-  <mwc-formfield label="Use slider" style="margin-left:10px">
+  <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
+                 id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
+  </mwc-textfield>
+  <!-- Time Slider -->
+  <h3 style="margin-top:15px;margin-bottom:-5px;">Slider</h3>
+  <mwc-formfield label="Use slider" style="display:inline-block;margin-right:10px;">
     <mwc-checkbox id="can-slider-chk" @click=${this.handleCanSliderClick}></mwc-checkbox>
   </mwc-formfield>
-  <mwc-textfield outlined type="text" .disabled="${!this._canSlider}"
-                 @input=${() => (this.shadowRoot!.getElementById("slider-axis-name-field") as TextField).reportValidity()}
-                 id="slider-axis-name-field" minlength="3" maxlength="64" label="Axis label" autoValidate=true required></mwc-textfield>
-  <mwc-formfield label="Custom">
-    <mwc-radio id="a1" name="a" checked></mwc-radio>
+  <mwc-textfield outlined type="text" .disabled="${!this._currentMeta.canSlider}" style="display:inline-flex;"
+                 id="slider-axis-label-field" minlength="3" maxlength="32" label="Axis label" autoValidate=true required></mwc-textfield>
+  <!-- Stops Type -->
+  <h4 style="margin-bottom:10px;margin-left:5px">Stops</h4>
+  <!-- Fixed Stops -->
+  <mwc-formfield label="Fixed number of stops">
+    <mwc-radio id="fixed-stop-radio" name="a" value="fixed" .disabled="${!this._currentMeta.canSlider}" @change=${this.handleStopTypeChange}></mwc-radio>
   </mwc-formfield>
-  <mwc-formfield label="Auto time">
-    <mwc-radio name="a"></mwc-radio>
+  <div id="fixed-stops-div" style="margin-left:30px;margin-top:5px;">
+    <mwc-textfield id="stop-count-field" outlined type="number" style="margin-right:10px;width:90px;"
+                   .disabled="${!this._currentMeta.canSlider || !isFixedSelected}"
+                   label="Number" helper="min:2" min="2" pattern="[0-9]+" minlength="3" maxlength="4"
+                   value="${this._currentMeta.stopCount}" autoValidate=true required>
+    </mwc-textfield>
+    <mwc-textfield id="stop-labels-field" outlined type="text"  style="flex-grow:5;"
+                   .disabled="${!this._currentMeta.canSlider || !isFixedSelected}" label="Stop labels"
+                   helper="comma separated text, leave empty for just numbers">
+    </mwc-textfield>
+  </div>
+  <!-- Generative Stops -->
+  <mwc-formfield label="New stop every day">
+    <mwc-radio id="generative-stop-radio" name="a" value="generative" .disabled="${!this._currentMeta.canSlider}" @change=${this.handleStopTypeChange}></mwc-radio>
   </mwc-formfield>
+  <div id="generative-stops-div" style="margin-left:20px;min-height:50px;">
+    <mwc-formfield label="Allow modification of past stops">
+    <mwc-checkbox id="can-modify-past-chk" .disabled="${!this._currentMeta.canSlider || isFixedSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
+    </mwc-formfield>
+  </div>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
@@ -763,14 +854,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 `
   }
 
-
-  handleMarkerTypeSelect(e: any) {
-    //console.log({e})
-    this.requestUpdate()
-  }
-
   handleGroupAdded(eh: EntryHashB64) {
-    this._currentEmojiGroupEh = eh;
+    this._currentMeta.emojiGroup = eh;
     const emojiGroup = this._emojiGroups.value[eh];
     const unicodes = emojiGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
     let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
@@ -782,7 +867,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   handleSvgMarkerAdded(eh: EntryHashB64) {
-    this._currentSvgMarkerEh = eh;
+    this._currentMeta.svgMarker = eh;
     //const svgMarker = this._svgMarkers.value[eh];
     //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");
     //svgMarkerContainer!.innerHTML = svgMarker.value
@@ -805,6 +890,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "mwc-textarea": TextArea,
       "mwc-formfield": Formfield,
       "mwc-checkbox": Checkbox,
+      "mwc-radio": Radio,
       "where-emoji-group-dialog" : WhereEmojiGroupDialog,
       "where-svg-marker-dialog" : WhereSvgMarkerDialog,
       "emoji-picker": customElements.get('emoji-picker'),

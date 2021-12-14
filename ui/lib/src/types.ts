@@ -64,17 +64,25 @@ export interface Space  {
 
 
 export interface SpaceMeta {
+  ui: UiItem[],
   subMap: Map<string, string>,
-  canSlider: boolean,
+  // Marker
   markerType: MarkerType,
+  singleEmoji: string,
+  emojiGroup: EntryHashB64 | null,
+  svgMarker: EntryHashB64 | null,
+  // Tag
   multi: boolean,
   canTag: boolean,
   tagVisible: boolean,
   tagAsMarker: boolean,
-  singleEmoji: string,
-  emojiGroup: EntryHashB64 | null,
-  svgMarker: EntryHashB64 | null,
-  ui: UiItem[],
+  predefinedTags: string[],
+  // Slider
+  canSlider: boolean,
+  sliderAxisLabel: string,
+  stopCount: number,
+  canModifyPast: boolean,
+  stopLabels: string[],
 }
 
 
@@ -149,3 +157,28 @@ export type Signal =
   | {
   spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: SvgMarkerEntry }
   }
+
+
+export function defaultSpaceMeta(): SpaceMeta {
+  return  {
+    subMap: new Map(),
+    ui: [],
+    // Marker
+    markerType: MarkerType.Avatar,
+    multi: false,
+    singleEmoji: "😀",
+    emojiGroup: null,
+    svgMarker: null,
+    // Tag
+    canTag: false,
+    tagVisible: false,
+    tagAsMarker: false,
+    predefinedTags: [],
+    // Slider
+    canSlider: false,
+    sliderAxisLabel: "",
+    stopCount: 2,
+    canModifyPast: false,
+    stopLabels: [],
+  } as SpaceMeta
+}

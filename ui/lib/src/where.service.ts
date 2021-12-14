@@ -9,7 +9,7 @@ import {
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, SpaceMeta, MarkerType, EmojiGroupEntry, SvgMarkerEntry,
+  Dictionary, SpaceMeta, MarkerType, EmojiGroupEntry, SvgMarkerEntry, defaultSpaceMeta,
 } from './types';
 
 
@@ -122,7 +122,7 @@ export class WhereService {
     return {
       name : entry.name,
       origin: entry.origin,
-      meta : entry.meta? this.metaFromEntry(entry.meta) : this.defaultSpaceMeta(),
+      meta : entry.meta? this.metaFromEntry(entry.meta) : defaultSpaceMeta(),
       visible,
       surface: JSON.parse(entry.surface),
       locations: await this.getLocations(hash)
@@ -183,19 +183,4 @@ export class WhereService {
     return value;
   }
 
-  defaultSpaceMeta(): SpaceMeta {
-    return  {
-      subMap: new Map(),
-      canSlider: false,
-      markerType: MarkerType.Avatar,
-      multi: false,
-      canTag: false,
-      tagVisible: false,
-      tagAsMarker: false,
-      ui: [],
-      singleEmoji: "",
-      emojiGroup: null,
-      svgMarker: null,
-    } as SpaceMeta
-  }
 }

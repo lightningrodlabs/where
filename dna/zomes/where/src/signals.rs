@@ -9,7 +9,7 @@ use crate::emoji_group::*;
 use crate::svg_marker::SvgMarker;
 
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
-    #[serde(tag = "type", content = "content")]
+#[serde(tag = "type", content = "content")]
 pub enum Message {
     Ping(AgentPubKeyB64),
     Pong(AgentPubKeyB64),
@@ -22,7 +22,7 @@ pub enum Message {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-    #[serde(rename_all = "camelCase")]
+#[serde(rename_all = "camelCase")]
 pub struct SignalPayload {
     space_hash: EntryHashB64,
     from: AgentPubKeyB64,

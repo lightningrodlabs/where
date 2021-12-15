@@ -9,7 +9,7 @@ import {
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, SpaceMeta, MarkerType, EmojiGroupEntry, SvgMarkerEntry, defaultSpaceMeta,
+  Dictionary, SpaceMeta, EmojiGroupEntry, SvgMarkerEntry, defaultSpaceMeta,
 } from './types';
 
 
@@ -17,6 +17,7 @@ export function locationFromHere(info: HereInfo) : LocationInfo {
   return {
     location: {
       coord: JSON.parse(info.entry.value),
+      sessionEh: info.entry.sessionEh,
       meta: info.entry.meta,
     },
     hash: info.hash,
@@ -27,6 +28,7 @@ export function locationFromHere(info: HereInfo) : LocationInfo {
 export function hereFromLocation(location: Location) : HereEntry {
   return {
     value: JSON.stringify(location.coord),
+    sessionEh: location.sessionEh,
     meta: location.meta
   }
 }
@@ -43,57 +45,37 @@ export class WhereService {
     return serializeHash(this.cellClient.cellId[1]);
   }
 
+  /** Svg Markers */
+
+  async createSvgMarker(entry: SvgMarkerEntry): Promise<EntryHashB64> {
+    return this.callZome('create_svg_marker', entry);
+  }
+
   async getSvgMarkers(): Promise<Array<HoloHashed<SvgMarkerEntry>>> {
     return this.callZome('get_svg_markers', null);
+  }
+
+  /** EmojiGroup */
+
+  async createEmojiGroup(template: EmojiGroupEntry): Promise<EntryHashB64> {
+    return this.callZome('create_emoji_group', template);
   }
 
   async getEmojiGroups(): Promise<Array<HoloHashed<EmojiGroupEntry>>> {
     return this.callZome('get_all_emoji_groups', null);
   }
 
+  /** Template */
+
   async getTemplates(): Promise<Array<HoloHashed<TemplateEntry>>> {
     return this.callZome('get_templates', null);
-  }
-
-  async getSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
-    return this.callZome('get_spaces', null);
-  }
-
-  async getVisibleSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
-    return this.callZome('get_visible_spaces', null);
-  }
-
-  async getHiddenSpaceList(): Promise<Array<EntryHashB64>> {
-    return this.callZome('get_hidden_spaces', null);
-  }
-
-  async getLocations(spaceEh: EntryHashB64): Promise<Array<LocationInfo>> {
-    const hereInfos =  await this.callZome('get_heres', spaceEh);
-    return hereInfos.map((info: HereInfo) => {
-      return locationFromHere(info)
-    });
-  }
-
-  async addLocation(location: Location, space: EntryHashB64): Promise<HeaderHashB64> {
-    const entry = hereFromLocation(location);
-    return this.callZome('add_here', {entry, space});
-  }
-
-  async deleteLocation(hereHh: HeaderHashB64): Promise<EntryHashB64> {
-    return this.callZome('delete_here', hereHh);
-  }
-
-  async createEmojiGroup(template: EmojiGroupEntry): Promise<EntryHashB64> {
-    return this.callZome('create_emoji_group', template);
-  }
-
-  async createSvgMarker(entry: SvgMarkerEntry): Promise<EntryHashB64> {
-    return this.callZome('create_svg_marker', entry);
   }
 
   async createTemplate(template: TemplateEntry): Promise<EntryHashB64> {
     return this.callZome('create_template', template);
   }
+
+  /** Space */
 
   async createSpace(space: SpaceEntry): Promise<EntryHashB64> {
     return this.callZome('create_space', space);
@@ -107,6 +89,55 @@ export class WhereService {
     return this.callZome('unhide_space', spaceEh);
   }
 
+  /** Space·s */
+
+  async getSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+    return this.callZome('get_spaces', null);
+  }
+
+  async getVisibleSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+    return this.callZome('get_visible_spaces', null);
+  }
+
+  async getHiddenSpaceList(): Promise<Array<EntryHashB64>> {
+    return this.callZome('get_hidden_spaces', null);
+  }
+
+  /** Session */
+
+  async getSession(spaceEh: EntryHashB64, index: number): Promise<EntryHashB64 | null> {
+    return this.callZome('get_session', {spaceEh, index});
+  }
+
+  async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
+    return this.callZome('create_space_with_sessions', {sessionNames, space});
+  }
+
+  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
+    return this.callZome('create_next_session', {name, spaceEh});
+  }
+
+
+  /** Location */
+
+  async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
+    const entry = hereFromLocation(location);
+    const input = {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}
+    return this.callZome('add_here', input);
+  }
+
+  async deleteLocation(hereHh: HeaderHashB64): Promise<EntryHashB64> {
+    return this.callZome('delete_here', hereHh);
+  }
+
+  async getLocations(spaceEh: EntryHashB64): Promise<Array<LocationInfo>> {
+    const hereInfos =  await this.callZome('get_heres', spaceEh);
+    return hereInfos.map((info: HereInfo) => {
+      return locationFromHere(info)
+    });
+  }
+
+  /** Misc */
 
   async notify(signal: Signal, folks: Array<AgentPubKeyB64>): Promise<void> {
     return this.callZome('notify', {signal, folks});

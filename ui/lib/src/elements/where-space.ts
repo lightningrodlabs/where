@@ -1,5 +1,5 @@
 import {css, html, LitElement} from "lit";
-import {property, query} from "lit/decorators.js";
+import {property, query, state} from "lit/decorators.js";
 
 import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
@@ -51,8 +51,6 @@ import {prefix_canvas} from "../templates";
 // }
 
 
-
-
 /**
  * @element where-space
  */
@@ -67,8 +65,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @query('#minus-fab') minusFab!: Fab;
   @query('#hide-here-fab') hideFab!: Fab;
 
-  //@property() avatar = "";
   @property() currentSpaceEh: null | EntryHashB64 = null;
+  // @state() _currentSessionEh: null | EntryHashB64 = null;
 
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
@@ -81,14 +79,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
   _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
   _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
-  //_knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
+  _currentSessions = new StoreSubscriber(this, () => this._store.currentSessions);
 
   private dialogCoord = { x: 0, y: 0 };
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
   @property() neighborWidth = 0;
-
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
   async initFab(fab: Fab) {
@@ -119,12 +116,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       var renderCanvas = new Function (canvas_code);
       renderCanvas.apply(this);
 
+      // // Canvas Animation experiment
       //var c = this.shadowRoot!.getElementById("myCanvas") as HTMLCanvasElement;
       //var ctx = c.getContext("2d");
       //if (ctx == null) {
       //  return;
       //}
-
       //window.requestAnimationFrame(draw);
     }
   }
@@ -204,6 +201,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       const svgMarker = !space.meta?.svgMarker? "" : this._svgMarkers.value[space.meta.svgMarker].value;
       const location: Location = {
         coord,
+        sessionEh: this._currentSessions.value[this.currentSpaceEh!],
         meta: {
           markerType: MarkerType[space.meta.markerType],
           tag: "",
@@ -283,6 +281,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     const location: Location = {
       coord: this.dialogCoord,
+      sessionEh: this._currentSessions.value[this.currentSpaceEh!],
       meta: {
         name: this._myProfile.value.nickname,
         markerType: MarkerType[markerType],

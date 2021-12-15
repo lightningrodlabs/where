@@ -4,7 +4,9 @@ use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
 use crate::error::*;
+use crate::placement_session::*;
 use crate::signals::*;
+
 
 /// Space entry definition
 #[hdk_entry(id = "space")]
@@ -30,14 +32,70 @@ fn get_spaces_path() -> Path {
 
 #[hdk_extern]
 fn create_space(input: Space) -> ExternResult<EntryHashB64> {
-    let _header_hash = create_entry(&input)?;
-    let hash = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(hash.clone().into(), agent_info()?.agent_latest_pubkey.into(), Message::NewSpace(input)))?;
+    let _hh = create_entry(&input)?;
+    let space_eh = hash_entry(input.clone())?;
+    emit_signal(&SignalPayload::new(space_eh.clone().into(), agent_info()?.agent_latest_pubkey.into(), Message::NewSpace(input)))?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
-    create_link(anchor_hash, hash.clone(), ())?;
-    Ok(hash.into())
+    create_link(anchor_hash, space_eh.clone(), ())?;
+    Ok(space_eh.into())
+}
+
+
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct SpaceSessionsInput {
+    session_names: Vec<String>,
+    space: Space,
+}
+
+#[hdk_extern]
+fn create_space_with_sessions(input: SpaceSessionsInput) -> ExternResult<EntryHashB64> {
+    let eh64 = create_space(input.space.clone())?;
+    let mut index = 0;
+    for name in input.session_names {
+        create_session(input.space.clone(), name, index)?;
+        index += 1;
+    }
+    Ok(eh64)
+}
+
+/// Returns 0 if no session found or if space does not exist
+pub fn get_next_session_index(space_eh: EntryHash) -> WhereResult<u32> {
+    let sessions: Vec<PlacementSession> = get_links_and_load_type(space_eh, None)?;
+    let mut top = 0;
+    for session in sessions {
+        if session.index >= top {
+            top = session.index + 1
+        }
+    }
+    Ok(top)
+}
+
+#[derive(Clone, Serialize, Deserialize, Debug)]
+pub struct CreateNextSessionInput {
+    name: String,
+    space_eh: EntryHashB64,
+}
+#[hdk_extern]
+fn create_next_session(input: CreateNextSessionInput) -> ExternResult<EntryHashB64> {
+    // Make sure space exists
+    let found_spaces = get_spaces(())?;
+    let mut maybe_space  = None;
+    for found_space in found_spaces {
+        if found_space.hash == input.space_eh {
+            maybe_space = Some(found_space.content);
+            break;
+        }
+    }
+    if maybe_space.is_none() {
+        return error("space not found");
+    }
+    let next_index = get_next_session_index(input.space_eh.into())?;
+    let res = create_session(maybe_space.unwrap(), input.name, next_index);
+    res
 }
 
 ///

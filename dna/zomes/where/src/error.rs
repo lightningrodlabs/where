@@ -2,6 +2,11 @@ use hdk::prelude::*;
 use std::convert::Infallible;
 use hc_utils::UtilsError;
 
+pub fn error<T>(reason: &str) -> ExternResult<T> {
+    //Err(HdkError::Wasm(WasmError::Zome(String::from(reason))))
+    Err(WasmError::Guest(String::from(reason)))
+}
+
 #[derive(thiserror::Error, Debug)]
 pub enum WhereError {
     #[error(transparent)]

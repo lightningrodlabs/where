@@ -36,6 +36,8 @@ export class WhereStore {
   private zoomsStore: Writable<Dictionary<number>> = writable({});
   /** agentPubKey -> timestamp */
   private agentPresenceStore: Writable<Dictionary<number>> = writable({});
+  /** SpaceEh -> sessionEh */
+  private currentSessionStore: Writable<Dictionary<EntryHashB64>> = writable({});
 
   /** Static info */
   myAgentPubKey: AgentPubKeyB64;
@@ -47,7 +49,7 @@ export class WhereStore {
   public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
   public zooms: Readable<Dictionary<number>> = derived(this.zoomsStore, i => i)
   public agentPresences: Readable<Dictionary<number>> = derived(this.agentPresenceStore, i => i)
-
+  public currentSessions: Readable<Dictionary<EntryHashB64>> = derived(this.currentSessionStore, i => i)
 
 
   constructor(
@@ -147,6 +149,14 @@ export class WhereStore {
   private others(): Array<AgentPubKeyB64> {
     return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
   }
+
+  private updateCurrentSession(sessionEh: EntryHashB64, spaceEh: EntryHashB64) {
+    this.currentSessionStore.update(currentSessions => {
+      currentSessions[spaceEh] = sessionEh;
+      return currentSessions;
+    })
+  }
+
 
   private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<void>   {
     //console.log("updateSpaceFromEntry: " + hash)
@@ -257,11 +267,20 @@ export class WhereStore {
 
   async addSpace(space: Space) : Promise<EntryHashB64> {
     const s = this.service.spaceIntoEntry(space)
-    const spaceEh: EntryHashB64 = await this.service.createSpace(s)
+    const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(s, ["global"])
     for (const locInfo of space.locations) {
       if (locInfo) {
-        await this.service.addLocation(locInfo.location, spaceEh)
+        await this.service.addLocation(locInfo.location, spaceEh, 0)
       }
+    }
+    const sessionEh: EntryHashB64 | null = await this.service.getSession(spaceEh, 0);
+    if (sessionEh) {
+      this.currentSessionStore.update(sessions => {
+        sessions[spaceEh] = sessionEh
+        return sessions
+      })
+    } else {
+      console.log("No session found for newly created space");
     }
     this.spacesStore.update(spaces => {
       spaces[spaceEh] = space
@@ -296,7 +315,7 @@ export class WhereStore {
 
   async addLocation(spaceEh: string, location: Location) : Promise<void> {
     const entry = hereFromLocation(location)
-    const hash = await this.service.addLocation(location, spaceEh)
+    const hash = await this.service.addLocation(location, spaceEh, 0)
     const locInfo: LocationInfo = {
       location,
       hash,
@@ -350,7 +369,7 @@ export class WhereStore {
     if (emoji != null) {
       locInfo.location.meta.emoji = emoji
     }
-    const hash: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceHash)
+    const hash: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceHash, 0)
     await this.service.deleteLocation(locInfo.hash)
     const oldHash = locInfo.hash
     locInfo.hash = hash

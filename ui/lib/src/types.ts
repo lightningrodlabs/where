@@ -25,11 +25,14 @@ export interface HereInfo {
 
 export interface HereEntry {
   value: string;
+  sessionEh: EntryHashB64,
   meta: Dictionary<string>;
 }
 
+
 export interface Location {
   coord: Coord;
+  sessionEh: EntryHashB64,
   meta: Dictionary<string>;
 }
 
@@ -44,6 +47,12 @@ export type LocOptions = {
 export interface Coord {
   x: number;
   y: number;
+}
+
+export interface PlacementSessionEntry {
+  name: string,
+  index: number,
+  spaceEh: EntryHashB64,
 }
 
 export interface SpaceEntry {

@@ -9,6 +9,7 @@ pub mod here;
 pub mod template;
 pub mod emoji_group;
 pub mod svg_marker;
+pub mod placement_session;
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -30,6 +31,7 @@ entry_defs![
     emoji_group::EmojiGroup::entry_def(),
     template::Template::entry_def(),
     space::Space::entry_def(),
-    here::Here::entry_def()
+    here::Here::entry_def(),
+    placement_session::PlacementSession::entry_def()
 ];
 

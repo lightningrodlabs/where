@@ -27,6 +27,7 @@ import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
+import {get} from "svelte/store";
 
 
 // // Canvas Animation experiment
@@ -172,7 +173,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private canUpdateLocation(idx: number): boolean {
-    const locInfo = this._store.space(this.currentSpaceEh!).locations[idx]!;
+    const sessionEh = this._store.currentSession(this.currentSpaceEh!);
+    const locInfo = this._store.space(this.currentSpaceEh!).sessions[sessionEh].locations[idx]!;
     // TODO: should check agent key instead
     return locInfo.location.meta.name == this.myNickName;
   }
@@ -383,8 +385,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.canUpdateLocation(idx)) {
       return;
     }
+    const sessionEh = this._store.currentSession(this.currentSpaceEh!);
     const space = this._store.space(this.currentSpaceEh!);
-    const locInfo = space.locations[idx]!;
+    const locInfo = space.sessions[sessionEh].locations[idx]!;
     this.openLocationDialog(
       {
         name: locInfo.location.meta.name,
@@ -613,7 +616,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   render() {
+    /** Must have current session */
     if (!this.currentSpaceEh) {
+      return;
+    }
+    const sessionEh = this._store.currentSession(this.currentSpaceEh);
+    if (!sessionEh) {
       return;
     }
     /** Get current space and zoom level */
@@ -622,7 +630,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Render all space's locations */
     let locationItems = undefined;
     if (this.hideFab && this.hideFab.icon === 'visibility') {
-      locationItems = space.locations.map((locationInfo, i) => {
+      locationItems = space.sessions[sessionEh].locations.map((locationInfo, i) => {
         if (this.soloAgent != null && locationInfo) {
           if (this.soloAgent != locationInfo.authorPubKey) {
             return;

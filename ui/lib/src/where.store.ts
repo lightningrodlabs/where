@@ -34,10 +34,10 @@ export class WhereStore {
   private spacesStore: Writable<Dictionary<Space>> = writable({});
   /** SpaceEh -> zoomPct */
   private zoomsStore: Writable<Dictionary<number>> = writable({});
-  /** agentPubKey -> timestamp */
-  private agentPresenceStore: Writable<Dictionary<number>> = writable({});
   /** SpaceEh -> sessionEh */
   private currentSessionStore: Writable<Dictionary<EntryHashB64>> = writable({});
+  /** agentPubKey -> timestamp */
+  private agentPresenceStore: Writable<Dictionary<number>> = writable({});
 
   /** Static info */
   myAgentPubKey: AgentPubKeyB64;
@@ -65,7 +65,7 @@ export class WhereStore {
       if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
         return
       }
-      //console.debug("SIGNAL", signal)
+      console.debug("SIGNAL", signal)
       const payload = signal.data.payload
       // Update agent's presence stat
       this.updatePresence(payload.from)
@@ -73,7 +73,7 @@ export class WhereStore {
       if (payload.message.type != "Pong") {
         //console.log("PONGING ", payload.from)
         const response: Signal = {
-          spaceHash: payload.spaceHash,
+          maybeSpaceHash: payload.maybeSpaceHash,
           from: this.myAgentPubKey,
           message: {type: 'Pong', content: this.myAgentPubKey}
         };
@@ -84,33 +84,46 @@ export class WhereStore {
         case "Ping":
         case "Pong":
           break;
+        case "NewSvgMarker":
+          const svgEh = payload.message.content[0]
+          if (!get(this.svgMarkers)[svgEh]) {
+            this.svgMarkerStore.update(store => {
+              store[svgEh] = payload.message.content[1]
+              return store
+            })
+          }
+          break;
         case "NewEmojiGroup":
-          if (!get(this.emojiGroups)[payload.spaceHash]) {
+          const groupEh = payload.message.content[0]
+          if (!get(this.emojiGroups)[groupEh]) {
             this.emojiGroupStore.update(emojiGroups => {
-              emojiGroups[payload.spaceHash] = payload.message.content
+              emojiGroups[groupEh] = payload.message.content[1]
               return emojiGroups
             })
           }
           break;
       case "NewTemplate":
-        if (!get(this.templates)[payload.spaceHash]) {
+        const templateEh = payload.message.content[0]
+        if (!get(this.templates)[templateEh]) {
           this.templatesStore.update(templates => {
-            templates[payload.spaceHash] = payload.message.content
+            templates[templateEh] = payload.message.content[1]
             return templates
           })
         }
         break;
       case "NewSpace":
-        if (!get(this.spaces)[payload.spaceHash]) {
-          this.updateSpaceFromEntry(payload.spaceHash, payload.message.content, true)
+        const spaceEh = payload.message.content[0]
+        if (!get(this.spaces)[spaceEh]) {
+          this.updateSpaceFromEntry(spaceEh, payload.message.content[1], true)
         }
         break;
       case "NewHere":
-        if (get(this.spaces)[payload.spaceHash]) {
+        const hereInfo = payload.message.content;
+        if (get(this.spaces)[payload.maybeSpaceHash!]) {
           this.spacesStore.update(spaces => {
-            let locations = spaces[payload.spaceHash].locations
-            const w : LocationInfo = locationFromHere(payload.message.content)
-            const idx = locations.findIndex((locationInfo) => locationInfo!.hash == payload.message.hash)
+            let locations = spaces[payload.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
+            const w : LocationInfo = locationFromHere(hereInfo)
+            const idx = locations.findIndex((locationInfo) => locationInfo!.hh == payload.message.hh)
             if (idx > -1) {
               locations[idx] = w
             } else {
@@ -121,10 +134,12 @@ export class WhereStore {
         }
         break;
       case "DeleteHere":
-        if (get(this.spaces)[payload.spaceHash]) {
+        const sessionEh = payload.message.content[0];
+        const hereHh = payload.message.content[1];
+        if (get(this.spaces)[payload.maybeSpaceHash]) {
           this.spacesStore.update(spaces => {
-            let locations = spaces[payload.spaceHash].locations
-            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.hash == payload.message.content)
+            let locations = spaces[payload.maybeSpaceHash].sessions[sessionEh].locations
+            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.hh == hereHh)
             if (idx > -1) {
               locations.splice(idx, 1);
             }
@@ -158,23 +173,23 @@ export class WhereStore {
   }
 
 
-  private async updateSpaceFromEntry(hash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<void>   {
-    //console.log("updateSpaceFromEntry: " + hash)
-    const space : Space = await this.service.spaceFromEntry(hash, entry, visible)
+  private async updateSpaceFromEntry(spaceHash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<void>   {
+    //console.log("updateSpaceFromEntry: " + hh)
+    const space : Space = await this.service.spaceFromEntry(spaceHash, entry, visible)
     this.spacesStore.update(spaces => {
-      spaces[hash] = space
+      spaces[spaceHash] = space
       return spaces
     })
-    if (!get(this.zoomsStore)[hash]) {
+    if (!get(this.zoomsStore)[spaceHash]) {
       this.zoomsStore.update(zooms => {
-        zooms[hash] = 1.0
+        zooms[spaceHash] = 1.0
         return zooms
       })
     }
   }
 
   pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
-    const signal: Signal = {spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
+    const signal: Signal = {maybeSpaceHash: spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})
     this.service.notify(signal, this.others());
   }
@@ -196,9 +211,9 @@ export class WhereStore {
       templates[eh64] = template
       return templates
     })
-    this.service.notify(
-      {spaceHash: eh64, from: this.myAgentPubKey, message: {type:"NewTemplate", content:template}}
-      , this.others());
+    // this.service.notify(
+    //   {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content:template}}
+    //   , this.others());
     return eh64
   }
 
@@ -230,9 +245,9 @@ export class WhereStore {
       emojiGroups[eh64] = emojiGroup
       return emojiGroups
     })
-    this.service.notify(
-      {spaceHash: eh64, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content:emojiGroup}}
-      , this.others());
+    // this.service.notify(
+    //   {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content:emojiGroup}}
+    //   , this.others());
     return eh64
   }
 
@@ -242,9 +257,9 @@ export class WhereStore {
       svgMarkers[eh64] = svgMarker
       return svgMarkers
     })
-    this.service.notify(
-      {spaceHash: eh64, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:svgMarker}}
-      , this.others());
+    // this.service.notify(
+    //   {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:svgMarker}}
+    //   , this.others());
     return eh64
   }
 
@@ -268,12 +283,14 @@ export class WhereStore {
   async addSpace(space: Space) : Promise<EntryHashB64> {
     const s = this.service.spaceIntoEntry(space)
     const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(s, ["global"])
-    for (const locInfo of space.locations) {
-      if (locInfo) {
-        await this.service.addLocation(locInfo.location, spaceEh, 0)
-      }
-    }
-    const sessionEh: EntryHashB64 | null = await this.service.getSession(spaceEh, 0);
+    // for (const locInfo of space.locations) {
+    //   if (locInfo) {
+    //     await this.service.addLocation(locInfo.location, spaceEh, 0)
+    //   }
+    // }
+
+    const sessionEh: EntryHashB64 | null = await this.service.getSessionHash(spaceEh, 0);
+    console.log("addSpace() sessionEh: " + sessionEh)
     if (sessionEh) {
       this.currentSessionStore.update(sessions => {
         sessions[spaceEh] = sessionEh
@@ -290,7 +307,7 @@ export class WhereStore {
       zooms[spaceEh] = 1
       return zooms
     })
-    this.service.notify({spaceHash:spaceEh, from: this.myAgentPubKey, message: {type:"NewSpace", content:s}}, this.others());
+    // this.service.notify({maybeSpaceHash:spaceEh, from: this.myAgentPubKey, message: {type:"NewSpace", content:s}}, this.others());
     return spaceEh
   }
 
@@ -313,55 +330,61 @@ export class WhereStore {
   }
 
 
-  async addLocation(spaceEh: string, location: Location) : Promise<void> {
-    const entry = hereFromLocation(location)
-    const hash = await this.service.addLocation(location, spaceEh, 0)
-    const locInfo: LocationInfo = {
-      location,
-      hash,
-      authorPubKey: this.myAgentPubKey
-    }
+  async addLocation(spaceEh: EntryHashB64, location: Location) : Promise<void> {
+    const hh = await this.service.addLocation(location, spaceEh, 0)
+    const locInfo: LocationInfo = { location, hh, authorPubKey: this.myAgentPubKey }
     this.spacesStore.update(spaces => {
-      spaces[spaceEh].locations.push(locInfo)
+      spaces[spaceEh].sessions[location.sessionEh].locations.push(locInfo)
       return spaces
     })
+    // Notify peers
+    const entry = hereFromLocation(location)
     this.service.notify({
-      spaceHash: spaceEh,
+      maybeSpaceHash: spaceEh,
       from: this.myAgentPubKey,
       message: {
         type: "NewHere",
-        content: {entry ,hash, author: this.myAgentPubKey}
+        content: {entry, hh, author: this.myAgentPubKey}
       }}
       , this.others());
   }
 
-  async deleteAllMyLocations(spaceHash: string) {
-    const space = get(this.spacesStore)[spaceHash];
+
+  async deleteAllMyLocations(spaceEh: EntryHashB64) {
+    const space = get(this.spacesStore)[spaceEh];
+    const sessionEh = get(this.currentSessionStore)[spaceEh];
     let idx = 0;
-    for (const locInfo of space.locations) {
+    for (const locInfo of space.sessions[sessionEh].locations) {
       if (locInfo && locInfo.authorPubKey === this.myAgentPubKey) {
-        await this.deleteLocation(spaceHash, idx);
+        await this.deleteLocation(spaceEh, idx);
       }
       idx += 1;
     }
   }
 
 
-  async deleteLocation(spaceHash: string, idx: number) {
-    const space = get(this.spacesStore)[spaceHash]
-    const locInfo = space.locations[idx]!
-    await this.service.deleteLocation(locInfo.hash)
+  async deleteLocation(spaceEh: EntryHashB64, idx: number) {
+    const space = get(this.spacesStore)[spaceEh]
+    const sessionEh = get(this.currentSessionStore)[spaceEh];
+    const locInfo = space.sessions[sessionEh].locations[idx]!
+    await this.service.deleteLocation(locInfo.hh)
     this.spacesStore.update(spaces => {
-      spaces[spaceHash].locations[idx] = null
+      spaces[spaceEh].sessions[sessionEh].locations[idx] = null
       return spaces
     })
-    await this.service.notify({spaceHash, from: this.myAgentPubKey, message: {type: "DeleteHere", content:locInfo.hash}}, this.others());
+    await this.service.notify({
+        maybeSpaceHash: spaceEh,
+        from: this.myAgentPubKey,
+        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.hh]
+        }},
+      this.others());
   }
 
 
-  async updateLocation(spaceHash: string, idx: number, c: Coord, tag?: string, emoji?: string) {
-    const space = get(this.spacesStore)[spaceHash]
-    const locInfo = space.locations[idx]!
+  async updateLocation(spaceEh: EntryHashB64, idx: number, c: Coord, tag?: string, emoji?: string) {
+    const space = get(this.spacesStore)[spaceEh]
+    const sessionEh = get(this.currentSessionStore)[spaceEh];
+    const locInfo = space.sessions[sessionEh].locations[idx]!
     locInfo.location.coord = c
     if (tag != null) {
       locInfo.location.meta.tag = tag
@@ -369,21 +392,23 @@ export class WhereStore {
     if (emoji != null) {
       locInfo.location.meta.emoji = emoji
     }
-    const hash: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceHash, 0)
-    await this.service.deleteLocation(locInfo.hash)
-    const oldHash = locInfo.hash
-    locInfo.hash = hash
+    const newHh: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceEh, 0)
+    await this.service.deleteLocation(locInfo.hh)
+    const oldHereHh = locInfo.hh;
+    locInfo.hh = newHh;
+    const oldSessionEh = locInfo.location.sessionEh;
     this.spacesStore.update(spaces => {
-      spaces[spaceHash].locations[idx] = locInfo
+      spaces[spaceEh].sessions[sessionEh].locations[idx] = locInfo
       return spaces
     })
     const entry = hereFromLocation(locInfo.location)
-    await this.service.notify({spaceHash, from: this.myAgentPubKey, message: {type: "DeleteHere", content:oldHash}}, this.others());
-    await this.service.notify({spaceHash, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, hash, author: this.myAgentPubKey}}}, this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}}, this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, hh: newHh, author: this.myAgentPubKey}}}, this.others());
   }
 
-    getAgentIdx (space: string, agent: string) : number {
-    return get(this.spacesStore)[space].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.name == agent)
+  getAgentIdx(spaceEh: EntryHashB64, agent: string) : number {
+    const sessionEh = get(this.currentSessionStore)[spaceEh];
+    return get(this.spacesStore)[spaceEh].sessions[sessionEh].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.name == agent)
   }
 
   template(templateEh64: EntryHashB64): TemplateEntry {
@@ -392,6 +417,10 @@ export class WhereStore {
 
   space(spaceEh: EntryHashB64): Space {
     return get(this.spacesStore)[spaceEh];
+  }
+
+  currentSession(spaceEh: EntryHashB64): EntryHashB64 {
+    return get(this.currentSessionStore)[spaceEh];
   }
 
   zoom(spaceEh: EntryHashB64) : number {

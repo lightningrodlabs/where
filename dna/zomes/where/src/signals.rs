@@ -11,28 +11,30 @@ use crate::svg_marker::SvgMarker;
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
 #[serde(tag = "type", content = "content")]
 pub enum Message {
+    // - Messages sent by UI -- //
     Ping(AgentPubKeyB64),
     Pong(AgentPubKeyB64),
-    NewSpace(Space),
-    NewTemplate(Template),
-    NewSvgMarker(SvgMarker),
-    NewEmojiGroup(EmojiGroup),
     NewHere(HereOutput),
-    DeleteHere(HeaderHashB64)
+    DeleteHere(HeaderHashB64),
+    // - Messages sent by DNA -- //
+    NewSpace((EntryHashB64, Space)),
+    NewTemplate((EntryHashB64, Template)),
+    NewSvgMarker((EntryHashB64, SvgMarker)),
+    NewEmojiGroup((EntryHashB64, EmojiGroup)),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct SignalPayload {
-    space_hash: EntryHashB64,
+    maybe_space_hash: Option<EntryHashB64>, // used for filtering by space if applicable
     from: AgentPubKeyB64,
     message: Message,
 }
 
 impl SignalPayload {
-   pub fn new(space_hash: EntryHashB64, from: AgentPubKeyB64, message: Message) -> Self {
+   pub fn new(maybe_space_hash: Option<EntryHashB64>, from: AgentPubKeyB64, message: Message) -> Self {
         SignalPayload {
-            space_hash,
+            maybe_space_hash,
             from,
             message,
         }

@@ -34,12 +34,14 @@ fn get_spaces_path() -> Path {
 fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let _hh = create_entry(&input)?;
     let space_eh = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(space_eh.clone().into(), agent_info()?.agent_latest_pubkey.into(), Message::NewSpace(input)))?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
     create_link(anchor_hash, space_eh.clone(), ())?;
-    Ok(space_eh.into())
+    let eh64: EntryHashB64 = space_eh.clone().into();
+    let me = agent_info()?.agent_latest_pubkey.into();
+    emit_signal(&SignalPayload::new(None, me, Message::NewSpace((eh64.clone(), input))))?;
+    Ok(eh64)
 }
 
 

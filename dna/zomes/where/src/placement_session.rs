@@ -1,9 +1,11 @@
 use hdk::prelude::*;
 
+use hc_utils::*;
 use holo_hash::{EntryHashB64};
 
 use crate::{
   space::*,
+  error::*,
 };
 
 
@@ -17,7 +19,7 @@ pub struct PlacementSession {
   pub space_eh: EntryHashB64,
 }
 
-/// Input is space so we are sure the hash is valid
+/// Input is space so we are sure the hh is valid
 pub fn create_session(space: Space, name: String, index: u32) -> ExternResult<EntryHashB64> {
   let space_eh = hash_entry(space.clone())?;
   let session = PlacementSession{ name, index, space_eh: space_eh.clone().into() };
@@ -54,4 +56,35 @@ pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHash>> {
     }
   }
   Ok(maybe_session)
+}
+
+///
+#[hdk_extern]
+pub fn get_session_from_eh(eh: EntryHashB64) -> ExternResult<Option<PlacementSession>> {
+  let maybe_session = match get_latest_entry(eh.clone().into(), Default::default()) {
+    Ok(entry) => match PlacementSession::try_from(entry.clone()) {
+      Ok(e) => {Some(e)},
+      Err(_) => return error("No PlacementSession found at given EntryHash"),
+    },
+    _ => return Ok(None),
+  };
+  Ok(maybe_session)
+}
+
+
+///
+#[hdk_extern]
+pub fn get_all_sessions(space_eh: EntryHashB64) -> ExternResult<Vec<EntryHashB64>> {
+  // make sure there is a space at given address
+  match get_latest_entry(space_eh.clone().into(), Default::default()) {
+    Ok(entry) => match Space::try_from(entry.clone()) {
+      Ok(_e) => {},
+      Err(_) => return error("get_all_sessions(): No Space found at given EntryHash"),
+    },
+    _ => return error("get_all_sessions(): No entry found at given EntryHash"),
+  }
+  // get links
+  let links = get_links(space_eh.into(), None)?;
+  let sessions = links.iter().map(|link| link.target.clone().into()).collect();
+  Ok(sessions)
 }

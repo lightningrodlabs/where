@@ -9,7 +9,7 @@ import {
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, SpaceMeta, EmojiGroupEntry, SvgMarkerEntry, defaultSpaceMeta,
+  Dictionary, SpaceMeta, EmojiGroupEntry, SvgMarkerEntry, defaultSpaceMeta, PlacementSession, PlacementSessionEntry,
 } from './types';
 
 
@@ -20,7 +20,7 @@ export function locationFromHere(info: HereInfo) : LocationInfo {
       sessionEh: info.entry.sessionEh,
       meta: info.entry.meta,
     },
-    hash: info.hash,
+    hh: info.hh,
     authorPubKey: info.author,
   }
 }
@@ -105,8 +105,16 @@ export class WhereService {
 
   /** Session */
 
-  async getSession(spaceEh: EntryHashB64, index: number): Promise<EntryHashB64 | null> {
+  async getSession(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
+    return this.callZome('get_session_from_eh', sessionEh);
+  }
+
+  async getSessionHash(spaceEh: EntryHashB64, index: number): Promise<EntryHashB64 | null> {
     return this.callZome('get_session', {spaceEh, index});
+  }
+
+  async getAllSessions(spaceEh: EntryHashB64): Promise<EntryHashB64[]> {
+    return this.callZome('get_all_sessions', spaceEh);
   }
 
   async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
@@ -130,8 +138,9 @@ export class WhereService {
     return this.callZome('delete_here', hereHh);
   }
 
-  async getLocations(spaceEh: EntryHashB64): Promise<Array<LocationInfo>> {
-    const hereInfos =  await this.callZome('get_heres', spaceEh);
+  async getLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
+    const hereInfos =  await this.callZome('get_heres', sessionEh);
+    console.log({hereInfos})
     return hereInfos.map((info: HereInfo) => {
       return locationFromHere(info)
     });
@@ -143,20 +152,44 @@ export class WhereService {
     return this.callZome('notify', {signal, folks});
   }
 
-  private callZome(fn_name: string, payload: any) {
-    return this.cellClient.callZome(this.zomeName, fn_name, payload);
+  private callZome(fn_name: string, payload: any): Promise<any> {
+    console.log("callZome: " + fn_name)
+    console.log({payload})
+    const result = this.cellClient.callZome(this.zomeName, fn_name, payload);
+    console.log("callZome: " + fn_name + "() result")
+    console.log({result})
+    return result;
   }
 
   // -- Conversion -- //
 
-  async spaceFromEntry(hash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<Space> {
+  async sessionFromEntry(sessionEh: EntryHashB64): Promise<PlacementSession> {
+    const entry = await this.getSession(sessionEh);
+    if (entry) {
+      return {
+        name: entry.name,
+        index: entry.index,
+        locations: await this.getLocations(sessionEh)
+      }
+    }
+    return Promise.reject();
+  }
+
+  async spaceFromEntry(spaceHash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<Space> {
+    const sessionEhs = await this.getAllSessions(spaceHash);
+    let sessions: Dictionary<PlacementSession> = {};
+    for (const sessionEh of sessionEhs) {
+      const session = await this.sessionFromEntry(sessionEh);
+      Object.assign(sessions, {[sessionEh]: session})
+    }
+    // TODO: sort sessions by index?
     return {
       name : entry.name,
       origin: entry.origin,
       meta : entry.meta? this.metaFromEntry(entry.meta) : defaultSpaceMeta(),
       visible,
       surface: JSON.parse(entry.surface),
-      locations: await this.getLocations(hash)
+      sessions,
     }
   }
 

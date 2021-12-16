@@ -13,13 +13,13 @@ export type Dictionary<T> = { [key: string]: T };
 
 export interface LocationInfo {
   location: Location;
-  hash: HeaderHashB64;
+  hh: HeaderHashB64;
   authorPubKey: AgentPubKeyB64;
 }
 
 export interface HereInfo {
   entry: HereEntry,
-  hash: HeaderHashB64;
+  hh: HeaderHashB64;
   author: AgentPubKeyB64,
 }
 
@@ -49,6 +49,12 @@ export interface Coord {
   y: number;
 }
 
+export interface PlacementSession {
+  name: string,
+  index: number,
+  locations: (LocationInfo | null)[];
+}
+
 export interface PlacementSessionEntry {
   name: string,
   index: number,
@@ -67,8 +73,8 @@ export interface Space  {
   origin: EntryHashB64;
   surface: any;
   visible: boolean;
-  locations: (LocationInfo | null)[];
   meta: SpaceMeta;
+  sessions: Dictionary<PlacementSession>,
 }
 
 
@@ -143,28 +149,28 @@ export interface EmojiGroupEntry {
 
 export type Signal =
   | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "Ping", content: AgentPubKeyB64 }
+    maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "Ping", content: AgentPubKeyB64 }
   }
   | {
-  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "Pong", content: AgentPubKeyB64 }
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "Pong", content: AgentPubKeyB64 }
 }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewSpace", content:  SpaceEntry}
-  }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewHere", content:  HereInfo}
-  }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "DeleteHere", content: HeaderHashB64}
-  }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewTemplate", content: TemplateEntry}
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewHere", content:  HereInfo}
   }
   | {
-  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EmojiGroupEntry}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, HeaderHashB64]}
   }
   | {
-  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: SvgMarkerEntry }
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: [EntryHashB64, SpaceEntry]}
+}
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: [EntryHashB64, TemplateEntry]}
+  }
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: [EntryHashB64, EmojiGroupEntry]}
+  }
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: [EntryHashB64, SvgMarkerEntry] }
   }
 
 

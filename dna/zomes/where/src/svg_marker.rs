@@ -27,12 +27,14 @@ fn get_svg_marker_path() -> Path {
 fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
     let _hh = create_entry(&input)?;
     let eh = hash_entry(input.clone())?;
-    emit_signal(&SignalPayload::new(eh.clone().into(), agent_info()?.agent_latest_pubkey.into(),Message::NewSvgMarker(input)))?;
     let path = get_svg_marker_path();
     path.ensure()?;
     let anchor_hash = path.hash()?;
     create_link(anchor_hash, eh.clone(), ())?;
-    Ok(eh.into())
+    let eh64: EntryHashB64 = eh.clone().into();
+    let me = agent_info()?.agent_latest_pubkey.into();
+    emit_signal(&SignalPayload::new(None, me, Message::NewSvgMarker((eh64.clone(), input))))?;
+    Ok(eh64)
 }
 
 #[hdk_extern]

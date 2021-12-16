@@ -90,7 +90,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       multi: true, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg"]]),
     },
-    locations: [],
+    sessions: {},
   });
 
   await store.addSpace({
@@ -108,7 +108,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       subMap: new Map([["ImageUrl","https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg"]]),
       ui: [{box:{left:450,top:320,width:100,height:20},style:"padding:10px;background-color:#ffffffb8;border-radius: 10px;",content:"Place of Birth"}]
     },
-    locations: [],
+    sessions: {},
   });
 
   await store.addSpace({
@@ -126,7 +126,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       ui: [{box:{left:200,top:200,width:200,height:200},style:"background-image: linear-gradient(to bottom right, blue, red);",content:""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}],
       multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
     },
-    locations: [],
+    sessions: {},
   });
 
   await store.addSpace({
@@ -144,7 +144,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       multi: false, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg"]])
     },
-    locations: [],
+    sessions: {},
   });
 
   let subMap = new Map([["param1","Cost"], ["param2","Quality"], ["param3","Time"]]) as Map<string, string>;
@@ -164,7 +164,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       multi: false, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
     },
-    locations: [],
+    sessions: {},
   });
 
   subMap = new Map([["ImageUrl","https://i1.wp.com/www.pedrosolorzano.com/wp-content/uploads/2019/08/blobtreepedro.jpg"]]) as Map<string, string>;
@@ -183,7 +183,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap,
     },
-    locations: [],
+    sessions: {},
   });
 
   subMap = new Map([["ImageUrl","https://upload.wikimedia.org/wikipedia/commons/2/2c/Johari_Window.PNG"]]) as Map<string, string>;
@@ -203,7 +203,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       predefinedTags: ["able", "accepting", "caring", "dignified", "happy", "introverted", "modest", "silly"],
       subMap,
     },
-    locations: [],
+    sessions: {},
   });
 
   subMap = new Map([["pixel-size","6"]]) as Map<string, string>;
@@ -222,6 +222,6 @@ export async function addHardcodedSpaces(store: WhereStore) {
       multi: true, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
     },
-    locations: [],
+    sessions: {},
   });
 }

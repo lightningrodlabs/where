@@ -1,5 +1,6 @@
 use hdk::prelude::*;
 
+use hc_utils::*;
 use std::collections::BTreeMap;
 use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
@@ -56,7 +57,7 @@ fn delete_here(link_hh: HeaderHashB64) -> ExternResult<()> {
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 pub struct HereOutput {
     pub entry: Here,
-    pub hash: HeaderHashB64,
+    pub hh: HeaderHashB64,
     pub author: AgentPubKeyB64,
 }
 
@@ -70,17 +71,27 @@ pub struct HereOutput {
 
 #[hdk_extern]
 fn get_heres(session_eh: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
+    debug!("get_heres() called: {:?}", session_eh);
+    // make sure its a session
+    match get_latest_entry(session_eh.clone().into(), Default::default()) {
+        Ok(entry) => match PlacementSession::try_from(entry.clone()) {
+            Ok(_e) => {},
+            Err(_) => return error("get_heres(): No PlacementSession found at given EntryHash"),
+        },
+        _ => return error("get_heres(): No entry found at given EntryHash"),
+    }
+    // Get links
     let heres = get_heres_inner(session_eh.into())?;
+    debug!("get_heres() result: {:?}", heres);
     Ok(heres)
 }
 
 fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
     let links = get_links(base.into(), None)?;
-
     let mut output = Vec::with_capacity(links.len());
-
     // for every link get details on the target and create the message
     for link in links.into_iter().map(|link| link) {
+        debug!("get_heres_inner() link: {:?}", link);
         let w = match get_details(link.target, GetOptions::content())? {
             Some(Details::Entry(EntryDetails {
                 entry, mut headers, ..
@@ -96,7 +107,7 @@ fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
                 // Create the output for the UI
                 HereOutput {
                     entry,
-                    hash: link.create_link_hash.into(),
+                    hh: link.create_link_hash.into(),
                     author: signed_header.header().author().clone().into()
                 }
             }
@@ -106,6 +117,5 @@ fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
         };
         output.push(w);
     }
-
     Ok(output)
 }

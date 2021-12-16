@@ -299,7 +299,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       visible: true,
       surface,
       meta: this._currentMeta,
-      locations: [],
+      sessions: {},
     };
 
     // - Add space to commons

@@ -9,7 +9,7 @@ import {
   Coord,
   Location,
   LocationInfo,
-  Space,
+  Play,
   whereContext,
   LocOptions,
   MarkerType,
@@ -33,9 +33,9 @@ import {get} from "svelte/store";
 // // Canvas Animation experiment
 // function draw() {
 //   let where_space = getWhereSpace();
-//   const space: Space = where_space._spaces.value[where_space.currentSpaceEh];
-//   if (space.surface.canvas) {
-//     const canvas_code = prefix_canvas('space-canvas') + space.surface.canvas;
+//   const play: Play = where_space._plays.value[where_space.currentSpaceEh];
+//   if (play.surface.canvas) {
+//     const canvas_code = prefix_canvas('space-canvas') + play.surface.canvas;
 //     var renderCanvas = new Function (canvas_code);
 //     renderCanvas.apply(where_space);
 //     window.requestAnimationFrame(draw);
@@ -76,7 +76,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   _profiles!: ProfilesStore;
 
   _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
-  _spaces = new StoreSubscriber(this, () => this._store.spaces);
+  _plays = new StoreSubscriber(this, () => this._store.plays);
   _zooms = new StoreSubscriber(this, () => this._store.zooms);
   _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
   _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
@@ -110,10 +110,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.currentSpaceEh) {
       return;
     }
-    const space: Space = this._spaces.value[this.currentSpaceEh];
-    if (space.surface.canvas) {
+    const play: Play = this._plays.value[this.currentSpaceEh];
+    if (play.surface.canvas) {
       //console.log(" - has canvas");
-      const canvas_code = prefix_canvas('space-canvas') + space.surface.canvas;
+      const canvas_code = prefix_canvas('space-canvas') + play.surface.canvas;
       var renderCanvas = new Function (canvas_code);
       renderCanvas.apply(this);
 
@@ -165,7 +165,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   private canCreate(): boolean {
-    if (this._store.space(this.currentSpaceEh!).meta!.multi) {
+    if (this._store.play(this.currentSpaceEh!).meta!.multi) {
       return true;
     }
     const myIdx = this._store.getAgentIdx(this.currentSpaceEh!, this.myNickName);
@@ -174,7 +174,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private canUpdateLocation(idx: number): boolean {
     const sessionEh = this._store.currentSession(this.currentSpaceEh!);
-    const locInfo = this._store.space(this.currentSpaceEh!).sessions[sessionEh].locations[idx]!;
+    const locInfo = this._store.play(this.currentSpaceEh!).sessions[sessionEh].locations[idx]!;
     // TODO: should check agent key instead
     return locInfo.location.meta.name == this.myNickName;
   }
@@ -183,16 +183,16 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.currentSpaceEh || event == null || !this.canCreate()) {
       return;
     }
-    const space: Space = this._spaces.value[this.currentSpaceEh];
-    //console.log("handleClick: " + space.name)
-    //console.log(space.meta?.singleEmoji)
+    const play: Play = this._plays.value[this.currentSpaceEh];
+    //console.log("handleClick: " + play.name)
+    //console.log(play.meta?.singleEmoji)
     const coord = this.getCoordsFromEvent(event);
-    if (this.canEditLocation(space)) {
+    if (this.canEditLocation(play)) {
       this.dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
       this.dialogCanEdit = false;
       const options: LocOptions = {
-        tag: space.meta?.canTag ? "" : null,
+        tag: play.meta?.canTag ? "" : null,
         emoji: "",
         name: this.myNickName,
         img: this._myProfile.value.fields.avatar,
@@ -200,17 +200,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
       this.openLocationDialog(options);
     } else {
-      const svgMarker = !space.meta?.svgMarker? "" : this._svgMarkers.value[space.meta.svgMarker].value;
+      const svgMarker = !play.meta?.svgMarker? "" : this._svgMarkers.value[play.meta.svgMarker].value;
       const location: Location = {
         coord,
         sessionEh: this._currentSessions.value[this.currentSpaceEh!],
         meta: {
-          markerType: MarkerType[space.meta.markerType],
+          markerType: MarkerType[play.meta.markerType],
           tag: "",
           img: this._myProfile.value.fields.avatar,
           color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#000000",
           name: this.myNickName,
-          emoji: space.meta?.singleEmoji,
+          emoji: play.meta?.singleEmoji,
           svgMarker,
         },
       };
@@ -269,7 +269,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let emojiValue = ""
     let markerType = MarkerType.Initials
     if(this.currentSpaceEh) {
-      const currentSpace = this._spaces.value[this.currentSpaceEh]
+      const currentSpace = this._plays.value[this.currentSpaceEh]
       markerType = currentSpace.meta!.markerType;
       emojiValue = currentSpace.meta!.singleEmoji;
       if (currentSpace.meta!.svgMarker) {
@@ -386,8 +386,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       return;
     }
     const sessionEh = this._store.currentSession(this.currentSpaceEh!);
-    const space = this._store.space(this.currentSpaceEh!);
-    const locInfo = space.sessions[sessionEh].locations[idx]!;
+    const play = this._store.play(this.currentSpaceEh!);
+    const locInfo = play.sessions[sessionEh].locations[idx]!;
     this.openLocationDialog(
       {
         name: locInfo.location.meta.name,
@@ -446,17 +446,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
-  canEditLocation(space: Space | undefined) {
-    if (!space && this.currentSpaceEh) {
-      space = this._spaces.value[this.currentSpaceEh!];
+  canEditLocation(play?: Play) {
+    if (!play && this.currentSpaceEh) {
+      play = this._plays.value[this.currentSpaceEh!];
     }
-    const canPickEmoji = space!.meta.markerType == MarkerType.AnyEmoji
-                      || space!.meta.markerType == MarkerType.EmojiGroup;
-    return space!.meta.canTag || canPickEmoji;
+    const canPickEmoji = play!.meta.markerType == MarkerType.AnyEmoji
+                      || play!.meta.markerType == MarkerType.EmojiGroup;
+    return play!.meta.canTag || canPickEmoji;
   }
 
 
-  renderLocation(locInfo: LocationInfo | null, z: number, space: Space, i: number) {
+  renderLocation(locInfo: LocationInfo | null, z: number, play: Play, i: number) {
     if (locInfo === null) {
       return;
     }
@@ -476,7 +476,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
       maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
-      if (this.canEditLocation(space)) {
+      if (this.canEditLocation(play)) {
         maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
       }
     };
@@ -484,7 +484,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const details_height = 40
       + (locInfo.location.meta.tag? 20 : 0)
       + (isMe? 40 : 0)
-    const details_y = space.surface.size.y * z - y < details_height? y - details_height : y;
+    const details_y = play.surface.size.y * z - y < details_height? y - details_height : y;
     /** Render Location */
     return html`
       <div
@@ -493,7 +493,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         @dragstart="${(e: DragEvent) => this.drag(e)}"
         idx="${i}" class="location-marker" style="left: ${x - (MARKER_WIDTH / 2)}px; top: ${y - (MARKER_WIDTH / 2)}px;">
       ${marker}
-      ${space.meta?.tagVisible && locInfo.location.meta.tag?
+      ${play.meta?.tagVisible && locInfo.location.meta.tag?
         html`<div class="location-tag" style="border:1px solid ${borderColor};">${locInfo.location.meta.tag}</div>`
         : html`` }
       </div>
@@ -536,13 +536,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
-  renderLocationDialog(space: Space | undefined) {
-    if (!this.canEditLocation(space)) {
+  renderLocationDialog(play: Play | undefined) {
+    if (!this.canEditLocation(play)) {
       return html``;
     }
     /** Render EmojiPreview */
     let maybeEmojiPreview = html``;
-    if (space!.meta.markerType == MarkerType.AnyEmoji || space!.meta.markerType == MarkerType.EmojiGroup) {
+    if (play!.meta.markerType == MarkerType.AnyEmoji || play!.meta.markerType == MarkerType.EmojiGroup) {
       maybeEmojiPreview = html`
         <div id="edit-location-emoji-preview">
           <span style="margin:10px;">Emoji</span>
@@ -551,13 +551,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** Render Emoji Picker / Selector */
     let maybeEmojiPicker = html``;
-    if (space!.meta.markerType == MarkerType.AnyEmoji) {
+    if (play!.meta.markerType == MarkerType.AnyEmoji) {
       maybeEmojiPicker = html`
         <emoji-picker id="edit-location-emoji-picker" class="light"></emoji-picker>
       `;
     }
-    if (space!.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[space!.meta.emojiGroup!];
+    if (play!.meta.markerType == MarkerType.EmojiGroup) {
+      const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[play!.meta.emojiGroup!];
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`
@@ -573,7 +573,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     }
     /** Render Tag field */
-    const tagForm = space!.meta?.canTag
+    const tagForm = play!.meta?.canTag
       ? html`<mwc-textfield id="edit-location-tag" label="Tag" dialogInitialFocus
                             minlength="1" type="text"></mwc-textfield>`
       : html``;
@@ -595,10 +595,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private async handleLocationClick(e: any) {
     /** Check validity */
-    const space = this._store.space(this.currentSpaceEh!)
+    const play = this._store.play(this.currentSpaceEh!)
     // tag-field
     const tagField = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    if (tagField && space.meta.tagAsMarker) {
+    if (tagField && play.meta.tagAsMarker) {
       let isValid = tagField.value !== "";
       if (!isValid) {
         tagField.setCustomValidity("Must not be empty")
@@ -616,44 +616,52 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   render() {
-    /** Must have current session */
+    console.log(" - where-space render() - " + this.currentSpaceEh)
     if (!this.currentSpaceEh) {
       return;
     }
+    /** Get current play and zoom level */
+    const play: Play = this._plays.value[this.currentSpaceEh];
+    const z = this._zooms.value[this.currentSpaceEh];
+    /** Must have current session */
     const sessionEh = this._store.currentSession(this.currentSpaceEh);
     if (!sessionEh) {
+      console.error(" **  no session found for play " + play.name)
       return;
     }
-    /** Get current space and zoom level */
-    const space: Space = this._spaces.value[this.currentSpaceEh];
-    const z = this._zooms.value[this.currentSpaceEh];
-    /** Render all space's locations */
+    const session = play.sessions[sessionEh];
+    if (!session) {
+      console.error(" ** Session not found in play " + play.name + " | " + sessionEh)
+      console.error({play})
+    }
+
+    /** Render all play's session's locations */
     let locationItems = undefined;
     if (this.hideFab && this.hideFab.icon === 'visibility') {
-      locationItems = space.sessions[sessionEh].locations.map((locationInfo, i) => {
+      locationItems = session.locations.map((locationInfo, i) => {
         if (this.soloAgent != null && locationInfo) {
           if (this.soloAgent != locationInfo.authorPubKey) {
             return;
           }
         }
-        return this.renderLocation(locationInfo, z, space, i)
+        return this.renderLocation(locationInfo, z, play, i)
       });
     }
     /** Parse UI elements in surface meta */
     let uiItems = html ``
-    if (space.meta && space.meta.ui) {
-      uiItems = renderUiItems(space.meta.ui, z, z)
+    if (play.meta && play.meta.ui) {
+      uiItems = renderUiItems(play.meta.ui, z, z)
     }
     /** Set viewed width and height and render Surface accordingly */
-    const w = space.surface.size.x * z;
-    const h = space.surface.size.y * z;
+    const w = play.surface.size.x * z;
+    const h = play.surface.size.y * z;
     /** Set max size */
     const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
     const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
     //console.log("max-width: ", maxW);
     //console.log("max-height: ", maxH);
     /** render Surface */
-    const surfaceItem = this.renderActiveSurface(space.surface, w, h)
+    const surfaceItem = this.renderActiveSurface(play.surface, w, h)
     /** Render fabs */
     const fabs = html`
       <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
@@ -665,7 +673,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
     /** Build LocationDialog if required */
-    const maybeLocationDialog =  this.renderLocationDialog(space);
+    const maybeLocationDialog =  this.renderLocationDialog(play);
     /** Render layout - 1.01 because of scroll bars */
     return html`
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">

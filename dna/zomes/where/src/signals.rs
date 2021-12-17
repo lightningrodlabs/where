@@ -6,18 +6,21 @@ use crate::template::*;
 use crate::space::*;
 use crate::here::*;
 use crate::emoji_group::*;
+use crate::placement_session::PlacementSession;
 use crate::svg_marker::SvgMarker;
 
+///
+/// Messages sent by UI ONLY
+///
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
 #[serde(tag = "type", content = "content")]
 pub enum Message {
-    // - Messages sent by UI -- //
     Ping(AgentPubKeyB64),
     Pong(AgentPubKeyB64),
     NewHere(HereOutput),
     DeleteHere(HeaderHashB64),
-    // - Messages sent by DNA -- //
-    NewSpace((EntryHashB64, Space)),
+    NewSpace(Space),
+    NewSession((EntryHashB64, PlacementSession)),
     NewTemplate((EntryHashB64, Template)),
     NewSvgMarker((EntryHashB64, SvgMarker)),
     NewEmojiGroup((EntryHashB64, EmojiGroup)),
@@ -56,7 +59,7 @@ pub struct NotifyInput {
     pub signal: SignalPayload,
 }
 
-
+///
 #[hdk_extern]
 fn notify(input: NotifyInput) -> ExternResult<()> {
     let mut folks : Vec<AgentPubKey> = vec![];

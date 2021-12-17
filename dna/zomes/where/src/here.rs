@@ -14,7 +14,7 @@ use crate::{
 #[derive(Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Here {
-    value: String, // a location in a some arbitrary space (Json encoded)
+    value: String, // a location in some arbitrary space (Json encoded)
     session_eh: EntryHashB64,
     meta: BTreeMap<String, String>, // contextualized meaning of the value
 }
@@ -35,15 +35,15 @@ fn add_here(input: AddHereInput) -> ExternResult<HeaderHashB64> {
     // Find session
     let get_input = GetSessionInput {space_eh: input.space_eh.into(), index: input.session_index};
     let maybe_session_eh = get_session(get_input)?;
-    let session_eh = match maybe_session_eh {
-        Some(eh) => eh,
+    let session_eh64: EntryHashB64 = match maybe_session_eh {
+        Some(eh) => eh.into(),
         None => return error("Session not found"),
     };
     // Create and link 'Here'
-    let here = Here {value: input.value, session_eh: session_eh.clone().into(), meta: input.meta};
+    let here = Here {value: input.value, session_eh: session_eh64.clone(), meta: input.meta};
     let here_eh = hash_entry(here.clone())?;
     create_entry(here.clone())?;
-    let hh = create_link(session_eh, here_eh, ())?;
+    let hh = create_link(session_eh64.into(), here_eh, ())?;
     Ok(hh.into())
 }
 

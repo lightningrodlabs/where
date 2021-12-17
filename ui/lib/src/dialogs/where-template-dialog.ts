@@ -79,7 +79,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  /** preload fields with  current space values */
+  /** preload fields with current template values */
   loadPreset(templateEh: EntryHashB64) {
     const templateToPreload = this._store.template(templateEh);
     const surface = JSON.parse(templateToPreload.surface)

@@ -6,7 +6,7 @@ import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Space, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
+import {whereContext, Play, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
 import {lightTheme, SlAvatar, SlBadge, SlIcon, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
@@ -86,7 +86,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   render() {
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField? filterField.value : "";
-  
+
     const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
       filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
 

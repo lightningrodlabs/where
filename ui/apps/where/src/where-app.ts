@@ -61,7 +61,6 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     return {
       "profile-prompt": ProfilePrompt,
       "where-controller": WhereController,
-      "where-space": WhereSpace,
     };
   }
 }

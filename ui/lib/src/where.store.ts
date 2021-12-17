@@ -5,12 +5,12 @@ import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import { WhereService, locationFromHere, hereFromLocation } from './where.service';
 import {
   Dictionary,
-  Space,
+  Play,
   SpaceEntry,
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry,
+  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta,
 } from './types';
 import {
   ProfilesStore,
@@ -29,11 +29,11 @@ export class WhereStore {
   /** EmojiGroupEh -> EmojiGroup */
   private emojiGroupStore: Writable<Dictionary<EmojiGroupEntry>> = writable({});
   /** TemplateEh -> Template */
-  private templatesStore: Writable<Dictionary<TemplateEntry>> = writable({});
-  /** SpaceEh -> Space */
-  private spacesStore: Writable<Dictionary<Space>> = writable({});
+  private templateStore: Writable<Dictionary<TemplateEntry>> = writable({});
+  /** SpaceEh -> Play */
+  private playStore: Writable<Dictionary<Play>> = writable({});
   /** SpaceEh -> zoomPct */
-  private zoomsStore: Writable<Dictionary<number>> = writable({});
+  private zoomStore: Writable<Dictionary<number>> = writable({});
   /** SpaceEh -> sessionEh */
   private currentSessionStore: Writable<Dictionary<EntryHashB64>> = writable({});
   /** agentPubKey -> timestamp */
@@ -45,9 +45,9 @@ export class WhereStore {
   /** Readable stores */
   public svgMarkers: Readable<Dictionary<SvgMarkerEntry>> = derived(this.svgMarkerStore, i => i)
   public emojiGroups: Readable<Dictionary<EmojiGroupEntry>> = derived(this.emojiGroupStore, i => i)
-  public templates: Readable<Dictionary<TemplateEntry>> = derived(this.templatesStore, i => i)
-  public spaces: Readable<Dictionary<Space>> = derived(this.spacesStore, i => i)
-  public zooms: Readable<Dictionary<number>> = derived(this.zoomsStore, i => i)
+  public templates: Readable<Dictionary<TemplateEntry>> = derived(this.templateStore, i => i)
+  public plays: Readable<Dictionary<Play>> = derived(this.playStore, i => i)
+  public zooms: Readable<Dictionary<number>> = derived(this.zoomStore, i => i)
   public agentPresences: Readable<Dictionary<number>> = derived(this.agentPresenceStore, i => i)
   public currentSessions: Readable<Dictionary<EntryHashB64>> = derived(this.currentSessionStore, i => i)
 
@@ -65,19 +65,19 @@ export class WhereStore {
       if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
         return
       }
-      console.debug("SIGNAL", signal)
+      //console.debug("SIGNAL", signal)
       const payload = signal.data.payload
       // Update agent's presence stat
       this.updatePresence(payload.from)
       // Send pong response
       if (payload.message.type != "Pong") {
         //console.log("PONGING ", payload.from)
-        const response: Signal = {
+        const pong: Signal = {
           maybeSpaceHash: payload.maybeSpaceHash,
           from: this.myAgentPubKey,
           message: {type: 'Pong', content: this.myAgentPubKey}
         };
-        this.service.notify(response, [payload.from])
+        this.service.notify(pong, [payload.from])
       }
       // Handle signal
       switch(payload.message.type) {
@@ -105,7 +105,7 @@ export class WhereStore {
       case "NewTemplate":
         const templateEh = payload.message.content[0]
         if (!get(this.templates)[templateEh]) {
-          this.templatesStore.update(templates => {
+          this.templateStore.update(templates => {
             templates[templateEh] = payload.message.content[1]
             return templates
           })
@@ -113,15 +113,16 @@ export class WhereStore {
         break;
       case "NewSpace":
         const spaceEh = payload.message.content[0]
-        if (!get(this.spaces)[spaceEh]) {
-          this.updateSpaceFromEntry(spaceEh, payload.message.content[1], true)
+        if (!get(this.plays)[spaceEh]) {
+          console.log("addPlay() from signal: " + spaceEh)
+          this.addPlay(spaceEh)
         }
         break;
       case "NewHere":
         const hereInfo = payload.message.content;
-        if (get(this.spaces)[payload.maybeSpaceHash!]) {
-          this.spacesStore.update(spaces => {
-            let locations = spaces[payload.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
+        if (payload.maybeSpaceHash && get(this.plays)[payload.maybeSpaceHash]) {
+          this.playStore.update(plays => {
+            let locations = plays[payload.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
             const w : LocationInfo = locationFromHere(hereInfo)
             const idx = locations.findIndex((locationInfo) => locationInfo!.hh == payload.message.hh)
             if (idx > -1) {
@@ -129,21 +130,21 @@ export class WhereStore {
             } else {
               locations.push(w)
             }
-            return spaces
+            return plays
           })
         }
         break;
       case "DeleteHere":
         const sessionEh = payload.message.content[0];
         const hereHh = payload.message.content[1];
-        if (get(this.spaces)[payload.maybeSpaceHash]) {
-          this.spacesStore.update(spaces => {
-            let locations = spaces[payload.maybeSpaceHash].sessions[sessionEh].locations
+        if (payload.maybeSpaceHash && get(this.plays)[payload.maybeSpaceHash]) {
+          this.playStore.update(plays => {
+            let locations = plays[payload.maybeSpaceHash].sessions[sessionEh].locations
             const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.hh == hereHh)
             if (idx > -1) {
               locations.splice(idx, 1);
             }
-            return spaces
+            return plays
           })
         }
         break;
@@ -152,8 +153,18 @@ export class WhereStore {
 
   }
 
+  pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
+    const ping: Signal = {maybeSpaceHash: spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
+    // console.log({signal})
+    this.service.notify(ping, this.others());
+  }
+
+  private others(): Array<AgentPubKeyB64> {
+    return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
+  }
+
   private updatePresence(from: AgentPubKeyB64) {
-    const currentTimeInSeconds: number = Math.floor(Date.now()/1000);
+    const currentTimeInSeconds: number = Math.floor(Date.now() / 1000);
     this.agentPresenceStore.update(agentPresences => {
       agentPresences[from] = currentTimeInSeconds;
       return agentPresences;
@@ -161,60 +172,69 @@ export class WhereStore {
     return from;
   }
 
-  private others(): Array<AgentPubKeyB64> {
-    return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
-  }
-
-  private updateCurrentSession(sessionEh: EntryHashB64, spaceEh: EntryHashB64) {
+  private updateCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
     this.currentSessionStore.update(currentSessions => {
       currentSessions[spaceEh] = sessionEh;
       return currentSessions;
     })
   }
 
-
-  private async updateSpaceFromEntry(spaceHash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<void>   {
-    //console.log("updateSpaceFromEntry: " + hh)
-    const space : Space = await this.service.spaceFromEntry(spaceHash, entry, visible)
-    this.spacesStore.update(spaces => {
-      spaces[spaceHash] = space
-      return spaces
+  private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
+    // - Construct Play and add it to store
+    const play : Play = await this.getPlay(spaceEh)
+    this.playStore.update(plays => {
+      plays[spaceEh] = play
+      console.log({play})
+      return plays
     })
-    if (!get(this.zoomsStore)[spaceHash]) {
-      this.zoomsStore.update(zooms => {
-        zooms[spaceHash] = 1.0
+    // - Set starting zoom for new Play
+    if (!get(this.zoomStore)[spaceEh]) {
+      this.zoomStore.update(zooms => {
+        zooms[spaceEh] = 1.0
         return zooms
       })
     }
+    // - Set currentSession for new Play
+    const firstSessionEh = await this.service.getSessionHash(spaceEh, 0);
+    if (firstSessionEh) {
+      this.updateCurrentSession(spaceEh, firstSessionEh)
+    } else {
+      console.error("No session found for play " + play.name)
+    }
   }
 
-  pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
-    const signal: Signal = {maybeSpaceHash: spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
-    // console.log({signal})
-    this.service.notify(signal, this.others());
+  async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
+    const eh64: EntryHashB64 = await this.service.createTemplate(template)
+    this.templateStore.update(templates => {
+      templates[eh64] = template
+      return templates
+    })
+    this.service.notify(
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content:[eh64, template]}}
+      , this.others());
+    return eh64
+  }
+
+  async updatePlays() : Promise<Dictionary<Play>> {
+    const spaces = await this.service.getSpaces();
+    //const hiddens = await this.service.getHiddenSpaceList();
+    //console.log({hiddens})
+    for (const space of spaces.values()) {
+      //const visible = !hiddens.includes(space.hash)
+      await this.addPlay(space.hash)
+    }
+    return get(this.playStore)
   }
 
   async updateTemplates() : Promise<Dictionary<TemplateEntry>> {
     const templates = await this.service.getTemplates();
     for (const t of templates) {
-      this.templatesStore.update(templates => {
-        templates[t.hash] = t.content
-        return templates
+      this.templateStore.update(templateStore => {
+        templateStore[t.hash] = t.content
+        return templateStore
       })
     }
-    return get(this.templatesStore)
-  }
-
-  async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createTemplate(template)
-    this.templatesStore.update(templates => {
-      templates[eh64] = template
-      return templates
-    })
-    // this.service.notify(
-    //   {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content:template}}
-    //   , this.others());
-    return eh64
+    return get(this.templateStore)
   }
 
   async updateSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
@@ -245,9 +265,9 @@ export class WhereStore {
       emojiGroups[eh64] = emojiGroup
       return emojiGroups
     })
-    // this.service.notify(
-    //   {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content:emojiGroup}}
-    //   , this.others());
+    this.service.notify(
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content: [eh64, emojiGroup]}}
+      , this.others());
     return eh64
   }
 
@@ -257,74 +277,93 @@ export class WhereStore {
       svgMarkers[eh64] = svgMarker
       return svgMarkers
     })
-    // this.service.notify(
-    //   {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:svgMarker}}
-    //   , this.others());
+    this.service.notify(
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:[eh64, svgMarker]}}
+      , this.others());
     return eh64
   }
 
-  async pullDht() : Promise<Dictionary<Space>> {
+  /** Get latest entries of each type and update local store accordingly */
+  async pullDht() {
     const svgMarkers = await this.updateSvgMarkers();
     const emojiGroups = await this.updateEmojiGroups();
     const templates = await this.updateTemplates();
-
-    const spaces = await this.service.getSpaces();
+    const spaces = await this.updatePlays();
     console.log(`Entries found: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
-    //console.log({spaces})
-    const hiddens = await this.service.getHiddenSpaceList();
-    //console.log({hiddens})
-    for (const s of spaces) {
-      const visible = !hiddens.includes(s.hash)
-      await this.updateSpaceFromEntry(s.hash, s.content, visible)
-    }
-    return get(this.spacesStore)
+    //console.log({plays})
   }
 
-  async addSpace(space: Space) : Promise<EntryHashB64> {
-    const s = this.service.spaceIntoEntry(space)
-    const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(s, ["global"])
-    // for (const locInfo of space.locations) {
-    //   if (locInfo) {
-    //     await this.service.addLocation(locInfo.location, spaceEh, 0)
-    //   }
-    // }
-
-    const sessionEh: EntryHashB64 | null = await this.service.getSessionHash(spaceEh, 0);
-    console.log("addSpace() sessionEh: " + sessionEh)
-    if (sessionEh) {
-      this.currentSessionStore.update(sessions => {
-        sessions[spaceEh] = sessionEh
-        return sessions
-      })
-    } else {
-      console.log("No session found for newly created space");
+  /**
+   * Construct Play from all related DNA entries
+   * @param spaceEh
+   */
+  async getPlay(spaceEh: EntryHashB64): Promise<Play> {
+    // - Space
+    const space = await this.service.getSpace(spaceEh)
+    if (!space) {
+      console.error("Play not found")
+      return Promise.reject("Play not found")
     }
-    this.spacesStore.update(spaces => {
-      spaces[spaceEh] = space
-      return spaces
-    })
-    this.zoomsStore.update(zooms => {
-      zooms[spaceEh] = 1
-      return zooms
-    })
-    // this.service.notify({maybeSpaceHash:spaceEh, from: this.myAgentPubKey, message: {type:"NewSpace", content:s}}, this.others());
-    return spaceEh
+    // - Sessions
+    const sessionEhs = await this.service.getAllSessions(spaceEh);
+    let sessions: Dictionary<PlacementSession> = {};
+    for (const sessionEh of sessionEhs) {
+      const session = await this.service.sessionFromEntry(sessionEh);
+      // - Heres
+      const locations = await this.service.getLocations(sessionEh);
+      session.locations = locations;
+      Object.assign(sessions, {[sessionEh]: session})
+    }
+    // - Visible
+    const visible = await this.service.isSpaceVisible(spaceEh);
+    // - Done
+    return {
+      name: space.name,
+      origin: space.origin,
+      surface: JSON.parse(space.surface),
+      meta : space.meta? this.service.metaFromEntry(space.meta) : defaultPlayMeta(),
+      visible,
+      sessions,
+    }
   }
 
-  async hideSpace(spaceEh: EntryHashB64) : Promise<boolean> {
+  /**
+   * Create new empty play with starting space
+   * Creates a default "global" session
+   */
+  async newPlay(spaceName: string, spaceOrigin: EntryHashB64, surface: any, meta: PlayMeta): Promise<EntryHashB64> {
+    // - Create and commit SpaceEntry
+    const entry = {
+      name: spaceName,
+      origin: spaceOrigin,
+      surface: JSON.stringify(surface),
+      meta: this.service.metaIntoEntry(meta)
+    }
+    const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, ["global"])
+    // - Notify others
+    const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: entry}};
+    this.service.notify(newSpace, this.others());
+    // - Add play to store
+    console.log("newPlay(): " + spaceName + " | " + spaceEh)
+    this.addPlay(spaceEh);
+    // Done
+    return spaceEh;
+  }
+
+  async hidePlay(spaceEh: EntryHashB64) : Promise<boolean> {
     const _hh = await this.service.hideSpace(spaceEh);
-    this.spacesStore.update(spaces => {
-      spaces[spaceEh].visible = false
-      return spaces
+    this.playStore.update(plays => {
+      plays[spaceEh].visible = false
+      return plays
     })
     return true;
   }
 
-  async unhideSpace(spaceEh: EntryHashB64) : Promise<boolean> {
+  async unhidePlay(spaceEh: EntryHashB64) : Promise<boolean> {
     const _hh = await this.service.unhideSpace(spaceEh);
-    this.spacesStore.update(spaces => {
-      spaces[spaceEh].visible = true
-      return spaces
+    this.playStore.update(plays => {
+      plays[spaceEh].visible = true
+      return plays
     })
     return true;
   }
@@ -333,7 +372,7 @@ export class WhereStore {
   async addLocation(spaceEh: EntryHashB64, location: Location) : Promise<void> {
     const hh = await this.service.addLocation(location, spaceEh, 0)
     const locInfo: LocationInfo = { location, hh, authorPubKey: this.myAgentPubKey }
-    this.spacesStore.update(spaces => {
+    this.playStore.update(spaces => {
       spaces[spaceEh].sessions[location.sessionEh].locations.push(locInfo)
       return spaces
     })
@@ -351,7 +390,7 @@ export class WhereStore {
 
 
   async deleteAllMyLocations(spaceEh: EntryHashB64) {
-    const space = get(this.spacesStore)[spaceEh];
+    const space = get(this.playStore)[spaceEh];
     const sessionEh = get(this.currentSessionStore)[spaceEh];
     let idx = 0;
     for (const locInfo of space.sessions[sessionEh].locations) {
@@ -364,11 +403,11 @@ export class WhereStore {
 
 
   async deleteLocation(spaceEh: EntryHashB64, idx: number) {
-    const space = get(this.spacesStore)[spaceEh]
+    const space = get(this.playStore)[spaceEh]
     const sessionEh = get(this.currentSessionStore)[spaceEh];
     const locInfo = space.sessions[sessionEh].locations[idx]!
     await this.service.deleteLocation(locInfo.hh)
-    this.spacesStore.update(spaces => {
+    this.playStore.update(spaces => {
       spaces[spaceEh].sessions[sessionEh].locations[idx] = null
       return spaces
     })
@@ -382,7 +421,7 @@ export class WhereStore {
 
 
   async updateLocation(spaceEh: EntryHashB64, idx: number, c: Coord, tag?: string, emoji?: string) {
-    const space = get(this.spacesStore)[spaceEh]
+    const space = get(this.playStore)[spaceEh]
     const sessionEh = get(this.currentSessionStore)[spaceEh];
     const locInfo = space.sessions[sessionEh].locations[idx]!
     locInfo.location.coord = c
@@ -397,7 +436,7 @@ export class WhereStore {
     const oldHereHh = locInfo.hh;
     locInfo.hh = newHh;
     const oldSessionEh = locInfo.location.sessionEh;
-    this.spacesStore.update(spaces => {
+    this.playStore.update(spaces => {
       spaces[spaceEh].sessions[sessionEh].locations[idx] = locInfo
       return spaces
     })
@@ -408,15 +447,15 @@ export class WhereStore {
 
   getAgentIdx(spaceEh: EntryHashB64, agent: string) : number {
     const sessionEh = get(this.currentSessionStore)[spaceEh];
-    return get(this.spacesStore)[spaceEh].sessions[sessionEh].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.name == agent)
+    return get(this.playStore)[spaceEh].sessions[sessionEh].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.name == agent)
   }
 
   template(templateEh64: EntryHashB64): TemplateEntry {
-      return get(this.templatesStore)[templateEh64];
+      return get(this.templateStore)[templateEh64];
   }
 
-  space(spaceEh: EntryHashB64): Space {
-    return get(this.spacesStore)[spaceEh];
+  play(spaceEh: EntryHashB64): Play {
+    return get(this.playStore)[spaceEh];
   }
 
   currentSession(spaceEh: EntryHashB64): EntryHashB64 {
@@ -424,11 +463,11 @@ export class WhereStore {
   }
 
   zoom(spaceEh: EntryHashB64) : number {
-    return get(this.zoomsStore)[spaceEh]
+    return get(this.zoomStore)[spaceEh]
   }
 
   updateZoom(spaceEh: EntryHashB64, delta: number) : void {
-    this.zoomsStore.update(zooms => {
+    this.zoomStore.update(zooms => {
       if (zooms[spaceEh] + delta < 0.1) {
         zooms[spaceEh] = 0.1
       } else {

@@ -1,7 +1,7 @@
 import {html, svg} from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {Dictionary, MarkerType, SvgMarkerEntry, TemplateEntry, UiItem} from "./types";
+import {Dictionary, MarkerType, Play, SvgMarkerEntry, TemplateEntry, UiItem} from "./types";
 import {SlAvatar} from "@scoped-elements/shoelace";
 
 export const MARKER_WIDTH = 40;
@@ -81,8 +81,8 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
 }
 
 
-export function renderSurface(space: any, w: number, h: number) {
-  const surface = space.surface;
+export function renderSurface(play: Play, w: number, h: number) {
+  const surface = play.surface;
   //html
   if (surface.html) {
     return html`<div style="width: ${w}px; height: ${h}px;" >
@@ -102,7 +102,7 @@ export function renderSurface(space: any, w: number, h: number) {
   }
   // canvas
   return html`
-    <canvas id="${space.name}-canvas" width="${w}" height="${h}"
+    <canvas id="${play.name}-canvas" width="${w}" height="${h}"
             style="border:1px solid #2278da;">`
 }
 

@@ -2,14 +2,14 @@ import { CellClient } from '@holochain-open-dev/cell-client';
 import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 import {
   SpaceEntry,
-  Space,
+  Play,
   HereEntry,
   LocationInfo,
   HereInfo,
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, SpaceMeta, EmojiGroupEntry, SvgMarkerEntry, defaultSpaceMeta, PlacementSession, PlacementSessionEntry,
+  Dictionary, PlayMeta, EmojiGroupEntry, SvgMarkerEntry, defaultPlayMeta, PlacementSession, PlacementSessionEntry,
 } from './types';
 
 
@@ -81,6 +81,14 @@ export class WhereService {
     return this.callZome('create_space', space);
   }
 
+  async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
+    return this.callZome('create_space_with_sessions', {sessionNames, space});
+  }
+
+  async getSpace(spaceEh: EntryHashB64): Promise<SpaceEntry> {
+    return this.callZome('get_space', spaceEh);
+  }
+
   async hideSpace(spaceEh: EntryHashB64): Promise<EntryHashB64> {
     return this.callZome('hide_space', spaceEh);
   }
@@ -103,6 +111,17 @@ export class WhereService {
     return this.callZome('get_hidden_spaces', null);
   }
 
+  async isSpaceVisible(spaceEh: EntryHashB64): Promise<boolean> {
+    const visibles: Array<HoloHashed<SpaceEntry>> = await this.callZome('get_visible_spaces', null);
+    //console.log({visibles})
+    for (const visible of visibles) {
+      if (visible.hash == spaceEh) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /** Session */
 
   async getSession(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
@@ -114,11 +133,8 @@ export class WhereService {
   }
 
   async getAllSessions(spaceEh: EntryHashB64): Promise<EntryHashB64[]> {
+    console.log("getAllSessions() - " + spaceEh)
     return this.callZome('get_all_sessions', spaceEh);
-  }
-
-  async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
-    return this.callZome('create_space_with_sessions', {sessionNames, space});
   }
 
   async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
@@ -140,7 +156,7 @@ export class WhereService {
 
   async getLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
     const hereInfos =  await this.callZome('get_heres', sessionEh);
-    console.log({hereInfos})
+    //console.debug({hereInfos})
     return hereInfos.map((info: HereInfo) => {
       return locationFromHere(info)
     });
@@ -153,15 +169,16 @@ export class WhereService {
   }
 
   private callZome(fn_name: string, payload: any): Promise<any> {
-    console.log("callZome: " + fn_name)
-    console.log({payload})
+    //console.debug("callZome: " + fn_name)
+    //console.debug({payload})
     const result = this.cellClient.callZome(this.zomeName, fn_name, payload);
-    console.log("callZome: " + fn_name + "() result")
-    console.log({result})
+    //console.debug("callZome: " + fn_name + "() result")
+    //console.debug({result})
     return result;
   }
 
-  // -- Conversion -- //
+
+  /** -- Conversions -- */
 
   async sessionFromEntry(sessionEh: EntryHashB64): Promise<PlacementSession> {
     const entry = await this.getSession(sessionEh);
@@ -172,55 +189,48 @@ export class WhereService {
         locations: await this.getLocations(sessionEh)
       }
     }
+    console.error("sessionFromEntry(): Session entry not found")
     return Promise.reject();
   }
 
-  async spaceFromEntry(spaceHash: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<Space> {
-    const sessionEhs = await this.getAllSessions(spaceHash);
+  async updatePlay(spaceEh: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<Play> {
+    const sessionEhs = await this.getAllSessions(spaceEh);
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of sessionEhs) {
       const session = await this.sessionFromEntry(sessionEh);
       Object.assign(sessions, {[sessionEh]: session})
     }
+    console.log(`spaceFromEntry(): space ${entry.name} sessions:`)
+    console.log({sessions})
+
     // TODO: sort sessions by index?
     return {
       name : entry.name,
       origin: entry.origin,
-      meta : entry.meta? this.metaFromEntry(entry.meta) : defaultSpaceMeta(),
+      meta : entry.meta? this.metaFromEntry(entry.meta) : defaultPlayMeta(),
       visible,
       surface: JSON.parse(entry.surface),
       sessions,
     }
   }
 
-  spaceIntoEntry(space: Space): SpaceEntry {
-  let s: SpaceEntry = {
-      name: space.name,
-      origin: space.origin,
-      surface: JSON.stringify(space.surface),
-      meta: this.metaIntoEntry(space.meta),
-    }
-    //console.log(s)
-    return s
-  }
-
-  metaFromEntry(meta: Dictionary<string>): SpaceMeta {
+  metaFromEntry(meta: Dictionary<string>): PlayMeta {
     let spaceMeta:any = {};
     try {
       for (const [key, value] of Object.entries(meta)) {
         Object.assign(spaceMeta, {[key]: JSON.parse(value, this.reviver)})
       }
     } catch (e) {
-      console.error("Failed parsing meta filed into SpaceMeta")
+      console.error("Failed parsing meta filed into PlayMeta")
       console.error(e)
     }
     //console.log({spaceMeta})
-    return spaceMeta as SpaceMeta;
+    return spaceMeta as PlayMeta;
   }
 
-  metaIntoEntry(spaceMeta: SpaceMeta): Dictionary<string> {
+  metaIntoEntry(playMeta: PlayMeta): Dictionary<string> {
     let dic: Dictionary<string> = {};
-    for (const [key, value] of Object.entries(spaceMeta)) {
+    for (const [key, value] of Object.entries(playMeta)) {
       dic[key] = JSON.stringify(value, this.replacer)
     }
     //console.log({dic})

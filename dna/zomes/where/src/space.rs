@@ -5,7 +5,7 @@ use holo_hash::EntryHashB64;
 
 use crate::error::*;
 use crate::placement_session::*;
-use crate::signals::*;
+//use crate::signals::*;
 
 
 /// Space entry definition
@@ -39,11 +39,23 @@ fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let anchor_hash = path.hash()?;
     create_link(anchor_hash, space_eh.clone(), ())?;
     let eh64: EntryHashB64 = space_eh.clone().into();
-    let me = agent_info()?.agent_latest_pubkey.into();
-    emit_signal(&SignalPayload::new(None, me, Message::NewSpace((eh64.clone(), input))))?;
+    // let me = agent_info()?.agent_latest_pubkey.into();
+    // emit_signal(&SignalPayload::new(None, me, Message::NewSpace((eh64.clone(), input))))?;
     Ok(eh64)
 }
 
+///
+#[hdk_extern]
+pub fn get_space(space_eh: EntryHashB64) -> ExternResult<Option<Space>> {
+    let eh: EntryHash = space_eh.into();
+    match get_details(eh, GetOptions::content())? {
+        Some(Details::Entry(EntryDetails {entry, .. })) => {
+            let space: Space = entry.try_into()?;
+            Ok(Some(space))
+        }
+        _ => Ok(None),
+    }
+}
 
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

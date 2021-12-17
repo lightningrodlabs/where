@@ -6,6 +6,7 @@ use holo_hash::{EntryHashB64};
 use crate::{
   space::*,
   error::*,
+  //signals::*,
 };
 
 
@@ -19,16 +20,19 @@ pub struct PlacementSession {
   pub space_eh: EntryHashB64,
 }
 
-/// Input is space so we are sure the hh is valid
+/// Argument is a Space so we are sure the hh is valid
 pub fn create_session(space: Space, name: String, index: u32) -> ExternResult<EntryHashB64> {
   let space_eh = hash_entry(space.clone())?;
   let session = PlacementSession{ name, index, space_eh: space_eh.clone().into() };
   let session_eh = hash_entry(session.clone())?;
-  let _hh = create_entry(session)?;
+  let _hh = create_entry(session.clone())?;
 
   let tag = format!("{}", index).as_bytes().to_vec();
   create_link(space_eh.clone(), session_eh.clone(), tag)?;
-  Ok(session_eh.into())
+  let eh64: EntryHashB64 = session_eh.clone().into();
+  // let me = agent_info()?.agent_latest_pubkey.into();
+  // emit_signal(&SignalPayload::new(None, me, Message::NewSession((eh64.clone(), session))))?;
+  Ok(eh64)
 }
 
 
@@ -41,7 +45,7 @@ pub struct GetSessionInput {
 
 ///
 #[hdk_extern]
-pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHash>> {
+pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHashB64>> {
   let tag = format!("{}", input.index).as_bytes().to_vec();
   let links = get_links(input.space_eh.clone().into(), Some(tag.clone().into()))?;
   if links.len() == 0 {
@@ -51,7 +55,7 @@ pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHash>> {
   let mut maybe_session = None;
   for link in links {
     if link.tag == tag.clone().into() {
-      maybe_session = Some(link.target);
+      maybe_session = Some(link.target.into());
       break;
     }
   }
@@ -78,10 +82,10 @@ pub fn get_all_sessions(space_eh: EntryHashB64) -> ExternResult<Vec<EntryHashB64
   // make sure there is a space at given address
   match get_latest_entry(space_eh.clone().into(), Default::default()) {
     Ok(entry) => match Space::try_from(entry.clone()) {
-      Ok(_e) => {},
+      Ok(_space) => {},
       Err(_) => return error("get_all_sessions(): No Space found at given EntryHash"),
     },
-    _ => return error("get_all_sessions(): No entry found at given EntryHash"),
+    Err(_e) => return error("get_all_sessions(): No entry found at given EntryHash"),
   }
   // get links
   let links = get_links(space_eh.into(), None)?;

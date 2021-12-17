@@ -3,7 +3,7 @@ use holo_hash::EntryHashB64;
 pub use hdk::prelude::*;
 
 use crate::error::*;
-use crate::signals::*;
+//use crate::signals::*;
 
 /// Template Entry
 #[hdk_entry(id = "emojigroup")]
@@ -33,8 +33,8 @@ fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
     let anchor_hash = path.hash()?;
     create_link(anchor_hash, eh.clone(), ())?;
     let eh64: EntryHashB64 = eh.clone().into();
-    let me = agent_info()?.agent_latest_pubkey.into();
-    emit_signal(&SignalPayload::new(None, me, Message::NewEmojiGroup((eh64.clone(), input))))?;
+    // let me = agent_info()?.agent_latest_pubkey.into();
+    // emit_signal(&SignalPayload::new(None, me, Message::NewEmojiGroup((eh64.clone(), input))))?;
     Ok(eh64)
 }
 

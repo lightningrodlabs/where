@@ -6,12 +6,10 @@ import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {
-  defaultSpaceMeta,
+  defaultPlayMeta,
   Dictionary,
-  EmojiGroupEntry,
   MarkerType,
-  Space, SpaceMeta,
-  SvgMarkerEntry,
+  PlayMeta,
   TemplateEntry,
   UiItem,
   whereContext
@@ -59,7 +57,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   @state() _currentPlaceHolders: Array<string> = [];
 
-  @state() _currentMeta: SpaceMeta = defaultSpaceMeta();
+  @state() _currentMeta: PlayMeta = defaultPlayMeta();
 
   _spaceToPreload?: EntryHashB64;
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
@@ -137,45 +135,45 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
    *
    */
   loadPreset(spaceEh: EntryHashB64) {
-    const originalSpace = this._store.space(spaceEh);
-    if (!originalSpace) {
+    const originalPlay = this._store.play(spaceEh);
+    if (!originalPlay) {
       return;
     }
-    console.log("loading preset: " + originalSpace.name)
-    this,this._currentMeta = originalSpace.meta
+    console.log("loading preset: " + originalPlay.name)
+    this,this._currentMeta = originalPlay.meta
 
-    this._nameField.value = 'Fork of ' + originalSpace.name;
-    this._templateField.value = originalSpace.origin;
-    this._widthField.value = originalSpace.surface.size.x;
-    this._heightField.value = originalSpace.surface.size.y;
-    this._uiField.value = originalSpace.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
+    this._nameField.value = 'Fork of ' + originalPlay.name;
+    this._templateField.value = originalPlay.origin;
+    this._widthField.value = originalPlay.surface.size.x;
+    this._heightField.value = originalPlay.surface.size.y;
+    this._uiField.value = originalPlay.meta.ui ? JSON.stringify(originalPlay.meta!.ui) : "[\n]";
     // - Markers
-    this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
-    this._multiChk.checked = originalSpace.meta.multi;
+    this._markerTypeField.value = MarkerType[originalPlay.meta.markerType];
+    this._multiChk.checked = originalPlay.meta.multi;
     // - Tags
-    this._tagChk.checked = originalSpace.meta.canTag;
-    this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
-    this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
-    this._tagAsMarkerChk.disabled = !originalSpace.meta.tagVisible;
-    this._tagAsMarkerChk.checked = originalSpace.meta.tagAsMarker;
-    this._predefinedTagsField.disabled = !originalSpace.meta.canTag;
-    this._predefinedTagsField.value = originalSpace.meta.predefinedTags.join();
+    this._tagChk.checked = originalPlay.meta.canTag;
+    this._tagVisibleChk.disabled = !originalPlay.meta.canTag;
+    this._tagVisibleChk.checked = originalPlay.meta.tagVisible;
+    this._tagAsMarkerChk.disabled = !originalPlay.meta.tagVisible;
+    this._tagAsMarkerChk.checked = originalPlay.meta.tagAsMarker;
+    this._predefinedTagsField.disabled = !originalPlay.meta.canTag;
+    this._predefinedTagsField.value = originalPlay.meta.predefinedTags.join();
     // - Slider
-    this._canSliderChk.checked = originalSpace.meta.canSlider;
-    this._sliderAxisLabelField.value = originalSpace.meta.sliderAxisLabel;
-    this.fixedStopRadioElem.disabled = !originalSpace.meta.canSlider;
-    this.generativeStopRadioElem.disabled = !originalSpace.meta.canSlider;
-    this.fixedStopRadioElem.checked = originalSpace.meta.stopCount > 0;
-    this.generativeStopRadioElem.checked = originalSpace.meta.stopCount < 0;
-    this._stopCountField.value = originalSpace.meta.stopCount.toString();
-    this._stopLabelsField.value = originalSpace.meta.stopLabels.join();
-    this._stopCountField.disabled = !originalSpace.meta.canSlider || !this.fixedStopRadioElem.checked;
-    this._stopLabelsField.disabled = !originalSpace.meta.canSlider || !this.fixedStopRadioElem.checked;
-    this._canModifyPastChk.checked = originalSpace.meta.canModifyPast;
-    this._canModifyPastChk.disabled = !originalSpace.meta.canSlider || !this.generativeStopRadioElem.checked;
+    this._canSliderChk.checked = originalPlay.meta.canSlider;
+    this._sliderAxisLabelField.value = originalPlay.meta.sliderAxisLabel;
+    this.fixedStopRadioElem.disabled = !originalPlay.meta.canSlider;
+    this.generativeStopRadioElem.disabled = !originalPlay.meta.canSlider;
+    this.fixedStopRadioElem.checked = originalPlay.meta.stopCount > 0;
+    this.generativeStopRadioElem.checked = originalPlay.meta.stopCount < 0;
+    this._stopCountField.value = originalPlay.meta.stopCount.toString();
+    this._stopLabelsField.value = originalPlay.meta.stopLabels.join();
+    this._stopCountField.disabled = !originalPlay.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this._stopLabelsField.disabled = !originalPlay.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this._canModifyPastChk.checked = originalPlay.meta.canModifyPast;
+    this._canModifyPastChk.disabled = !originalPlay.meta.canSlider || !this.generativeStopRadioElem.checked;
 
     /** Templated fields */
-    for (let [key, value] of originalSpace.meta.subMap!) {
+    for (let [key, value] of originalPlay.meta.subMap!) {
       let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
       if (!field) {
         console.log('Textfield not found: ' + key + '-gen')
@@ -292,19 +290,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentMeta.stopCount = this._stopCountField.value? 2 : parseInt(this._stopCountField.value);
     this._currentMeta.stopLabels = this._stopLabelsField.value.split(",")
 
-    // - Create space
-    const space: Space = {
-      name: this._nameField.value,
-      origin: this._templateField.value,
-      visible: true,
+    // - Add Play to commons
+    const newSpaceEh = await this._store.newPlay(
+      this._nameField.value,
+      this._templateField.value,
       surface,
-      meta: this._currentMeta,
-      sessions: {},
-    };
-
-    // - Add space to commons
-    const newSpace = await this._store.addSpace(space);
-    this.dispatchEvent(new CustomEvent('space-added', { detail: newSpace, bubbles: true, composed: true }));
+      this._currentMeta);
+    this.dispatchEvent(new CustomEvent('play-added', { detail: newSpaceEh, bubbles: true, composed: true }));
     // - Clear all fields
     // this.resetAllFields();
     // - Close dialog
@@ -315,7 +307,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   resetAllFields(canResetName?: boolean) {
     if (canResetName === undefined || canResetName) this._nameField.value = ''
-    this._currentMeta = defaultSpaceMeta()
+    this._currentMeta = defaultPlayMeta()
     // - Surface
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
@@ -654,7 +646,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       let firstTemplate = Object.keys(this._templates.value)[0];
       //console.log(firstTemplate)
       this._currentTemplate = this._templates.value[firstTemplate]? this._templates.value[firstTemplate] : null
-      console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
+      //console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
     }
     let selectedTemplateUi = this.renderTemplateFields()
     //console.log({selectedTemplateUi})

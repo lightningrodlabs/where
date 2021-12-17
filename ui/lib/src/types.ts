@@ -11,6 +11,8 @@ export type Dictionary<T> = { [key: string]: T };
 
 /** A 'Location' is a deserialized 'Here' with a {x,y} object as value */
 
+/** A 'Play' is a live 'Space' with locations and sessions */
+
 export interface LocationInfo {
   location: Location;
   hh: HeaderHashB64;
@@ -68,17 +70,17 @@ export interface SpaceEntry {
   meta?: Dictionary<string>;
 }
 
-export interface Space  {
+export interface Play {
   name: string;
   origin: EntryHashB64;
   surface: any;
+  meta: PlayMeta;
   visible: boolean;
-  meta: SpaceMeta;
   sessions: Dictionary<PlacementSession>,
 }
 
 
-export interface SpaceMeta {
+export interface PlayMeta {
   ui: UiItem[],
   subMap: Map<string, string>,
   // Marker
@@ -161,7 +163,7 @@ export type Signal =
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, HeaderHashB64]}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: [EntryHashB64, SpaceEntry]}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: SpaceEntry}
 }
   | {
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: [EntryHashB64, TemplateEntry]}
@@ -174,7 +176,7 @@ export type Signal =
   }
 
 
-export function defaultSpaceMeta(): SpaceMeta {
+export function defaultPlayMeta(): PlayMeta {
   return  {
     subMap: new Map(),
     ui: [],
@@ -195,5 +197,5 @@ export function defaultSpaceMeta(): SpaceMeta {
     stopCount: 2,
     canModifyPast: false,
     stopLabels: [],
-  } as SpaceMeta
+  } as PlayMeta
 }

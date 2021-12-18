@@ -294,15 +294,34 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentMeta.predefinedTags = this._predefinedTagsField.value.split(",")
     // - Slider
     this._currentMeta.sliderAxisLabel = this._sliderAxisLabelField.value;
-    this._currentMeta.stopCount = this._stopCountField.value? 2 : parseInt(this._stopCountField.value);
+    this._currentMeta.stopCount = this._stopCountField.value? parseInt(this._stopCountField.value) : 2;
     this._currentMeta.stopLabels = this._stopLabelsField.value.split(",")
-    /** Add Play to commons */
+    // - Session names
+    let sessionNames: string[] = [];
+    if (this._currentMeta.canSlider) {
+      if (this.generativeStopRadioElem.checked) {
+        this._currentMeta.stopCount = -2
+        const today = new Intl.DateTimeFormat('en-GB').format(new Date())
+        sessionNames = [today];
+      } else {
+        if (this._currentMeta.stopLabels.length == 1 && this._currentMeta.stopLabels[0] == "") {
+          for (let i = 1; i <= this._currentMeta.stopCount; i++) {
+            sessionNames.push(i.toString());
+          }
+        } else {
+          sessionNames = this._currentMeta.stopLabels;
+        }
+      }
+    }
+
+    /** Create and share new Play */
     const newSpaceEh = await this._store.newPlay({
-      name: this._nameField.value,
-      origin:this._templateField.value,
-      surface,
-      meta:this._currentMeta
-    });
+        name: this._nameField.value,
+        origin:this._templateField.value,
+        surface,
+        meta:this._currentMeta
+      },
+      sessionNames);
     // - Notify parent
     this.dispatchEvent(new CustomEvent('play-added', { detail: newSpaceEh, bubbles: true, composed: true }));
     // - Clear all fields

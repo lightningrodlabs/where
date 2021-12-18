@@ -331,10 +331,14 @@ export class WhereStore {
    * Create new empty play with starting space
    * Creates a default "global" session
    */
-  async newPlay(space: Space): Promise<EntryHashB64> {
+  async newPlay(space: Space, sessionNamesArray?: string[]): Promise<EntryHashB64> {
+    let sessionNames = ["global"];
+    if (sessionNamesArray && sessionNamesArray.length > 0 && sessionNamesArray[0] != "") {
+      sessionNames = sessionNamesArray
+    }
     // - Create and commit SpaceEntry
     const entry = this.service.spaceIntoEntry(space);
-    const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, ["global"])
+    const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, sessionNames)
     // - Notify others
     const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: entry}};
     this.service.notify(newSpace, this.others());

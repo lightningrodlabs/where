@@ -645,6 +645,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
     }
 
+
+    const sessionNames = Object.entries(play.sessions).map(([key, session])=> {
+      return html `<span>${session.name} </span>`
+    });
+
     /** Parse UI elements in surface meta */
     let uiItems = html ``
     if (play.space.meta && play.space.meta.ui) {
@@ -674,7 +679,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const maybeLocationDialog =  this.renderLocationDialog(play);
     /** Render layout - 1.01 because of scroll bars */
     return html`
-      <h2>${session? session.name : "not found"}</h2>
+      <!-- <h2>${session? session.name : "not found"}</h2> -->
+      <h2>${sessionNames}</h2>
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
         ${surfaceItem}
         ${uiItems}

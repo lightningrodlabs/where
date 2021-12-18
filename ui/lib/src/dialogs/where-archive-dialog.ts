@@ -75,7 +75,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
         left
         value="${key}"
         .selected=${!play.visible}>
-            ${play.name}
+            ${play.space.name}
       </mwc-check-list-item>
     `
   )}

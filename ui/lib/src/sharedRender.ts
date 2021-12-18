@@ -84,7 +84,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
 
 
 export function renderSurface(play: Play, w: number, h: number) {
-  const surface = play.surface;
+  const surface = play.space.surface;
   //html
   if (surface.html) {
     return html`<div style="width: ${w}px; height: ${h}px;" >
@@ -104,7 +104,7 @@ export function renderSurface(play: Play, w: number, h: number) {
   }
   // canvas
   return html`
-    <canvas id="${play.name}-canvas" width="${w}" height="${h}"
+    <canvas id="${play.space.name}-canvas" width="${w}" height="${h}"
             style="border:1px solid #2278da;">`
 }
 

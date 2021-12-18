@@ -172,7 +172,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         if (firstSpaceEh) {
           await this.selectPlay(firstSpaceEh);
           console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-          console.log("    starting Play: ", plays[firstSpaceEh].name, this._currentSpaceEh);
+          console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
           //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
         }
       }
@@ -193,8 +193,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     // look for canvas in plays and render them
     for (let spaceEh in this._plays.value) {
       let play: Play = this._plays.value[spaceEh];
-      if (play.surface.canvas) {
-        const id = play.name + '-canvas'
+      if (play.space.surface.canvas) {
+        const id = play.space.name + '-canvas'
         const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
         if (!canvas) {
           console.log("CANVAS not found for " + id);
@@ -209,7 +209,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         //console.log({ctx})
         //console.log("Rendering CANVAS for " + id)
         try {
-          let canvas_code = prefix_canvas(id) + play.surface.canvas;
+          let canvas_code = prefix_canvas(id) + play.space.surface.canvas;
           var renderCanvas = new Function(canvas_code);
           renderCanvas.apply(this);
         } catch (e) {}
@@ -293,11 +293,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   private async selectTemplateOf(spaceEh: EntryHashB64): Promise<void> {
-    const spaces = this._plays.value;
-    if (!spaces[spaceEh]) {
+    const plays = this._plays.value;
+    if (!plays[spaceEh]) {
       return Promise.reject(new Error("Play not found"));
     }
-    this._currentTemplateEh = spaces[spaceEh].origin;
+    this._currentTemplateEh = plays[spaceEh].space.origin;
     console.log("selected template: " + this._currentTemplateEh);
     const templates = await this._store.updateTemplates()
     let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
@@ -444,12 +444,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           return html ``;
         }
         if (key == this._currentSpaceEh) {
-          spaceName = play.name;
+          spaceName = play.space.name;
         }
-        const template = this._store.template(play.origin);
+        const template = this._store.template(play.space.origin);
         return html`
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
-            <span>${play.name}</span>
+            <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(play, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->

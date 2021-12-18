@@ -139,41 +139,41 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!originalPlay) {
       return;
     }
-    console.log("loading preset: " + originalPlay.name)
-    this._currentMeta = { ...originalPlay.meta };
+    console.log("loading preset: " + originalPlay.space.name)
+    this._currentMeta = { ...originalPlay.space.meta };
 
-    this._nameField.value = 'Fork of ' + originalPlay.name;
-    this._templateField.value = originalPlay.origin;
-    this._widthField.value = originalPlay.surface.size.x;
-    this._heightField.value = originalPlay.surface.size.y;
-    this._uiField.value = originalPlay.meta.ui ? JSON.stringify(originalPlay.meta!.ui) : "[\n]";
+    this._nameField.value = 'Fork of ' + originalPlay.space.name;
+    this._templateField.value = originalPlay.space.origin;
+    this._widthField.value = originalPlay.space.surface.size.x;
+    this._heightField.value = originalPlay.space.surface.size.y;
+    this._uiField.value = originalPlay.space.meta.ui ? JSON.stringify(originalPlay.space.meta!.ui) : "[\n]";
     // - Markers
-    this._markerTypeField.value = MarkerType[originalPlay.meta.markerType];
-    this._multiChk.checked = originalPlay.meta.multi;
+    this._markerTypeField.value = MarkerType[originalPlay.space.meta.markerType];
+    this._multiChk.checked = originalPlay.space.meta.multi;
     // - Tags
-    this._tagChk.checked = originalPlay.meta.canTag;
-    this._tagVisibleChk.disabled = !originalPlay.meta.canTag;
-    this._tagVisibleChk.checked = originalPlay.meta.tagVisible;
-    this._tagAsMarkerChk.disabled = !originalPlay.meta.tagVisible;
-    this._tagAsMarkerChk.checked = originalPlay.meta.tagAsMarker;
-    this._predefinedTagsField.disabled = !originalPlay.meta.canTag;
-    this._predefinedTagsField.value = originalPlay.meta.predefinedTags.join();
+    this._tagChk.checked = originalPlay.space.meta.canTag;
+    this._tagVisibleChk.disabled = !originalPlay.space.meta.canTag;
+    this._tagVisibleChk.checked = originalPlay.space.meta.tagVisible;
+    this._tagAsMarkerChk.disabled = !originalPlay.space.meta.tagVisible;
+    this._tagAsMarkerChk.checked = originalPlay.space.meta.tagAsMarker;
+    this._predefinedTagsField.disabled = !originalPlay.space.meta.canTag;
+    this._predefinedTagsField.value = originalPlay.space.meta.predefinedTags.join();
     // - Slider
-    this._canSliderChk.checked = originalPlay.meta.canSlider;
-    this._sliderAxisLabelField.value = originalPlay.meta.sliderAxisLabel;
-    this.fixedStopRadioElem.disabled = !originalPlay.meta.canSlider;
-    this.generativeStopRadioElem.disabled = !originalPlay.meta.canSlider;
-    this.fixedStopRadioElem.checked = originalPlay.meta.stopCount > 0;
-    this.generativeStopRadioElem.checked = originalPlay.meta.stopCount < 0;
-    this._stopCountField.value = originalPlay.meta.stopCount.toString();
-    this._stopLabelsField.value = originalPlay.meta.stopLabels.join();
-    this._stopCountField.disabled = !originalPlay.meta.canSlider || !this.fixedStopRadioElem.checked;
-    this._stopLabelsField.disabled = !originalPlay.meta.canSlider || !this.fixedStopRadioElem.checked;
-    this._canModifyPastChk.checked = originalPlay.meta.canModifyPast;
-    this._canModifyPastChk.disabled = !originalPlay.meta.canSlider || !this.generativeStopRadioElem.checked;
+    this._canSliderChk.checked = originalPlay.space.meta.canSlider;
+    this._sliderAxisLabelField.value = originalPlay.space.meta.sliderAxisLabel;
+    this.fixedStopRadioElem.disabled = !originalPlay.space.meta.canSlider;
+    this.generativeStopRadioElem.disabled = !originalPlay.space.meta.canSlider;
+    this.fixedStopRadioElem.checked = originalPlay.space.meta.stopCount > 0;
+    this.generativeStopRadioElem.checked = originalPlay.space.meta.stopCount < 0;
+    this._stopCountField.value = originalPlay.space.meta.stopCount.toString();
+    this._stopLabelsField.value = originalPlay.space.meta.stopLabels.join();
+    this._stopCountField.disabled = !originalPlay.space.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this._stopLabelsField.disabled = !originalPlay.space.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this._canModifyPastChk.checked = originalPlay.space.meta.canModifyPast;
+    this._canModifyPastChk.disabled = !originalPlay.space.meta.canSlider || !this.generativeStopRadioElem.checked;
 
     /** Templated fields */
-    for (let [key, value] of originalPlay.meta.subMap!) {
+    for (let [key, value] of originalPlay.space.meta.subMap!) {
       let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
       if (!field) {
         console.log('Textfield not found: ' + key + '-gen')
@@ -297,11 +297,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentMeta.stopCount = this._stopCountField.value? 2 : parseInt(this._stopCountField.value);
     this._currentMeta.stopLabels = this._stopLabelsField.value.split(",")
     /** Add Play to commons */
-    const newSpaceEh = await this._store.newPlay(
-      this._nameField.value,
-      this._templateField.value,
+    const newSpaceEh = await this._store.newPlay({
+      name: this._nameField.value,
+      origin:this._templateField.value,
       surface,
-      this._currentMeta);
+      meta:this._currentMeta
+    });
     // - Notify parent
     this.dispatchEvent(new CustomEvent('play-added', { detail: newSpaceEh, bubbles: true, composed: true }));
     // - Clear all fields

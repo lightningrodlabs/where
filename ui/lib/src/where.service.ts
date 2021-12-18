@@ -9,7 +9,14 @@ import {
   Signal,
   TemplateEntry,
   Location,
-  Dictionary, PlayMeta, EmojiGroupEntry, SvgMarkerEntry, defaultPlayMeta, PlacementSession, PlacementSessionEntry,
+  Dictionary,
+  PlayMeta,
+  EmojiGroupEntry,
+  SvgMarkerEntry,
+  defaultPlayMeta,
+  PlacementSession,
+  PlacementSessionEntry,
+  Space,
 } from './types';
 
 
@@ -193,24 +200,21 @@ export class WhereService {
     return Promise.reject();
   }
 
-  async updatePlay(spaceEh: EntryHashB64, entry: SpaceEntry, visible: boolean): Promise<Play> {
-    const sessionEhs = await this.getAllSessions(spaceEh);
-    let sessions: Dictionary<PlacementSession> = {};
-    for (const sessionEh of sessionEhs) {
-      const session = await this.sessionFromEntry(sessionEh);
-      Object.assign(sessions, {[sessionEh]: session})
-    }
-    console.log(`spaceFromEntry(): space ${entry.name} sessions:`)
-    console.log({sessions})
-
-    // TODO: sort sessions by index?
+  spaceFromEntry(entry: SpaceEntry): Space {
     return {
-      name : entry.name,
+      name: entry.name,
       origin: entry.origin,
-      meta : entry.meta? this.metaFromEntry(entry.meta) : defaultPlayMeta(),
-      visible,
       surface: JSON.parse(entry.surface),
-      sessions,
+      meta: entry.meta ? this.metaFromEntry(entry.meta) : defaultPlayMeta(),
+    }
+  }
+
+  spaceIntoEntry(space: Space): SpaceEntry {
+    return {
+      name: space.name,
+      origin: space.origin,
+      surface: JSON.stringify(space.surface),
+      meta: this.metaIntoEntry(space.meta)
     }
   }
 

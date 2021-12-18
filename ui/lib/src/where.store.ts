@@ -10,7 +10,7 @@ import {
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta,
+  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space,
 } from './types';
 import {
   ProfilesStore,
@@ -202,7 +202,7 @@ export class WhereStore {
     if (firstSessionEh) {
       this.updateCurrentSession(spaceEh, firstSessionEh)
     } else {
-      console.error("No session found for Play " + play.name)
+      console.error("No session found for Play " + play.space.name)
     }
   }
 
@@ -302,8 +302,8 @@ export class WhereStore {
    */
   async getPlay(spaceEh: EntryHashB64): Promise<Play> {
     // - Space
-    const space = await this.service.getSpace(spaceEh)
-    if (!space) {
+    const spaceEntry = await this.service.getSpace(spaceEh)
+    if (!spaceEntry) {
       console.error("Play not found")
       return Promise.reject("Play not found")
     }
@@ -321,33 +321,25 @@ export class WhereStore {
     const visible = await this.service.isSpaceVisible(spaceEh);
     // - Done
     return {
-      name: space.name,
-      origin: space.origin,
-      surface: JSON.parse(space.surface),
-      meta : space.meta? this.service.metaFromEntry(space.meta) : defaultPlayMeta(),
+      space: this.service.spaceFromEntry(spaceEntry),
       visible,
       sessions,
-    }
+    } as Play;
   }
 
   /**
    * Create new empty play with starting space
    * Creates a default "global" session
    */
-  async newPlay(spaceName: string, spaceOrigin: EntryHashB64, surface: any, meta: PlayMeta): Promise<EntryHashB64> {
+  async newPlay(space: Space): Promise<EntryHashB64> {
     // - Create and commit SpaceEntry
-    const entry = {
-      name: spaceName,
-      origin: spaceOrigin,
-      surface: JSON.stringify(surface),
-      meta: this.service.metaIntoEntry(meta)
-    }
+    const entry = this.service.spaceIntoEntry(space);
     const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, ["global"])
     // - Notify others
     const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: entry}};
     this.service.notify(newSpace, this.others());
     // - Add play to store
-    console.log("newPlay(): " + spaceName + " | " + spaceEh)
+    console.log("newPlay(): " + space.name + " | " + spaceEh)
     this.addPlay(spaceEh);
     // Done
     return spaceEh;

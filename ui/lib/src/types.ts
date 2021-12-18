@@ -70,11 +70,15 @@ export interface SpaceEntry {
   meta?: Dictionary<string>;
 }
 
-export interface Play {
+export interface Space {
   name: string;
   origin: EntryHashB64;
   surface: any;
   meta: PlayMeta;
+}
+
+export interface Play {
+  space: Space,
   visible: boolean;
   sessions: Dictionary<PlacementSession>,
 }

@@ -46,15 +46,15 @@ pub struct GetSessionInput {
 ///
 #[hdk_extern]
 pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHashB64>> {
-  let tag = format!("{}", input.index).as_bytes().to_vec();
-  let links = get_links(input.space_eh.clone().into(), Some(tag.clone().into()))?;
+  let tag: LinkTag = format!("{}", input.index).as_bytes().to_vec().into();
+  let links = get_links(input.space_eh.clone().into(), Some(tag.clone()))?;
   if links.len() == 0 {
-    debug!("Session {} not found for space '{:?}' when adding Here", input.index, input.space_eh);
+    debug!("get_session(): Session {} not found for space '{:?}'", input.index, input.space_eh);
     return Ok(None);
   }
   let mut maybe_session = None;
   for link in links {
-    if link.tag == tag.clone().into() {
+    if link.tag == tag.clone() {
       maybe_session = Some(link.target.into());
       break;
     }

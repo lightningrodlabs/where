@@ -140,7 +140,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       return;
     }
     console.log("loading preset: " + originalPlay.name)
-    this,this._currentMeta = originalPlay.meta
+    this._currentMeta = { ...originalPlay.meta };
 
     this._nameField.value = 'Fork of ' + originalPlay.name;
     this._templateField.value = originalPlay.origin;
@@ -276,26 +276,33 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
       }
     }
-
     // Finish Validation
     if (!isValid) return
 
+    /** Generate PlayMeta */
+    const singleEmojiElem = this.shadowRoot!.getElementById("space-unicodes");
     let {surface, subMap} = this.generateSurface();
-    this._currentMeta.subMap = subMap
+    // - Misc.
     this._currentMeta.ui = ui
-
+    this._currentMeta.subMap = subMap
+    // - Marker
+    this._currentMeta.markerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
+    this._currentMeta.singleEmoji = singleEmojiElem? singleEmojiElem.innerText: "";
+    // - Tag
+    this._currentMeta.multi = this._multiChk.checked;
+    this._currentMeta.tagAsMarker = this._tagAsMarkerChk.checked;
     this._currentMeta.predefinedTags = this._predefinedTagsField.value.split(",")
+    // - Slider
     this._currentMeta.sliderAxisLabel = this._sliderAxisLabelField.value;
-
     this._currentMeta.stopCount = this._stopCountField.value? 2 : parseInt(this._stopCountField.value);
     this._currentMeta.stopLabels = this._stopLabelsField.value.split(",")
-
-    // - Add Play to commons
+    /** Add Play to commons */
     const newSpaceEh = await this._store.newPlay(
       this._nameField.value,
       this._templateField.value,
       surface,
       this._currentMeta);
+    // - Notify parent
     this.dispatchEvent(new CustomEvent('play-added', { detail: newSpaceEh, bubbles: true, composed: true }));
     // - Clear all fields
     // this.resetAllFields();

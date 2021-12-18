@@ -607,9 +607,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
       tagField.setCustomValidity("")
     }
-
     this.handleLocationDialogClosing(null)
-
     // - Close dialog
     this.locationDialogElem.close();
   }
@@ -617,36 +615,36 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   render() {
     console.log(" - where-space render() - " + this.currentSpaceEh)
-    if (!this.currentSpaceEh) {
+    if (!this.currentSpaceEh || !this._plays.value[this.currentSpaceEh]) {
       return;
     }
     /** Get current play and zoom level */
     const play: Play = this._plays.value[this.currentSpaceEh];
     const z = this._zooms.value[this.currentSpaceEh];
-    /** Must have current session */
+    /** Render locations if we have a current session */
     const sessionEh = this._store.currentSession(this.currentSpaceEh);
-    if (!sessionEh) {
-      console.error(" **  no session found for play " + play.name)
-      return;
-    }
-    const session = play.sessions[sessionEh];
-    if (!session) {
-      console.error(" ** Session not found in play " + play.name + " | " + sessionEh)
-      console.error({play})
+    let session = null;
+    let locationItems = undefined;
+    if (sessionEh) {
+      session = play.sessions[sessionEh];
+      if (!session) {
+        console.error(" ** Session not found in Play " + play.name + " | " + sessionEh)
+        console.error({play})
+      } else {
+        /** Render Play's session's locations */
+        if (this.hideFab && this.hideFab.icon === 'visibility') {
+          locationItems = session.locations.map((locationInfo, i) => {
+            if (this.soloAgent != null && locationInfo) {
+              if (this.soloAgent != locationInfo.authorPubKey) {
+                return;
+              }
+            }
+            return this.renderLocation(locationInfo, z, play, i)
+          });
+        }
+      }
     }
 
-    /** Render all play's session's locations */
-    let locationItems = undefined;
-    if (this.hideFab && this.hideFab.icon === 'visibility') {
-      locationItems = session.locations.map((locationInfo, i) => {
-        if (this.soloAgent != null && locationInfo) {
-          if (this.soloAgent != locationInfo.authorPubKey) {
-            return;
-          }
-        }
-        return this.renderLocation(locationInfo, z, play, i)
-      });
-    }
     /** Parse UI elements in surface meta */
     let uiItems = html ``
     if (play.meta && play.meta.ui) {
@@ -676,6 +674,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const maybeLocationDialog =  this.renderLocationDialog(play);
     /** Render layout - 1.01 because of scroll bars */
     return html`
+      <h2>${session? session.name : "not found"}</h2>
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
         ${surfaceItem}
         ${uiItems}

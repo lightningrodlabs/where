@@ -7,6 +7,8 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 export const MARKER_WIDTH = 40;
 export const EMOJI_WIDTH  = 32;
 
+export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
+
 function getInitials(nickname: string): string {
   const names = nickname.split(' ');
   let initials = names[0].substring(0, 1).toUpperCase();

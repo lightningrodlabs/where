@@ -175,13 +175,15 @@ export class WhereStore {
   private updateCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
     this.currentSessionStore.update(currentSessions => {
       currentSessions[spaceEh] = sessionEh;
+      //console.log(" - updated current session for: " + spaceEh)
+      //console.log({sessionEh})
       return currentSessions;
     })
   }
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
     // - Construct Play and add it to store
-    const play : Play = await this.getPlay(spaceEh)
+    const play: Play = await this.getPlay(spaceEh)
     this.playStore.update(plays => {
       plays[spaceEh] = play
       console.log({play})
@@ -196,10 +198,11 @@ export class WhereStore {
     }
     // - Set currentSession for new Play
     const firstSessionEh = await this.service.getSessionHash(spaceEh, 0);
+    // console.log("addPlay() firstSessionEh: " + firstSessionEh)
     if (firstSessionEh) {
       this.updateCurrentSession(spaceEh, firstSessionEh)
     } else {
-      console.error("No session found for play " + play.name)
+      console.error("No session found for Play " + play.name)
     }
   }
 

@@ -18,8 +18,9 @@ pub enum Message {
     Ping(AgentPubKeyB64),
     Pong(AgentPubKeyB64),
     NewHere(HereOutput),
-    DeleteHere(HeaderHashB64),
+    DeleteHere((EntryHashB64,HeaderHashB64)), // sessionEh, hereLinkHh
     NewSpace(Space),
+    // - with entry hash of entries
     NewSession((EntryHashB64, PlacementSession)),
     NewTemplate((EntryHashB64, Template)),
     NewSvgMarker((EntryHashB64, SvgMarker)),

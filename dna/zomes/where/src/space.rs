@@ -89,6 +89,7 @@ pub fn get_next_session_index(space_eh: EntryHash) -> WhereResult<u32> {
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateNextSessionInput {
     name: String,
     space_eh: EntryHashB64,

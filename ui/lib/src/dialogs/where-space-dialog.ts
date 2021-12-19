@@ -6,8 +6,9 @@ import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {
+  defaultLocationMeta,
   defaultPlayMeta,
-  Dictionary,
+  Dictionary, LocationMeta,
   MarkerType,
   PlayMeta,
   TemplateEntry,
@@ -301,7 +302,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (this._currentMeta.canSlider) {
       if (this.generativeStopRadioElem.checked) {
         this._currentMeta.stopCount = -2
-        const today = new Intl.DateTimeFormat('en-GB').format(new Date())
+        const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
         sessionNames = [today];
       } else {
         if (this._currentMeta.stopLabels.length == 1 && this._currentMeta.stopLabels[0] == "") {
@@ -488,24 +489,24 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  renderMarkerTypePreview(markerType?: string) {
-    let locMeta: Dictionary<string> = {};
-    locMeta.markerType = markerType? markerType : this.determineMarkerType();
+  renderMarkerTypePreview(markerType: MarkerType) {
+    let locMeta: LocationMeta = defaultLocationMeta();
+    locMeta.markerType = markerType;
     locMeta.img = this.myProfile!.fields.avatar;
     switch (markerType) {
-      case MarkerType[MarkerType.EmojiGroup]:
+      case MarkerType.EmojiGroup:
         locMeta.emoji = "⚽️";
         break
-      case MarkerType[MarkerType.AnyEmoji]:
+      case MarkerType.AnyEmoji:
         locMeta.emoji = "😀";
         break
-      case MarkerType[MarkerType.SingleEmoji]:
+      case MarkerType.SingleEmoji:
       default:
         locMeta.emoji = "♥️";
         break;
     }
     locMeta.color = this.myProfile!.fields.color;
-    locMeta.name = this.myProfile!.nickname;
+    locMeta.authorName = this.myProfile!.nickname;
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
 
@@ -803,13 +804,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   <!--  Marker -->
   <h3 style="margin-top:25px;margin-bottom:10px;">Markers</h3>
   <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
-    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType[MarkerType.Avatar])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType[MarkerType.Initials])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">Colored SVG ${this.renderMarkerTypePreview(MarkerType[MarkerType.SvgMarker])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.SingleEmoji])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType[MarkerType.EmojiGroup])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType[MarkerType.AnyEmoji])}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Tag]}">Tag ${this.renderMarkerTypePreview(MarkerType[MarkerType.Tag])}</mwc-list-item>
+    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType.Avatar)}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType.Initials)}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">Colored SVG ${this.renderMarkerTypePreview(MarkerType.SvgMarker)}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType.SingleEmoji)}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType.EmojiGroup)}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType.AnyEmoji)}</mwc-list-item>
+    <mwc-list-item value="${MarkerType[MarkerType.Tag]}">Tag ${this.renderMarkerTypePreview(MarkerType.Tag)}</mwc-list-item>
   </mwc-select>
   ${maybeMarkerTypeItems}
   <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">

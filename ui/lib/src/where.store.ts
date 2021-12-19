@@ -2,7 +2,7 @@ import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash, HoloHashed} 
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 
-import { WhereService, locationFromHere, hereFromLocation } from './where.service';
+import { WhereService } from './where.service';
 import {
   Dictionary,
   Play,
@@ -122,7 +122,7 @@ export class WhereStore {
         break;
       case "NewHere":
         const hereInfo = signal.message.content;
-        const newLocInfo: LocationInfo = locationFromHere(hereInfo)
+        const newLocInfo: LocationInfo = this.service.locationFromHere(hereInfo)
         const newHereLinkHh = signal.message.content.linkHh;
         if (signal.maybeSpaceHash && get(this.plays)[signal.maybeSpaceHash]) {
           this.playStore.update(plays => {
@@ -182,6 +182,13 @@ export class WhereStore {
       //console.log({sessionEh})
       return currentSessions;
     })
+  }
+
+  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
+    const sessionEh = await this.service.createNextSession(spaceEh, name);
+    this.updateCurrentSession(spaceEh, sessionEh);
+    await this.updatePlays();
+    return sessionEh;
   }
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
@@ -380,7 +387,7 @@ export class WhereStore {
       return spaces
     })
     // Notify peers
-    const entry = hereFromLocation(location)
+    const entry = this.service.hereFromLocation(location)
     this.service.notify({
       maybeSpaceHash: spaceEh,
       from: this.myAgentPubKey,
@@ -392,11 +399,31 @@ export class WhereStore {
   }
 
 
+  isCurrentSessionToday(spaceEh: EntryHashB64): boolean {
+    const play = this.play(spaceEh);
+    const currentSessionEh = this.currentSession(spaceEh);
+    if (play.space.meta.canModifyPast) {
+      return true;
+    }
+    let todaySessionEh = null;
+    const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
+    Object.entries(play.sessions).map(
+      ([key, session]) => {
+        if (session.name == today /* "dummy-test-name" */) {
+          todaySessionEh = key;
+        }
+      })
+    return todaySessionEh == currentSessionEh;
+  }
+
   async deleteAllMyLocations(spaceEh: EntryHashB64) {
-    const space = get(this.playStore)[spaceEh];
+    if (!this.isCurrentSessionToday(spaceEh)) {
+      return;
+    }
+    const play = get(this.playStore)[spaceEh];
     const sessionEh = get(this.currentSessionStore)[spaceEh];
     let idx = 0;
-    for (const locInfo of space.sessions[sessionEh].locations) {
+    for (const locInfo of play.sessions[sessionEh].locations) {
       if (locInfo && locInfo.authorPubKey === this.myAgentPubKey) {
         await this.deleteLocation(spaceEh, idx);
       }
@@ -444,14 +471,15 @@ export class WhereStore {
       spaces[spaceEh].sessions[sessionEh].locations[locIdx] = locInfo
       return spaces
     })
-    const entry = hereFromLocation(locInfo.location)
+    const entry = this.service.hereFromLocation(locInfo.location)
     await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}}, this.others());
     await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, linkHh: newLinkHh, author: this.myAgentPubKey}}}, this.others());
   }
 
-  getAgentIdx(spaceEh: EntryHashB64, agent: string) : number {
+  /** Get locIdx of first location from agent with given name */
+  getAgentLocIdx(spaceEh: EntryHashB64, agent: string) : number {
     const sessionEh = get(this.currentSessionStore)[spaceEh];
-    return get(this.playStore)[spaceEh].sessions[sessionEh].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.name == agent)
+    return get(this.playStore)[spaceEh].sessions[sessionEh].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.authorName == agent)
   }
 
   template(templateEh64: EntryHashB64): TemplateEntry {

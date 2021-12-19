@@ -19,29 +19,6 @@ import {
   Space,
 } from './types';
 
-
-export function locationFromHere(info: HereInfo) : LocationInfo {
-  return {
-    location: {
-      coord: JSON.parse(info.entry.value),
-      sessionEh: info.entry.sessionEh,
-      meta: info.entry.meta,
-    },
-    linkHh: info.linkHh,
-    authorPubKey: info.author,
-  }
-}
-
-export function hereFromLocation(location: Location) : HereEntry {
-  return {
-    value: JSON.stringify(location.coord),
-    sessionEh: location.sessionEh,
-    meta: location.meta
-  }
-}
-
-
-
 export class WhereService {
   constructor(
     public cellClient: CellClient,
@@ -151,7 +128,7 @@ export class WhereService {
   /** Location */
 
   async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
-    const entry = hereFromLocation(location);
+    const entry = this.hereFromLocation(location);
     const input = {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}
     return this.callZome('add_here', input);
   }
@@ -164,7 +141,7 @@ export class WhereService {
     const hereInfos =  await this.callZome('get_heres', sessionEh);
     //console.debug({hereInfos})
     return hereInfos.map((info: HereInfo) => {
-      return locationFromHere(info)
+      return this.locationFromHere(info)
     });
   }
 
@@ -172,7 +149,7 @@ export class WhereService {
 
   async notify(signal: Signal, folks: Array<AgentPubKeyB64>): Promise<void> {
     //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
-    //  console.log(`NOTIFY ${signal.message.type}`, signal)
+    //  console.debug(`NOTIFY ${signal.message.type}`, signal)
     //}
     return this.callZome('notify', {signal, folks});
   }
@@ -241,6 +218,41 @@ export class WhereService {
     }
     //console.log({dic})
     return dic
+  }
+
+
+  locationFromHere(info: HereInfo) : LocationInfo {
+    let locationMeta:any = {};
+    try {
+      for (const [key, value] of Object.entries(info.entry.meta)) {
+        Object.assign(locationMeta, {[key]: JSON.parse(value, this.reviver)})
+      }
+    } catch (e) {
+      console.error("Failed parsing meta filed into LocationMeta")
+      console.error(e)
+    }
+    //
+    return {
+      location: {
+        coord: JSON.parse(info.entry.value),
+        sessionEh: info.entry.sessionEh,
+        meta: locationMeta,
+      },
+      linkHh: info.linkHh,
+      authorPubKey: info.author,
+    }
+  }
+
+  hereFromLocation(location: Location) : HereEntry {
+    let meta: Dictionary<string> = {};
+    for (const [key, value] of Object.entries(location.meta)) {
+      meta[key] = JSON.stringify(value, this.replacer)
+    }
+    return {
+      value: JSON.stringify(location.coord),
+      sessionEh: location.sessionEh,
+      meta,
+    }
   }
 
   replacer(key:any, value:any) {

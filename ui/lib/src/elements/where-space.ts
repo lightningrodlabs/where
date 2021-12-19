@@ -175,23 +175,45 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return { x, y };
   }
 
-  private canCreate(): boolean {
-    if (this._store.play(this.currentSpaceEh!).space.meta!.multi) {
+  /**
+   * Can create a Location if :
+   *  - session is allowed
+   *  - multi location per agent are allowed or if this agent does not already have a Location
+   */
+  private canCreateLocation(): boolean {
+    const play = this._store.play(this.currentSpaceEh!);
+    // - Session allowed
+    if (!this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
+      return false;
+    }
+    // - Marker allowed
+    if (play.space.meta!.multi) {
       return true;
     }
-    const myIdx = this._store.getAgentIdx(this.currentSpaceEh!, this.myNickName);
-    return myIdx == -1;
+    const myLocIdx = this._store.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
+    const hasNoLocation = myLocIdx == -1
+    return hasNoLocation;
   }
 
+
+  /**
+   *
+   */
   private canUpdateLocation(idx: number): boolean {
+    if (!this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
+      return false;
+    }
     const sessionEh = this._store.currentSession(this.currentSpaceEh!);
     const locInfo = this._store.play(this.currentSpaceEh!).sessions[sessionEh].locations[idx]!;
     // TODO: should check agent key instead
-    return locInfo.location.meta.name == this.myNickName;
+    return locInfo.location.meta.authorName == this.myNickName;
   }
 
+  /**
+   * on surface click, try to create Location
+   */
   private handleClick(event: any): void {
-    if (!this.currentSpaceEh || event == null || !this.canCreate()) {
+    if (!this.currentSpaceEh || event == null || !this.canCreateLocation()) {
       return;
     }
     const play: Play = this._plays.value[this.currentSpaceEh];
@@ -216,11 +238,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         coord,
         sessionEh: this._currentSessions.value[this.currentSpaceEh!],
         meta: {
-          markerType: MarkerType[play.space.meta.markerType],
+          markerType: play.space.meta.markerType,
           tag: "",
           img: this._myProfile.value.fields.avatar,
           color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#000000",
-          name: this.myNickName,
+          authorName: this.myNickName,
           emoji: play.space.meta?.singleEmoji,
           svgMarker,
         },
@@ -316,8 +338,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       coord: this.dialogCoord,
       sessionEh: this._currentSessions.value[this.currentSpaceEh!],
       meta: {
-        name: this._myProfile.value.nickname,
-        markerType: MarkerType[markerType],
+        authorName: this._myProfile.value.nickname,
+        markerType,
         tag: tagValue,
         emoji: emojiValue,
         img: markerType == MarkerType.Avatar? this._myProfile.value.fields['avatar']: "",
@@ -420,7 +442,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const locInfo = play.sessions[sessionEh].locations[idx]!;
     this.openLocationDialog(
       {
-        name: locInfo.location.meta.name,
+        name: locInfo.location.meta.authorName,
         img: locInfo.location.meta.img,
         emoji: locInfo.location.meta.emoji,
         tag: locInfo.location.meta.tag,
@@ -494,7 +516,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const y = locInfo.location.coord.y * z;
     /** Render Marker */
     // TODO: should check agent key and not nickname
-    const isMe = locInfo.location.meta.name == this.myNickName;
+    const isMe = locInfo.location.meta.authorName == this.myNickName;
     let marker = renderMarker(locInfo.location.meta, isMe);
     /** Extra elements for when its my Location */
     let maybeMeClass  = "not-me";
@@ -505,9 +527,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (isMe) {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
-      maybeDeleteBtn = html `<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
-      if (this.canEditLocation(play)) {
-        maybeEditBtn = html `<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
+      if (this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
+        maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
+        if (this.canEditLocation(play)) {
+          maybeEditBtn = html`<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
+        }
       }
     };
     /** adjust details position if too low */
@@ -528,7 +552,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         : html`` }
       </div>
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
-        <h3>${locInfo.location.meta.name}</h3>
+        <h3>${locInfo.location.meta.authorName}</h3>
         <p>${locInfo.location.meta.tag}</p>
         ${maybeEditBtn}
         ${maybeDeleteBtn}
@@ -702,7 +726,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (sessionEh) {
       session = play.sessions[sessionEh];
       if (!session) {
-        console.error(" ** Session not found in Play " + play.space.name + " | " + sessionEh)
+        console.error(" ** Session not found in Play '" + play.space.name + "' | " + sessionEh)
         console.error({play})
       } else {
         /** Render Play's session's locations */

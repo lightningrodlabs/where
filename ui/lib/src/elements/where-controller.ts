@@ -272,7 +272,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   private async selectPlay(spaceEh: EntryHashB64): Promise<void> {
-    console.log("Requested Play to select: " + spaceEh);
+    console.log("Requested Play: " + spaceEh);
     let play = null;
     // - Wait for store to be updated with newly created Play
     // TODO: better to trigger select on subscribe of playStore
@@ -287,11 +287,27 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return Promise.reject("Play not found in store")
     }
 
+    // - Check if play should generate a new session for today
+    if (play.space.meta.canSlider && play.space.meta.stopCount <= 0) {
+      const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
+      let hasToday = false;
+      Object.entries(play.sessions).map(
+        ([key, session]) => {
+          if (session.name == today /*"dummy-test-name"*/) {
+            hasToday = true;
+          }
+        })
+      //console.log("hasToday: " + hasToday + " | " + play.space.name + " | " + today)
+      if (!hasToday) {
+        await this._store.createNextSession(spaceEh, today /*"dummy-test-name"*/)
+      }
+    }
+
+    // - This will trigger a render()
     this._currentSpaceEh = spaceEh;
     this._currentTemplateEh = play.space.origin;
 
-    console.log(" - selected template: " + this._currentTemplateEh);
-    //console.log(" - selected session: " + this._currentTemplateEh);
+    //console.log(" - selected template: " + this._currentTemplateEh);
 
     // const templates = await this._store.updateTemplates()
     // let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;

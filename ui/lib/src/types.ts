@@ -35,7 +35,17 @@ export interface HereEntry {
 export interface Location {
   coord: Coord;
   sessionEh: EntryHashB64,
-  meta: Dictionary<string>;
+  meta: LocationMeta;
+}
+
+export interface LocationMeta {
+  markerType: MarkerType,
+  tag: string,
+  img: any,
+  color: string,
+  authorName: string,
+  emoji: string,
+  svgMarker: string,
 }
 
 export type LocOptions = {
@@ -199,7 +209,19 @@ export function defaultPlayMeta(): PlayMeta {
     canSlider: false,
     sliderAxisLabel: "",
     stopCount: 2,
-    canModifyPast: false,
+    canModifyPast: true,
     stopLabels: [],
   } as PlayMeta
+}
+
+export function defaultLocationMeta(): LocationMeta {
+  return  {
+  markerType: MarkerType.Tag,
+    tag: "",
+    img: "",
+    color: "",
+    authorName: "",
+    emoji: "",
+    svgMarker: "",
+  } as LocationMeta
 }

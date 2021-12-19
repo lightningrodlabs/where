@@ -172,7 +172,7 @@ export class WhereStore {
     return from;
   }
 
-  private updateCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
+  updateCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
     this.currentSessionStore.update(currentSessions => {
       currentSessions[spaceEh] = sessionEh;
       //console.log(" - updated current session for: " + spaceEh)

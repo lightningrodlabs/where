@@ -14,20 +14,19 @@ import {
   LocOptions,
   MarkerType,
   EmojiGroupEntry,
-  UiItem
+  UiItem, PlacementSession
 } from "../types";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
-import {Button, Dialog, TextField, Fab, Slider, Radio} from "@scoped-elements/material-web";
+import {Button, Dialog, TextField, Fab, Slider, Radio, Tab, TabBar} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
-import {get} from "svelte/store";
 
 
 // // Canvas Animation experiment
@@ -66,6 +65,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @query('#minus-fab') minusFab!: Fab;
   @query('#hide-here-fab') hideFab!: Fab;
 
+  @query('#sessions-tab-bar') sessionTabBar!: TabBar;
+
   @property() currentSpaceEh: null | EntryHashB64 = null;
   // @state() _currentSessionEh: null | EntryHashB64 = null;
 
@@ -85,6 +86,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCoord = { x: 0, y: 0 };
   private dialogCanEdit = false;
   private dialogIdx = 0;
+
+  private _sessions?:any;
+  private _activeIndex:number = -1;
 
   @property() neighborWidth = 0;
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
@@ -110,6 +114,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.currentSpaceEh) {
       return;
     }
+    // - Tab bar bug workaround ; dont use scrollIndexIntoView() since its broken
+    if (this.sessionTabBar && this.sessionTabBar.activeIndex != this._activeIndex) {
+      //this.sessionTabBar.scrollIndexIntoView(this._activeIndex);
+      this.sessionTabBar.activeIndex = this._activeIndex
+      this.requestUpdate();
+    }
+    // - Canvas
     const play: Play = this._plays.value[this.currentSpaceEh];
     if (play.space.surface.canvas) {
       //console.log(" - has canvas");
@@ -593,6 +604,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   // @input=${() => (this.shadowRoot!.getElementById("edit-location-tag") as TextField).reportValidity()} autoValidate=true
   // @closing=${this.handleLocationDialogClosing}
 
+  private async handleTabSelected(e: any) {
+    //console.log("handleTabSelected: " + e.detail.index)
+    const selectedSessionEh = this._sessions[e.detail.index];
+    this._store.updateCurrentSession(this.currentSpaceEh!, selectedSessionEh);
+    this.requestUpdate();
+  }
+
   private async handleLocationClick(e: any) {
     /** Check validity */
     const play = this._store.play(this.currentSpaceEh!)
@@ -623,7 +641,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const z = this._zooms.value[this.currentSpaceEh];
     /** Render locations if we have a current session */
     const sessionEh = this._store.currentSession(this.currentSpaceEh);
-    let session = null;
+    let session: null | PlacementSession = null;
     let locationItems = undefined;
     if (sessionEh) {
       session = play.sessions[sessionEh];
@@ -643,12 +661,28 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           });
         }
       }
+    } else {
+      console.warn("CurrentSession not found for play " + play.space.name)
     }
 
-
-    const sessionNames = Object.entries(play.sessions).map(([key, session])=> {
-      return html `<span>${session.name} </span>`
+    /** Session Tab bar */
+    this._sessions = {};
+    this._activeIndex = -1
+    const sessionTabs = Object.entries(play.sessions).map(([key, curSession])=> {
+      //return html `<span>${session.name} </span>`
+      this._sessions[curSession.index] = key;
+      if (session && sessionEh == key) {
+        this._activeIndex = curSession.index
+      }
+      return html `<mwc-tab label="${curSession.name}"></mwc-tab>`
     });
+
+    let sessionTab = html`<mwc-tab-bar id="sessions-tab-bar" activeIndex="${this._activeIndex}" @MDCTabBar:activated=${this.handleTabSelected}></mwc-tab-bar>`
+    if (sessionTabs.length > 1) {
+      sessionTab = html`
+        <mwc-tab-bar id="sessions-tab-bar" activeIndex="${this._activeIndex}" @MDCTabBar:activated=${this.handleTabSelected}>${sessionTabs}</mwc-tab-bar>
+      `
+    }
 
     /** Parse UI elements in surface meta */
     let uiItems = html ``
@@ -680,7 +714,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Render layout - 1.01 because of scroll bars */
     return html`
       <!-- <h2>${session? session.name : "not found"}</h2> -->
-      <h2>${sessionNames}</h2>
+      ${sessionTab}
+
       <div class="surface" style="width: ${w * 1.01}px; height: ${h * 1.01}px;max-width: ${maxW}px; max-height: ${maxH}px;">
         ${surfaceItem}
         ${uiItems}
@@ -700,7 +735,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       "mwc-dialog": Dialog,
       "mwc-textfield": TextField,
       "mwc-button": Button,
-      "wmc-radio": Radio,
+      "mwc-tab": Tab,
+      "mwc-tab-bar": TabBar,
       "emoji-picker": customElements.get('emoji-picker'),
     };
   }

@@ -275,36 +275,32 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("Requested Play to select: " + spaceEh);
     let play = null;
     // - Wait for store to be updated with newly created Play
+    // TODO: better to trigger select on subscribe of playStore
     let time = 0;
-    while(!play && time < 1000) {
+    while(!play && time < 2000) {
       play = this._plays.value[spaceEh];
       await delay(100);
       time += 100;
     }
-    if (time >= 1000) {
+    if (!play) {
       console.error("selectPlay failed: Play not found in store")
       return Promise.reject("Play not found in store")
     }
 
     this._currentSpaceEh = spaceEh;
-    await this.selectTemplateOf(spaceEh);
-    //await this.pingOthers();
+    this._currentTemplateEh = play.space.origin;
+
+    console.log(" - selected template: " + this._currentTemplateEh);
+    //console.log(" - selected session: " + this._currentTemplateEh);
+
+    // const templates = await this._store.updateTemplates()
+    // let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
+    // if (div) {
+    //   div.innerText = templates[this._currentTemplateEh].name;
+    // }
   }
 
 
-  private async selectTemplateOf(spaceEh: EntryHashB64): Promise<void> {
-    const plays = this._plays.value;
-    if (!plays[spaceEh]) {
-      return Promise.reject(new Error("Play not found"));
-    }
-    this._currentTemplateEh = plays[spaceEh].space.origin;
-    console.log("selected template: " + this._currentTemplateEh);
-    const templates = await this._store.updateTemplates()
-    let div = this.shadowRoot!.getElementById("template-label") as HTMLElement;
-    if (div) {
-      div.innerText = templates[this._currentTemplateEh].name;
-    }
-  }
 
   /**
    * Hide Current play and select first available one
@@ -430,8 +426,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
-    console.log("where-controller render() - " + this._currentSpaceEh)
-
+    // console.log("where-controller render() - " + this._currentSpaceEh)
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }

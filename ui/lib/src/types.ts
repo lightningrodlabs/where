@@ -15,13 +15,13 @@ export type Dictionary<T> = { [key: string]: T };
 
 export interface LocationInfo {
   location: Location;
-  hh: HeaderHashB64;
+  linkHh: HeaderHashB64;
   authorPubKey: AgentPubKeyB64;
 }
 
 export interface HereInfo {
   entry: HereEntry,
-  hh: HeaderHashB64;
+  linkHh: HeaderHashB64;
   author: AgentPubKeyB64,
 }
 

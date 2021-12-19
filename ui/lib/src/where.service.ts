@@ -27,7 +27,7 @@ export function locationFromHere(info: HereInfo) : LocationInfo {
       sessionEh: info.entry.sessionEh,
       meta: info.entry.meta,
     },
-    hh: info.hh,
+    linkHh: info.linkHh,
     authorPubKey: info.author,
   }
 }
@@ -140,7 +140,6 @@ export class WhereService {
   }
 
   async getAllSessions(spaceEh: EntryHashB64): Promise<EntryHashB64[]> {
-    console.log("getAllSessions() - " + spaceEh)
     return this.callZome('get_all_sessions', spaceEh);
   }
 
@@ -172,6 +171,9 @@ export class WhereService {
   /** Misc */
 
   async notify(signal: Signal, folks: Array<AgentPubKeyB64>): Promise<void> {
+    //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
+    //  console.log(`NOTIFY ${signal.message.type}`, signal)
+    //}
     return this.callZome('notify', {signal, folks});
   }
 

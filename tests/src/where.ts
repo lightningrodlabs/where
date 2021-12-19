@@ -99,17 +99,17 @@ export default async (orchestrator) => {
       value: here1.value,
       meta: here1.meta,
     }
-    const here1_hash = await alice_where.call('hc_zome_where', 'add_here', addHereInput)
-    t.ok(here1_hash)
-    console.log(here1_hash);
+    const here1_link_hh = await alice_where.call('hc_zome_where', 'add_here', addHereInput)
+    t.ok(here1_link_hh)
+    console.log(here1_link_hh);
 
     let heres = await alice_where.call('hc_zome_where', 'get_heres', session_eh);
     t.ok(heres)
     t.deepEqual(heres[0].entry, here1)
-    t.deepEqual(heres[0].hh, here1_hash)
+    t.deepEqual(heres[0].linkHh, here1_link_hh)
     t.deepEqual(heres[0].author, serializeHash(alice_where.cellId[1]))
 
-    await alice_where.call('hc_zome_where', 'delete_here', here1_hash)
+    await alice_where.call('hc_zome_where', 'delete_here', here1_link_hh)
 
     heres = await alice_where.call('hc_zome_where', 'get_heres', session_eh);
     t.ok(heres)

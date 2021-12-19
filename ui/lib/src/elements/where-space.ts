@@ -688,7 +688,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   render() {
-    console.log(" - where-space render() - " + this.currentSpaceEh)
+    // console.log(" - where-space render() - " + this.currentSpaceEh)
     if (!this.currentSpaceEh || !this._plays.value[this.currentSpaceEh]) {
       return;
     }

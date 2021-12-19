@@ -43,8 +43,8 @@ fn add_here(input: AddHereInput) -> ExternResult<HeaderHashB64> {
     let here = Here {value: input.value, session_eh: session_eh64.clone(), meta: input.meta};
     let here_eh = hash_entry(here.clone())?;
     create_entry(here.clone())?;
-    let hh = create_link(session_eh64.into(), here_eh, ())?;
-    Ok(hh.into())
+    let link_hh = create_link(session_eh64.into(), here_eh, ())?;
+    Ok(link_hh.into())
 }
 
 #[hdk_extern]
@@ -55,9 +55,10 @@ fn delete_here(link_hh: HeaderHashB64) -> ExternResult<()> {
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
+#[serde(rename_all = "camelCase")]
 pub struct HereOutput {
     pub entry: Here,
-    pub hh: HeaderHashB64,
+    pub link_hh: HeaderHashB64,
     pub author: AgentPubKeyB64,
 }
 
@@ -107,7 +108,7 @@ fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
                 // Create the output for the UI
                 HereOutput {
                     entry,
-                    hh: link.create_link_hash.into(),
+                    link_hh: link.create_link_hash.into(),
                     author: signed_header.header().author().clone().into()
                 }
             }

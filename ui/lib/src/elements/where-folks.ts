@@ -210,7 +210,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
         }
 
         #folks-switch {
-          margin: 10px 0px 10px 3px;
+          margin: 10px 0px 10px 6px;
           /*--mdc-switch-selected-handle-color: teal;*/
           /*--mdc-switch-selected-track-color: lightseagreen;*/
           --mdc-switch-unselected-handle-color: teal;

@@ -61,86 +61,89 @@ export class WhereStore {
     this.profiles = profilesStore;
     this.service = new WhereService(cellClient, zomeName);
 
-    cellClient.addSignalHandler( signal => {
-      if (! areEqual(cellClient.cellId[0],signal.data.cellId[0]) || !areEqual(cellClient.cellId[1], signal.data.cellId[1])) {
+    cellClient.addSignalHandler( appSignal => {
+      if (! areEqual(cellClient.cellId[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cellId[1], appSignal.data.cellId[1])) {
         return
       }
-      //console.debug("SIGNAL", signal)
-      const payload = signal.data.payload
+      const signal = appSignal.data.payload
+      //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
+      //  console.debug(`SIGNAL: ${signal.message.type}`, appSignal)
+      //}
       // Update agent's presence stat
-      this.updatePresence(payload.from)
+      this.updatePresence(signal.from)
       // Send pong response
-      if (payload.message.type != "Pong") {
+      if (signal.message.type != "Pong") {
         //console.log("PONGING ", payload.from)
         const pong: Signal = {
-          maybeSpaceHash: payload.maybeSpaceHash,
+          maybeSpaceHash: signal.maybeSpaceHash,
           from: this.myAgentPubKey,
           message: {type: 'Pong', content: this.myAgentPubKey}
         };
-        this.service.notify(pong, [payload.from])
+        this.service.notify(pong, [signal.from])
       }
       // Handle signal
-      switch(payload.message.type) {
+      switch(signal.message.type) {
         case "Ping":
         case "Pong":
           break;
         case "NewSvgMarker":
-          const svgEh = payload.message.content[0]
+          const svgEh = signal.message.content[0]
           if (!get(this.svgMarkers)[svgEh]) {
             this.svgMarkerStore.update(store => {
-              store[svgEh] = payload.message.content[1]
+              store[svgEh] = signal.message.content[1]
               return store
             })
           }
           break;
         case "NewEmojiGroup":
-          const groupEh = payload.message.content[0]
+          const groupEh = signal.message.content[0]
           if (!get(this.emojiGroups)[groupEh]) {
             this.emojiGroupStore.update(emojiGroups => {
-              emojiGroups[groupEh] = payload.message.content[1]
+              emojiGroups[groupEh] = signal.message.content[1]
               return emojiGroups
             })
           }
           break;
       case "NewTemplate":
-        const templateEh = payload.message.content[0]
+        const templateEh = signal.message.content[0]
         if (!get(this.templates)[templateEh]) {
           this.templateStore.update(templates => {
-            templates[templateEh] = payload.message.content[1]
+            templates[templateEh] = signal.message.content[1]
             return templates
           })
         }
         break;
       case "NewSpace":
-        const spaceEh = payload.message.content[0]
+        const spaceEh = signal.message.content[0]
         if (!get(this.plays)[spaceEh]) {
           console.log("addPlay() from signal: " + spaceEh)
           this.addPlay(spaceEh)
         }
         break;
       case "NewHere":
-        const hereInfo = payload.message.content;
-        if (payload.maybeSpaceHash && get(this.plays)[payload.maybeSpaceHash]) {
+        const hereInfo = signal.message.content;
+        const newLocInfo: LocationInfo = locationFromHere(hereInfo)
+        const newHereLinkHh = signal.message.content.linkHh;
+        if (signal.maybeSpaceHash && get(this.plays)[signal.maybeSpaceHash]) {
           this.playStore.update(plays => {
-            let locations = plays[payload.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
-            const w : LocationInfo = locationFromHere(hereInfo)
-            const idx = locations.findIndex((locationInfo) => locationInfo!.hh == payload.message.hh)
+            let locations = plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
+            const idx = locations.findIndex((locationInfo) => locationInfo!.linkHh == newHereLinkHh)
             if (idx > -1) {
-              locations[idx] = w
+              locations[idx] = newLocInfo
             } else {
-              locations.push(w)
+              locations.push(newLocInfo)
             }
             return plays
           })
         }
         break;
       case "DeleteHere":
-        const sessionEh = payload.message.content[0];
-        const hereHh = payload.message.content[1];
-        if (payload.maybeSpaceHash && get(this.plays)[payload.maybeSpaceHash]) {
+        const sessionEh = signal.message.content[0];
+        const hereLinkHh = signal.message.content[1];
+        if (signal.maybeSpaceHash && get(this.plays)[signal.maybeSpaceHash]) {
           this.playStore.update(plays => {
-            let locations = plays[payload.maybeSpaceHash].sessions[sessionEh].locations
-            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.hh == hereHh)
+            let locations = plays[signal.maybeSpaceHash].sessions[sessionEh].locations
+            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.linkHh == hereLinkHh)
             if (idx > -1) {
               locations.splice(idx, 1);
             }
@@ -186,7 +189,7 @@ export class WhereStore {
     const play: Play = await this.getPlay(spaceEh)
     this.playStore.update(plays => {
       plays[spaceEh] = play
-      console.log({play})
+      //console.log({play})
       return plays
     })
     // - Set starting zoom for new Play
@@ -369,8 +372,9 @@ export class WhereStore {
 
 
   async addLocation(spaceEh: EntryHashB64, location: Location) : Promise<void> {
-    const hh = await this.service.addLocation(location, spaceEh, 0)
-    const locInfo: LocationInfo = { location, hh, authorPubKey: this.myAgentPubKey }
+    const session = await this.service.getSession(location.sessionEh);
+    const linkHh = await this.service.addLocation(location, spaceEh, session!.index)
+    const locInfo: LocationInfo = { location, linkHh, authorPubKey: this.myAgentPubKey }
     this.playStore.update(spaces => {
       spaces[spaceEh].sessions[location.sessionEh].locations.push(locInfo)
       return spaces
@@ -382,7 +386,7 @@ export class WhereStore {
       from: this.myAgentPubKey,
       message: {
         type: "NewHere",
-        content: {entry, hh, author: this.myAgentPubKey}
+        content: {entry, linkHh, author: this.myAgentPubKey}
       }}
       , this.others());
   }
@@ -405,7 +409,7 @@ export class WhereStore {
     const space = get(this.playStore)[spaceEh]
     const sessionEh = get(this.currentSessionStore)[spaceEh];
     const locInfo = space.sessions[sessionEh].locations[idx]!
-    await this.service.deleteLocation(locInfo.hh)
+    await this.service.deleteLocation(locInfo.linkHh)
     this.playStore.update(spaces => {
       spaces[spaceEh].sessions[sessionEh].locations[idx] = null
       return spaces
@@ -413,16 +417,16 @@ export class WhereStore {
     await this.service.notify({
         maybeSpaceHash: spaceEh,
         from: this.myAgentPubKey,
-        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.hh]
+        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkHh]
         }},
       this.others());
   }
 
 
-  async updateLocation(spaceEh: EntryHashB64, idx: number, c: Coord, tag?: string, emoji?: string) {
+  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c: Coord, tag?: string, emoji?: string) {
     const space = get(this.playStore)[spaceEh]
     const sessionEh = get(this.currentSessionStore)[spaceEh];
-    const locInfo = space.sessions[sessionEh].locations[idx]!
+    const locInfo = space.sessions[sessionEh].locations[locIdx]!
     locInfo.location.coord = c
     if (tag != null) {
       locInfo.location.meta.tag = tag
@@ -430,18 +434,19 @@ export class WhereStore {
     if (emoji != null) {
       locInfo.location.meta.emoji = emoji
     }
-    const newHh: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceEh, 0)
-    await this.service.deleteLocation(locInfo.hh)
-    const oldHereHh = locInfo.hh;
-    locInfo.hh = newHh;
+    const session = await this.service.getSession(sessionEh);
+    const newLinkHh: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceEh, session!.index)
+    await this.service.deleteLocation(locInfo.linkHh)
+    const oldHereHh = locInfo.linkHh;
+    locInfo.linkHh = newLinkHh;
     const oldSessionEh = locInfo.location.sessionEh;
     this.playStore.update(spaces => {
-      spaces[spaceEh].sessions[sessionEh].locations[idx] = locInfo
+      spaces[spaceEh].sessions[sessionEh].locations[locIdx] = locInfo
       return spaces
     })
     const entry = hereFromLocation(locInfo.location)
     await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}}, this.others());
-    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, hh: newHh, author: this.myAgentPubKey}}}, this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, linkHh: newLinkHh, author: this.myAgentPubKey}}}, this.others());
   }
 
   getAgentIdx(spaceEh: EntryHashB64, agent: string) : number {

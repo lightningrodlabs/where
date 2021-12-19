@@ -235,7 +235,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     coord?: Coord,
     idx?: number
   ) {
-    const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
     const emojiPickerElem = this.shadowRoot!.getElementById("edit-location-emoji-picker");
     const emojiPreviewElem = this.shadowRoot!.getElementById("edit-location-emoji-preview");
 
@@ -250,7 +249,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (options.canEdit) {
       this.dialogCanEdit = options.canEdit;
       if (options.tag) {
-        tagElem!.value = options.tag
+        const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+        if (tagElem) {
+          tagElem.value = options.tag
+        } else {
+          const predefinedTagElem = this.shadowRoot!.getElementById("edit-location-predefined-tag");
+          if (predefinedTagElem) {
+            predefinedTagElem.innerText = options.tag
+          }
+        }
       }
       if (coord) this.dialogCoord = coord;
       if (idx) this.dialogIdx = idx;
@@ -268,13 +275,26 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   private async handleLocationDialogClosing(e: any) {
     //console.log("handleLocationDialogClosing: " + e.detail.action)
-    const tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    let tagValue = ""
+    let tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+    if (!tag) {
+      const predefinedTag = this.shadowRoot!.getElementById("edit-location-predefined-tag") as HTMLElement;
+      if (predefinedTag) {
+        tagValue = predefinedTag.innerText
+        predefinedTag.innerText = ""
+      }
+    } else {
+      tagValue = tag.value
+      tag.value = "";
+    }
+
     // if (e.detail.action == "cancel") {
     //   if (tag) tag.value = "";
     //   return;
     // }
+
     /** handle "ok" */
-    const tagValue = tag ? tag.value : ""
+
     const emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
     let svgMarker = ""
     let emojiValue = ""
@@ -316,7 +336,6 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     } else {
       this._store.addLocation(this.currentSpaceEh!, location);
     }
-    if (tag) tag.value = "";
   }
 
   private allowDrop(ev: Event) {
@@ -547,6 +566,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  async handleTagButtonClick(tag: string) {
+    // console.log("handleEmojiButtonClick: " + unicode)
+    let elem = this.shadowRoot!.getElementById("edit-location-predefined-tag");
+    elem!.innerHTML = `${tag}`
+    this.requestUpdate()
+  }
+
   renderLocationDialog(play: Play | undefined) {
     if (!this.canEditLocation(play)) {
       return html``;
@@ -564,7 +590,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let maybeEmojiPicker = html``;
     if (play!.space.meta.markerType == MarkerType.AnyEmoji) {
       maybeEmojiPicker = html`
-        <emoji-picker id="edit-location-emoji-picker" class="light"></emoji-picker>
+        <emoji-picker id="edit-location-emoji-picker" style="width:100%;" class="light"></emoji-picker>
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
@@ -583,15 +609,39 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           </div>
       `;
     }
+
+    /** Render maybeTagPreview */
+    const usePredefinedTags = play!.space.meta?.canTag && play!.space.meta?.predefinedTags.length > 0 && play!.space.meta?.predefinedTags[0] != ""
+    let maybeTagPreview = html``;
+    if (usePredefinedTags) {
+      maybeTagPreview = html`
+        <div id="edit-location-tag-preview">
+          <span style="margin:10px;">Tag </span>
+          <div id="edit-location-predefined-tag" style="margin-top:9px;font-size:24px"></div>
+        </div>`
+    }
     /** Render Tag field */
-    const tagForm = play!.space.meta?.canTag
-      ? html`<mwc-textfield id="edit-location-tag" label="Tag" dialogInitialFocus
-                            minlength="1" type="text"></mwc-textfield>`
-      : html``;
+    let tagForm = html ``
+    if (play!.space.meta?.canTag) {
+      if (usePredefinedTags) {
+        const tags = Object.values(play!.space.meta?.predefinedTags).map((tag) => {return html`
+          <mwc-button outlined class="tag-button" label="${tag}"  @click=${(e:any) => this.handleTagButtonClick(tag)} ></mwc-button>
+          `})
+        tagForm = html`
+          <div class="tags-container">
+          ${tags}
+        </div>`
+      } else {
+        tagForm = html`
+          <mwc-textfield id="edit-location-tag" label="Tag" dialogInitialFocus
+                         minlength="1" type="text"></mwc-textfield>`
+      }
+    }
     /** Render */
     return html`
         <mwc-dialog id="edit-location-dialog" heading="Location"
                     scrimClickAction="" @wheel=${(e: any) => e.stopPropagation()}>
+          ${maybeTagPreview}
           ${tagForm}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
@@ -625,6 +675,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
       tagField.setCustomValidity("")
     }
+    // Check predefined-tag-field
+    const predefinedTagField = this.shadowRoot!.getElementById("edit-location-predefined-tag") as HTMLElement;
+    if (predefinedTagField && (!predefinedTagField.innerText || predefinedTagField.innerText == "")) {
+      return;
+    }
+
     this.handleLocationDialogClosing(null)
     // - Close dialog
     this.locationDialogElem.close();
@@ -765,6 +821,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           color:black;
         }
 
+        #edit-location-tag-preview,
         #edit-location-emoji-preview {
           display: inline-flex;
           line-height: 40px;
@@ -817,11 +874,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           /**border: black 1px solid;*/
           box-shadow: 1px 1px 4px #aaa;
           font-size: 75%;
-          padding: 3px;
           width: 80px;
           overflow-x: auto;
           margin-left: -20px;
           text-align: center;
+          padding-top: 2px;
+          padding-bottom: 2px;
         }
         .location-details {
           display: none;

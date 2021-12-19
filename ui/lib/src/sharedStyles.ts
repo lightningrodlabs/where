@@ -41,6 +41,10 @@ export const sharedStyles = css`
     --mdc-icon-button-size: ${EMOJI_WIDTH}px;
     --mdc-icon-size: ${EMOJI_WIDTH}px;
   }
+  .tag-button {
+    cursor: pointer;
+  }
+
   .unicodes-container {
     border: 1px solid grey;
     padding: 5px;
@@ -48,5 +52,13 @@ export const sharedStyles = css`
     color:black;
     background-color: whitesmoke;
     line-height: 40px;
+  }
+  .tags-container {
+    min-height: 40px;
+    font-size: 30px;
+    line-height: 40px;
+    padding: 5px;
+    background-color: whitesmoke;
+    margin-bottom: 10px;
   }
 `;

@@ -193,11 +193,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     // look for canvas in plays and render them
     for (let spaceEh in this._plays.value) {
       let play: Play = this._plays.value[spaceEh];
-      if (play.space.surface.canvas) {
+      if (play.space.surface.canvas && play.visible) {
         const id = play.space.name + '-canvas'
         const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
         if (!canvas) {
-          console.log("CANVAS not found for " + id);
+          console.debug("CANVAS not found for " + id);
           continue;
         }
         //console.log({canvas})
@@ -288,7 +288,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
 
     // - Check if play should generate a new session for today
-    if (play.space.meta.canSlider && play.space.meta.stopCount <= 0) {
+    if (play.space.meta.sessionCount < 0) {
       const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
       let hasToday = false;
       Object.entries(play.sessions).map(

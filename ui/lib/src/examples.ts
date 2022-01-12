@@ -84,7 +84,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.AnyEmoji, singleEmoji: "", emojiGroup: null, svgMarker: null,
       multi: true, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg"]]),
@@ -99,7 +99,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 1000, y: 400},
     },
     meta:{
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: zodiacSignsEh, svgMarker: null,
       multi: false, canTag: false, tagVisible: false,  tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg"]]),
@@ -116,7 +116,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       html: `<div style="pointer-events:none;text-align:center;width:100%;height:100%;background-image:linear-gradient(to bottom right, red, yellow);"></div>`
     },
     meta:{
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.Initials, singleEmoji: "", emojiGroup: null, svgMarker: null,
       subMap: new Map([["style","background-image:linear-gradient(to bottom right, red, yellow);"]]),
       ui: [{box:{left:200,top:200,width:200,height:200},style:"background-image: linear-gradient(to bottom right, blue, red);",content:""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}],
@@ -133,7 +133,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta:{
       ui: [],
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.Avatar, singleEmoji: "", emojiGroup: null, svgMarker: null,
       multi: false, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg"]])
@@ -151,7 +151,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta:{
       ui: [],
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.SingleEmoji, singleEmoji: "💥", emojiGroup: null, svgMarker: null,
       multi: false, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
@@ -167,7 +167,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
       size: {x: 650, y: 920},
     },
     meta: {
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       ui: [{box:{left:10,top:45,width:170,height:20},style:"padding:10px;background-color:#fffffffa;border-radius:10px;border:2px solid violet;font-size:large;",content:"How are you feeling?"}],
       markerType: MarkerType.EmojiGroup, singleEmoji: "", emojiGroup: heartsEh, svgMarker: null,
       multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
@@ -185,7 +185,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.Tag, singleEmoji: "", emojiGroup: null, svgMarker: null,
       multi: true, canTag: true, tagVisible: true, tagAsMarker: true,
       predefinedTags: ["able", "accepting", "caring", "dignified", "happy", "introverted", "modest", "silly"],
@@ -203,7 +203,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     },
     meta: {
       ui: [],
-      canSlider: false, sliderAxisLabel: "", stopCount: 2, canModifyPast: true, stopLabels: [],
+      sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.SvgMarker, singleEmoji: "", emojiGroup: null, svgMarker: pinEh,
       multi: true, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,

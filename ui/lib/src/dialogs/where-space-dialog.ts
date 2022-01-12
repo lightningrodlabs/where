@@ -22,7 +22,7 @@ import {
   Dialog,
   Formfield, IconButton,
   ListItem, Radio,
-  Select,
+  Select, Tab, TabBar,
   TextArea,
   TextField
 } from "@scoped-elements/material-web";
@@ -86,15 +86,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _tagChk!: Checkbox;
   @query('#tag-visible-chk')
   _tagVisibleChk!: Checkbox;
-  @query('#tag-as-marker-chk')
-  _tagAsMarkerChk!: Checkbox;
   @query('#predefined-tags-field')
   _predefinedTagsField!: TextField;
-  // - Slider
-  @query('#can-slider-chk')
-  _canSliderChk!: Checkbox;
-  @query('#slider-axis-label-field')
-  _sliderAxisLabelField!: TextField;
+  // - Iterations
   @query('#stop-count-field')
   _stopCountField!: TextField;
   @query('#can-modify-past-chk')
@@ -108,6 +102,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   get svgMarkerDialogElem() : WhereSvgMarkerDialog {
     return this.shadowRoot!.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
+  }
+
+  get noStopRadioElem() : Radio {
+    return this.shadowRoot!.getElementById("no-stop-radio") as Radio;
   }
 
   get fixedStopRadioElem() : Radio {
@@ -155,23 +153,18 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._tagChk.checked = originalPlay.space.meta.canTag;
     this._tagVisibleChk.disabled = !originalPlay.space.meta.canTag;
     this._tagVisibleChk.checked = originalPlay.space.meta.tagVisible;
-    this._tagAsMarkerChk.disabled = !originalPlay.space.meta.tagVisible;
-    this._tagAsMarkerChk.checked = originalPlay.space.meta.tagAsMarker;
     this._predefinedTagsField.disabled = !originalPlay.space.meta.canTag;
     this._predefinedTagsField.value = originalPlay.space.meta.predefinedTags.join();
     // - Slider
-    this._canSliderChk.checked = originalPlay.space.meta.canSlider;
-    this._sliderAxisLabelField.value = originalPlay.space.meta.sliderAxisLabel;
-    this.fixedStopRadioElem.disabled = !originalPlay.space.meta.canSlider;
-    this.generativeStopRadioElem.disabled = !originalPlay.space.meta.canSlider;
-    this.fixedStopRadioElem.checked = originalPlay.space.meta.stopCount > 0;
-    this.generativeStopRadioElem.checked = originalPlay.space.meta.stopCount < 0;
-    this._stopCountField.value = originalPlay.space.meta.stopCount.toString();
-    this._stopLabelsField.value = originalPlay.space.meta.stopLabels.join();
-    this._stopCountField.disabled = !originalPlay.space.meta.canSlider || !this.fixedStopRadioElem.checked;
-    this._stopLabelsField.disabled = !originalPlay.space.meta.canSlider || !this.fixedStopRadioElem.checked;
+    this.noStopRadioElem.checked = originalPlay.space.meta.sessionCount == 0;
+    this.fixedStopRadioElem.checked = originalPlay.space.meta.sessionCount > 1;
+    this.generativeStopRadioElem.checked = originalPlay.space.meta.sessionCount < 0;
+    this._stopCountField.value = originalPlay.space.meta.sessionCount.toString();
+    this._stopLabelsField.value = originalPlay.space.meta.sessionLabels.join();
+    this._stopCountField.disabled = !this.fixedStopRadioElem.checked;
+    this._stopLabelsField.disabled = !this.fixedStopRadioElem.checked;
+    this._canModifyPastChk.disabled = !this.generativeStopRadioElem.checked;
     this._canModifyPastChk.checked = originalPlay.space.meta.canModifyPast;
-    this._canModifyPastChk.disabled = !originalPlay.space.meta.canSlider || !this.generativeStopRadioElem.checked;
 
     /** Templated fields */
     for (let [key, value] of originalPlay.space.meta.subMap!) {
@@ -248,12 +241,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       this._uiField.setCustomValidity("Invalid UI Object: " + e)
       this._uiField.reportValidity()
     }
-    // Slider
-    if (this._canSliderChk.checked) {
-      isValid &&= this._sliderAxisLabelField.validity.valid
-      if (!this._sliderAxisLabelField.validity.valid) {
-        this._sliderAxisLabelField.reportValidity()
-      }
+    // Iterations
+    //if (this._canSliderChk.checked) {
+    //   isValid &&= this._sliderAxisLabelField.validity.valid
+    //   if (!this._sliderAxisLabelField.validity.valid) {
+    //     this._sliderAxisLabelField.reportValidity()
+    //   }
       const isRadioChecked = this.fixedStopRadioElem.checked || this.generativeStopRadioElem.checked
       isValid &&= isRadioChecked
       if (!isRadioChecked) {
@@ -276,7 +269,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           }
         }
       }
-    }
+    //}
     // Finish Validation
     if (!isValid) return
 
@@ -291,29 +284,28 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._currentMeta.singleEmoji = singleEmojiElem? singleEmojiElem.innerText: "";
     // - Tag
     this._currentMeta.multi = this._multiChk.checked;
-    this._currentMeta.tagAsMarker = this._tagAsMarkerChk.checked;
     this._currentMeta.predefinedTags = this._predefinedTagsField.value.split(",")
-    // - Slider
-    this._currentMeta.sliderAxisLabel = this._sliderAxisLabelField.value;
-    this._currentMeta.stopCount = this._stopCountField.value? parseInt(this._stopCountField.value) : 2;
-    this._currentMeta.stopLabels = this._stopLabelsField.value.split(",")
+    // - Iterations
+    this._currentMeta.sessionCount = this._stopCountField.value? parseInt(this._stopCountField.value) : 2;
+    this._currentMeta.sessionLabels = this._stopLabelsField.value.split(",")
     // - Session names
     let sessionNames: string[] = [];
-    if (this._currentMeta.canSlider) {
+    //if (this._currentMeta.canSlider) {
       if (this.generativeStopRadioElem.checked) {
-        this._currentMeta.stopCount = -2
+        this._currentMeta.sessionCount = -2
         const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
         sessionNames = [today];
-      } else {
-        if (this._currentMeta.stopLabels.length == 1 && this._currentMeta.stopLabels[0] == "") {
-          for (let i = 1; i <= this._currentMeta.stopCount; i++) {
+      }
+      if (this.fixedStopRadioElem.checked) {
+        if (this._currentMeta.sessionLabels.length == 1 && this._currentMeta.sessionLabels[0] == "") {
+          for (let i = 1; i <= this._currentMeta.sessionCount; i++) {
             sessionNames.push(i.toString());
           }
         } else {
-          sessionNames = this._currentMeta.stopLabels;
+          sessionNames = this._currentMeta.sessionLabels;
         }
       }
-    }
+    //}
 
     /** Create and share new Play */
     const newSpaceEh = await this._store.newPlay({
@@ -351,11 +343,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // - Tags
     this._tagChk.checked = false;
     this._tagVisibleChk.checked = false;
-    this._tagAsMarkerChk.checked = false;
     this._predefinedTagsField.value = ''
-    // - Sliders
-    this._canSliderChk.checked = false;
-    this._sliderAxisLabelField.value = ''
+    // - Sessions
     this.fixedStopRadioElem.checked = false;
     this.generativeStopRadioElem.checked = false;
     this._stopCountField.value = "2"
@@ -571,19 +560,19 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
-  handleCanSliderClick(e: any) {
-    this._currentMeta.canSlider = !this._currentMeta.canSlider;
-    this.requestUpdate()
-  }
-
   handleCanModifyPastClick(e: any) {
     this._currentMeta.canModifyPast = !this._currentMeta.canModifyPast;
     this.requestUpdate()
   }
 
-  handleStopTypeChange(e: any) {
-    const fixedStopRadio = this.shadowRoot!.getElementById("fixed-stop-radio") as Radio;
-    this._currentMeta.stopCount = fixedStopRadio!.checked? parseInt(fixedStopRadio.value) : -parseInt(fixedStopRadio.value);
+  handleIterationTypeChange(e: any) {
+    const oneIterationRadio = this.shadowRoot!.getElementById("no-stop-radio") as Radio;
+    const manyIterationRadio = this.shadowRoot!.getElementById("fixed-stop-radio") as Radio;
+    if (oneIterationRadio.checked) {
+      this._currentMeta.sessionCount = 0
+    } else {
+      this._currentMeta.sessionCount = manyIterationRadio!.checked ? parseInt(manyIterationRadio.value) : -parseInt(manyIterationRadio.value);
+    }
     this.requestUpdate()
   }
 
@@ -818,49 +807,44 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   </mwc-formfield>
   <!-- Tags -->
   <h3 style="margin-top:25px;margin-bottom:10px;">Tags</h3>
-  <mwc-formfield label="Enable tag per marker">
+  <mwc-formfield label="Enable marker tagging">
     <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
   </mwc-formfield>
   <mwc-formfield label="Display tag on surface" style="margin-left:10px">
     <mwc-checkbox id="tag-visible-chk" .disabled="${!this._currentMeta.canTag}" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
   </mwc-formfield>
-  <mwc-formfield label="Display tag as marker" style="margin-left:20px">
-    <mwc-checkbox id="tag-as-marker-chk" .disabled="${!this._currentMeta.tagVisible || !this._currentMeta.canTag }"></mwc-checkbox>
   </mwc-formfield>
   <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
                  id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
   </mwc-textfield>
-  <!-- Time Slider -->
-  <h3 style="margin-top:15px;margin-bottom:-5px;">Slider</h3>
-  <mwc-formfield label="Use slider" style="display:inline-block;margin-right:10px;">
-    <mwc-checkbox id="can-slider-chk" @click=${this.handleCanSliderClick}></mwc-checkbox>
+  <!-- Sessions -->
+  <h3 style="margin-top:15px;margin-bottom:5px;">Iterations</h3>
+  <!-- Steps Type -->
+  <mwc-formfield label="None">
+    <mwc-radio id="no-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
   </mwc-formfield>
-  <mwc-textfield outlined type="text" .disabled="${!this._currentMeta.canSlider}" style="display:inline-flex;"
-                 id="slider-axis-label-field" minlength="3" maxlength="32" label="Axis label" autoValidate=true required></mwc-textfield>
-  <!-- Stops Type -->
-  <h4 style="margin-bottom:10px;margin-left:5px">Stops</h4>
   <!-- Fixed Stops -->
-  <mwc-formfield label="Fixed number of stops">
-    <mwc-radio id="fixed-stop-radio" name="a" value="fixed" .disabled="${!this._currentMeta.canSlider}" @change=${this.handleStopTypeChange}></mwc-radio>
+  <mwc-formfield label="Predefined">
+    <mwc-radio id="fixed-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
   </mwc-formfield>
   <div id="fixed-stops-div" style="margin-left:30px;margin-top:5px;">
     <mwc-textfield id="stop-count-field" outlined type="number" style="margin-right:10px;width:90px;"
-                   .disabled="${!this._currentMeta.canSlider || !isFixedSelected}"
+                   .disabled="${!isFixedSelected}"
                    label="Number" helper="min:2" min="2" pattern="[0-9]+" minlength="3" maxlength="4"
-                   value="${this._currentMeta.stopCount}" autoValidate=true required>
+                   value="${this._currentMeta.sessionCount}" autoValidate=true required>
     </mwc-textfield>
     <mwc-textfield id="stop-labels-field" outlined type="text"  style="flex-grow:5;"
-                   .disabled="${!this._currentMeta.canSlider || !isFixedSelected}" label="Stop labels"
+                   .disabled="${!isFixedSelected}" label="labels"
                    helper="comma separated text, leave empty for just numbers">
     </mwc-textfield>
   </div>
   <!-- Generative Stops -->
-  <mwc-formfield label="New stop every day">
-    <mwc-radio id="generative-stop-radio" name="a" value="generative" .disabled="${!this._currentMeta.canSlider}" @change=${this.handleStopTypeChange}></mwc-radio>
+  <mwc-formfield label="One per day">
+    <mwc-radio id="generative-stop-radio" name="a" value="generative" @change=${this.handleIterationTypeChange}></mwc-radio>
   </mwc-formfield>
   <div id="generative-stops-div" style="margin-left:20px;min-height:50px;">
-    <mwc-formfield label="Allow modification of past stops">
-    <mwc-checkbox id="can-modify-past-chk" .disabled="${!this._currentMeta.canSlider || isFixedSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
+    <mwc-formfield label="Allow modification of past iterations">
+    <mwc-checkbox id="can-modify-past-chk" .disabled="${isFixedSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
     </mwc-formfield>
   </div>
   <!-- Dialog buttons -->
@@ -911,6 +895,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "mwc-formfield": Formfield,
       "mwc-checkbox": Checkbox,
       "mwc-radio": Radio,
+      "mwc-tab": Tab,
+      "mwc-tab-bar": TabBar,
       "where-emoji-group-dialog" : WhereEmojiGroupDialog,
       "where-svg-marker-dialog" : WhereSvgMarkerDialog,
       "emoji-picker": customElements.get('emoji-picker'),

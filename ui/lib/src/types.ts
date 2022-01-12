@@ -108,12 +108,10 @@ export interface PlayMeta {
   tagVisible: boolean,
   tagAsMarker: boolean,
   predefinedTags: string[],
-  // Slider
-  canSlider: boolean,
-  sliderAxisLabel: string,
-  stopCount: number,
+  // Session
+  sessionCount: number,
   canModifyPast: boolean,
-  stopLabels: string[],
+  sessionLabels: string[],
 }
 
 
@@ -205,12 +203,10 @@ export function defaultPlayMeta(): PlayMeta {
     tagVisible: false,
     tagAsMarker: false,
     predefinedTags: [],
-    // Slider
-    canSlider: false,
-    sliderAxisLabel: "",
-    stopCount: 2,
+    // Sessions
+    sessionCount: 2,
     canModifyPast: true,
-    stopLabels: [],
+    sessionLabels: [],
   } as PlayMeta
 }
 

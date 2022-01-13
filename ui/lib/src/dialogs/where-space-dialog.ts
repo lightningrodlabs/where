@@ -556,6 +556,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   handleCanTagClick(e: any) {
     this._currentMeta.canTag = !this._currentMeta.canTag;
+    this._tagVisibleChk.disabled = !this._currentMeta.canTag;
     this.requestUpdate()
   }
 
@@ -674,6 +675,25 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  private async handleTabSelected(e: any) {
+    console.log("handleTabSelected: " + e.detail.index)
+    //const selectedSessionEh = this._sessions[e.detail.index];
+    //this._store.updateCurrentSession(this.currentSpaceEh!, selectedSessionEh);
+
+    let surfaceTab = this.shadowRoot!.getElementById("surface-tab-div") as HTMLElement;
+    let locationsTab = this.shadowRoot!.getElementById("locations-tab-div") as HTMLElement;
+    let iterationsTab = this.shadowRoot!.getElementById("iterations-tab-div") as HTMLElement;
+    let advancedTab = this.shadowRoot!.getElementById("advanced-tab-div") as HTMLElement;
+
+    surfaceTab.style.display = e.detail.index == 0? "block" : "none";
+    locationsTab.style.display = e.detail.index == 1? "block" : "none";
+    iterationsTab.style.display = e.detail.index == 2? "block" : "none";
+    advancedTab.style.display = e.detail.index == 3? "block" : "none";
+
+    this.requestUpdate();
+  }
+
+
   render() {
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
@@ -779,90 +799,105 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Main Render */
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
-  <!-- Name -->
-  <mwc-textfield outlined dialogInitialFocus type="text"
-                 @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <!-- Template/Surface -->
-  <h3 style="margin-bottom: 15px;">Surface</h3>
-  ${this.renderSurfacePreview()}
-  <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
-      ${Object.entries(this._templates.value).map(
-        ([key, template]) => html`
-        <mwc-list-item
-          @request-selected=${() => this.handleTemplateSelect(key)}
-          .selected=${this._templates.value[key].name === this._currentTemplate!.name}
-          value="${key}"
-          >${template.name}
-        </mwc-list-item>
-      `)}
-  </mwc-select>
-  ${selectedTemplateUi}
-  <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-  <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
-  <!-- UI BOX -->
-  <details style="margin-top:10px;">
-  <summary>Extra UI elements</summary>
-    <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
-                  id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60">
-    </mwc-textarea>
-  </details>
-  <!--  Marker -->
-  <h3 style="margin-top:25px;margin-bottom:10px;">Markers</h3>
-  <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
-    <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType.Avatar)}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType.Initials)}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">Colored SVG ${this.renderMarkerTypePreview(MarkerType.SvgMarker)}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType.SingleEmoji)}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType.EmojiGroup)}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType.AnyEmoji)}</mwc-list-item>
-    <mwc-list-item value="${MarkerType[MarkerType.Tag]}">Tag ${this.renderMarkerTypePreview(MarkerType.Tag)}</mwc-list-item>
-  </mwc-select>
-  ${maybeMarkerTypeItems}
-  <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">
-    <mwc-checkbox id="multi-chk"></mwc-checkbox>
-  </mwc-formfield>
-  <!-- Tags -->
-  <h3 style="margin-top:25px;margin-bottom:10px;">Tags</h3>
-  <mwc-formfield label="Enable marker tagging">
-    <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
-  </mwc-formfield>
-  <mwc-formfield id="tag-chk-lbl" label="Display tag on surface" style="margin-left:10px">
-    <mwc-checkbox id="tag-visible-chk" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
-  </mwc-formfield>
-  </mwc-formfield>
-  <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
-                 id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
-  </mwc-textfield>
-  <!-- Sessions -->
-  <h3 style="margin-top:15px;margin-bottom:5px;">Iterations</h3>
-  <!-- Steps Type -->
-  <mwc-formfield label="None">
-    <mwc-radio id="no-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
-  </mwc-formfield>
-  <!-- Fixed Stops -->
-  <mwc-formfield label="Predefined">
-    <mwc-radio id="fixed-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
-  </mwc-formfield>
-  <div id="fixed-stops-div" style="margin-left:30px;margin-top:5px;">
-    <mwc-textfield id="stop-count-field" outlined type="number" style="margin-right:10px;width:90px;"
-                   .disabled="${!isFixedSelected}"
-                   label="Number" helper="min:2" min="2" pattern="[0-9]+" minlength="3" maxlength="4"
-                   value="${this._currentMeta.sessionCount}" autoValidate=true required>
-    </mwc-textfield>
-    <mwc-textfield id="stop-labels-field" outlined type="text"  style="flex-grow:5;"
-                   .disabled="${!isFixedSelected}" label="labels"
-                   helper="comma separated text, leave empty for just numbers">
-    </mwc-textfield>
+  <mwc-tab-bar id="space-tab-bar" @MDCTabBar:activated=${this.handleTabSelected} style="margin-bottom:10px;">
+    <mwc-tab label="Surface"></mwc-tab>
+    <mwc-tab label="Locations"></mwc-tab>
+    <mwc-tab label="Iterations"></mwc-tab>
+    <mwc-tab label="Advanced"></mwc-tab>
+  </mwc-tab-bar>
+  <!-- Name & Surface -->
+  <div id="surface-tab-div">
+    ${this.renderSurfacePreview()}
+    <mwc-textfield outlined dialogInitialFocus type="text"
+                   @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
+                   id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+    <!-- Template/Surface -->
+      <!-- <h3 style="margin-bottom: 15px;">Surface</h3>-->
+    <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
+        ${Object.entries(this._templates.value).map(
+          ([key, template]) => html`
+          <mwc-list-item
+            @request-selected=${() => this.handleTemplateSelect(key)}
+            .selected=${this._templates.value[key].name === this._currentTemplate!.name}
+            value="${key}"
+            >${template.name}
+          </mwc-list-item>
+        `)}
+    </mwc-select>
+    ${selectedTemplateUi}
+    <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+    <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
   </div>
-  <!-- Generative Stops -->
-  <mwc-formfield label="One per day">
-    <mwc-radio id="generative-stop-radio" name="a" value="generative" @change=${this.handleIterationTypeChange}></mwc-radio>
-  </mwc-formfield>
-  <div id="generative-stops-div" style="margin-left:20px;min-height:50px;">
-    <mwc-formfield label="Allow modification of past iterations">
-    <mwc-checkbox id="can-modify-past-chk" .disabled="${!isGenSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
+  <!--  Marker -->
+  <div id="locations-tab-div">
+    <h4 style="margin-top:25px;margin-bottom:10px;">Marker</h4>
+    <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
+      <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType.Avatar)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType.Initials)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">Colored SVG ${this.renderMarkerTypePreview(MarkerType.SvgMarker)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType.SingleEmoji)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType.EmojiGroup)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType.AnyEmoji)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.Tag]}">Tag ${this.renderMarkerTypePreview(MarkerType.Tag)}</mwc-list-item>
+    </mwc-select>
+    ${maybeMarkerTypeItems}
+    <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">
+      <mwc-checkbox id="multi-chk"></mwc-checkbox>
     </mwc-formfield>
+    <!-- Tags -->
+    <h4 style="margin-top:25px;margin-bottom:10px;">Tagging</h4>
+    <mwc-formfield label="Enable marker tagging">
+      <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
+    </mwc-formfield>
+    <mwc-formfield id="tag-chk-lbl" label="Display tag on surface" style="margin-left:10px">
+      <mwc-checkbox id="tag-visible-chk" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
+    </mwc-formfield>
+    </mwc-formfield>
+    <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
+                   id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
+    </mwc-textfield>
+    <div style="min-height: 150px;"></div>
+  </div>
+  <!-- Iterations -->
+  <div id="iterations-tab-div">
+    <h4 style="margin-top:15px;margin-bottom:5px;">Iterations</h4>
+    <!-- None -->
+    <mwc-formfield label="None">
+      <mwc-radio id="no-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
+    </mwc-formfield>
+    <!-- Predefined Iterations -->
+    <mwc-formfield label="Predefined">
+      <mwc-radio id="fixed-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
+    </mwc-formfield>
+    <div id="fixed-stops-div" style="margin-left:30px;margin-top:5px;">
+      <mwc-textfield id="stop-count-field" outlined type="number" style="margin-right:10px;width:90px;"
+                     .disabled="${!isFixedSelected}"
+                     label="Number" helper="min:2" min="2" pattern="[0-9]+" minlength="3" maxlength="4"
+                     value="${this._currentMeta.sessionCount}" autoValidate=true required>
+      </mwc-textfield>
+      <mwc-textfield id="stop-labels-field" outlined type="text"  style="flex-grow:5;"
+                     .disabled="${!isFixedSelected}" label="labels"
+                     helper="comma separated text, leave empty for just numbers">
+      </mwc-textfield>
+    </div>
+    <!-- Generative Iterations -->
+    <mwc-formfield label="One per day">
+      <mwc-radio id="generative-stop-radio" name="a" value="generative" @change=${this.handleIterationTypeChange}></mwc-radio>
+    </mwc-formfield>
+    <div id="generative-stops-div" style="margin-left:20px;min-height:50px;">
+      <mwc-formfield label="Allow modification of past iterations">
+      <mwc-checkbox id="can-modify-past-chk" .disabled="${!isGenSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
+      </mwc-formfield>
+    </div>
+  </div>
+  <!-- UI BOX -->
+  <div id="advanced-tab-div">
+      <!-- <details style="margin-top:10px;"> -->
+      <h4>Extra UI elements</h4>
+      <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
+                    id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="8" cols="60">
+      </mwc-textarea>
+    <!-- </details> -->
   </div>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>

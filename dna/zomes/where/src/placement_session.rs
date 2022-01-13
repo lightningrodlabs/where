@@ -23,7 +23,7 @@ pub struct PlacementSession {
 /// Argument is a Space so we are sure the hh is valid
 pub fn create_session(space: Space, name: String, index: u32) -> ExternResult<EntryHashB64> {
   let space_eh = hash_entry(space.clone())?;
-  let session = PlacementSession{ name, index, space_eh: space_eh.clone().into() };
+  let session = PlacementSession { name, index, space_eh: space_eh.clone().into() };
   let session_eh = hash_entry(session.clone())?;
   let _hh = create_entry(session.clone())?;
 
@@ -68,7 +68,7 @@ pub fn get_session_from_eh(eh: EntryHashB64) -> ExternResult<Option<PlacementSes
   let maybe_session = match get_latest_entry(eh.clone().into(), Default::default()) {
     Ok(entry) => match PlacementSession::try_from(entry.clone()) {
       Ok(e) => {Some(e)},
-      Err(_) => return error("No PlacementSession found at given EntryHash"),
+      Err(_) => return error(&format!("No PlacementSession found at given EntryHash: {:?}", eh)),
     },
     _ => return Ok(None),
   };

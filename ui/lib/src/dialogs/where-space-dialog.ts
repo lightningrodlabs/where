@@ -230,10 +230,35 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
    */
   private async handleOk(e: any) {
     /** Check validity */
+
+    let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
+    let locationsTab = this.shadowRoot!.getElementById("locations-tab") as SlTab;
+    let iterationsTab = this.shadowRoot!.getElementById("iterations-tab") as SlTab;
+    let advancedTab = this.shadowRoot!.getElementById("advanced-tab") as SlTab;
+    generalTab.tab.style.color = "grey";
+    locationsTab.tab.style.color = "grey";
+    iterationsTab.tab.style.color = "grey";
+    advancedTab.tab.style.color = "grey";
+
+    /** Advanced Tab */
+    let isAdvancedValid = true;
+    // uiField
+    let ui: UiItem[] = [];
+    try {
+      ui = JSON.parse(this._uiField.value)
+    }
+    catch(e) {
+      isAdvancedValid = false;
+      advancedTab.tab.style.color = "red";
+      this._uiField.setCustomValidity("Invalid UI Object: " + e)
+      this._uiField.reportValidity()
+    }
+
+    /** General Tab */
     // nameField
-    let isValid = this._nameField.validity.valid
-    isValid &&= this._widthField.validity.valid
-    isValid &&= this._heightField.validity.valid
+    let isGeneralValid = this._nameField.validity.valid
+    isGeneralValid &&= this._widthField.validity.valid
+    isGeneralValid &&= this._heightField.validity.valid
 
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
@@ -245,19 +270,20 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!this._heightField.validity.valid) {
       this._heightField.reportValidity()
     }
-    // uiField
-    let ui: UiItem[] = [];
-    try {
-      ui = JSON.parse(this._uiField.value)
+
+    if (!isGeneralValid) {
+      generalTab.tab.style.color = "red";
     }
-    catch(e) {
-      isValid = false;
-      this._uiField.setCustomValidity("Invalid UI Object: " + e)
-      this._uiField.reportValidity()
-    }
+
+    /** Locations Tab */
+    let isLocationsValid = true;
+    // n/a
+
+    /** Iterations Tab */
+    let isIterationsValid = true;
     // Iterations
     if (this.fixedStopRadioElem.checked) {
-      isValid &&= this._sessionCountField.validity.valid;
+      isIterationsValid &&= this._sessionCountField.validity.valid;
       if (!this._sessionCountField.validity.valid) {
         this._sessionCountField.reportValidity()
       }
@@ -265,14 +291,20 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       if (this._sessionLabelsField.value != "") {
         const strs = this._sessionLabelsField.value.split(",");
         const isStopLabelsValid = strs.length == parseInt(this._sessionCountField.value);
-        isValid &&= isStopLabelsValid
+        isIterationsValid &&= isStopLabelsValid
         if (!isStopLabelsValid) {
           this._sessionLabelsField.setCustomValidity("Label count mismatch")
           this._sessionLabelsField.reportValidity()
         }
       }
     }
-    // Finish Validation
+
+    if (!isIterationsValid) {
+      iterationsTab.tab.style.color = "red";
+    }
+
+    /** Finish Validation */
+    let isValid = isGeneralValid && isAdvancedValid && isIterationsValid && isLocationsValid;
     if (!isValid) return
 
     /** Generate PlayMeta */
@@ -327,6 +359,20 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
 
   resetAllFields(canResetName?: boolean) {
+
+    let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
+    let locationsTab = this.shadowRoot!.getElementById("locations-tab") as SlTab;
+    let iterationsTab = this.shadowRoot!.getElementById("iterations-tab") as SlTab;
+    let advancedTab = this.shadowRoot!.getElementById("advanced-tab") as SlTab;
+    generalTab.tab.style.color = "grey";
+    locationsTab.tab.style.color = "grey";
+    iterationsTab.tab.style.color = "grey";
+    advancedTab.tab.style.color = "grey";
+
+    // set first tab
+    let tabGroup = this.shadowRoot!.getElementById("space-tab-group") as SlTabGroup;
+    tabGroup.setActiveTab(generalTab);
+
     if (canResetName === undefined || canResetName) this._nameField.value = ''
     this._currentMeta = defaultPlayMeta()
     // - Surface
@@ -779,11 +825,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Main Render */
     return html`
 <mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
-  <sl-tab-group>
-    <sl-tab slot="nav" panel="general">GENERAL</sl-tab>
-    <sl-tab slot="nav" panel="locations">LOCATIONS</sl-tab>
-    <sl-tab slot="nav" panel="iterations">ITERATIONS</sl-tab>
-    <sl-tab slot="nav" panel="advanced">ADVANCED</sl-tab>
+  <sl-tab-group id="space-tab-group">
+    <sl-tab id="general-tab" slot="nav" panel="general">GENERAL</sl-tab>
+    <sl-tab id="locations-tab" slot="nav" panel="locations">LOCATIONS</sl-tab>
+    <sl-tab id="iterations-tab" slot="nav" panel="iterations">ITERATIONS</sl-tab>
+    <sl-tab id="advanced-tab" slot="nav" panel="advanced">ADVANCED</sl-tab>
 
   <!-- Name & Surface -->
   <sl-tab-panel name="general">
@@ -869,7 +915,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       <mwc-checkbox id="can-modify-past-chk" .disabled="${!isGenSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
       </mwc-formfield>
     </div>
-    <div style="min-height: 230px;"></div>
+    <div style="min-height: 220px;"></div>
   </sl-tab-panel>
   <!-- UI BOX -->
   <sl-tab-panel name="advanced">
@@ -879,7 +925,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
                     id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="20" cols="60">
       </mwc-textarea>
     <!-- </details> -->
-    <div style="min-height: 42px;"></div>
+    <div style="min-height: 37px;"></div>
   </sl-tab-panel>
   </sl-tab-group>
 

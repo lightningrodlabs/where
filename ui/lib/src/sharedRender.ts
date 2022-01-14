@@ -1,11 +1,13 @@
 import {html, svg} from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {Dictionary, MarkerType, SvgMarkerEntry, TemplateEntry, UiItem} from "./types";
+import {Dictionary, LocationMeta, MarkerType, Play, SvgMarkerEntry, TemplateEntry, UiItem} from "./types";
 import {SlAvatar} from "@scoped-elements/shoelace";
 
 export const MARKER_WIDTH = 40;
 export const EMOJI_WIDTH  = 32;
+
+export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 
 function getInitials(nickname: string): string {
   const names = nickname.split(' ');
@@ -42,7 +44,7 @@ export function renderUiItems(ui: UiItem[], zx: number, zy: number) {
 }
 
 
-export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
+export function renderMarker(locMeta: LocationMeta, isMe: boolean) {
   let marker;
   const classes = isMe? "me" : "";
   const myStyle = `background-color:${locMeta.color}; border:${locMeta.color} 2px solid`;
@@ -50,7 +52,7 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
   //console.log("locMeta.markerType: " + locMeta.markerType)
   //console.log({locMeta})
   switch (locMeta.markerType) {
-    case MarkerType[MarkerType.Avatar]:
+    case MarkerType.Avatar:
       // Use an image url if stored in the Location, otherwise use the agent's avatar
       if (locMeta.img === "") {
         marker = html`<sl-avatar class=${classes} style=${myStyle}><div slot="icon"></div></sl-avatar>`
@@ -58,20 +60,21 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
         marker = html`<sl-avatar class=${classes} .image=${locMeta.img} style=${myStyle}><div slot="icon"></div></sl-avatar>`
       }
       break;
-    case MarkerType[MarkerType.SvgMarker]:
+    case MarkerType.SvgMarker:
       //const pin = render_pin(locMeta.color)
       const svgMarker = renderSvgMarker(locMeta.svgMarker, locMeta.color)
       marker = html`<div class="svg-marker">${svgMarker}</div>`
       break;
-    case MarkerType[MarkerType.SingleEmoji]:
-    case MarkerType[MarkerType.EmojiGroup]:
-    case MarkerType[MarkerType.AnyEmoji]:
+    case MarkerType.SingleEmoji:
+    case MarkerType.EmojiGroup:
+    case MarkerType.AnyEmoji:
       //marker = html `<sl-avatar class="${classes} emoji-marker" initials=${locMeta.emoji}></sl-avatar>`
       marker = html `<div class="emoji-marker">${locMeta.emoji}</div>`
       break;
-    case MarkerType[MarkerType.Initials]:
-      marker = html `<sl-avatar class="${classes} initials-marker" initials=${getInitials(locMeta.name)}></sl-avatar>`
+    case MarkerType.Initials:
+      marker = html `<sl-avatar class="${classes} initials-marker" initials=${getInitials(locMeta.authorName)}></sl-avatar>`
       break;
+    case MarkerType.Tag:
     default:
       break;
   }
@@ -80,8 +83,8 @@ export function renderMarker(locMeta: Dictionary<string>, isMe: boolean) {
 }
 
 
-export function renderSurface(space: any, w: number, h: number) {
-  const surface = space.surface;
+export function renderSurface(play: Play, w: number, h: number) {
+  const surface = play.space.surface;
   //html
   if (surface.html) {
     return html`<div style="width: ${w}px; height: ${h}px;" >
@@ -101,7 +104,7 @@ export function renderSurface(space: any, w: number, h: number) {
   }
   // canvas
   return html`
-    <canvas id="${space.name}-canvas" width="${w}" height="${h}"
+    <canvas id="${play.space.name}-canvas" width="${w}" height="${h}"
             style="border:1px solid #2278da;">`
 }
 

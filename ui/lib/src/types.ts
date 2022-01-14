@@ -11,26 +11,41 @@ export type Dictionary<T> = { [key: string]: T };
 
 /** A 'Location' is a deserialized 'Here' with a {x,y} object as value */
 
+/** A 'Play' is a live 'Space' with locations and sessions */
+
 export interface LocationInfo {
   location: Location;
-  hash: HeaderHashB64;
+  linkHh: HeaderHashB64;
   authorPubKey: AgentPubKeyB64;
 }
 
 export interface HereInfo {
   entry: HereEntry,
-  hash: HeaderHashB64;
+  linkHh: HeaderHashB64;
   author: AgentPubKeyB64,
 }
 
 export interface HereEntry {
   value: string;
+  sessionEh: EntryHashB64,
   meta: Dictionary<string>;
 }
 
+
 export interface Location {
   coord: Coord;
-  meta: Dictionary<string>;
+  sessionEh: EntryHashB64,
+  meta: LocationMeta;
+}
+
+export interface LocationMeta {
+  markerType: MarkerType,
+  tag: string,
+  img: any,
+  color: string,
+  authorName: string,
+  emoji: string,
+  svgMarker: string,
 }
 
 export type LocOptions = {
@@ -46,6 +61,18 @@ export interface Coord {
   y: number;
 }
 
+export interface PlacementSession {
+  name: string,
+  index: number,
+  locations: (LocationInfo | null)[];
+}
+
+export interface PlacementSessionEntry {
+  name: string,
+  index: number,
+  spaceEh: EntryHashB64,
+}
+
 export interface SpaceEntry {
   name: string;
   origin: EntryHashB64;
@@ -53,26 +80,38 @@ export interface SpaceEntry {
   meta?: Dictionary<string>;
 }
 
-export interface Space  {
+export interface Space {
   name: string;
   origin: EntryHashB64;
   surface: any;
+  meta: PlayMeta;
+}
+
+export interface Play {
+  space: Space,
   visible: boolean;
-  locations: (LocationInfo | null)[];
-  meta: SpaceMeta;
+  sessions: Dictionary<PlacementSession>,
 }
 
 
-export interface SpaceMeta {
+export interface PlayMeta {
+  ui: UiItem[],
   subMap: Map<string, string>,
+  // Marker
   markerType: MarkerType,
-  multi: boolean,
-  canTag: boolean,
-  tagVisible: boolean,
   singleEmoji: string,
   emojiGroup: EntryHashB64 | null,
   svgMarker: EntryHashB64 | null,
-  ui: UiItem[],
+  // Tag
+  multi: boolean,
+  canTag: boolean,
+  tagVisible: boolean,
+  tagAsMarker: boolean,
+  predefinedTags: string[],
+  // Session
+  sessionCount: number,
+  canModifyPast: boolean,
+  sessionLabels: string[],
 }
 
 
@@ -97,6 +136,7 @@ export enum MarkerType {
   Initials,
   SingleEmoji,
   EmojiGroup,
+  Tag,
 }
 
 export enum TemplateType {
@@ -123,26 +163,61 @@ export interface EmojiGroupEntry {
 
 export type Signal =
   | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "Ping", content: AgentPubKeyB64 }
+    maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "Ping", content: AgentPubKeyB64 }
   }
   | {
-  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "Pong", content: AgentPubKeyB64 }
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "Pong", content: AgentPubKeyB64 }
 }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewSpace", content:  SpaceEntry}
-  }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewHere", content:  HereInfo}
-  }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "DeleteHere", content: HeaderHashB64}
-  }
-    | {
-    spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewTemplate", content: TemplateEntry}
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewHere", content:  HereInfo}
   }
   | {
-  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EmojiGroupEntry}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, HeaderHashB64]}
   }
   | {
-  spaceHash: EntryHashB64, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: SvgMarkerEntry }
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: SpaceEntry}
+}
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: [EntryHashB64, TemplateEntry]}
   }
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: [EntryHashB64, EmojiGroupEntry]}
+  }
+  | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: [EntryHashB64, SvgMarkerEntry] }
+  }
+
+
+export function defaultPlayMeta(): PlayMeta {
+  return  {
+    subMap: new Map(),
+    ui: [],
+    // Marker
+    markerType: MarkerType.Avatar,
+    multi: false,
+    singleEmoji: "😀",
+    emojiGroup: null,
+    svgMarker: null,
+    // Tag
+    canTag: false,
+    tagVisible: false,
+    tagAsMarker: false,
+    predefinedTags: [],
+    // Sessions
+    sessionCount: 2,
+    canModifyPast: true,
+    sessionLabels: [],
+  } as PlayMeta
+}
+
+export function defaultLocationMeta(): LocationMeta {
+  return  {
+  markerType: MarkerType.Tag,
+    tag: "",
+    img: "",
+    color: "",
+    authorName: "",
+    emoji: "",
+    svgMarker: "",
+  } as LocationMeta
+}

@@ -1,61 +1,98 @@
 use hdk::prelude::*;
 
+use hc_utils::*;
 use std::collections::BTreeMap;
 use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
-use crate::error::*;
+use crate::{
+    error::*,
+    placement_session::*,
+};
 
 /// Here entry definition
 #[hdk_entry(id = "here")]
 #[derive(Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Here {
-    value: String, // a location in a some arbitrary space (Json encoded)
+    value: String, // a location in some arbitrary space (Json encoded)
+    session_eh: EntryHashB64,
     meta: BTreeMap<String, String>, // contextualized meaning of the value
 }
 
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
-pub struct HereInput {
-    pub space: EntryHashB64,
-    pub entry: Here,
+#[serde(rename_all = "camelCase")]
+pub struct AddHereInput {
+    pub space_eh: EntryHashB64,
+    pub session_index: u32,
+    pub value: String,
+    pub meta: BTreeMap<String, String>,
 }
 
 #[hdk_extern]
-fn add_here(input: HereInput) -> ExternResult<HeaderHashB64> {
-    create_entry(&input.entry)?;
-    let hash = hash_entry(input.entry)?;
-    let header_hash = create_link(input.space.into(), hash, ())?;
-    Ok(header_hash.into())
+fn add_here(input: AddHereInput) -> ExternResult<HeaderHashB64> {
+    // Find session
+    let get_input = GetSessionInput {space_eh: input.space_eh.into(), index: input.session_index};
+    let maybe_session_eh = get_session(get_input)?;
+    let session_eh64: EntryHashB64 = match maybe_session_eh {
+        Some(eh) => eh.into(),
+        None => return error("Session not found"),
+    };
+    // Create and link 'Here'
+    let here = Here {value: input.value, session_eh: session_eh64.clone(), meta: input.meta};
+    let here_eh = hash_entry(here.clone())?;
+    create_entry(here.clone())?;
+    let link_hh = create_link(session_eh64.into(), here_eh, ())?;
+    Ok(link_hh.into())
 }
 
 #[hdk_extern]
-fn delete_here(input: HeaderHashB64) -> ExternResult<()> {
-    delete_link(input.into())?;
+fn delete_here(link_hh: HeaderHashB64) -> ExternResult<()> {
+    delete_link(link_hh.into())?;
     Ok(())
 }
 
 /// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
+#[serde(rename_all = "camelCase")]
 pub struct HereOutput {
     pub entry: Here,
-    pub hash: HeaderHashB64,
+    pub link_hh: HeaderHashB64,
     pub author: AgentPubKeyB64,
 }
 
+
+// #[hdk_extern]
+// fn get_heres2(spaceEh: EntryHashB64, sessionIndex: u32) -> ExternResult<Vec<HereOutput>> {
+//     let heres = get_heres_inner(sessionEh.into())?;
+//     Ok(heres)
+// }
+
+
 #[hdk_extern]
-fn get_heres(space: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
-    let heres = get_heres_inner(space.into())?;
+fn get_heres(session_eh: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
+    debug!("get_heres() called: {:?}", session_eh);
+    // make sure its a session
+    match get_latest_entry(session_eh.clone().into(), Default::default()) {
+        Ok(entry) => match PlacementSession::try_from(entry.clone()) {
+            Ok(_e) => {},
+            Err(_) => return error("get_heres(): No PlacementSession found at given EntryHash"),
+        },
+        _ => return error("get_heres(): No entry found at given EntryHash"),
+    }
+    // Get links
+    let heres = get_heres_inner(session_eh.into())?;
+    debug!("get_heres() result: {:?}", heres);
     Ok(heres)
 }
 
 fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
     let links = get_links(base.into(), None)?;
-
     let mut output = Vec::with_capacity(links.len());
-
     // for every link get details on the target and create the message
     for link in links.into_iter().map(|link| link) {
+        debug!("get_heres_inner() link: {:?}", link);
         let w = match get_details(link.target, GetOptions::content())? {
             Some(Details::Entry(EntryDetails {
                 entry, mut headers, ..
@@ -71,7 +108,7 @@ fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
                 // Create the output for the UI
                 HereOutput {
                     entry,
-                    hash: link.create_link_hash.into(),
+                    link_hh: link.create_link_hash.into(),
                     author: signed_header.header().author().clone().into()
                 }
             }
@@ -81,6 +118,5 @@ fn get_heres_inner(base: EntryHash) -> WhereResult<Vec<HereOutput>> {
         };
         output.push(w);
     }
-
     Ok(output)
 }

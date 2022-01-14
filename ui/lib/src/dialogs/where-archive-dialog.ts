@@ -30,7 +30,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Private properties */
-  _spaces = new StoreSubscriber(this, () => this._store.spaces);
+  _plays = new StoreSubscriber(this, () => this._store.plays);
 
   @query('#space-list')
   _spaceList!: List;
@@ -39,17 +39,17 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
   /** Methods */
 
   private async handleOk(e: any) {
-    // - Check for changes in visible status for each space
+    // - Check for changes in visible status for each play
     let changed = [];
     for (const item of this._spaceList.items) {
       const spaceEh = item.value;
       const visible = !item.selected;
-      if (this._spaces.value[spaceEh].visible != visible) {
+      if (this._plays.value[spaceEh].visible != visible) {
         changed.push(spaceEh)
         if (visible) {
-          await this._store.unhideSpace(spaceEh)
+          await this._store.unhidePlay(spaceEh)
         } else {
-          await this._store.hideSpace(spaceEh)
+          await this._store.hidePlay(spaceEh)
         }
       }
     }
@@ -69,13 +69,13 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
     return html`
 <mwc-dialog id="archive-dialog" heading="Archived Spaces" @opened=${this.handleDialogOpened}>
 <mwc-list id="space-list" multi>
-  ${Object.entries(this._spaces.value).map(
-    ([key, space]) => html`
+  ${Object.entries(this._plays.value).map(
+    ([key, play]) => html`
       <mwc-check-list-item
         left
         value="${key}"
-        .selected=${!space.visible}>
-            ${space.name}
+        .selected=${!play.visible}>
+            ${play.space.name}
       </mwc-check-list-item>
     `
   )}

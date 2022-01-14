@@ -45,7 +45,7 @@ export default async (orchestrator) => {
       if (signal.data.payload.message.type == 'NewSpace') {
         t.deepEqual(signal.data.payload.message.content, space1)
       } else {
-        t.deepEqual(signal.data.payload.message.content, template1)        
+        t.deepEqual(signal.data.payload.message.content[1], template1)
       }
     })
 
@@ -56,7 +56,7 @@ export default async (orchestrator) => {
 //    const [bobbo_where] = bobbo_where_happ.cells
 
     // Create template
- 
+
     const template1_eh64 = await alice_where.call('hc_zome_where', 'create_template', template1 );
     t.ok(template1_eh64)
     console.log("template1_eh64", template1_eh64);
@@ -77,24 +77,41 @@ export default async (orchestrator) => {
     console.log(spaces);
     t.deepEqual(spaces, [{hash: space1_hash, content: space1}]);
 
+    // Create a session
+    const nextSession = {
+      spaceEh: space1_hash,
+      name: "first",
 
+    }
+    const session_eh = await alice_where.call('hc_zome_where', 'create_next_session', nextSession );
+    t.ok(session_eh)
+    console.log("session_eh", session_eh);
+
+    // Create a Here
     let here1: HereEntry = {
       value: JSON.stringify({x: 12354, y: 725}),
+      sessionEh: session_eh,
       meta: {tags: JSON.stringify(["personal summit", "feeling good"])}
     }
-    const here1_hash = await alice_where.call('hc_zome_where', 'add_here', {space: space1_hash, entry: here1})
-    t.ok(here1_hash)
-    console.log(here1_hash);
+    const addHereInput = {
+      spaceEh: space1_hash,
+      sessionIndex: 0,
+      value: here1.value,
+      meta: here1.meta,
+    }
+    const here1_link_hh = await alice_where.call('hc_zome_where', 'add_here', addHereInput)
+    t.ok(here1_link_hh)
+    console.log(here1_link_hh);
 
-    let heres = await alice_where.call('hc_zome_where', 'get_heres', space1_hash);
+    let heres = await alice_where.call('hc_zome_where', 'get_heres', session_eh);
     t.ok(heres)
     t.deepEqual(heres[0].entry, here1)
-    t.deepEqual(heres[0].hash, here1_hash)
+    t.deepEqual(heres[0].linkHh, here1_link_hh)
     t.deepEqual(heres[0].author, serializeHash(alice_where.cellId[1]))
 
-    await alice_where.call('hc_zome_where', 'delete_here', here1_hash)
+    await alice_where.call('hc_zome_where', 'delete_here', here1_link_hh)
 
-    heres = await alice_where.call('hc_zome_where', 'get_heres', space1_hash);
+    heres = await alice_where.call('hc_zome_where', 'get_heres', session_eh);
     t.ok(heres)
     t.equal(heres.length,0)
 

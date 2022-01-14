@@ -6,7 +6,7 @@ import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Space, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
+import {whereContext, Play, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
 import {lightTheme, SlAvatar, SlBadge, SlIcon, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
@@ -86,7 +86,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   render() {
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField? filterField.value : "";
-  
+
     const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
       filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
 
@@ -131,6 +131,11 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       }
       const status = this.determineAgentStatus(key);
       const statusColor = this.status2color(status)
+
+     // y.js style ; need code to generate darken value
+     // <div style="background-color:${profile.fields['color']};width:4px;height:17px;display:inline-flex;"></div>
+     // <div style="color:${statusColor};margin-left:8px;margin-top:-21px;">${profile.nickname}</div>
+
       return html`
         <li class="folk-row" style="opacity: ${opacity};" @click="${this.handleClickAvatar}" id=${key}>
           <div style="background-color:${profile.fields['color']};width:9px;height:9px;display:inline-flex;border-radius:12px;border:1px solid gray;"></div>
@@ -205,7 +210,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
         }
 
         #folks-switch {
-          margin: 10px 0px 10px 3px;
+          margin: 10px 0px 10px 6px;
           /*--mdc-switch-selected-handle-color: teal;*/
           /*--mdc-switch-selected-track-color: lightseagreen;*/
           --mdc-switch-unselected-handle-color: teal;

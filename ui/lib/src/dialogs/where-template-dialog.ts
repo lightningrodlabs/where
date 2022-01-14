@@ -9,7 +9,7 @@ import {Coord, TemplateEntry, TemplateType, whereContext} from "../types";
 import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import parser from "fast-xml-parser";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {prefix_canvas} from "./templates";
+import {prefix_canvas} from "../templates";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 
@@ -79,7 +79,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  /** preload fields with  current space values */
+  /** preload fields with current template values */
   loadPreset(templateEh: EntryHashB64) {
     const templateToPreload = this._store.template(templateEh);
     const surface = JSON.parse(templateToPreload.surface)

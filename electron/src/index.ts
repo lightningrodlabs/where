@@ -14,32 +14,16 @@ import {
   BINARY_PATHS,
 } from './holochain'
 
+import { mainMenuTemplate } from './menu'
+import  { SettingsStore } from './settings'
 
-import {
-  mainMenuTemplate
-} from './menu'
-
-import  {
-  SettingsStore
-} from './settings'
+import { BACKGROUND_COLOR, DEVELOPMENT_UI_URL, LINUX_ICON_FILE, SPLASH_FILE, MAIN_FILE } from './constants'
 
 //--------------------------------------------------------------------------------------------------
 // -- CONSTS
 //--------------------------------------------------------------------------------------------------
 
-const BACKGROUND_COLOR = '#fbf9f7'
 
-const CURRENT_DIR = path.join(__dirname, '..');
-const MAIN_FILE = path.join(__dirname, '../web/index.html')
-const SPLASH_FILE = path.join(__dirname, '../web/splashscreen.html')
-const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/logo64.png')
-
-// const DEVELOPMENT_UI_URL = process.env.TEST_USER_2
-//   ? 'http://localhost:8081'
-//   : 'http://localhost:8080'
-
-// const DEVELOPMENT_UI_URL = "C:\\github\\where-damien\\ui\\apps\\where\\index.html"
-const DEVELOPMENT_UI_URL =  'file://' + "C:/github/where-damien/web/"
 
 
 //--------------------------------------------------------------------------------------------------

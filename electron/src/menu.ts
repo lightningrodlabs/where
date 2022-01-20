@@ -1,25 +1,28 @@
 
 import {app, dialog, Menu, MenuItem, MenuItemConstructorOptions, shell} from "electron";
 
+import {CONFIG_PATH} from "./constants";
 
-const optionsMenuTemplate: Array<MenuItemConstructorOptions> = [
-  {
-    id: 'launch-at-startup',
-    label: 'Launch at startup',
-    type: 'checkbox',
-    click: function (menuItem, _browserWindow, _event) {
-      //updateAutoLaunchSetting(menuItem.checked);
-    },
-  },
-  {
-    id: 'notify-msg',
-    label: 'Allow Notifications',
-    type: 'checkbox',
-    click: function (menuItem, _browserWindow, _event) {
-      //updateNotificationSetting(menuItem.checked);
-    },
-  },
-];
+import {electronLogger} from "./logger"
+
+// const optionsMenuTemplate: Array<MenuItemConstructorOptions> = [
+//   {
+//     id: 'launch-at-startup',
+//     label: 'Launch at startup',
+//     type: 'checkbox',
+//     click: function (menuItem, _browserWindow, _event) {
+//       //updateAutoLaunchSetting(menuItem.checked);
+//     },
+//   },
+//   {
+//     id: 'notify-msg',
+//     label: 'Allow Notifications',
+//     type: 'checkbox',
+//     click: function (menuItem, _browserWindow, _event) {
+//       //updateNotificationSetting(menuItem.checked);
+//     },
+//   },
+// ];
 
 
 /**
@@ -110,13 +113,13 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
   {
     label: 'Open Config Folder',
     click: function (menuItem, _browserWindow, _event) {
-      // shell.openExternal('file://' + CONFIG_PATH);
+      shell.openExternal('file://' + CONFIG_PATH);
     },
   },
   {
     label: 'Open Log File',
     click: function (menuItem, _browserWindow, _event) {
-      // shell.openExternal('file://' + logger.transports.file.file);
+      shell.openExternal('file://' + electronLogger.transports.file.file);
     },
   },
   {
@@ -124,23 +127,13 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
     role: "toggleDevTools",
   },
   {
-    label: 'Show PATHS',
-    click: function (menuItem, _browserWindow, _event) {
-      // dialog.showMessageBoxSync(g_mainWindow, {
-      //   type: 'info',
-      //   title: 'Constants',
-      //   message: 'BIN_PATH: ' + BIN_PATH + '\n' + 'process.env.path: ' + JSON.stringify(process.env.PATH),
-      // });
-    },
-  },
-  {
     label: 'Restart Conductor', click: async function (menuItem, _browserWindow, _event) {
       //await startConductorAndLoadPage(false);
     }
   },
   {
-    label: 'Reload window', click: async function (menuItem, _browserWindow, _event) {
-      //g_mainWindow.reload();
+    label: 'Reload window', click: async function (menuItem, browserWindow, _event) {
+      browserWindow.reload();
     }
   },
 
@@ -159,18 +152,19 @@ export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
       }
     }, {
       label: 'Quit',
+      role: 'quit',
       //accelerator: 'Command+Q',
-      click: async function (menuItem, _browserWindow, _event) {
-        // let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
-        // if (dontConfirmOnExit) {
-        //   app.quit();
-        // } else {
-        //   let canExit = await confirmExit();
-        //   if (canExit) {
-        //     app.quit();
-        //   }
-        // }
-      },
+      // click: async function (menuItem, _browserWindow, _event) {
+      //   let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
+      //   if (dontConfirmOnExit) {
+      //     app.quit();
+      //   } else {
+      //     let canExit = await confirmExit();
+      //     if (canExit) {
+      //       app.quit();
+      //     }
+      //   }
+      // },
     },
     ],
   },
@@ -178,10 +172,10 @@ export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
     label: 'Network',
     submenu: networkMenuTemplate,
   },
-  {
-    label: 'Options',
-    submenu: optionsMenuTemplate,
-  },
+  // {
+  //   label: 'Options',
+  //   submenu: optionsMenuTemplate,
+  // },
   {
     label: 'Debug',
     submenu: debugMenuTemplate,
@@ -210,29 +204,29 @@ export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
 /**
  *
  */
-const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
-  { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
-    // g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
-    }
-  },
-  //{ label: 'Settings', submenu: networkMenuTemplate },
-  {
-    label: 'Switch network',
-    click: async function (menuItem, _browserWindow, _event) {
-      // let changed = await promptUidSelect(false);
-      // if(changed) {
-      //   await g_mainWindow.setEnabled(false);
-      //   await startConductorAndLoadPage(false);
-      //   await g_mainWindow.setEnabled(true);
-      // }
-    }
-  },
-  //{ label: 'Debug', submenu: debugMenuTemplate },
-  { type: 'separator' },
-  { label: 'About', click: async function (menuItem, _browserWindow, _event) { /*await showAbout();*/ } },
-  { type: 'separator' },
-  { label: 'Exit', click: function (menuItem, _browserWindow, _event) { app.quit() } }
-];
+// const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
+//   { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
+//     // g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
+//     }
+//   },
+//   //{ label: 'Settings', submenu: networkMenuTemplate },
+//   {
+//     label: 'Switch network',
+//     click: async function (menuItem, _browserWindow, _event) {
+//       // let changed = await promptUidSelect(false);
+//       // if(changed) {
+//       //   await g_mainWindow.setEnabled(false);
+//       //   await startConductorAndLoadPage(false);
+//       //   await g_mainWindow.setEnabled(true);
+//       // }
+//     }
+//   },
+//   //{ label: 'Debug', submenu: debugMenuTemplate },
+//   { type: 'separator' },
+//   { label: 'About', click: async function (menuItem, _browserWindow, _event) { /*await showAbout();*/ } },
+//   { type: 'separator' },
+//   { label: 'Exit', click: function (menuItem, _browserWindow, _event) { app.quit() } }
+// ];
 
 
 

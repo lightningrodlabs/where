@@ -1,6 +1,7 @@
 import * as path from 'path'
 import { app } from 'electron'
 import { HolochainRunnerOptions, StateSignal, PathOptions } from 'electron-holochain'
+import {MAIN_APP_ID, COMMUNITY_PROXY_URL} from './constants'
 
 // these messages get seen on the splash page
 export enum StateSignalText {
@@ -53,9 +54,7 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
     }
   : undefined
 
-const MAIN_APP_ID = 'main-app'
-const COMMUNITY_PROXY_URL =
-  'kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--'
+
 
 const devOptions: HolochainRunnerOptions = {
   dnaPath: whereDnaPath, // preload

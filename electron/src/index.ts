@@ -131,7 +131,7 @@ const createSplashWindow = (): BrowserWindow => {
   // Create the browser window.
   const splashWindow = new BrowserWindow({
     height: 450,
-    width: 800,
+    width: 850,
     center: true,
     resizable: false,
     frame: false,
@@ -185,13 +185,12 @@ app.on('ready', async () => {
   const opts = app.isPackaged ? prodOptions : devOptions
   log('debug', {opts})
   const statusEmitter = await initAgent(app, opts, BINARY_PATHS)
-  //console.log("statusEmitter: " + JSON.stringify(statusEmitter))
   statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
     log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
     switch (state) {
       case StateSignal.IsReady:
         log('debug', "STATUS EVENT: IS READY")
-        // important that this line comes before the next one
+        // Its important to create the window before closing the current one
         // otherwise this triggers the 'all-windows-closed' event
         const mainWindow = createMainWindow()
         splashWindow.close()

@@ -7,7 +7,7 @@ export const MAIN_APP_ID = 'main-app'
 export const COMMUNITY_PROXY_URL =
   'kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--'
 
-export const CONFIG_PATH = path.join(app.getPath('appData'), 'Where');
+export const CONFIG_PATH = path.join(app.getPath('appData'), 'where');
 
 export const BACKGROUND_COLOR = '#fbf9f7'
 

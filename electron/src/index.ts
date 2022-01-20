@@ -15,7 +15,7 @@ import {
 } from './holochain'
 
 import { mainMenuTemplate } from './menu'
-import  { SettingsStore } from './settings'
+import  { loadUserSettings } from './userSettings'
 
 import { BACKGROUND_COLOR, DEVELOPMENT_UI_URL, LINUX_ICON_FILE, SPLASH_FILE, MAIN_FILE } from './constants'
 
@@ -166,31 +166,6 @@ const createSplashWindow = (): BrowserWindow => {
 
 
 /**
- *
- */
-function loadUserSettings() {
-  // Get Settings
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
-  let default_width = Math.min(width, 1920);
-  let default_height = Math.min(height, 1080);
-
-  let x = Math.floor((width - default_width) / 2);
-  let y = Math.floor((height - default_height) / 2);
-
-  g_userSettings = new SettingsStore({
-    // We'll call our data file 'user-preferences'
-    configName: 'user-preferences',
-    defaults: {
-      windowBounds: { width: default_width, height: default_height },
-      canAutoLaunch: false,
-      windowPosition: {x, y},
-      dontConfirmOnExit: false,
-      canNotify: false,
-    }
-  });
-}
-
-/**
 * This method will be called when Electron has finished initialization and is ready to create browser windows.
 * Some APIs can only be used after this event occurs.
 */
@@ -199,8 +174,8 @@ app.on('ready', async () => {
     /* Create Splash Screen */
   const splashWindow = createSplashWindow()
 
-  /** Create settings */
-  loadUserSettings();
+  /** Load user settings */
+  g_userSettings = loadUserSettings(1920, 1080);
 
   /** Init conductor */
   //console.log("splashWindow CREATED")

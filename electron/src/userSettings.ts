@@ -1,3 +1,5 @@
+import {screen} from "electron";
+
 const path = require('path');
 const fs = require('fs');
 const { app, remote } = require('electron');
@@ -54,5 +56,28 @@ function parseSettingsFile(filePath, defaults) {
   }
 }
 
-// expose the class
-//module.exports.SettingsStore = SettingsStore;
+/**
+ *
+ */
+export function loadUserSettings(initialWidth: number, initialHeight: number): SettingsStore {
+  // Get Settings
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  let starting_width = Math.min(width, initialWidth);
+  let starting_height = Math.min(height, initialHeight);
+
+  let x = Math.floor((width - starting_width) / 2);
+  let y = Math.floor((height - starting_height) / 2);
+
+  let userSettings = new SettingsStore({
+    // We'll call our data file 'user-preferences'
+    configName: 'user-preferences',
+    defaults: {
+      windowBounds: { width: starting_width, height: starting_height },
+      canAutoLaunch: false,
+      windowPosition: {x, y},
+      dontConfirmOnExit: false,
+      canNotify: false,
+    }
+  });
+  return userSettings;
+}

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron'
+import {app, BrowserWindow, globalShortcut, ipcMain, Menu, screen, shell} from 'electron'
 import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
@@ -14,15 +14,22 @@ import {
   BINARY_PATHS,
 } from './holochain'
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-// if (require('electron-squirrel-startup')) {
-// eslint-disable-line global-require
-// app.quit()
-// }
+
+import {
+  mainMenuTemplate
+} from './menu'
+
+import  {
+  SettingsStore
+} from './settings'
+
+//--------------------------------------------------------------------------------------------------
+// -- CONSTS
+//--------------------------------------------------------------------------------------------------
 
 const BACKGROUND_COLOR = '#fbf9f7'
 
-
+const CURRENT_DIR = path.join(__dirname, '..');
 const MAIN_FILE = path.join(__dirname, '../web/index.html')
 const SPLASH_FILE = path.join(__dirname, '../web/splashscreen.html')
 const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/logo64.png')
@@ -34,14 +41,27 @@ const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/logo64.png')
 // const DEVELOPMENT_UI_URL = "C:\\github\\where-damien\\ui\\apps\\where\\index.html"
 const DEVELOPMENT_UI_URL =  'file://' + "C:/github/where-damien/web/"
 
+
+//--------------------------------------------------------------------------------------------------
+// -- Globals
+//--------------------------------------------------------------------------------------------------
+
+let g_userSettings = undefined;
+
+
+//--------------------------------------------------------------------------------------------------
+// -- Functions
+//--------------------------------------------------------------------------------------------------
+
 /**
  *
  */
 const createMainWindow = (): BrowserWindow => {
-  // Create the browser window.
+  /** Create the browser window */
+  let { width, height } = g_userSettings.get('windowBounds');
   const options: Electron.BrowserWindowConstructorOptions = {
-    height: 1080,
-    width: 1920,
+    height,
+    width,
     show: false,
     backgroundColor: BACKGROUND_COLOR,
     // use these settings so that the ui can check paths
@@ -52,12 +72,23 @@ const createMainWindow = (): BrowserWindow => {
       webgl: false,
       enableWebSQL: false,
     },
+    icon: __dirname + `/logo/logo48.png`,
   }
   if (process.platform === 'linux') {
     options.icon = LINUX_ICON_FILE
   }
   const mainWindow = new BrowserWindow(options)
-  // and load the index.html of the app.
+
+  /** Things to setup at start */
+  let { x, y } = g_userSettings.get('windowPosition');
+  mainWindow.setPosition(x, y);
+
+  globalShortcut.register('f5', function() {
+    //console.log('f5 is pressed')
+    mainWindow.reload()
+  })
+
+  /** load the index.html of the app */
   if (app.isPackaged) {
     mainWindow.loadFile(MAIN_FILE)
   } else {
@@ -67,18 +98,43 @@ const createMainWindow = (): BrowserWindow => {
     //mainWindow.loadURL(DEVELOPMENT_UI_URL)
     mainWindow.loadURL(DEVELOPMENT_UI_URL + "/index.html")
   }
-  // Open <a href='' target='_blank'> with default system browser
+
+  /** Open <a href='' target='_blank'> with default system browser */
   mainWindow.webContents.on('new-window', function (event, url) {
     event.preventDefault()
-    console.log("new-window ; open: " + url)
+    console.debug("new-window ; open: " + url)
     shell.openExternal(url)
   })
-  // once its ready to show, show
+  /** once its ready to show, show */
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
   })
+
+  mainWindow.on('resize', () => {
+    // The event doesn't pass us the window size,
+    // so we call the `getBounds` method which returns an object with
+    // the height, width, and x and y coordinates.
+    let { width, height } = mainWindow.getBounds();
+    // Now that we have them, save them using the `set` method.
+    g_userSettings.set('windowBounds', { width, height });
+  });
+
+  /** Save position on close */
+  mainWindow.on('close', (_event) => {
+    let positions = mainWindow.getPosition();
+    g_userSettings.set('windowPosition', { x: Math.floor(positions[0]), y: Math.floor(positions[1]) });
+    // if (g_canQuit) {
+    //   mainWindow = null;
+    // } else {
+    //   event.preventDefault();
+    //   mainWindow.hide();
+    // }
+  })
+
+  /** Done */
   return mainWindow
 }
+
 
 /**
  *
@@ -126,12 +182,43 @@ const createSplashWindow = (): BrowserWindow => {
 
 
 /**
+ *
+ */
+function loadUserSettings() {
+  // Get Settings
+  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+  let default_width = Math.min(width, 1920);
+  let default_height = Math.min(height, 1080);
+
+  let x = Math.floor((width - default_width) / 2);
+  let y = Math.floor((height - default_height) / 2);
+
+  g_userSettings = new SettingsStore({
+    // We'll call our data file 'user-preferences'
+    configName: 'user-preferences',
+    defaults: {
+      windowBounds: { width: default_width, height: default_height },
+      canAutoLaunch: false,
+      windowPosition: {x, y},
+      dontConfirmOnExit: false,
+      canNotify: false,
+    }
+  });
+}
+
+/**
 * This method will be called when Electron has finished initialization and is ready to create browser windows.
 * Some APIs can only be used after this event occurs.
 */
 app.on('ready', async () => {
   console.log("APP READY")
+    /* Create Splash Screen */
   const splashWindow = createSplashWindow()
+
+  /** Create settings */
+  loadUserSettings();
+
+  /** Init conductor */
   //console.log("splashWindow CREATED")
   const opts = app.isPackaged ? prodOptions : devOptions
   console.log({opts})
@@ -153,9 +240,12 @@ app.on('ready', async () => {
   })
 })
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
+
+/**
+ * Quit when all windows are closed, except on macOS. There, it's common
+ * for applications and their menu bar to stay active until the user quits
+ * explicitly with Cmd + Q.
+ */
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit()
@@ -170,6 +260,19 @@ app.on('activate', () => {
   }
 })
 
+
 // ipcMain.handle('getProjectsPath', () => {
 //   return whereDnaPath
 // })
+
+//--------------------------------------------------------------------------------------------------
+// -- FINALIZE
+//--------------------------------------------------------------------------------------------------
+
+Menu.setApplicationMenu(Menu.buildFromTemplate(mainMenuTemplate));
+
+// Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// if (require('electron-squirrel-startup')) {
+// eslint-disable-line global-require
+// app.quit()
+// }

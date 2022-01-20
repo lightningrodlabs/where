@@ -20,10 +20,12 @@ log('info', "APP STARTED");
 log('info', "");
 
 if (IS_DEBUG) {
-  electronLogger.transports.file.level = 'error';
-  log('info', "DEBUG MODE ENABLED");
+  electronLogger.transports.file.level = 'error'; // minimize disk writes ; Use console instead
+  electronLogger.transports.console.level = 'debug';
+  log('debug', "DEBUG MODE ENABLED\n");
   // require('electron-debug')({ isEnabled: true });
 } else {
+  //log('info', "DEBUG MODE DISABLED");
   electronLogger.transports.console.level = 'info';
   electronLogger.transports.file.level = 'info';
 }

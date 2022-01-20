@@ -14,16 +14,19 @@ import {
   BINARY_PATHS,
 } from './holochain'
 
+import { log } from './logger'
 import { mainMenuTemplate } from './menu'
 import  { loadUserSettings } from './userSettings'
 
-import { BACKGROUND_COLOR, DEVELOPMENT_UI_URL, LINUX_ICON_FILE, SPLASH_FILE, MAIN_FILE } from './constants'
-
-//--------------------------------------------------------------------------------------------------
-// -- CONSTS
-//--------------------------------------------------------------------------------------------------
-
-
+import {
+  BACKGROUND_COLOR,
+  DEVELOPMENT_UI_URL,
+  LINUX_ICON_FILE,
+  SPLASH_FILE,
+  MAIN_FILE,
+  CURRENT_DIR,
+  IS_DEBUG
+} from './constants'
 
 
 //--------------------------------------------------------------------------------------------------
@@ -46,13 +49,14 @@ const createMainWindow = (): BrowserWindow => {
   const options: Electron.BrowserWindowConstructorOptions = {
     height,
     width,
+    title: IS_DEBUG? "[DEBUG] Where v" : "Where v",
     show: false,
     backgroundColor: BACKGROUND_COLOR,
     // use these settings so that the ui can check paths
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
-      devTools: true,
+      devTools: IS_DEBUG,
       webgl: false,
       enableWebSQL: false,
     },
@@ -77,7 +81,7 @@ const createMainWindow = (): BrowserWindow => {
     mainWindow.loadFile(MAIN_FILE)
   } else {
     // development
-    console.log("createMainWindow ; loadURL: " + DEVELOPMENT_UI_URL)
+    log('debug', "createMainWindow ; loadURL: " + DEVELOPMENT_UI_URL)
     mainWindow.webContents.openDevTools();
     //mainWindow.loadURL(DEVELOPMENT_UI_URL)
     mainWindow.loadURL(DEVELOPMENT_UI_URL + "/index.html")
@@ -142,7 +146,7 @@ const createSplashWindow = (): BrowserWindow => {
       webgl: false,
       enableWebSQL: false,
     },
-    icon: path.join(__dirname, "/assets/favicon.png"),
+    icon: path.join(__dirname, "/logo/logo48.png"),
   })
 
   // and load the splashscreen.html of the app.
@@ -159,8 +163,6 @@ const createSplashWindow = (): BrowserWindow => {
     splashWindow.show()
   })
 
-  //// Open the DevTools.
-  // mainWindow.webContents.openDevTools();
   return splashWindow
 }
 
@@ -170,7 +172,9 @@ const createSplashWindow = (): BrowserWindow => {
 * Some APIs can only be used after this event occurs.
 */
 app.on('ready', async () => {
-  console.log("APP READY")
+  log('debug', "APP READY - " + __dirname)
+  //log('debug', process.env)
+
     /* Create Splash Screen */
   const splashWindow = createSplashWindow()
 
@@ -178,19 +182,18 @@ app.on('ready', async () => {
   g_userSettings = loadUserSettings(1920, 1080);
 
   /** Init conductor */
-  //console.log("splashWindow CREATED")
   const opts = app.isPackaged ? prodOptions : devOptions
-  console.log({opts})
+  log('debug', {opts})
   const statusEmitter = await initAgent(app, opts, BINARY_PATHS)
   //console.log("statusEmitter: " + JSON.stringify(statusEmitter))
   statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
-    console.log("STATIS EVENT: " + stateSignalToText(state) + " (" + state + ")")
+    log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
     switch (state) {
       case StateSignal.IsReady:
-        console.log("STATIS EVENT: IS READY")
+        log('debug', "STATUS EVENT: IS READY")
         // important that this line comes before the next one
         // otherwise this triggers the 'all-windows-closed' event
-        createMainWindow()
+        const mainWindow = createMainWindow()
         splashWindow.close()
         break
       default:

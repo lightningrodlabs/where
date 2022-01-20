@@ -20,5 +20,4 @@ export const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/logo64.png')
 //   ? 'http://localhost:8081'
 //   : 'http://localhost:8080'
 
-// const DEVELOPMENT_UI_URL = "C:\\github\\where-damien\\ui\\apps\\where\\index.html"
-export const DEVELOPMENT_UI_URL =  'file://' + "C:/github/where-damien/web/"
+export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../web')

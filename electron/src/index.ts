@@ -1,4 +1,4 @@
-import {app, BrowserWindow, globalShortcut, ipcMain, Menu, screen, shell} from 'electron'
+import {app, BrowserWindow, globalShortcut, ipcMain, Menu, MenuItemConstructorOptions, screen, shell} from 'electron'
 import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
@@ -14,8 +14,7 @@ import {
   BINARY_PATHS,
 } from './holochain'
 
-import { log } from './logger'
-import { mainMenuTemplate } from './menu'
+import {electronLogger, log} from './logger'
 import  { loadUserSettings } from './userSettings'
 
 import {
@@ -24,7 +23,7 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  IS_DEBUG
+  IS_DEBUG, APP_DATA_PATH
 } from './constants'
 
 import {initApp, addUidToDisk} from "./init";
@@ -133,7 +132,6 @@ const createMainWindow = (appPort: string): BrowserWindow => {
     //   mainWindow.hide();
     // }
   })
-
   /** Done */
   return mainWindow
 }
@@ -205,18 +203,15 @@ app.on('ready', async () => {
     g_uid = g_uidList[0]
     g_userSettings.set('lastUid', g_uid)
   }
+  g_sessionDataPath = path.join(g_sessionDataPath, g_uid)
   /** Start holochain and main window */
   await startMainWindow(splashWindow)
 })
 
 
-async function restartApp() {
-  const splashWindow = createSplashWindow();
-  g_mainWindow.close()
-  await startMainWindow(splashWindow)
-}
-
-
+/**
+ *
+ */
 async function startMainWindow(splashWindow: BrowserWindow) {
   /** Init conductor */
   const opts = createHolochainOptions(g_uid, g_sessionDataPath)
@@ -275,7 +270,7 @@ app.on('activate', () => {
  /**
  * @returns false if user cancelled
  */
-async function promptUid(canExitOnCancel) {
+async function promptUid(canExitOnCancel: boolean) {
   let r = await prompt({
     title: 'Where: Join new Network',
     height: 180,
@@ -301,10 +296,267 @@ async function promptUid(canExitOnCancel) {
     if (succeeded) {
       g_uid = r
       g_uidList.push(r)
+      g_userSettings.set('lastUid', g_uid);
     }
   }
   return r !== null
 }
+
+
+/**
+ * @returns false if user cancelled
+ */
+async function promptUidSelect(canExitOnCancel) {
+  let selectOptions = {};
+  const uidSet = new Set(g_uidList)
+  const uniq = Array.from(uidSet.values());
+  for (const uid of uniq) {
+    selectOptions[uid] = uid;
+  }
+  let r = await prompt({
+    title: 'Select network',
+    height: 180,
+    width: 300,
+    alwaysOnTop: true,
+    label: 'Choose network:',
+    value: g_uid,
+    type: 'select',
+    selectOptions,
+  });
+  if(r === null) {
+    log('debug','user cancelled. Can exit: ' + canExitOnCancel);
+    if (canExitOnCancel) {
+      app.quit();
+    }
+  } else {
+    log('debug','promptUidSelect result: ' + r);
+    g_uid = r;
+    g_userSettings.set('lastUid', g_uid);
+  }
+  return r !== null
+}
+
+/**************************************************************************************************
+ * MENUS
+ *************************************************************************************************/
+
+
+// const optionsMenuTemplate: Array<MenuItemConstructorOptions> = [
+//   {
+//     id: 'launch-at-startup',
+//     label: 'Launch at startup',
+//     type: 'checkbox',
+//     click: function (menuItem, _browserWindow, _event) {
+//       //updateAutoLaunchSetting(menuItem.checked);
+//     },
+//   },
+//   {
+//     id: 'notify-msg',
+//     label: 'Allow Notifications',
+//     type: 'checkbox',
+//     click: function (menuItem, _browserWindow, _event) {
+//       //updateNotificationSetting(menuItem.checked);
+//     },
+//   },
+// ];
+
+
+/**
+ * In this file you can include the rest of your app's specific main process code.
+ * You can also put them in separate files and require them here.
+ */
+const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
+  {
+    id: 'join-network',
+    label: 'Join new Network',
+    click: async function (menuItem, browserWindow, _event) {
+      let changed = await promptUid(false);
+      if (changed) {
+        app.relaunch()
+        app.exit(0)
+      }
+    },
+  },
+  {
+    id: 'switch-network',
+    label: 'Switch Network',
+    click: async function (menuItem, _browserWindow, _event) {
+      let changed = await promptUidSelect(false);
+      if (changed) {
+        app.relaunch()
+        app.exit(0)
+      }
+    },
+  },
+  {
+    type: 'separator'
+  },
+  {
+    label: 'Change Network type',
+    click: async function (menuItem, _browserWindow, _event) {
+      // let changed = await promptNetworkType(false);
+      // let menu = Menu.getApplicationMenu();
+      // menu.getMenuItemById('join-network').enabled = !g_canMdns;
+      // menu.getMenuItemById('switch-network').enabled = !g_canMdns;
+      // menu.getMenuItemById('change-bootstrap').enabled = !g_canMdns;
+      // if (changed) {
+      //   await startConductorAndLoadPage(true);
+      // }
+    },
+  },
+  {
+    id: 'change-bootstrap',
+    label: 'Change Bootstrap Server',
+    click: async function (menuItem, _browserWindow, _event) {
+      // let changed = await promptBootstrapUrl(false);
+      // if (changed) {
+      //   await startConductorAndLoadPage(true);
+      // }
+    }
+  },
+  {
+    label: 'Change Proxy Server',
+    click: async function (menuItem, _browserWindow, _event) {
+      // const prevCanProxy = g_canProxy;
+      // let canProxy = await promptCanProxy();
+      // const proxyChanged = prevCanProxy !== canProxy;
+      // if (canProxy) {
+      //   let changed = await promptProxyUrl(false);
+      //   if(changed || proxyChanged) {
+      //     await startConductorAndLoadPage(true);
+      //   }
+      // } else  {
+      //   if(proxyChanged) {
+      //     await startConductorAndLoadPage(true);
+      //   }
+      // }
+    }
+  },
+];
+
+
+const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
+  // {
+  //   label: 'Dump logs', click: function() {
+  //     log('debug', {process})
+  //   }
+  // },
+  {
+    label: 'Open Config Folder',
+    click: function (menuItem, _browserWindow, _event) {
+      shell.openExternal('file://' + APP_DATA_PATH);
+    },
+  },
+  {
+    label: 'Open Log File',
+    click: function (menuItem, _browserWindow, _event) {
+      shell.openExternal('file://' + electronLogger.transports.file.file);
+    },
+  },
+  {
+    label: 'devTools',
+    role: "toggleDevTools",
+  },
+  {
+    label: 'Restart Conductor', click: async function (menuItem, _browserWindow, _event) {
+      //await startConductorAndLoadPage(false);
+    }
+  },
+  {
+    label: 'Reload window', click: async function (menuItem, browserWindow, _event) {
+      browserWindow.reload();
+    }
+  },
+];
+
+/**
+ *
+ */
+export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
+  {
+    label: 'File', submenu: [{
+      label:`Check for Update`,
+      click: function (menuItem, _browserWindow, _event) {
+        //checkForUpdates(this);
+      }
+    }, {
+      label: 'Quit',
+      role: 'quit',
+      //accelerator: 'Command+Q',
+      // click: async function (menuItem, _browserWindow, _event) {
+      //   let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
+      //   if (dontConfirmOnExit) {
+      //     app.quit();
+      //   } else {
+      //     let canExit = await confirmExit();
+      //     if (canExit) {
+      //       app.quit();
+      //     }
+      //   }
+      // },
+    },
+    ],
+  },
+  {
+    label: 'Network',
+    submenu: networkMenuTemplate,
+  },
+  // {
+  //   label: 'Options',
+  //   submenu: optionsMenuTemplate,
+  // },
+  {
+    label: 'Debug',
+    submenu: debugMenuTemplate,
+  },
+  {
+    label: 'Help', submenu: [{
+      label: 'Report bug / issue',
+      click: function (menuItem, _browserWindow, _event) {
+        shell.openExternal(`https://github.com/lightningrodlabs/where/issues/new`)
+      }
+    },
+      {
+        type: 'separator'
+      },
+      {
+        label: 'About',
+        //accelerator: 'Command+A',
+        click: async function (menuItem, _browserWindow, _event) {
+          //await showAbout();
+        },
+      },],
+  },
+];
+
+
+/**
+ *
+ */
+// const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
+//   { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
+//     // g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
+//     }
+//   },
+//   //{ label: 'Settings', submenu: networkMenuTemplate },
+//   {
+//     label: 'Switch network',
+//     click: async function (menuItem, _browserWindow, _event) {
+//       // let changed = await promptUidSelect(false);
+//       // if(changed) {
+//       //   await g_mainWindow.setEnabled(false);
+//       //   await startConductorAndLoadPage(false);
+//       //   await g_mainWindow.setEnabled(true);
+//       // }
+//     }
+//   },
+//   //{ label: 'Debug', submenu: debugMenuTemplate },
+//   { type: 'separator' },
+//   { label: 'About', click: async function (menuItem, _browserWindow, _event) { /*await showAbout();*/ } },
+//   { type: 'separator' },
+//   { label: 'Exit', click: function (menuItem, _browserWindow, _event) { app.quit() } }
+// ];
+
 
 /**************************************************************************************************
  * FINALIZE

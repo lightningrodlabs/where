@@ -58,14 +58,7 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
 /**
  *
  */
-function createHolochainOptions(isDev: boolean, uid: string, storagePath: string): HolochainRunnerOptions {
-  //datastorePath: process.env.TEST_USER_2
-  //  ? '../user2-data/databases'
-  //  : path.join(__dirname, '../../user-data/databases'),
-
-  // appWsPort: process.env.TEST_USER_2 ? 8899 : 8888,
-    // adminWsPort: process.env.TEST_USER_2 ? 1236 : 1234,
-
+function createHolochainOptions(uid: string, storagePath: string): HolochainRunnerOptions {
   const options: HolochainRunnerOptions = {
     dnaPath: whereDnaPath,
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),

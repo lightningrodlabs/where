@@ -3,7 +3,8 @@ import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
   StateSignal,
-  STATUS_EVENT
+  STATUS_EVENT,
+  APP_PORT_EVENT
 } from 'electron-holochain'
 
 
@@ -26,7 +27,7 @@ import {
   IS_DEBUG
 } from './constants'
 
-import {setupApp, addUid} from "./setup";
+import {initApp, addUidToDisk} from "./init";
 import * as prompt from 'electron-prompt';
 
 //--------------------------------------------------------------------------------------------------
@@ -48,6 +49,7 @@ let g_sessionDataPath = undefined;
 let g_uid = '';
 let g_uidList = [];
 let g_appPort = '';
+let g_mainWindow: BrowserWindow | null = null;
 
 //--------------------------------------------------------------------------------------------------
 // -- Functions
@@ -182,15 +184,12 @@ const createSplashWindow = (): BrowserWindow => {
 * Some APIs can only be used after this event occurs.
 */
 app.on('ready', async () => {
-  log('debug', "APP READY - " + __dirname)
-  //log('debug', process.env)
-
-  /* Create Splash Screen */
+  log('debug', "ELECTRON READY - " + __dirname)
   const splashWindow = createSplashWindow()
   /** Load user settings */
   g_userSettings = loadUserSettings(1920, 1080);
-  /** Setup initial things */
-  const {sessionDataPath, uidList } = setupApp();
+  /** init app */
+  const {sessionDataPath, uidList } = initApp();
   g_sessionDataPath = sessionDataPath
   g_uidList = uidList
   log('debug', "g_sessionDataPath: " + g_sessionDataPath);
@@ -206,8 +205,21 @@ app.on('ready', async () => {
     g_uid = g_uidList[0]
     g_userSettings.set('lastUid', g_uid)
   }
+  /** Start holochain and main window */
+  await startMainWindow(splashWindow)
+})
+
+
+async function restartApp() {
+  const splashWindow = createSplashWindow();
+  g_mainWindow.close()
+  await startMainWindow(splashWindow)
+}
+
+
+async function startMainWindow(splashWindow: BrowserWindow) {
   /** Init conductor */
-  const opts = createHolochainOptions(!app.isPackaged, g_uid, g_sessionDataPath)
+  const opts = createHolochainOptions(g_uid, g_sessionDataPath)
   log('debug', {opts})
   const statusEmitter = await initAgent(app, opts, BINARY_PATHS)
   statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
@@ -217,18 +229,18 @@ app.on('ready', async () => {
         log('debug', "STATUS EVENT: IS READY")
         // Its important to create the window before closing the current one
         // otherwise this triggers the 'all-windows-closed' event
-        const mainWindow = createMainWindow(g_appPort)
+        g_mainWindow = createMainWindow(g_appPort)
         splashWindow.close()
         break
       default:
         splashWindow.webContents.send('status', stateSignalToText(state))
     }
   })
-  statusEmitter.on('port', (appPort: string) => {
+  statusEmitter.on(APP_PORT_EVENT, (appPort: string) => {
     //log('debug', "APP_PORT_EVENT: " + appPort)
     g_appPort = appPort
   })
-})
+}
 
 
 /**
@@ -285,7 +297,7 @@ async function promptUid(canExitOnCancel) {
       app.quit();
     }
   } else {
-    const succeeded = addUid(r, g_sessionDataPath);
+    const succeeded = addUidToDisk(r, g_sessionDataPath);
     if (succeeded) {
       g_uid = r
       g_uidList.push(r)

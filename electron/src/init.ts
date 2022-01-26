@@ -8,7 +8,7 @@ import {APP_DATA_PATH, USER_DATA_PATH } from "./constants";
 const UID_LIST_FILENAME = 'uid-list.txt';
 
 
-export function setupApp() {
+export function initApp() {
   // --  Create missing dirs -- //
   if (!fs.existsSync(APP_DATA_PATH)) {
     log('info', "Creating missing dir: " + APP_DATA_PATH);
@@ -139,7 +139,7 @@ export function setupApp() {
 
 
 
-export function addUid(newUid: string, sessionDataPath: string): boolean {
+export function addUidToDisk(newUid: string, sessionDataPath: string): boolean {
   let uidListPath = path.join(sessionDataPath, UID_LIST_FILENAME);
   try {
     fs.appendFileSync(uidListPath, newUid + '\n');

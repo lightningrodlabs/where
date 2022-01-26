@@ -1,7 +1,7 @@
 
 import {app, dialog, Menu, MenuItem, MenuItemConstructorOptions, shell} from "electron";
 
-import {CONFIG_PATH} from "./constants";
+import {APP_DATA_PATH} from "./constants";
 
 import {electronLogger} from "./logger"
 
@@ -33,14 +33,14 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
   {
     id: 'join-network',
     label: 'Join new Network',
-    click: async function (menuItem, _browserWindow, _event) {
+    click: async function (menuItem, browserWindow, _event) {
       // let changed = await promptUid(false);
       // if (changed) {
-      //   await g_mainWindow.loadURL(g_switchingUrl);
-      //   await g_mainWindow.setEnabled(false);
+      //   await browserWindow.loadURL(g_switchingUrl);
+      //   await browserWindow.setEnabled(false);
       //   await installApp(g_adminWs, g_uid);
       //   await startConductorAndLoadPage(false);
-      //   await g_mainWindow.setEnabled(true);
+      //   await browserWindow.setEnabled(true);
       // }
     },
   },
@@ -113,7 +113,7 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
   {
     label: 'Open Config Folder',
     click: function (menuItem, _browserWindow, _event) {
-      shell.openExternal('file://' + CONFIG_PATH);
+      shell.openExternal('file://' + APP_DATA_PATH);
     },
   },
   {

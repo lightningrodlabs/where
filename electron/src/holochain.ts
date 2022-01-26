@@ -55,28 +55,36 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
   : undefined
 
 
+/**
+ *
+ */
+function createHolochainOptions(isDev: boolean, uid: string, storagePath: string): HolochainRunnerOptions {
+  //datastorePath: process.env.TEST_USER_2
+  //  ? '../user2-data/databases'
+  //  : path.join(__dirname, '../../user-data/databases'),
 
-const devOptions: HolochainRunnerOptions = {
-  dnaPath: whereDnaPath, // preload
-  datastorePath: process.env.TEST_USER_2
-    ? '../user2-data/databases'
-    : path.join(__dirname, '../../user-data/databases'),
-  appId: MAIN_APP_ID,
-  appWsPort: process.env.TEST_USER_2 ? 8899 : 8888,
-  adminWsPort: process.env.TEST_USER_2 ? 1236 : 1234,
-  keystorePath: process.env.TEST_USER_2
-    ? '../user2-data/keystore'
-    : path.join(__dirname, '../../user-data/keystore'),
-  proxyUrl: COMMUNITY_PROXY_URL,
-}
-const prodOptions: HolochainRunnerOptions = {
-  dnaPath: whereDnaPath, // preload
-  datastorePath: path.join(app.getPath('userData'), 'databases-0-0-1'),
-  appId: MAIN_APP_ID,
-  appWsPort: 8889,
-  adminWsPort: 1235,
-  keystorePath: path.join(app.getPath('userData'), 'keystore-0-0-1'),
-  proxyUrl: COMMUNITY_PROXY_URL,
+  // appWsPort: process.env.TEST_USER_2 ? 8899 : 8888,
+    // adminWsPort: process.env.TEST_USER_2 ? 1236 : 1234,
+
+  const options: HolochainRunnerOptions = {
+    dnaPath: whereDnaPath,
+    // datastorePath: isDev
+    //   ? path.join(__dirname, '../../user-data/databases')
+    //   : path.join(storagePath, 'databases-' + app.getVersion()),
+    datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
+    //appId: MAIN_APP_ID + '-' + uid,
+    appId: MAIN_APP_ID,
+    appWsPort: 8889,
+    adminWsPort: 1235,
+    // keystorePath: isDev
+    //   ? path.join(__dirname, '../../user-data/keystore')
+    //   : path.join(storagePath, 'keystore-' + app.getVersion()),
+    keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
+    //proxyUrl: COMMUNITY_PROXY_URL,
+    //bootstrapUrl: "",
+    //uid,
+  }
+  return options;
 }
 
-export { whereDnaPath, BINARY_PATHS, devOptions, prodOptions }
+export { whereDnaPath, BINARY_PATHS, createHolochainOptions }

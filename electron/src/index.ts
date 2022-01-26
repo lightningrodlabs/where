@@ -7,9 +7,7 @@ import initAgent, {
 } from 'electron-holochain'
 
 import {
-  devOptions,
-  whereDnaPath,
-  prodOptions,
+  createHolochainOptions,
   stateSignalToText,
   BINARY_PATHS,
 } from './holochain'
@@ -24,16 +22,30 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  CURRENT_DIR,
   IS_DEBUG
 } from './constants'
 
+import {setupApp, addUid} from "./setup";
+import * as prompt from 'electron-prompt';
+
+//--------------------------------------------------------------------------------------------------
+// PRE-INIT
+//--------------------------------------------------------------------------------------------------
+
+//require('electron-context-menu')();
+//require('fix-path')();
+
+process.env.WASM_LOG="WARN";
+process.env.RUST_LOG="WARN";
 
 //--------------------------------------------------------------------------------------------------
 // -- Globals
 //--------------------------------------------------------------------------------------------------
 
 let g_userSettings = undefined;
+let g_sessionDataPath = undefined;
+let g_uid = '';
+let g_uidList = [];
 
 
 //--------------------------------------------------------------------------------------------------
@@ -46,10 +58,11 @@ let g_userSettings = undefined;
 const createMainWindow = (): BrowserWindow => {
   /** Create the browser window */
   let { width, height } = g_userSettings.get('windowBounds');
+  let title = "Where v" + app.getVersion() + " - " + g_uid
   const options: Electron.BrowserWindowConstructorOptions = {
     height,
     width,
-    title: IS_DEBUG? "[DEBUG] Where v" : "Where v",
+    title: IS_DEBUG? "[DEBUG] " + title : title,
     show: false,
     backgroundColor: BACKGROUND_COLOR,
     // use these settings so that the ui can check paths
@@ -128,7 +141,7 @@ const createMainWindow = (): BrowserWindow => {
  *
  */
 const createSplashWindow = (): BrowserWindow => {
-  // Create the browser window.
+  /** Create the browser window */
   const splashWindow = new BrowserWindow({
     height: 450,
     width: 850,
@@ -137,8 +150,6 @@ const createSplashWindow = (): BrowserWindow => {
     frame: false,
     show: false,
     backgroundColor: BACKGROUND_COLOR,
-    // use these settings so that the ui
-    // can listen for status change events
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
@@ -148,21 +159,20 @@ const createSplashWindow = (): BrowserWindow => {
     },
     icon: path.join(__dirname, "/logo/logo48.png"),
   })
-
-  // and load the splashscreen.html of the app.
+  /** and load it */
   if (app.isPackaged) {
     splashWindow.loadFile(SPLASH_FILE)
   } else {
-    // development
+    /** development */
     //splashWindow.webContents.openDevTools();
     splashWindow.loadURL(`${DEVELOPMENT_UI_URL}/splashscreen.html`)
     //splashWindow.loadURL("C:\\github\\where-damien\\web\\splashscreen.html")
   }
-  // once its ready to show, show
+  /** once its ready to show, show */
   splashWindow.once('ready-to-show', () => {
     splashWindow.show()
   })
-
+  /** Done */
   return splashWindow
 }
 
@@ -175,14 +185,29 @@ app.on('ready', async () => {
   log('debug', "APP READY - " + __dirname)
   //log('debug', process.env)
 
-    /* Create Splash Screen */
+  /* Create Splash Screen */
   const splashWindow = createSplashWindow()
-
   /** Load user settings */
   g_userSettings = loadUserSettings(1920, 1080);
-
+  /** Setup initial things */
+  const {sessionDataPath, uidList } = setupApp();
+  g_sessionDataPath = sessionDataPath
+  g_uidList = uidList
+  log('debug', "g_sessionDataPath: " + g_sessionDataPath);
+  /** Determine starting UID */
+  const maybeUid = g_userSettings.get("lastUid")
+  const hasUid = maybeUid? g_uidList.includes(maybeUid): false;
+  if (hasUid) {
+    g_uid = maybeUid
+  } else {
+    if (g_uidList.length == 0) {
+      await promptUid(true);
+    }
+    g_uid = g_uidList[0]
+    g_userSettings.set('lastUid', g_uid)
+  }
   /** Init conductor */
-  const opts = app.isPackaged ? prodOptions : devOptions
+  const opts = createHolochainOptions(!app.isPackaged, g_uid, g_sessionDataPath)
   log('debug', {opts})
   const statusEmitter = await initAgent(app, opts, BINARY_PATHS)
   statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
@@ -226,9 +251,48 @@ app.on('activate', () => {
 //   return whereDnaPath
 // })
 
-//--------------------------------------------------------------------------------------------------
-// -- FINALIZE
-//--------------------------------------------------------------------------------------------------
+
+/**************************************************************************************************
+ * PROMPTS
+ *************************************************************************************************/
+
+ /**
+ * @returns false if user cancelled
+ */
+async function promptUid(canExitOnCancel) {
+  let r = await prompt({
+    title: 'Where: Join new Network',
+    height: 180,
+    width: 500,
+    alwaysOnTop: true,
+    label: 'Network Access Key:',
+    value: g_uid,
+    inputAttrs: {
+      minlength: "2",
+      required: true,
+      pattern: "[a-zA-Z0-9\-_.]+",
+      type: 'string'
+    },
+    type: 'input'
+  });
+  if(r === null) {
+    log('debug','user cancelled. Can exit: ' + canExitOnCancel);
+    if (canExitOnCancel) {
+      app.quit();
+    }
+  } else {
+    const succeeded = addUid(r, g_sessionDataPath);
+    if (succeeded) {
+      g_uid = r
+      g_uidList.push(r)
+    }
+  }
+  return r !== null
+}
+
+/**************************************************************************************************
+ * FINALIZE
+ *************************************************************************************************/
 
 Menu.setApplicationMenu(Menu.buildFromTemplate(mainMenuTemplate));
 

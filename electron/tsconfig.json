@@ -6,4 +6,7 @@
   "include": [
     "src/**/*"
   ]
+//  , "references": [
+//    { "path": "../../electron-holochain/" }
+//  ]
 }

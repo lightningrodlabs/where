@@ -1,4 +1,5 @@
 import {screen} from "electron";
+import {APP_DATA_PATH} from "./constants";
 
 const path = require('path');
 const fs = require('fs');
@@ -16,9 +17,9 @@ export class SettingsStore {
   constructor(opts) {
     // Renderer process has to get `app` module via `remote`, whereas the main process can get it directly
     // app.getPath('userData') will return a string of the user's app data directory path.
-    const userDataPath = (app || remote.app).getPath('userData');
-    // We'll use the `configName` property to set the file name and path.join to bring it all together as a string
-    this.path = path.join(userDataPath, opts.configName + '.json');
+    // const userDataPath = (app || remote.app).getPath('userData');
+
+    this.path = path.join(opts.storagePath, opts.configName + '.json');
 
     this.data = parseSettingsFile(this.path, opts.defaults);
   }
@@ -71,12 +72,14 @@ export function loadUserSettings(initialWidth: number, initialHeight: number): S
   let userSettings = new SettingsStore({
     // We'll call our data file 'user-preferences'
     configName: 'user-preferences',
+    storagePath: APP_DATA_PATH,
     defaults: {
       windowBounds: { width: starting_width, height: starting_height },
       canAutoLaunch: false,
       windowPosition: {x, y},
       dontConfirmOnExit: false,
       canNotify: false,
+      lastUid: undefined,
     }
   });
   return userSettings;

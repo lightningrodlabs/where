@@ -3,10 +3,8 @@ import {app} from "electron";
 
 /** Debugging */
 export const IS_DEBUG = process.env.APP_DEV ? (process.env.APP_DEV.trim() === 'true') : false;
-// export const DEVELOPMENT_UI_URL = process.env.TEST_USER_2
-//   ? 'http://localhost:8081'
-//   : 'http://localhost:8080'
-export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../web')
+export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../ui/apps/where/dist')
+//export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../web')
 
 /** Networking */
 //export const INITIAL_UID = "__startup__"

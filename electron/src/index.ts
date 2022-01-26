@@ -1,4 +1,14 @@
-import {app, BrowserWindow, globalShortcut, ipcMain, Menu, MenuItemConstructorOptions, screen, shell} from 'electron'
+import {
+  app,
+  BrowserWindow,
+  dialog,
+  globalShortcut,
+  ipcMain,
+  Menu,
+  MenuItemConstructorOptions,
+  screen,
+  shell
+} from 'electron'
 import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
@@ -336,6 +346,32 @@ async function promptUidSelect(canExitOnCancel) {
   return r !== null
 }
 
+/**
+ *
+ */
+async function showAbout() {
+  // if (g_dnaHash === undefined) {
+  //   g_dnaHash = await getDnaHash(g_adminWs, g_uid);
+  // }
+  // let netHash = g_dnaHash || "(unknown)";
+  //log("info", `[${g_holochain_version}] DNA hash of "${g_uid}": ${netHash}\n`)
+  await dialog.showMessageBoxSync(g_mainWindow, {
+    //width: 900,
+    title: `About ${app.getName()}`,
+    message: `${app.getName()} - v${app.getVersion()}`,
+    // detail: `A minimalist email app on Holochain from Glass Bead Software\n\n`
+    //   + `Zome hash:\n${DNA_HASH}\n\n`
+    //   + `DNA hash of "${g_uid}":\n${netHash}\n\n`
+    //   + '' + g_holochain_version + ''
+    //   + '' + g_lair_version + `\n`,
+    buttons: ['OK'],
+    type: "info",
+    //iconIndex: 0,
+    //icon: CONFIG.ICON,
+    //icon: app.getFileIcon(path)
+  });
+}
+
 /**************************************************************************************************
  * MENUS
  *************************************************************************************************/
@@ -388,50 +424,50 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
       }
     },
   },
-  {
-    type: 'separator'
-  },
-  {
-    label: 'Change Network type',
-    click: async function (menuItem, _browserWindow, _event) {
-      // let changed = await promptNetworkType(false);
-      // let menu = Menu.getApplicationMenu();
-      // menu.getMenuItemById('join-network').enabled = !g_canMdns;
-      // menu.getMenuItemById('switch-network').enabled = !g_canMdns;
-      // menu.getMenuItemById('change-bootstrap').enabled = !g_canMdns;
-      // if (changed) {
-      //   await startConductorAndLoadPage(true);
-      // }
-    },
-  },
-  {
-    id: 'change-bootstrap',
-    label: 'Change Bootstrap Server',
-    click: async function (menuItem, _browserWindow, _event) {
-      // let changed = await promptBootstrapUrl(false);
-      // if (changed) {
-      //   await startConductorAndLoadPage(true);
-      // }
-    }
-  },
-  {
-    label: 'Change Proxy Server',
-    click: async function (menuItem, _browserWindow, _event) {
-      // const prevCanProxy = g_canProxy;
-      // let canProxy = await promptCanProxy();
-      // const proxyChanged = prevCanProxy !== canProxy;
-      // if (canProxy) {
-      //   let changed = await promptProxyUrl(false);
-      //   if(changed || proxyChanged) {
-      //     await startConductorAndLoadPage(true);
-      //   }
-      // } else  {
-      //   if(proxyChanged) {
-      //     await startConductorAndLoadPage(true);
-      //   }
-      // }
-    }
-  },
+  // {
+  //   type: 'separator'
+  // },
+  // {
+  //   label: 'Change Network type',
+  //   click: async function (menuItem, _browserWindow, _event) {
+  //     // let changed = await promptNetworkType(false);
+  //     // let menu = Menu.getApplicationMenu();
+  //     // menu.getMenuItemById('join-network').enabled = !g_canMdns;
+  //     // menu.getMenuItemById('switch-network').enabled = !g_canMdns;
+  //     // menu.getMenuItemById('change-bootstrap').enabled = !g_canMdns;
+  //     // if (changed) {
+  //     //   await startConductorAndLoadPage(true);
+  //     // }
+  //   },
+  // },
+  // {
+  //   id: 'change-bootstrap',
+  //   label: 'Change Bootstrap Server',
+  //   click: async function (menuItem, _browserWindow, _event) {
+  //     // let changed = await promptBootstrapUrl(false);
+  //     // if (changed) {
+  //     //   await startConductorAndLoadPage(true);
+  //     // }
+  //   }
+  // },
+  // {
+  //   label: 'Change Proxy Server',
+  //   click: async function (menuItem, _browserWindow, _event) {
+  //     // const prevCanProxy = g_canProxy;
+  //     // let canProxy = await promptCanProxy();
+  //     // const proxyChanged = prevCanProxy !== canProxy;
+  //     // if (canProxy) {
+  //     //   let changed = await promptProxyUrl(false);
+  //     //   if(changed || proxyChanged) {
+  //     //     await startConductorAndLoadPage(true);
+  //     //   }
+  //     // } else  {
+  //     //   if(proxyChanged) {
+  //     //     await startConductorAndLoadPage(true);
+  //     //   }
+  //     // }
+  //   }
+  // },
 ];
 
 
@@ -458,8 +494,10 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
     role: "toggleDevTools",
   },
   {
-    label: 'Restart Conductor', click: async function (menuItem, _browserWindow, _event) {
+    label: 'Restart Holochain', click: async function (menuItem, _browserWindow, _event) {
       //await startConductorAndLoadPage(false);
+      app.relaunch()
+      app.exit(0)
     }
   },
   {
@@ -474,27 +512,29 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
  */
 export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
   {
-    label: 'File', submenu: [{
-      label:`Check for Update`,
-      click: function (menuItem, _browserWindow, _event) {
-        //checkForUpdates(this);
-      }
-    }, {
-      label: 'Quit',
-      role: 'quit',
-      //accelerator: 'Command+Q',
-      // click: async function (menuItem, _browserWindow, _event) {
-      //   let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
-      //   if (dontConfirmOnExit) {
-      //     app.quit();
-      //   } else {
-      //     let canExit = await confirmExit();
-      //     if (canExit) {
-      //       app.quit();
-      //     }
+    label: 'File', submenu: [
+      // {
+      //   label:`Check for Update`,
+      //   click: function (menuItem, _browserWindow, _event) {
+      //   //checkForUpdates(this);
       //   }
       // },
-    },
+      {
+        label: 'Quit',
+        role: 'quit',
+        //accelerator: 'Command+Q',
+        // click: async function (menuItem, _browserWindow, _event) {
+        //   let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
+        //   if (dontConfirmOnExit) {
+        //     app.quit();
+        //   } else {
+        //     let canExit = await confirmExit();
+        //     if (canExit) {
+        //       app.quit();
+        //     }
+        //   }
+        // },
+      },
     ],
   },
   {
@@ -523,7 +563,7 @@ export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
         label: 'About',
         //accelerator: 'Command+A',
         click: async function (menuItem, _browserWindow, _event) {
-          //await showAbout();
+          await showAbout();
         },
       },],
   },

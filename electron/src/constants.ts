@@ -3,7 +3,7 @@ import {app} from "electron";
 
 /** Debugging */
 export const IS_DEBUG = process.env.APP_DEV ? (process.env.APP_DEV.trim() === 'true') : false;
-export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../ui/apps/where/dist')
+export const DEVELOPMENT_UI_URL = path.join(__dirname, '../web')
 //export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../web')
 
 /** Networking */

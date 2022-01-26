@@ -28,7 +28,7 @@
     ],
     "win": {
       "target": "NSIS",
-      "icon": "build/icon.ico",
+      "icon": "web/logo/icon.ico",
       "artifactName": "${productName}.Setup.${version}.${ext}"
     },
     "directories": {

@@ -41,15 +41,16 @@ const whereDnaPath = app.isPackaged
 // must point to unpacked versions, not in an asar archive
 // in development
 // fall back on defaults in the electron-holochain package
+const fileExt = process.platform === 'win32' ? '.exe' : '';
 const BINARY_PATHS: PathOptions | undefined = app.isPackaged
   ? {
       holochainRunnerBinaryPath: path.join(
         __dirname,
-        `../../app.asar.unpacked/binaries/holochain-runner${process.platform === 'win32' ? '.exe' : ''}`
+        `../../app.asar.unpacked/node_modules/electron-holochain/binaries/holochain-runner${fileExt}`
       ),
       lairKeystoreBinaryPath: path.join(
         __dirname,
-        `../../app.asar.unpacked/binaries/lair-keystore${process.platform === 'win32' ? '.exe' : ''}`,
+        `../../app.asar.unpacked/node_modules/electron-holochain/binaries/lair-keystore${fileExt}`,
       ),
     }
   : undefined

@@ -87,52 +87,11 @@ export function initApp() {
   //   uidList.push(INITIAL_UID)
   // }
 
-
   //// -- Determine final conductor config file path -- //
   //g_configPath = path.join(g_storagePath, CONDUCTOR_CONFIG_FILENAME);
   //log('debug', {g_configPath});
   //let g_appConfigPath = path.join(g_storagePath, APP_CONFIG_FILENAME);
 
-  // -- Set Globals from current conductor config -- //
-
-// tryLoadingConfig()
-  {
-    try {
-
-      // // -- Conductor Config -- //
-      // const conductorConfigBuffer = fs.readFileSync(g_configPath);
-      // const conductorConfig = conductorConfigBuffer.toString();
-      // // log('debug', {conductorConfig})
-      // // Get Admin PORT
-      // let regex = /port: (.*)$/gm;
-      // let match = regex.exec(conductorConfig);
-      // // log('silly', {match});
-      // g_adminPort = match[1];
-      // // Get bootstrap server URL
-      // regex = /bootstrap_service: (.*)$/gm;
-      // match = regex.exec(conductorConfig);
-      // // log('silly', {match});
-      // g_bootstrapUrl = match[1];
-      // // Get proxy server URL
-      // try {
-      //   regex = /proxy_url: (.*)$/gm;
-      //   match = regex.exec(conductorConfig);
-      //   g_proxyUrl = match[1];
-      //   log('debug', {g_proxyUrl});
-      // } catch (err) {
-      //   log('info', 'No proxy URL found in config. Using default proxy.');
-      //   g_proxyUrl = DEFAULT_PROXY_URL;
-      // }
-
-    } catch (err) {
-      if (err.code === 'ENOENT') {
-        log('error', 'File not found: ' + err);
-      } else {
-        log('error', 'Loading file failed: ' + err);
-      }
-      log('error', 'continuing...');
-    }
-  }
   /** Done */
   return {sessionDataPath, uidList}
 }

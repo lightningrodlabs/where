@@ -216,6 +216,7 @@ app.on('ready', async () => {
     g_uid = g_uidList[0]
     g_userSettings.set('lastUid', g_uid)
   }
+  log('debug', "g_uid: " + g_uid);
   g_sessionDataPath = path.join(g_sessionDataPath, g_uid)
   log('debug', "g_sessionDataPath: " + g_sessionDataPath);
   /** Get Versions */

@@ -15,7 +15,7 @@ export const COMMUNITY_PROXY_URL =
 export const MAIN_APP_ID = 'main-app'
 export const APP_DATA_PATH = IS_DEBUG
   ? path.join(__dirname, '../../.dev-app-data')
-  : path.join(app.getPath('appData'), 'where-happ')
+  : path.join(app.getPath('appData'), 'where')
 export const USER_DATA_PATH = path.join(APP_DATA_PATH, 'users');
 
 

@@ -2,16 +2,17 @@ import {
   app,
   BrowserWindow,
   dialog,
-  globalShortcut,
+  globalShortcut, ipcMain as ipc,
   ipcMain,
   Menu,
-  MenuItemConstructorOptions,
+  MenuItemConstructorOptions, Notification,
   screen,
   shell
 } from 'electron'
 import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
+  getRunnerVersion, getLairVersion,
   StateSignal,
   STATUS_EVENT,
   APP_PORT_EVENT
@@ -59,6 +60,9 @@ let g_uid = '';
 let g_uidList = [];
 let g_appPort = '';
 let g_mainWindow: BrowserWindow | null = null;
+let g_runner_version = 'holochain runner version (unknown)'
+let g_lair_version = 'lair version (unknown)'
+let g_dnaHash = '(unknown)'
 
 //--------------------------------------------------------------------------------------------------
 // -- Functions
@@ -200,7 +204,6 @@ app.on('ready', async () => {
   const {sessionDataPath, uidList } = initApp();
   g_sessionDataPath = sessionDataPath
   g_uidList = uidList
-  log('debug', "g_sessionDataPath: " + g_sessionDataPath);
   /** Determine starting UID */
   const maybeUid = g_userSettings.get("lastUid")
   const hasUid = maybeUid? g_uidList.includes(maybeUid): false;
@@ -214,6 +217,10 @@ app.on('ready', async () => {
     g_userSettings.set('lastUid', g_uid)
   }
   g_sessionDataPath = path.join(g_sessionDataPath, g_uid)
+  log('debug', "g_sessionDataPath: " + g_sessionDataPath);
+  /** Get Versions */
+  g_runner_version = getRunnerVersion(BINARY_PATHS?.holochainRunnerBinaryPath)
+  g_lair_version = getLairVersion(BINARY_PATHS?.lairKeystoreBinaryPath)
   /** Start holochain and main window */
   await startMainWindow(splashWindow)
 })
@@ -228,7 +235,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   log('debug', {opts})
   const statusEmitter = await initAgent(app, opts, BINARY_PATHS)
   statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
-    log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
+    //log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
     switch (state) {
       case StateSignal.IsReady:
         log('debug', "STATUS EVENT: IS READY")
@@ -271,6 +278,15 @@ app.on('activate', () => {
 // ipcMain.handle('getProjectsPath', () => {
 //   return whereDnaPath
 // })
+
+
+/**
+ * Receive synchronous notification
+ */
+ipc.on('dnaHash', (event, dnaHash) => {
+  g_dnaHash = dnaHash
+  event.returnValue = true;
+});
 
 
 /**************************************************************************************************
@@ -339,7 +355,6 @@ async function promptUidSelect(canExitOnCancel) {
       app.quit();
     }
   } else {
-    log('debug','promptUidSelect result: ' + r);
     g_uid = r;
     g_userSettings.set('lastUid', g_uid);
   }
@@ -350,20 +365,16 @@ async function promptUidSelect(canExitOnCancel) {
  *
  */
 async function showAbout() {
-  // if (g_dnaHash === undefined) {
-  //   g_dnaHash = await getDnaHash(g_adminWs, g_uid);
-  // }
-  // let netHash = g_dnaHash || "(unknown)";
-  //log("info", `[${g_holochain_version}] DNA hash of "${g_uid}": ${netHash}\n`)
+  log("info", `[${g_runner_version}] DNA hash of "${g_uid}": ${g_dnaHash}\n`)
   await dialog.showMessageBoxSync(g_mainWindow, {
     //width: 900,
     title: `About ${app.getName()}`,
     message: `${app.getName()} - v${app.getVersion()}`,
-    // detail: `A minimalist email app on Holochain from Glass Bead Software\n\n`
-    //   + `Zome hash:\n${DNA_HASH}\n\n`
-    //   + `DNA hash of "${g_uid}":\n${netHash}\n\n`
-    //   + '' + g_holochain_version + ''
-    //   + '' + g_lair_version + `\n`,
+    detail: `Tooling for group self-awareness on holochain from Lightning Rod Labs\n\n`
+      // + `Zome hash:\n${DNA_HASH}\n\n`
+      + `DNA hash of "${g_uid}":\n${g_dnaHash}\n\n`
+      + '' + g_runner_version + ''
+      + '' + g_lair_version + `\n`,
     buttons: ['OK'],
     type: "info",
     //iconIndex: 0,

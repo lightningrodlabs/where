@@ -35,6 +35,7 @@
   },
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.1.1",
+    "byte-base64": "^1.1.0",
     "@holochain-open-dev/profiles": "github:holochain-open-dev/profiles#ui-build",
     "@holochain/conductor-api": "^0.2.4",
     "@lit-labs/context": "github:holochain-open-dev/context#build",

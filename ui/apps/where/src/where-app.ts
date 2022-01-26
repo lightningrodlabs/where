@@ -15,6 +15,7 @@ import { AppWebsocket } from "@holochain/conductor-api";
 import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
+import * as base64 from "byte-base64";
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
@@ -50,8 +51,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const appInfo = await appWebsocket.appInfo({
       installed_app_id,
     });
-
+    //console.log({appInfo})
     const cellData = appInfo.cell_data[0];
+    // Send dnaHash to electron
+    if (IS_ELECTRON) {
+      const ipc = window.require('electron').ipcRenderer;
+      const dnaHash = base64.bytesToBase64(cellData.cell_id[0])
+      let _reply = ipc.sendSync('dnaHash', dnaHash);
+    }
     const cellClient = new HolochainClient(appWebsocket, cellData);
 
     const store = new ProfilesStore(cellClient, {avatarMode: "avatar"})

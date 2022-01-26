@@ -17,28 +17,33 @@ import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 
 let APP_ID = 'where'
+let HC_PORT:any = process.env.HC_PORT;
 let NETWORK_ID: any = null
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
   APP_ID = 'main-app'
   let searchParams = new URLSearchParams(window.location.search);
+  HC_PORT = searchParams.get("PORT");
   NETWORK_ID = searchParams.get("UID");
-  console.log({NETWORK_ID})
+  console.log(NETWORK_ID)
 }
+
+// FIXME
+//const HC_PORT = process.env.HC_PORT
+//const HC_PORT = 8889
+console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
+
 
 export class WhereApp extends ScopedElementsMixin(LitElement) {
   @state()
   loaded = false;
 
   async firstUpdated() {
-    // FIXME
-    //const HC_PORT = process.env.HC_PORT
-    const HC_PORT = 8889
-    console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
+
     const appWebsocket = await AppWebsocket.connect(
       `ws://localhost:${HC_PORT}`
     );
-    const installed_app_id = NETWORK_ID == null || NETWORK_ID != ''
+    const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
       ? APP_ID
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})

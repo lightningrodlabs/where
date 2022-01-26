@@ -3,8 +3,9 @@ import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
   StateSignal,
-  STATUS_EVENT,
+  STATUS_EVENT
 } from 'electron-holochain'
+
 
 import {
   createHolochainOptions,
@@ -46,7 +47,7 @@ let g_userSettings = undefined;
 let g_sessionDataPath = undefined;
 let g_uid = '';
 let g_uidList = [];
-
+let g_appPort = '';
 
 //--------------------------------------------------------------------------------------------------
 // -- Functions
@@ -55,7 +56,7 @@ let g_uidList = [];
 /**
  *
  */
-const createMainWindow = (): BrowserWindow => {
+const createMainWindow = (appPort: string): BrowserWindow => {
   /** Create the browser window */
   let { width, height } = g_userSettings.get('windowBounds');
   let title = "Where v" + app.getVersion() + " - " + g_uid
@@ -89,16 +90,15 @@ const createMainWindow = (): BrowserWindow => {
     mainWindow.reload()
   })
 
-  /** load the index.html of the app */
-  if (app.isPackaged) {
-    mainWindow.loadFile(MAIN_FILE)
-  } else {
-    // development
-    log('debug', "createMainWindow ; loadURL: " + DEVELOPMENT_UI_URL)
+  if (IS_DEBUG) {
     mainWindow.webContents.openDevTools();
-    //mainWindow.loadURL(DEVELOPMENT_UI_URL)
-    mainWindow.loadURL(DEVELOPMENT_UI_URL + "/index.html")
   }
+
+  /** load the index.html of the app */
+  let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
+  mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
+  log('debug', "createMainWindow ; loadURL: " + mainUrl)
+  mainWindow.loadURL(mainUrl)
 
   /** Open <a href='' target='_blank'> with default system browser */
   mainWindow.webContents.on('new-window', function (event, url) {
@@ -217,12 +217,16 @@ app.on('ready', async () => {
         log('debug', "STATUS EVENT: IS READY")
         // Its important to create the window before closing the current one
         // otherwise this triggers the 'all-windows-closed' event
-        const mainWindow = createMainWindow()
+        const mainWindow = createMainWindow(g_appPort)
         splashWindow.close()
         break
       default:
         splashWindow.webContents.send('status', stateSignalToText(state))
     }
+  })
+  statusEmitter.on('port', (appPort: string) => {
+    //log('debug', "APP_PORT_EVENT: " + appPort)
+    g_appPort = appPort
   })
 })
 
@@ -242,7 +246,7 @@ app.on('activate', () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    createMainWindow()
+    createMainWindow(g_appPort)
   }
 })
 

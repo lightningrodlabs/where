@@ -68,21 +68,15 @@ function createHolochainOptions(isDev: boolean, uid: string, storagePath: string
 
   const options: HolochainRunnerOptions = {
     dnaPath: whereDnaPath,
-    // datastorePath: isDev
-    //   ? path.join(__dirname, '../../user-data/databases')
-    //   : path.join(storagePath, 'databases-' + app.getVersion()),
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
-    //appId: MAIN_APP_ID + '-' + uid,
-    appId: MAIN_APP_ID,
-    appWsPort: 8889,
+    appId: MAIN_APP_ID + '-' + uid,
+    //appId: MAIN_APP_ID,
+    //appWsPort: 8889,
     adminWsPort: 1235,
-    // keystorePath: isDev
-    //   ? path.join(__dirname, '../../user-data/keystore')
-    //   : path.join(storagePath, 'keystore-' + app.getVersion()),
     keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
     //proxyUrl: COMMUNITY_PROXY_URL,
     //bootstrapUrl: "",
-    //uid,
+    uid,
   }
   return options;
 }

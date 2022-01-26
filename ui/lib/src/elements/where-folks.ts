@@ -1,14 +1,14 @@
 import { html, css, LitElement } from "lit";
 import { state, property } from "lit/decorators.js";
 
-import { contextProvided } from "@lit-labs/context";
+import { contextProvided } from "@holochain-open-dev/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
 import {whereContext, Play, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
 import { WhereStore } from "../where.store";
-import {lightTheme, SlAvatar, SlBadge, SlIcon, SlInput, SlTooltip} from '@scoped-elements/shoelace';
+import {SlAvatar, SlBadge, SlIcon, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -196,7 +196,6 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
   static get styles() {
     return [
-      lightTheme,
       sharedStyles,
       css`
         mwc-textfield.rounded {

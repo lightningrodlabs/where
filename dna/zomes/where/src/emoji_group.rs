@@ -30,7 +30,7 @@ fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
     let eh = hash_entry(input.clone())?;
     let path = get_emoji_group_path();
     path.ensure()?;
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     create_link(anchor_hash, eh.clone(), ())?;
     let eh64: EntryHashB64 = eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
@@ -53,7 +53,7 @@ fn get_emoji_group(input: EntryHashB64) -> ExternResult<Option<EmojiGroup>> {
 #[hdk_extern]
 fn get_all_emoji_groups(_: ()) -> ExternResult<Vec<EmojiGroupOutput>> {
     let path = get_emoji_group_path();
-    let templates = get_all_inner(path.hash()?)?;
+    let templates = get_all_inner(path.path_entry_hash()?)?;
     Ok(templates)
 }
 

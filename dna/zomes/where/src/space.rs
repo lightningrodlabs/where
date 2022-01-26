@@ -36,7 +36,7 @@ fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let space_eh = hash_entry(input.clone())?;
     let path = get_spaces_path();
     path.ensure()?;
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     create_link(anchor_hash, space_eh.clone(), ())?;
     let eh64: EntryHashB64 = space_eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
@@ -157,7 +157,7 @@ fn get_visible_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
 #[hdk_extern]
 fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
     let path = get_spaces_path();
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     let spaces = get_spaces_inner(anchor_hash)?;
     Ok(spaces)
 }

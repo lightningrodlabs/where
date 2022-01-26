@@ -29,7 +29,7 @@ fn create_template(input: Template) -> ExternResult<EntryHashB64> {
     let eh = hash_entry(input.clone())?;
     let path = get_templates_path();
     path.ensure()?;
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     create_link(anchor_hash, eh.clone(), ())?;
     let eh64: EntryHashB64 = eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
@@ -52,7 +52,7 @@ fn get_template(input: EntryHashB64) -> ExternResult<Option<Template>> {
 #[hdk_extern]
 fn get_templates(_: ()) -> ExternResult<Vec<TemplateOutput>> {
     let path = get_templates_path();
-    let templates = get_templates_inner(path.hash()?)?;
+    let templates = get_templates_inner(path.path_entry_hash()?)?;
     Ok(templates)
 }
 

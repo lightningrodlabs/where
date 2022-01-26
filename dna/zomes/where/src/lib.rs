@@ -26,7 +26,7 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 }
 
 entry_defs![
-    Path::entry_def(),
+    PathEntry::entry_def(),
     svg_marker::SvgMarker::entry_def(),
     emoji_group::EmojiGroup::entry_def(),
     template::Template::entry_def(),

@@ -40,6 +40,6 @@
     "run-singleton-cli": "^0.0.5"
   },
   "dependencies": {
-    "@holochain-open-dev/profiles": "github:holochain-open-dev/profiles#ui-build"
+    "@holochain-open-dev/profiles": "^0.0.1"
   }
 }

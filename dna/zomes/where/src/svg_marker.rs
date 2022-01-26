@@ -29,7 +29,7 @@ fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
     let eh = hash_entry(input.clone())?;
     let path = get_svg_marker_path();
     path.ensure()?;
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     create_link(anchor_hash, eh.clone(), ())?;
     let eh64: EntryHashB64 = eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
@@ -52,7 +52,7 @@ fn get_svg_marker(input: EntryHashB64) -> ExternResult<Option<SvgMarker>> {
 #[hdk_extern]
 fn get_svg_markers(_: ()) -> ExternResult<Vec<SvgMarkerOutput>> {
     let path = get_svg_marker_path();
-    let templates = get_inner(path.hash()?)?;
+    let templates = get_inner(path.path_entry_hash()?)?;
     Ok(templates)
 }
 

@@ -34,7 +34,7 @@ export function stateSignalToText(state: StateSignal): StateSignalText {
 }
 
 const whereDnaPath = app.isPackaged
-  ? path.join(app.getAppPath(), '../app.asar.unpacked/binaries/where.dna')
+  ? path.join(app.getAppPath(), '../app/where.dna')
   : path.join(app.getAppPath(), '../dna/workdir/dna/where.dna')
 
 // in production
@@ -46,11 +46,11 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
   ? {
       holochainRunnerBinaryPath: path.join(
         __dirname,
-        `../../app.asar.unpacked/node_modules/electron-holochain/binaries/holochain-runner${fileExt}`
+        `../../app/node_modules/electron-holochain/binaries/holochain-runner${fileExt}`
       ),
       lairKeystoreBinaryPath: path.join(
         __dirname,
-        `../../app.asar.unpacked/node_modules/electron-holochain/binaries/lair-keystore${fileExt}`,
+        `../../app/node_modules/electron-holochain/binaries/lair-keystore${fileExt}`,
       ),
     }
   : undefined

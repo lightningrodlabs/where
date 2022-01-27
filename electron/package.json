@@ -5,24 +5,27 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && electron .",
-    "build": "tsc && electron-builder build",
+    "build": "tsc && cp ../dna/workdir/dna/where.dna ./ && electron-builder build",
     "tsc": "tsc",
     "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "Electron",
+    "Holochain"
+  ],
+  "author": "Harris-Braun Enterprises, LLC and contributors",
   "license": "CAL-1.0",
   "build": {
     "productName": "Where",
     "afterSign": "./afterSignHook.js",
     "appId": "com.harris-braun.where",
     "copyright": "© 2021-2022 Harris-Braun Enterprises, LLC",
-    "asarUnpack": "binaries/**/*",
+    "asar": false,
     "files": [
       "dist/**/*",
       "web/**/*",
-      "binaries/**/*",
+      "where.dna",
       "node_modules/**/*",
       "package.json"
     ],
@@ -32,6 +35,7 @@
       "artifactName": "${productName}.Setup.${version}.${ext}"
     },
     "directories": {
+      "buildResources": "web",
       "output": "out"
     }
   },

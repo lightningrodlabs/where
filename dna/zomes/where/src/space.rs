@@ -1,5 +1,5 @@
 pub use hdk::prelude::*;
-use hc_utils::*;
+use hc_utils::get_links_and_load_type;
 use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
@@ -36,7 +36,7 @@ fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let space_eh = hash_entry(input.clone())?;
     let path = get_spaces_path();
     path.ensure()?;
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     create_link(anchor_hash, space_eh.clone(), ())?;
     let eh64: EntryHashB64 = space_eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
@@ -78,7 +78,7 @@ fn create_space_with_sessions(input: SpaceSessionsInput) -> ExternResult<EntryHa
 
 /// Returns 0 if no session found or if space does not exist
 pub fn get_next_session_index(space_eh: EntryHash) -> WhereResult<u32> {
-    let sessions: Vec<PlacementSession> = get_links_and_load_type(space_eh, None)?;
+    let sessions: Vec<PlacementSession> = get_links_and_load_type(space_eh, None, false)?;
     let mut top = 0;
     for session in sessions {
         if session.index >= top {
@@ -157,13 +157,13 @@ fn get_visible_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
 #[hdk_extern]
 fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
     let path = get_spaces_path();
-    let anchor_hash = path.hash()?;
+    let anchor_hash = path.path_entry_hash()?;
     let spaces = get_spaces_inner(anchor_hash)?;
     Ok(spaces)
 }
 
 fn get_spaces_inner(base: EntryHash) -> WhereResult<Vec<SpaceOutput>> {
-    let entries = get_links_and_load_type(base, None)?;
+    let entries = get_links_and_load_type(base, None, false)?;
     let mut spaces = vec![];
     for e in entries {
         spaces.push(SpaceOutput {hash: hash_entry(&e)?.into(), content: e});

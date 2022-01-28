@@ -30,7 +30,7 @@
     "playground"            : "run-singleton \"holochain-playground\""
   },
   "devDependencies": {
-    "@holochain-playground/cli": "^0.0.6",
+    "@holochain-playground/cli": "^0.0.8",
     "concurrently": "^6.2.1",
     "concurrently-repeat": "^0.0.1",
     "cross-env": "^7.0.3",
@@ -38,8 +38,5 @@
     "new-port-cli": "^1.0.0",
     "rimraf": "^3.0.2",
     "run-singleton-cli": "^0.0.5"
-  },
-  "dependencies": {
-    "@holochain-open-dev/profiles": "^0.0.1"
   }
 }

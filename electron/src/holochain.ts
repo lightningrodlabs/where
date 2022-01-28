@@ -65,7 +65,7 @@ function createHolochainOptions(uid: string, storagePath: string): HolochainRunn
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
     appId: MAIN_APP_ID + '-' + uid,
     //appId: MAIN_APP_ID,
-    //appWsPort: 8889,
+    appWsPort: 0,
     adminWsPort: 1235,
     keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
     //proxyUrl: COMMUNITY_PROXY_URL,

@@ -89,7 +89,7 @@ const createMainWindow = (appPort: string): BrowserWindow => {
       webgl: false,
       enableWebSQL: false,
     },
-    icon: __dirname + `/logo/logo48.png`,
+    icon: __dirname + `/logo/logo256.png`,
   }
   if (process.platform === 'linux') {
     options.icon = LINUX_ICON_FILE
@@ -171,7 +171,7 @@ const createSplashWindow = (): BrowserWindow => {
       webgl: false,
       enableWebSQL: false,
     },
-    icon: path.join(__dirname, "/logo/logo48.png"),
+    icon: path.join(__dirname, "/logo/logo256.png"),
   })
   /** and load it */
   if (app.isPackaged) {

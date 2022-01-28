@@ -133,6 +133,12 @@ export class WhereService {
     return this.callZome('add_here', input);
   }
 
+  async updateLocation(hereHh: HeaderHashB64, location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
+    const entry = this.hereFromLocation(location);
+    const input = {oldHereHh: hereHh, newHere: {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}}
+    return this.callZome('update_here', input);
+  }
+
   async deleteLocation(hereHh: HeaderHashB64): Promise<EntryHashB64> {
     return this.callZome('delete_here', hereHh);
   }

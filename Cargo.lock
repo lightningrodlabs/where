@@ -1561,7 +1561,6 @@ dependencies = [
  "futures",
  "hc_utils",
  "hdk",
- "holo_hash",
  "nanoid",
  "observability",
  "serde",

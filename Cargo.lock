@@ -961,8 +961,6 @@ name = "profiles"
 version = "0.0.1-alpha1"
 dependencies = [
  "hc_zome_profiles",
- "hdk",
- "holo_hash",
 ]
 
 [[package]]

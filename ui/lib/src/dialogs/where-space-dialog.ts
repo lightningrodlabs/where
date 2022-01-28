@@ -38,6 +38,7 @@ import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
+import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 
@@ -102,6 +103,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   get tagChkLabel() : Formfield {
     return this.shadowRoot!.getElementById("tag-chk-lbl") as Formfield;
+  }
+
+  get emojiDialogElem() : WhereEmojiDialog {
+    return this.shadowRoot!.getElementById("emoji-dialog") as WhereEmojiDialog;
   }
 
   get emojiGroupDialogElem() : WhereEmojiGroupDialog {
@@ -551,8 +556,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
 
   renderSurfacePreview() {
+    const previewButton = html`<mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>preview</mwc-button>`;
+    const sizeFields = html`<mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+    <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>`
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      return html`<div id="thumbnail"></div>`
+      return html`<div id="thumbnail">${previewButton}${sizeFields}</div>`
     }
     let {surface, _subMap}: any = this.generateSurface();
     const ratio: number = (surface.size && surface.size.x > 0)? surface.size.y / surface.size.x : 1;
@@ -571,7 +579,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       preview =
         html`
           ${uiItems}
-          <div style="width: ${w}px; height: ${h}px;" id="surface-preview-div">
+          <div style="width: ${w}px; height: ${h}px; margin-bottom:5px;" id="surface-preview-div">
             ${unsafeHTML(surface.html)}
           </div>
         `;
@@ -596,7 +604,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
               style="border:1px solid #324acb;">`
     }
     return html`
-      <div id="thumbnail">${preview}</div>
+      <div id="thumbnail">${preview}${previewButton}${sizeFields}</div>
     `
   }
 
@@ -648,7 +656,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   handleEmojiGroupSelect(e?: any) {
     console.log("handleEmojiGroupSelect")
     //console.log({e})
-    const selectedName = e.explicitOriginalTarget.value;
+    //const selectedName = e.explicitOriginalTarget.value;
+    let emojiGroupField = this.shadowRoot!.getElementById("emoji-group-field") as Select;
+    //console.log({emojiGroupField})
+    const selectedName = emojiGroupField.value;
     console.log("selectedName: " + selectedName)
     if (!selectedName || selectedName == "") {
       return;
@@ -691,6 +702,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         this._currentMeta.svgMarker = eh;
         break;
       }
+    }
+  }
+
+  async openEmojiDialog(emoji: string | undefined) {
+    const dialog = this.emojiDialogElem;
+    dialog.clearAllFields();
+    dialog.open(emoji);
+    if (emoji) {
+      dialog.loadPreset(emoji);
     }
   }
 
@@ -743,16 +763,19 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         let emoji = this._currentMeta.singleEmoji != "" ? this._currentMeta.singleEmoji : "😀";
         maybeMarkerTypeItems = html`
             <span id="space-unicodes" style="margin-top:20px;font-size:${EMOJI_WIDTH}px;display:inline-flex;">${emoji}</span>
-          <details style="margin-top:10px;">
+            <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiDialog(this._currentMeta.singleEmoji)}></mwc-icon-button>
+          <!-- <details style="margin-top:10px;">
             <summary>Select Emoji</summary>
-            <emoji-picker id="emoji-picker" class="light" style="height: 300px;"></emoji-picker>
-          </details>
+            <emoji-picker id="emoji-picker" class="light" style="height: 400px;"></emoji-picker>
+           </details> -->
         `
         break;
       case MarkerType.EmojiGroup:
         /** Build group list */
+        console.log("** Building emoji group field:")
         const groups = Object.entries(this._emojiGroups.value).map(
           ([key, emojiGroup]) => {
+            console.log({emojiGroup})
             return html`
                      <mwc-list-item class="emoji-group-li" value="${emojiGroup.name}" .selected=${key == this._currentMeta.emojiGroup}>
                        ${emojiGroup.name}
@@ -824,7 +847,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     /** Main Render */
     return html`
-<mwc-dialog id="space-dialog" heading="New space" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
+<mwc-dialog id="space-dialog" heading="NEW SPACE" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   <sl-tab-group id="space-tab-group">
     <sl-tab id="general-tab" slot="nav" panel="general">GENERAL</sl-tab>
     <sl-tab id="locations-tab" slot="nav" panel="locations">LOCATIONS</sl-tab>
@@ -850,9 +873,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           </mwc-list-item>
         `)}
     </mwc-select>
-    ${selectedTemplateUi}
-    <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-    <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+    <div style="max-height: 375px;display:block;overflow-y: auto;padding-right:1px;">
+        ${selectedTemplateUi}
+    </div>
   </sl-tab-panel>
   <!--  Marker -->
   <sl-tab-panel name="locations">
@@ -882,7 +905,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
                    id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
     </mwc-textfield>
-    <div style="min-height: 140px;"></div>
   </sl-tab-panel>
   <!-- Iterations -->
   <sl-tab-panel name="iterations">
@@ -915,7 +937,6 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       <mwc-checkbox id="can-modify-past-chk" .disabled="${!isGenSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
       </mwc-formfield>
     </div>
-    <div style="min-height: 220px;"></div>
   </sl-tab-panel>
   <!-- UI BOX -->
   <sl-tab-panel name="advanced">
@@ -925,19 +946,25 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
                     id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="20" cols="60">
       </mwc-textarea>
     <!-- </details> -->
-    <div style="min-height: 37px;"></div>
   </sl-tab-panel>
   </sl-tab-group>
 
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
   <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
-  <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
+    <!--<mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>-->
   <!-- Inner dialogs -->
+  <where-emoji-dialog id="emoji-dialog" @emoji-selected=${(e:any) => this.handleEmojiSelected(e.detail)}></where-emoji-dialog>
   <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
   <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => this.handleSvgMarkerAdded(e.detail)}></where-svg-marker-dialog>
 </mwc-dialog>
 `
+  }
+
+  handleEmojiSelected(emoji: string) {
+    console.log("handleEmojiSelected(): " + emoji)
+    this._currentMeta.singleEmoji = emoji;
+    this.requestUpdate()
   }
 
   handleGroupAdded(eh: EntryHashB64) {
@@ -983,6 +1010,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "mwc-tab": Tab,
       "mwc-tab-bar": TabBar,
       "where-emoji-group-dialog" : WhereEmojiGroupDialog,
+      "where-emoji-dialog" : WhereEmojiDialog,
       "where-svg-marker-dialog" : WhereSvgMarkerDialog,
       "emoji-picker": customElements.get('emoji-picker'),
     };
@@ -997,12 +1025,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
         emoji-picker {
           width: auto;
+          /*--category-emoji-size: 1.125rem;*/
         }
         sl-tab::part(base) {
           /*color: rgb(110, 20, 239);*/
         }
         sl-tab-panel {
           --padding: 0px;
+          min-height: 500px;
         }
         sl-tab-group {
           --indicator-color: rgb(110, 20, 239);
@@ -1037,8 +1067,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
           margin-left: 10px;
           padding-left: 0px;
           float: right;
+          display: block;
+          margin-top: 10px;
+        }
+        #surface-preview-svg,
+        #surface-preview-div {
           border: 1px solid grey;
           background-color: rgb(252, 252, 252);
+          max-height: 202px;
         }
         mwc-textfield {
           margin-top: 10px;
@@ -1049,7 +1085,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         }
         mwc-textfield.rounded {
           --mdc-shape-small: 28px;
-          width: 8em;
+          width: 6.2em;
         }
 
         mwc-list-item {

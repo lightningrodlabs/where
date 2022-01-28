@@ -85,7 +85,7 @@ const createMainWindow = (appPort: string): BrowserWindow => {
     webPreferences: {
       contextIsolation: false,
       nodeIntegration: true,
-      devTools: IS_DEBUG,
+      devTools: true,
       webgl: false,
       enableWebSQL: false,
     },

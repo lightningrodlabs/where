@@ -5,9 +5,9 @@ import {
   globalShortcut, ipcMain as ipc,
   ipcMain,
   Menu,
-  MenuItemConstructorOptions, Notification,
+  MenuItemConstructorOptions, nativeImage, Notification,
   screen,
-  shell
+  shell, Tray
 } from 'electron'
 import * as path from 'path'
 // import log from 'electron-log'
@@ -56,6 +56,7 @@ process.env.RUST_LOG="WARN";
 
 let g_userSettings = undefined;
 let g_sessionDataPath = undefined;
+let g_tray = null;
 let g_uid = '';
 let g_uidList = [];
 let g_appPort = '';
@@ -136,14 +137,14 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   });
 
   /** Save position on close */
-  mainWindow.on('close', (_event) => {
+  mainWindow.on('close', (event) => {
     let positions = mainWindow.getPosition();
     g_userSettings.set('windowPosition', { x: Math.floor(positions[0]), y: Math.floor(positions[1]) });
     // if (g_canQuit) {
     //   mainWindow = null;
     // } else {
-    //   event.preventDefault();
-    //   mainWindow.hide();
+    event.preventDefault();
+    mainWindow.hide();
     // }
   })
   /** Done */
@@ -222,10 +223,34 @@ app.on('ready', async () => {
   /** Get Versions */
   g_runner_version = getRunnerVersion(BINARY_PATHS?.holochainRunnerBinaryPath)
   g_lair_version = getLairVersion(BINARY_PATHS?.lairKeystoreBinaryPath)
+
+  /** Create sys tray */
+  create_tray();
+  g_tray.setToolTip('Where v' + app.getVersion());
+  const menu = Menu.buildFromTemplate(trayMenuTemplate);
+  g_tray.setContextMenu(menu);
+
   /** Start holochain and main window */
   await startMainWindow(splashWindow)
 })
 
+// Create sys tray
+function create_tray() {
+  try {
+    g_tray = new Tray('web/logo/logo16.png');
+  } catch(e) {
+    try {
+      g_tray = new Tray('resources/app/web/logo/logo16.png');
+    } catch(e) {
+      try {
+        g_tray = new Tray(app.getAppPath() + '/web/logo/logo16.png');
+      } catch(e) {
+        log('error', "Could not find favicon. appPath: " + app.getAppPath());
+        g_tray = new Tray(nativeImage.createEmpty());
+      }
+    }
+  }
+}
 
 /**
  *
@@ -506,14 +531,17 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
     role: "toggleDevTools",
   },
   {
-    label: 'Restart Holochain', click: async function (menuItem, _browserWindow, _event) {
+    label: 'Restart Holochain',
+    click: async function (menuItem, _browserWindow, _event) {
       //await startConductorAndLoadPage(false);
       app.relaunch()
       app.exit(0)
     }
   },
   {
-    label: 'Reload window', click: async function (menuItem, browserWindow, _event) {
+    label: 'Reload window',
+    accelerator: 'F5',
+    click: async function (menuItem, browserWindow, _event) {
       browserWindow.reload();
     }
   },
@@ -585,29 +613,27 @@ export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
 /**
  *
  */
-// const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
-//   { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
-//     // g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
-//     }
-//   },
-//   //{ label: 'Settings', submenu: networkMenuTemplate },
-//   {
-//     label: 'Switch network',
-//     click: async function (menuItem, _browserWindow, _event) {
-//       // let changed = await promptUidSelect(false);
-//       // if(changed) {
-//       //   await g_mainWindow.setEnabled(false);
-//       //   await startConductorAndLoadPage(false);
-//       //   await g_mainWindow.setEnabled(true);
-//       // }
-//     }
-//   },
-//   //{ label: 'Debug', submenu: debugMenuTemplate },
-//   { type: 'separator' },
-//   { label: 'About', click: async function (menuItem, _browserWindow, _event) { /*await showAbout();*/ } },
-//   { type: 'separator' },
-//   { label: 'Exit', click: function (menuItem, _browserWindow, _event) { app.quit() } }
-// ];
+const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
+  { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
+    g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
+    }
+  },
+  {
+    label: 'Switch network',
+    click: async function (menuItem, _browserWindow, _event) {
+      let changed = await promptUidSelect(false);
+      if(changed) {
+        app.relaunch()
+        app.exit(0)
+      }
+    }
+  },
+  //{ label: 'Debug', submenu: debugMenuTemplate },
+  { type: 'separator' },
+  { label: 'About', click: async function (menuItem, _browserWindow, _event) { await showAbout(); } },
+  { type: 'separator' },
+  { label: 'Exit', click: function (menuItem, _browserWindow, _event) { app.quit() } }
+];
 
 
 /**************************************************************************************************

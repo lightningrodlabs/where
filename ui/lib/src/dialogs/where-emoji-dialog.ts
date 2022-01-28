@@ -1,20 +1,14 @@
 import {css, html, LitElement} from "lit";
-import {query, state} from "lit/decorators.js";
+import {state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import { EmojiGroupEntry, whereContext} from "../types";
 import {
   Button,
   Dialog,
   IconButton,
-  ListItem,
-  Select,
   TextField
 } from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
 import {Picker} from "emoji-picker-element";
 import {EMOJI_WIDTH} from "../sharedRender";
 

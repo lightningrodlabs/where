@@ -19,7 +19,6 @@ pub struct Here {
 }
 
 
-/// Input to the create channel call
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 #[serde(rename_all = "camelCase")]
 pub struct AddHereInput {
@@ -27,6 +26,14 @@ pub struct AddHereInput {
     pub session_index: u32,
     pub value: String,
     pub meta: BTreeMap<String, String>,
+}
+
+/// Input to update a Here
+#[derive(Debug, Serialize, Deserialize, SerializedBytes)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateHereInput {
+    old_here_hh: HeaderHashB64,
+    new_here: AddHereInput,
 }
 
 #[hdk_extern]
@@ -44,6 +51,12 @@ fn add_here(input: AddHereInput) -> ExternResult<HeaderHashB64> {
     create_entry(here.clone())?;
     let link_hh = create_link(session_eh64.into(), here_eh, ())?;
     Ok(link_hh.into())
+}
+
+#[hdk_extern]
+fn update_here(input: UpdateHereInput) -> ExternResult<HeaderHashB64> {
+    delete_here(input.old_here_hh)?;
+    add_here(input.new_here)
 }
 
 #[hdk_extern]

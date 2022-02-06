@@ -13,10 +13,9 @@ chrono = {version = "0.4", features = ['alloc', 'std']}
 derive_more = "0.99"
 serde = "1.0.123"
 thiserror = "1.0.20"
-hc_utils = {git = "https://github.com/holochain/hc-utils", branch = "v0.0.123", package = "hc_utils"}
+hc_utils = {git = "https://github.com/holochain/hc-utils", branch = "v0.0.124", package = "hc_utils"}
 #hc_utils = {git = "https://github.com/ddd-mtl/hc-utils", branch = "develop", package = "hc_utils"}
-hdk = "0.0.119"
-holo_hash = {version = "0.0.16", features = ["encoding"]}
+hdk = {version = "0.0.120", features = ["encoding"]}
 
 [dev-dependencies]
 #holochain = { git = "https://github.com/holochain/holochain.git", branch = "develop", features = ["test_utils"] }

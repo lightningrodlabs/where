@@ -1,4 +1,6 @@
-import {contextProvided, ContextProvider} from "@lit-labs/context";
+import {contextProvided, ContextProvider} from '@holochain-open-dev/context';
+import { serializeHash } from '@holochain-open-dev/core-types';
+
 import { state } from "lit/decorators.js";
 import {
   WhereController,
@@ -11,11 +13,9 @@ import {
   ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
-import { AppWebsocket } from "@holochain/conductor-api";
 import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
-import * as base64 from "byte-base64";
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
@@ -41,36 +41,35 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   async firstUpdated() {
 
-    const appWebsocket = await AppWebsocket.connect(
-      `ws://localhost:${HC_PORT}`
-    );
+    const wsUrl = `ws://localhost:${HC_PORT}`
     const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
       ? APP_ID
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
-    const appInfo = await appWebsocket.appInfo({
-      installed_app_id,
-    });
+
+    // const appWebsocket = await AppWebsocket.connect(wsUrl);
+    const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
+    console.log({hcClient})
+    const cellClient = hcClient.forCell(hcClient.cellDataByRoleId('where')!);
+
+
+    // const appInfo = await cellClient.appInfo({
+    //   installed_app_id,
+    // });
     //console.log({appInfo})
-    const cellData = appInfo.cell_data[0];
+    //const cellData = appInfo.cell_data[0];
     // Send dnaHash to electron
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
-      const dnaHash = base64.bytesToBase64(cellData.cell_id[0])
-      let _reply = ipc.sendSync('dnaHash', dnaHash);
+      const dnaHashB64 = serializeHash(cellClient.cellId[0])
+      let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
-    const cellClient = new HolochainClient(appWebsocket, cellData);
 
     const store = new ProfilesStore(cellClient, {avatarMode: "avatar"})
 
     store.fetchAllProfiles()
 
-    new ContextProvider(
-      this,
-      profilesStoreContext,
-      store
-    );
-
+    new ContextProvider(this, profilesStoreContext, store);
     new ContextProvider(this, whereContext, new WhereStore(cellClient, store));
 
     this.loaded = true;

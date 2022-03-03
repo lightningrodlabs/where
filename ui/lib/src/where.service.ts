@@ -1,5 +1,6 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
-import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import { HoloHashed } from '@holochain/client';
 import {
   SpaceEntry,
   Play,
@@ -95,11 +96,16 @@ export class WhereService {
     return this.callZome('get_hidden_spaces', null);
   }
 
-  async isSpaceVisible(spaceEh: EntryHashB64): Promise<boolean> {
+  async isSpaceVisible(spaceEhB64: EntryHashB64): Promise<boolean> {
     const visibles: Array<HoloHashed<SpaceEntry>> = await this.callZome('get_visible_spaces', null);
     //console.log({visibles})
+    //let spaceEh = Base64.toUint8Array(spaceEhB64)
     for (const visible of visibles) {
-      if (visible.hash == spaceEh) {
+      //let visible_b64 = visible.hash.toString('base64')
+      //let visible_b64 = visible.hash.toBase64()
+      const myU8A = new Uint8Array(visible.hash);
+      let visible_b64 = serializeHash(myU8A)
+      if (visible_b64 == spaceEhB64) {
         return true;
       }
     }

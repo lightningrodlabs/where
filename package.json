@@ -32,7 +32,7 @@
     "electron"              : "npm run package && cd electron && npm run start"
   },
   "devDependencies": {
-    "@holochain-playground/cli": "^0.0.6",
+    "@holochain-playground/cli": "^0.0.8",
     "concurrently": "^6.2.1",
     "concurrently-repeat": "^0.0.1",
     "cross-env": "^7.0.3",

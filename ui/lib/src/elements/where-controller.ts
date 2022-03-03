@@ -1,7 +1,7 @@
 import { html, css, LitElement } from "lit";
 import { state, property } from "lit/decorators.js";
 
-import { contextProvided } from "@lit-labs/context";
+import { contextProvided } from '@holochain-open-dev/context';
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
@@ -12,7 +12,7 @@ import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
 import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
 import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
-import {lightTheme, SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
+import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -568,7 +568,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   static get styles() {
     return [
-      lightTheme,
+      //lightTheme,
       sharedStyles,
       css`
         :host {

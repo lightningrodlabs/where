@@ -1,6 +1,8 @@
-use hc_utils::*;
 use holo_hash::EntryHashB64;
-pub use hdk::prelude::*;
+use hdk::prelude::*;
+
+use hc_utils::{get_links_and_load_type};
+
 
 use crate::error::*;
 //use crate::signals::*;
@@ -29,8 +31,8 @@ fn create_template(input: Template) -> ExternResult<EntryHashB64> {
     let eh = hash_entry(input.clone())?;
     let path = get_templates_path();
     path.ensure()?;
-    let anchor_hash = path.hash()?;
-    create_link(anchor_hash, eh.clone(), ())?;
+    let anchor_eh = path.path_entry_hash()?;
+    create_link(anchor_eh, eh.clone(), ())?;
     let eh64: EntryHashB64 = eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
     // emit_signal(&SignalPayload::new(None, me, Message::NewTemplate((eh64.clone(), input))))?;
@@ -52,12 +54,12 @@ fn get_template(input: EntryHashB64) -> ExternResult<Option<Template>> {
 #[hdk_extern]
 fn get_templates(_: ()) -> ExternResult<Vec<TemplateOutput>> {
     let path = get_templates_path();
-    let templates = get_templates_inner(path.hash()?)?;
+    let templates = get_templates_inner(path.path_entry_hash()?)?;
     Ok(templates)
 }
 
 fn get_templates_inner(base: EntryHash) -> WhereResult<Vec<TemplateOutput>> {
-    let entries = get_links_and_load_type(base, None)?;
+    let entries = get_links_and_load_type(base, None, true)?;
     let mut templates = vec![];
     for e in entries {
         templates.push(TemplateOutput {hash: hash_entry(&e)?.into(), content: e});

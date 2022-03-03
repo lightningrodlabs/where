@@ -1,6 +1,6 @@
 use hdk::prelude::*;
 
-use hc_utils::*;
+use hc_utils::{get_latest_entry};
 use holo_hash::{EntryHashB64};
 
 use crate::{

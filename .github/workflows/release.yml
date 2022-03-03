@@ -22,7 +22,7 @@ jobs:
       - name: Install hc tool and wasm target
         shell: bash # important because this runs shell scripts
         run: |
-          npm run ci:dna-install
+          npm run ci:hc-install
       # # build dna
       - name: Build DNA
         run: |

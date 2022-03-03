@@ -28,7 +28,7 @@
     "clean"                 : "rm -rf node_modules && rm -rf ui/apps/where/node_modules/  && rm -rf ui/lib/node_modules && rm -rf test/node_modules && rm -rf electron/node_modules",
     "clean:hc"              : "rm -rf .hc*",
     "playground"            : "run-singleton \"holochain-playground\"",
-    "ci:dna-install"        : "bash scripts/install-hc-tools.sh",
+    "ci:hc-install"         : "bash scripts/install-hc-tools.sh",
     "electron"              : "npm run package && cd electron && npm run start"
   },
   "devDependencies": {

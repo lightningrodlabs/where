@@ -30,7 +30,7 @@ jobs:
       # "upload" dna as build artifact
       - uses: actions/upload-artifact@master
         with:
-          name: snapmail-artifact
+          name: where-artifact
           path: dna/workdir/dna/where.dna
 
   # upload the app package for each target os

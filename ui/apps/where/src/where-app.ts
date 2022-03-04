@@ -50,8 +50,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     // const appWebsocket = await AppWebsocket.connect(wsUrl);
     const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
     console.log({hcClient})
-    const cellClient = hcClient.forCell(hcClient.cellDataByRoleId('where')!);
-
+    const cellClient = hcClient.forCell(hcClient.appInfo.cell_data[0]);
+    console.log({cellClient})
 
     // const appInfo = await cellClient.appInfo({
     //   installed_app_id,

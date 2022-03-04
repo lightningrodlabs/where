@@ -1,7 +1,7 @@
 use hdk::prelude::*;
 use hc_utils::get_latest_entry;
-use std::collections::BTreeMap;
 use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
+use std::collections::BTreeMap;
 
 use crate::{
     error::*,

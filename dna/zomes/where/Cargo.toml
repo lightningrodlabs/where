@@ -13,15 +13,11 @@ chrono = {version = "0.4", features = ['alloc', 'std']}
 derive_more = "0.99"
 serde = "1.0.123"
 thiserror = "1.0.20"
-hc_utils = {git = "https://github.com/holochain/hc-utils", branch = "v0.0.124", package = "hc_utils"}
-#hc_utils = {git = "https://github.com/ddd-mtl/hc-utils", branch = "develop", package = "hc_utils"}
-hdk = {version = "0.0.120", features = ["encoding"]}
+hc_utils = {git = "https://github.com/holochain/hc-utils", rev = "038959a1e6abeec16560d4eae3a015678a14d0f0", package = "hc_utils"}
+hdk = "0.0.122"
+holo_hash = {version = "0.0.19", features = ["encoding"]}
 
 [dev-dependencies]
-#holochain = { git = "https://github.com/holochain/holochain.git", branch = "develop", features = ["test_utils"] }
-#holochain_types = { git = "https://github.com/holochain/holochain.git", branch = "develop", features = ["test_utils"] }
-# holochain = { path = "../../../chain/crates/holochain/"}
-# holochain_types = { path = "../../../chain/crates/holochain_types/"}
 futures = "0.3.1"
 nanoid = "0.3"
 observability = "0.1.2"

@@ -1,0 +1,119 @@
+name: Release x64
+
+on: workflow_dispatch
+
+jobs:
+  # the create-release would be used once we want to create a specific release based on if the commit has a tag
+  create-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: taiki-e/create-gh-release-action@v1
+        env:
+          WHERE_VERSION: 0.1.0
+          # (required)
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build-dna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # # install hc tool
+      - name: Install hc tool and wasm target
+        shell: bash # important because this runs shell scripts
+        run: |
+          npm run ci:hc-install
+      # # build dna
+      - name: Build DNA
+        run: |
+          npm run build:happ
+      # "upload" dna as build artifact
+      - uses: actions/upload-artifact@master
+        with:
+          name: snapmail-artifact
+          path: dna/workdir/dna/where.dna
+
+  # upload the app package for each target os
+  upload-assets:
+    needs: build-dna
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      # Add Windows certificate
+      ##- name: Add Windows certificate
+      ##  if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
+      ##  id: write_file
+      ##  uses: timheuer/base64-to-file@v1
+      ##  with:
+      ##    fileName: 'win-certificate.pfx'
+      ##    encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
+      # rm the dna files from repository
+      - name: clearing precompiled dna files
+        run: |
+          rm dna/workdir/dna/*.dna
+          rm dna/workdir/happ/where.happ
+      # Download previously uploaded artifacts and display them in logs
+      - uses: actions/download-artifact@master
+        with:
+          name: where-artifact
+          path: dna
+      - name: list dnas
+        run: ls -R
+        working-directory: dna/workdir/dna
+      - name: list happ
+        run: ls -R
+        working-directory: dna/workdir/happ
+      # Setup npm
+      - name: Install nodejs dependencies
+        run: |
+          npm install
+      # Setup sign & notarize
+      - name: Setup sign and notarize (macos only)
+        if: ${{ runner.os == 'macOs' }}
+        uses:  figleafteam/import-codesign-certs@v2
+        with:
+          p12-file-base64: ${{ secrets.HBE_APPLE_CERTIFICATE_BASE64 }}
+          p12-password: ${{ secrets.HBE_APPLE_CERTIFICATE_PASS }}
+      # Build installers and binaries
+      - name: Build & Package
+        shell: bash
+        env:
+          #WIN_CSC_LINK: ${{ steps.write_file.outputs.filePath }}
+          #WIN_CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_PFX_PASSWORD }}
+          APPLE_DEV_IDENTITY: ${{ secrets.APPLE_DEV_IDENTITY }}
+          APPLE_ID_EMAIL: ${{ secrets.APPLE_ID_EMAIL }}
+          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
+          DEBUG: electron-osx-sign*,electron-notarize*
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run package
+      # upload installers and binaries
+      - name: list builds
+        run: ls
+        working-directory: out
+      # upload binary for each platform
+      - name: upload binary (ubuntu only)
+        if: ${{ runner.os == 'Linux' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.1.5.AppImage" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "dna/workdir/happ/where.happ" --clobber
+      - name: upload binary (macos only)
+        if: ${{ runner.os == 'macOs' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.1.5.dmg" --clobber
+      - name: upload binary (Windows only)
+        if: ${{ runner.os == 'Windows' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "out/Where Setup 0.1.5.exe" --clobber

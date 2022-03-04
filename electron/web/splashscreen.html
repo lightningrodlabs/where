@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Where</title>
+    <link rel="stylesheet" type="text/css" href="splashscreen.css" />
+  </head>
+  <body>
+    <div class="splash-wrapper">
+      <div class="splash-image-wrapper">
+        <!-- <div class="splash-image-caption">Photograph by</div> -->
+      </div>
+      <div class="splash-content-wrapper">
+        <div>
+          <div class="splash-logo">where</div>
+          <div class="splash-version">version 0.0.7</div>
+        </div>
+        <div class="splash-loading-message" id="activity">
+          Setting up Holochain...
+        </div>
+        <div class="splash-description">
+          Co-locating oneself across a number of spaces in the context of a group (or groups) provides an important avenue for improving both sense-making and working together.
+        </div>
+        <div class="splash-description">
+          Where provides a generalized grammar for creating shared maps for groups to see the emergent "whereness" of each other across them.
+        </div>
+        <div class="splash-license">
+          © 2021-2022 Harris-Braun Enterprises, LLC.
+          <br />
+          Licensed under the Cryptographic Autonomy License v1.0.
+        </div>
+      </div>
+    </div>
+    <script>
+      const el = document.getElementById('activity')
+      require('electron').ipcRenderer.on('status', (event, message) => {
+        el.innerHTML = message
+      })
+    </script>
+  </body>
+</html>

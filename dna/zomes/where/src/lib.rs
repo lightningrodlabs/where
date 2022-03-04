@@ -1,5 +1,4 @@
 pub use hdk::prelude::*;
-pub use hdk::prelude::Path;
 pub use error::{WhereError, WhereResult};
 
 pub mod error;

@@ -1,6 +1,6 @@
+pub use hdk::prelude::*;
 use hc_utils::get_links_and_load_type;
 use holo_hash::EntryHashB64;
-pub use hdk::prelude::*;
 
 use crate::error::*;
 //use crate::signals::*;
@@ -29,8 +29,8 @@ fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
     let eh = hash_entry(input.clone())?;
     let path = get_svg_marker_path();
     path.ensure()?;
-    let anchor_hash = path.path_entry_hash()?;
-    create_link(anchor_hash, eh.clone(), ())?;
+    let anchor_eh = path.path_entry_hash()?;
+    create_link(anchor_eh, eh.clone(), ())?;
     let eh64: EntryHashB64 = eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
     // emit_signal(&SignalPayload::new(None, me, Message::NewSvgMarker((eh64.clone(), input))))?;

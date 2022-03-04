@@ -1,7 +1,6 @@
-import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash, HoloHashed} from '@holochain-open-dev/core-types';
+import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash} from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
-
 import { WhereService } from './where.service';
 import {
   Dictionary,
@@ -9,7 +8,7 @@ import {
   SpaceEntry,
   LocationInfo,
   Location,
-  Coord,
+  Coord, HoloHashed,
   TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space,
 } from './types';
 import {

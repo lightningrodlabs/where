@@ -1,0 +1,59 @@
+{
+  "name": "where",
+  "version": "0.0.8",
+  "description": "A playground for group self-awareness",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "tsc && electron .",
+    "build": "tsc && cp ../dna/workdir/dna/where.dna ./ && electron-builder build",
+    "tsc": "tsc",
+    "lint": "eslint --ext .ts .",
+    "clean": "rm -rf node_modules && rm -rf package-lock.json"
+  },
+  "keywords": [
+    "Electron",
+    "Holochain"
+  ],
+  "author": "Harris-Braun Enterprises, LLC and contributors",
+  "license": "CAL-1.0",
+  "build": {
+    "productName": "Where",
+    "afterSign": "./afterSignHook.js",
+    "appId": "com.harris-braun.where",
+    "copyright": "© 2021-2022 Harris-Braun Enterprises, LLC",
+    "asar": false,
+    "files": [
+      "dist/**/*",
+      "web/**/*",
+      "where.dna",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "NSIS",
+      "icon": "web/logo/icon.ico",
+      "artifactName": "${productName}.Setup.${version}.${ext}"
+    },
+    "directories": {
+      "buildResources": "web",
+      "output": "out"
+    }
+  },
+  "devDependencies": {
+    "@types/split": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
+    "electron": "12.0.6",
+    "electron-builder": "22.11.7",
+    "eslint": "^7.25.0",
+    "eslint-plugin-import": "^2.22.1",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "electron-holochain": "^0.0.32",
+    "electron-prompt": "^1.6.0",
+    "electron-log": "^4.3.5",
+    "electron-notarize": "^1.0.0",
+    "split": "^1.0.1"
+  }
+}

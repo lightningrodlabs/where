@@ -1,8 +1,10 @@
 import { CellClient } from '@holochain-open-dev/cell-client';
-import { HoloHashed, serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+
 import {
   SpaceEntry,
   Play,
+  HoloHashed,
   HereEntry,
   LocationInfo,
   HereInfo,

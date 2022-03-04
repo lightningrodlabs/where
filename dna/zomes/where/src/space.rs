@@ -1,4 +1,4 @@
-pub use hdk::prelude::*;
+use hdk::prelude::*;
 use hc_utils::get_links_and_load_type;
 use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
@@ -36,8 +36,8 @@ fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     let space_eh = hash_entry(input.clone())?;
     let path = get_spaces_path();
     path.ensure()?;
-    let anchor_hash = path.path_entry_hash()?;
-    create_link(anchor_hash, space_eh.clone(), ())?;
+    let anchor_eh = path.path_entry_hash()?;
+    create_link(anchor_eh, space_eh.clone(), ())?;
     let eh64: EntryHashB64 = space_eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
     // emit_signal(&SignalPayload::new(None, me, Message::NewSpace((eh64.clone(), input))))?;
@@ -157,8 +157,8 @@ fn get_visible_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
 #[hdk_extern]
 fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
     let path = get_spaces_path();
-    let anchor_hash = path.path_entry_hash()?;
-    let spaces = get_spaces_inner(anchor_hash)?;
+    let anchor_eh = path.path_entry_hash()?;
+    let spaces = get_spaces_inner(anchor_eh)?;
     Ok(spaces)
 }
 

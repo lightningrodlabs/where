@@ -10,7 +10,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: taiki-e/create-gh-release-action@v1
         env:
-          WHERE_VERSION: 0.1.0
+          WHERE_VERSION: 0.0.8
           # (required)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -55,6 +55,7 @@ jobs:
       ##    encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
       # rm the dna files from repository
       - name: clearing precompiled dna files
+        continue-on-error: true
         run: |
           rm dna/workdir/dna/*.dna
           rm dna/workdir/happ/where.happ
@@ -64,9 +65,11 @@ jobs:
           name: where-artifact
           path: dna
       - name: list dnas
+        continue-on-error: true
         run: ls -R
         working-directory: dna/workdir/dna
       - name: list happ
+        continue-on-error: true
         run: ls -R
         working-directory: dna/workdir/happ
       # Setup npm
@@ -103,17 +106,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.1.5.AppImage" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.0.8.AppImage" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "dna/workdir/happ/where.happ" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.1.5.dmg" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.0.8.dmg" --clobber
       - name: upload binary (Windows only)
         if: ${{ runner.os == 'Windows' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "out/Where Setup 0.1.5.exe" --clobber
+          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "out/Where Setup 0.0.8.exe" --clobber

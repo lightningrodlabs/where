@@ -57,7 +57,7 @@ fn get_svg_markers(_: ()) -> ExternResult<Vec<SvgMarkerOutput>> {
 }
 
 fn get_inner(base: EntryHash) -> WhereResult<Vec<SvgMarkerOutput>> {
-    let entries = get_links_and_load_type(base, None, true)?;
+    let entries = get_links_and_load_type(base, None, false)?;
     let mut templates = vec![];
     for e in entries {
         templates.push(SvgMarkerOutput {hash: hash_entry(&e)?.into(), content: e});

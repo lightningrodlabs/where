@@ -2,7 +2,7 @@ import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from '@holochain-open-dev/context';
+import {contextProvided} from "@holochain-open-dev/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {
@@ -874,7 +874,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         `)}
     </mwc-select>
     <div style="max-height: 375px;display:block;overflow-y: auto;padding-right:1px;">
-        ${selectedTemplateUi}
+    ${selectedTemplateUi}
     </div>
   </sl-tab-panel>
   <!--  Marker -->

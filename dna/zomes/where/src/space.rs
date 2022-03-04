@@ -1,7 +1,6 @@
-use std::collections::BTreeMap;
-
 use hdk::prelude::*;
 use hc_utils::get_links_and_load_type;
+use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
 use crate::error::*;
@@ -79,7 +78,7 @@ fn create_space_with_sessions(input: SpaceSessionsInput) -> ExternResult<EntryHa
 
 /// Returns 0 if no session found or if space does not exist
 pub fn get_next_session_index(space_eh: EntryHash) -> WhereResult<u32> {
-    let sessions: Vec<PlacementSession> = get_links_and_load_type(space_eh, None, true)?;
+    let sessions: Vec<PlacementSession> = get_links_and_load_type(space_eh, None, false)?;
     let mut top = 0;
     for session in sessions {
         if session.index >= top {
@@ -164,7 +163,7 @@ fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
 }
 
 fn get_spaces_inner(base: EntryHash) -> WhereResult<Vec<SpaceOutput>> {
-    let entries = get_links_and_load_type(base, None, true)?;
+    let entries = get_links_and_load_type(base, None, false)?;
     let mut spaces = vec![];
     for e in entries {
         spaces.push(SpaceOutput {hash: hash_entry(&e)?.into(), content: e});

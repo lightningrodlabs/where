@@ -59,7 +59,7 @@ fn get_templates(_: ()) -> ExternResult<Vec<TemplateOutput>> {
 }
 
 fn get_templates_inner(base: EntryHash) -> WhereResult<Vec<TemplateOutput>> {
-    let entries = get_links_and_load_type(base, None, true)?;
+    let entries = get_links_and_load_type(base, None, false)?;
     let mut templates = vec![];
     for e in entries {
         templates.push(TemplateOutput {hash: hash_entry(&e)?.into(), content: e});

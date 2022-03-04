@@ -1,6 +1,4 @@
-import {contextProvided, ContextProvider} from '@holochain-open-dev/context';
-import { serializeHash } from '@holochain-open-dev/core-types';
-
+import {contextProvided, ContextProvider} from "@holochain-open-dev/context";
 import { state } from "lit/decorators.js";
 import {
   WhereController,
@@ -79,10 +77,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   render() {
     if (!this.loaded) return html`<span>Loading...</span>`;
     return html`
-<!--        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;">-->
-<!--            <where-controller examples></where-controller>-->
-<!--        </profile-prompt>-->
-      <where-controller id="controller" dummy examples></where-controller>
+        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;">
+            <where-controller examples></where-controller>
+        </profile-prompt>
+      <!-- <where-controller id="controller" dummy examples></where-controller> -->
     `;
   }
 

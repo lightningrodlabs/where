@@ -1,7 +1,7 @@
 import { html, css, LitElement } from "lit";
 import { state, property } from "lit/decorators.js";
 
-import { contextProvided } from '@holochain-open-dev/context';
+import { contextProvided } from "@holochain-open-dev/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
@@ -568,7 +568,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   static get styles() {
     return [
-      //lightTheme,
       sharedStyles,
       css`
         :host {

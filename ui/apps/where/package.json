@@ -1,11 +1,11 @@
 {
   "name": "where",
-  "version": "0.0.7",
+  "version": "0.0.4",
   "scripts": {
     "build": "tsc",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
     "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "package": "rm -rf ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd ./dist && cp * ../../../../electron/web && bestzip ../ui.zip *"
+    "package": "rimraf ui.zip && rimraf dist && rollup --config rollup.config.js && cd ./dist && bestzip ../ui.zip * "
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.3.2",
-    "@holochain-open-dev/profiles": "github:holochain-open-dev/profiles#ui-build",
+    "@holochain-open-dev/profiles": "^0.0.3",
     "@holochain/client": "^0.3.2",
     "@holochain-open-dev/context": "^0.0.3",
     "@where/elements": "^0.0.1",

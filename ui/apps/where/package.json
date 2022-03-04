@@ -1,11 +1,11 @@
 {
   "name": "where",
-  "version": "0.0.4",
+  "version": "0.0.8",
   "scripts": {
     "build": "tsc",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
     "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "package": "rimraf ui.zip && rimraf dist && rollup --config rollup.config.js && cd ./dist && bestzip ../ui.zip * "
+    "package": "rm -rf ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd ./dist && cp * ../../../../electron/web && bestzip ../ui.zip *"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

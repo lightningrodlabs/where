@@ -1,4 +1,5 @@
 import {contextProvided, ContextProvider} from "@holochain-open-dev/context";
+import { serializeHash } from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 import {
   WhereController,
@@ -45,17 +46,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
 
-    // const appWebsocket = await AppWebsocket.connect(wsUrl);
     const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
     console.log({hcClient})
     const cellClient = hcClient.forCell(hcClient.appInfo.cell_data[0]);
     console.log({cellClient})
 
-    // const appInfo = await cellClient.appInfo({
-    //   installed_app_id,
-    // });
-    //console.log({appInfo})
-    //const cellData = appInfo.cell_data[0];
     // Send dnaHash to electron
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;

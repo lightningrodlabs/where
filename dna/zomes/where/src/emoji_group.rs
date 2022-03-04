@@ -1,4 +1,5 @@
-use hc_utils::*;
+use hdk::prelude::*;
+use hc_utils::get_links_and_load_type;
 use holo_hash::EntryHashB64;
 
 use crate::error::*;

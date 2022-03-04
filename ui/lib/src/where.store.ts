@@ -252,7 +252,6 @@ export class WhereStore {
   async updateSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
     const markers = await this.service.getSvgMarkers();
     for (const e of markers) {
-      console.log({e})
       this.svgMarkerStore.update(svgMarkers => {
         svgMarkers[e.hash] = e.content
         return svgMarkers

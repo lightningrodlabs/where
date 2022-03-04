@@ -35,7 +35,7 @@
   },
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.3.2",
-    "@holochain-open-dev/profiles": "^0.0.3",
+    "@holochain-open-dev/profiles": "^0.0.8",
     "@holochain/client": "^0.3.2",
     "@holochain-open-dev/context": "^0.0.3",
     "@where/elements": "^0.0.1",

@@ -8,6 +8,10 @@ export const whereContext : Context<WhereStore> = createContext('hc_zome_where/s
 
 export type Dictionary<T> = { [key: string]: T };
 
+export interface HoloHashed<T> {
+  hash: string;
+  content: T;
+}
 
 /** A 'Location' is a deserialized 'Here' with a {x,y} object as value */
 

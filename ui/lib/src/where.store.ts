@@ -1,7 +1,6 @@
 import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash} from '@holochain-open-dev/core-types';
 import { CellClient } from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
-import { HoloHashed } from '@holochain/client';
 import { WhereService } from './where.service';
 import {
   Dictionary,
@@ -9,7 +8,7 @@ import {
   SpaceEntry,
   LocationInfo,
   Location,
-  Coord,
+  Coord, HoloHashed,
   TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space,
 } from './types';
 import {
@@ -234,9 +233,7 @@ export class WhereStore {
     //console.log({hiddens})
     for (const space of spaces.values()) {
       //const visible = !hiddens.includes(space.hash)
-      const myU8A = new Uint8Array(space.hash);
-      let b64 = serializeHash(myU8A);
-      await this.addPlay(b64)
+      await this.addPlay(space.hash)
     }
     return get(this.playStore)
   }
@@ -245,9 +242,7 @@ export class WhereStore {
     const templates = await this.service.getTemplates();
     for (const t of templates) {
       this.templateStore.update(templateStore => {
-        const myU8A = new Uint8Array(t.hash);
-        let hashb64 = serializeHash(myU8A);
-        templateStore[hashb64] = t.content
+        templateStore[t.hash] = t.content
         return templateStore
       })
     }
@@ -259,9 +254,7 @@ export class WhereStore {
     for (const e of markers) {
       console.log({e})
       this.svgMarkerStore.update(svgMarkers => {
-        const myU8A = new Uint8Array(e.hash);
-        let hashb64 = serializeHash(myU8A);
-        svgMarkers[hashb64] = e.content
+        svgMarkers[e.hash] = e.content
         return svgMarkers
       })
     }
@@ -272,9 +265,7 @@ export class WhereStore {
     const groups = await this.service.getEmojiGroups();
     for (const e of groups) {
       this.emojiGroupStore.update(emojiGroups => {
-        const myU8A = new Uint8Array(e.hash);
-        let hashb64 = serializeHash(myU8A);
-        emojiGroups[hashb64] = e.content
+        emojiGroups[e.hash] = e.content
         return emojiGroups
       })
     }

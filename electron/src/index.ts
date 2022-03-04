@@ -15,9 +15,11 @@ import initAgent, {
   getRunnerVersion, getLairVersion,
   StateSignal,
   STATUS_EVENT,
-  APP_PORT_EVENT
+  APP_PORT_EVENT,
+  ERROR_EVENT,
+  HOLOCHAIN_RUNNER_QUIT,
+  LAIR_KEYSTORE_QUIT
 } from 'electron-holochain'
-
 
 import {
   createHolochainOptions,
@@ -280,6 +282,17 @@ async function startMainWindow(splashWindow: BrowserWindow) {
     //log('debug', "APP_PORT_EVENT: " + appPort)
     g_appPort = appPort
   })
+  statusEmitter.on(ERROR_EVENT, (error: Error) => {
+    log('error', "HOLOCHAIN ERROR_EVENT: " + error)
+  })
+  statusEmitter.on(HOLOCHAIN_RUNNER_QUIT, () => {
+    log('debug', "HOLOCHAIN_RUNNER_QUIT event received")
+    //app.quit()
+  })
+  statusEmitter.on(LAIR_KEYSTORE_QUIT, (e) => {
+    log('debug', "LAIR_KEYSTORE_QUIT event received")
+    //app.quit()
+  })
 }
 
 
@@ -288,10 +301,10 @@ async function startMainWindow(splashWindow: BrowserWindow) {
  * for applications and their menu bar to stay active until the user quits
  * explicitly with Cmd + Q.
  */
-app.on('window-all-closed', () => {
+app.on('window-all-closed', async () => {
   if (process.platform !== 'darwin') {
     if (g_shutdown) {
-      g_shutdown();
+      await g_shutdown();
     }
     app.quit()
   }

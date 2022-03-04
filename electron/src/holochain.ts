@@ -34,8 +34,8 @@ export function stateSignalToText(state: StateSignal): StateSignalText {
 }
 
 const whereDnaPath = app.isPackaged
-  ? path.join(app.getAppPath(), '../app/where.dna')
-  : path.join(app.getAppPath(), '../dna/workdir/dna/where.dna')
+  ? path.join(app.getAppPath(), '../app/where.happ')
+  : path.join(app.getAppPath(), '../dna/workdir/happ/where.happ')
 
 // in production
 // must point to unpacked versions, not in an asar archive
@@ -61,7 +61,7 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
  */
 function createHolochainOptions(uid: string, storagePath: string): HolochainRunnerOptions {
   const options: HolochainRunnerOptions = {
-    dnaPath: whereDnaPath,
+    happPath: whereDnaPath,
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
     appId: MAIN_APP_ID + '-' + uid,
     //appId: MAIN_APP_ID,

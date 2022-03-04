@@ -1,11 +1,11 @@
 {
-  "name": "where",
+  "name": "where-app",
   "version": "0.0.8",
   "description": "A playground for group self-awareness",
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && electron .",
-    "build": "tsc && cp ../dna/workdir/dna/where.dna ./ && electron-builder build",
+    "build": "tsc && cp ../dna/workdir/happ/where.happ ./ && electron-builder build",
     "tsc": "tsc",
     "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"

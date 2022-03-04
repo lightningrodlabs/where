@@ -1,6 +1,9 @@
 name: Release x64
 
-on: workflow_dispatch
+on:
+  push:
+    tags:
+      - v[0-9]+.*
 
 jobs:
   # the create-release would be used once we want to create a specific release based on if the commit has a tag
@@ -76,6 +79,10 @@ jobs:
       - name: Install nodejs dependencies
         run: |
           npm install
+      # Build happ
+      - name: Build happ
+        run: |
+          npm run package
       # Setup sign & notarize
       - name: Setup sign and notarize (macos only)
         if: ${{ runner.os == 'macOs' }}
@@ -84,7 +91,7 @@ jobs:
           p12-file-base64: ${{ secrets.HBE_APPLE_CERTIFICATE_BASE64 }}
           p12-password: ${{ secrets.HBE_APPLE_CERTIFICATE_PASS }}
       # Build installers and binaries
-      - name: Build & Package
+      - name: Build binaries
         shell: bash
         env:
           #WIN_CSC_LINK: ${{ steps.write_file.outputs.filePath }}
@@ -95,28 +102,28 @@ jobs:
           DEBUG: electron-osx-sign*,electron-notarize*
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run package
+          npm run dist
       # upload installers and binaries
       - name: list builds
         run: ls
-        working-directory: out
+        working-directory: electron/out
       # upload binary for each platform
       - name: upload binary (ubuntu only)
         if: ${{ runner.os == 'Linux' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.0.8.AppImage" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-0.0.8.AppImage" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "dna/workdir/happ/where.happ" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "out/Where-0.0.8.dmg" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-0.0.8.dmg" --clobber
       - name: upload binary (Windows only)
         if: ${{ runner.os == 'Windows' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "out/Where Setup 0.0.8.exe" --clobber
+          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "electron/out/Where Setup 0.0.8.exe" --clobber

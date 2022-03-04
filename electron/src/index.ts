@@ -252,6 +252,7 @@ function create_tray() {
   }
 }
 
+let g_shutdown = undefined;
 /**
  *
  */
@@ -259,7 +260,8 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   /** Init conductor */
   const opts = createHolochainOptions(g_uid, g_sessionDataPath)
   log('debug', {opts})
-  const statusEmitter = await initAgent(app, opts, BINARY_PATHS)
+  const {statusEmitter, shutdown } = await initAgent(app, opts, BINARY_PATHS)
+  g_shutdown = shutdown;
   statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
     //log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
     switch (state) {
@@ -288,6 +290,9 @@ async function startMainWindow(splashWindow: BrowserWindow) {
  */
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    if (g_shutdown) {
+      g_shutdown();
+    }
     app.quit()
   }
 })

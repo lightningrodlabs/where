@@ -4,6 +4,7 @@
   "workspaces": [
     "ui/apps/*",
     "ui/lib",
+    "electron",
     "tests"
   ],
   "scripts": {
@@ -29,7 +30,8 @@
     "clean:hc"              : "rm -rf .hc*",
     "playground"            : "run-singleton \"holochain-playground\"",
     "ci:hc-install"         : "bash scripts/install-hc-tools.sh",
-    "electron"              : "npm run package && cd electron && npm run start"
+    "dist"                  : "npm run build -w where-app",
+    "electron"              : "npm run package && npm run start -w where-app"
   },
   "devDependencies": {
     "@holochain-playground/cli": "^0.0.8",

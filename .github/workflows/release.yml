@@ -5,6 +5,10 @@ on: workflow_dispatch
  #   tags:
   #    - v[0-9]+.*
 
+env:
+  WHERE_VERSION: 0.0.8
+  USE_HARD_LINKS: false
+  
 jobs:
   # the create-release would be used once we want to create a specific release based on if the commit has a tag
   create-release:
@@ -13,7 +17,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: taiki-e/create-gh-release-action@v1
         env:
-          WHERE_VERSION: 0.0.8
           # (required)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -21,12 +24,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # # install hc tool
+      # install hc tool
       - name: Install hc tool and wasm target
         shell: bash # important because this runs shell scripts
         run: |
           npm run ci:hc-install
-      # # build dna
+      # build dna
       - name: Build DNA
         run: |
           npm run build:happ
@@ -57,6 +60,7 @@ jobs:
         with:
           name: where-webapp-artifact
           path: workdir/where.webhapp
+
   # upload the app package for each target os
   build-binaries:
     needs: build-dna
@@ -145,7 +149,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-0.0.8.AppImage" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "dna/workdir/happ/where.happ" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
@@ -153,10 +157,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-0.0.8.dmg" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
       - name: upload binary (Windows only)
         if: ${{ runner.os == 'Windows' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "electron/out/Where Setup 0.0.8.exe" --clobber
+          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "electron/out/Where Setup $WHERE_VERSION.exe" --clobber

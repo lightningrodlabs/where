@@ -22,7 +22,7 @@
     "test"                  : "npm run build:happ && npm run build -w @where/elements && npm t -w tests",
     "start:happ"            : "RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network mdns",
     "start:happ-proxied"    : "RUST_LOG=warn hc s generate ./dna/workdir/happ/where.happ --run=$HC_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
-    "package"               : "npm run build:happ && npm run build:ui && hc web-app pack workdir",
+    "package"               : "npm run build:happ && npm run build:ui && npm run build:webapp",
     "build:ui"              : "npm run build -w @where/elements && npm run package -w where",
     "build:webapp"          : "hc web-app pack workdir",
     "build:happ"            : "npm run build:dna && hc app pack ./dna/workdir/happ",
@@ -42,7 +42,6 @@
     "cross-env": "^7.0.3",
     "json-parse-better-errors": "^1.0.2",
     "new-port-cli": "^1.0.0",
-    "rimraf": "^3.0.2",
     "run-singleton-cli": "^0.0.5"
   }
 }

@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && electron .",
-    "build": "tsc && cp ../dna/workdir/happ/where.happ ./ && electron-builder build",
+    "build": "tsc && cp ../dna/workdir/happ/where.happ . && electron-builder build",
     "tsc": "tsc",
     "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"

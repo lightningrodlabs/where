@@ -5,7 +5,7 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "rimraf dist && rollup -c",
+    "build": "rm -rf dist && rollup -c",
     "build:watch": "run-singleton \"rollup -c -w\"",
     "analyze": "lit-analyzer src --failFast"
   },
@@ -17,7 +17,6 @@
     "@rollup/plugin-typescript": "^8.2.5",
     "@types/lodash-es": "^4.17.4",
     "lit-analyzer": "^1.2.1",
-    "rimraf": "^3.0.2",
     "rollup": "^2.56.3",
     "rollup-plugin-postcss": "^4.0.1",
     "rollup-plugin-postcss-lit": "^1.1.1",

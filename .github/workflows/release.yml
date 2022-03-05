@@ -33,11 +33,15 @@ jobs:
       # "upload" dna as build artifact
       - uses: actions/upload-artifact@master
         with:
-          name: where-artifact
+          name: where-dna-artifact
           path: dna/workdir/dna/where.dna
-
+      # "upload" happ as build artifact
+      - uses: actions/upload-artifact@master
+        with:
+          name: where-happ-artifact
+          path: dna/workdir/happ/where.happ
   # upload the app package for each target os
-  upload-assets:
+  build-binaries:
     needs: build-dna
     strategy:
       matrix:
@@ -65,8 +69,12 @@ jobs:
       # Download previously uploaded artifacts and display them in logs
       - uses: actions/download-artifact@master
         with:
-          name: where-artifact
-          path: dna
+          name: where-dna-artifact
+          path: dna/workdir/dna
+      - uses: actions/download-artifact@master
+        with:
+          name: where-happ-artifact
+          path: dna/workdir/happ
       - name: list dnas
         continue-on-error: true
         run: ls -R

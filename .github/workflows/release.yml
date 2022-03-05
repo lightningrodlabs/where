@@ -40,34 +40,6 @@ jobs:
         with:
           name: where-happ-artifact
           path: dna/workdir/happ/where.happ
-
-  build-ui:
-    needs: build-dna
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - name: clearing precompiled dna files
-        continue-on-error: true
-        run: |
-          rm dna/workdir/dna/*.dna
-          rm dna/workdir/happ/where.happ
-      # Download previously uploaded artifacts and display them in logs
-      - uses: actions/download-artifact@master
-        with:
-          name: where-dna-artifact
-          path: dna/workdir/dna
-      - uses: actions/download-artifact@master
-        with:
-          name: where-happ-artifact
-          path: dna/workdir/happ
-      - name: list dnas
-        continue-on-error: true
-        run: ls -R
-        working-directory: dna/workdir/dna
-      - name: list happ
-        continue-on-error: true
-        run: ls -R
-        working-directory: dna/workdir/happ
       # Setup npm
       - name: Install nodejs dependencies
         run: |
@@ -87,7 +59,7 @@ jobs:
           path: workdir/where.webhapp
   # upload the app package for each target os
   build-binaries:
-    needs: build-ui
+    needs: build-dna
     strategy:
       matrix:
         os:

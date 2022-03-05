@@ -16,9 +16,9 @@ import initAgent, {
   StateSignal,
   STATUS_EVENT,
   APP_PORT_EVENT,
-  ERROR_EVENT,
-  HOLOCHAIN_RUNNER_QUIT,
-  LAIR_KEYSTORE_QUIT
+  //ERROR_EVENT,
+  //HOLOCHAIN_RUNNER_QUIT,
+  //LAIR_KEYSTORE_QUIT
 } from 'electron-holochain'
 
 import {
@@ -282,14 +282,14 @@ async function startMainWindow(splashWindow: BrowserWindow) {
     //log('debug', "APP_PORT_EVENT: " + appPort)
     g_appPort = appPort
   })
-  statusEmitter.on(ERROR_EVENT, (error: Error) => {
+  statusEmitter.on('error'/* ERROR_EVENT */, (error: Error) => {
     log('error', "HOLOCHAIN ERROR_EVENT: " + error)
   })
-  statusEmitter.on(HOLOCHAIN_RUNNER_QUIT, () => {
+  statusEmitter.on('holochain_runner_quit' /*HOLOCHAIN_RUNNER_QUIT*/, () => {
     log('debug', "HOLOCHAIN_RUNNER_QUIT event received")
     //app.quit()
   })
-  statusEmitter.on(LAIR_KEYSTORE_QUIT, (e) => {
+  statusEmitter.on('lair_keystore_quit'/*LAIR_KEYSTORE_QUIT*/, (e) => {
     log('debug', "LAIR_KEYSTORE_QUIT event received")
     //app.quit()
   })

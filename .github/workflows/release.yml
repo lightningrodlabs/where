@@ -40,27 +40,11 @@ jobs:
         with:
           name: where-happ-artifact
           path: dna/workdir/happ/where.happ
-  # upload the app package for each target os
-  build-binaries:
-    needs: build-dna
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-    runs-on: ${{ matrix.os }}
+
+  build-ui:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      # Add Windows certificate
-      ##- name: Add Windows certificate
-      ##  if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
-      ##  id: write_file
-      ##  uses: timheuer/base64-to-file@v1
-      ##  with:
-      ##    fileName: 'win-certificate.pfx'
-      ##    encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
-      # rm the dna files from repository
       - name: clearing precompiled dna files
         continue-on-error: true
         run: |
@@ -91,6 +75,70 @@ jobs:
       - name: Build happ
         run: |
           npm run build:ui
+      # Build web-happ
+      - name: Build web-happ
+        run: |
+          npm run build:webapp
+      # "upload" web-happ as build artifact
+      - uses: actions/upload-artifact@master
+        with:
+          name: where-webapp-artifact
+          path: workdir/where.webhapp
+  # upload the app package for each target os
+  build-binaries:
+    needs: build-dna
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+          - windows-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v2
+      # Add Windows certificate
+      ##- name: Add Windows certificate
+      ##  if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
+      ##  id: write_file
+      ##  uses: timheuer/base64-to-file@v1
+      ##  with:
+      ##    fileName: 'win-certificate.pfx'
+      ##    encodedString: ${{ secrets.CERTIFICATE_WINDOWS_PFX }}
+      # rm the dna files from repository
+      - name: clearing precompiled dna files
+        continue-on-error: true
+        run: |
+          rm dna/workdir/dna/*.dna
+          rm dna/workdir/happ/where.happ
+      # Download previously uploaded artifacts
+      - uses: actions/download-artifact@master
+        with:
+          name: where-dna-artifact
+          path: dna/workdir/dna
+      - uses: actions/download-artifact@master
+        with:
+          name: where-happ-artifact
+          path: dna/workdir/happ
+      - uses: actions/download-artifact@master
+        with:
+          name: where-webapp-artifact
+          path: workdir
+      - name: list webhapp
+        continue-on-error: true
+        run: ls -R
+        working-directory: workdir
+      # Setup npm
+      - name: Install nodejs dependencies
+        run: |
+          npm install
+      # Setup npm
+      - name: Install nodejs dependencies for Electron
+        run: |
+          npm install -w where-app
+      # Build happ
+      - name: Build happ
+        run: |
+          npm run build:ui
       # Setup sign & notarize
       - name: Setup sign and notarize (macos only)
         if: ${{ runner.os == 'macOs' }}
@@ -113,6 +161,7 @@ jobs:
           npm run dist
       # upload installers and binaries
       - name: list builds
+        continue-on-error: true
         run: ls
         working-directory: electron/out
       # upload binary for each platform
@@ -123,6 +172,7 @@ jobs:
         run: |
           gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-0.0.8.AppImage" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "dna/workdir/happ/where.happ" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

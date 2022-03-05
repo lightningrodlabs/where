@@ -8,11 +8,11 @@ on: workflow_dispatch
 env:
   WHERE_VERSION: 0.0.8
   USE_HARD_LINKS: false
-  
+
 jobs:
   # the create-release would be used once we want to create a specific release based on if the commit has a tag
   create-release:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       - uses: taiki-e/create-gh-release-action@v1
@@ -21,7 +21,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build-dna:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
       # install hc tool
@@ -67,7 +67,7 @@ jobs:
     strategy:
       matrix:
         os:
-          - ubuntu-latest
+          - ubuntu-18.04
           - macos-latest
           - windows-latest
     runs-on: ${{ matrix.os }}
@@ -107,7 +107,7 @@ jobs:
       # Setup npm
       - name: Install nodejs dependencies
         run: |
-          npm install where-app --ignore-scripts
+          npm install
           npm run ci:ui-install
           npm run ci:electron-install
       - name: Install nodejs dependencies (2)

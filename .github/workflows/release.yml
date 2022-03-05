@@ -42,6 +42,7 @@ jobs:
           path: dna/workdir/happ/where.happ
 
   build-ui:
+    needs: build-dna
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -86,7 +87,7 @@ jobs:
           path: workdir/where.webhapp
   # upload the app package for each target os
   build-binaries:
-    needs: build-dna
+    needs: build-ui
     strategy:
       matrix:
         os:

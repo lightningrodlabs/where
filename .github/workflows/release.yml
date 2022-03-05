@@ -43,7 +43,7 @@ jobs:
       # Setup npm
       - name: Install nodejs dependencies
         run: |
-          npm install
+          npm install where --ignore-scripts
       # Build happ
       - name: Build happ
         run: |
@@ -103,11 +103,8 @@ jobs:
       # Setup npm
       - name: Install nodejs dependencies
         run: |
-          npm install
-      # Setup npm
-      - name: Install nodejs dependencies for Electron
-        run: |
-          npm install -w where-app
+          npm install where-app --ignore-scripts
+          npm run ci:electron-install
       # Build happ
       - name: Build happ
         run: |

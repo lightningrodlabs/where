@@ -32,6 +32,7 @@
     "clean:hc"              : "rm -rf .hc*",
     "playground"            : "run-singleton \"holochain-playground\"",
     "ci:hc-install"         : "bash scripts/install-hc-tools.sh",
+    "ci:electron-install"   : "cd electron && npm install",
     "dist"                  : "npm run tsc -w where-app && npm run dist -w where-app",
     "electron"              : "npm run package && npm run start -w where-app"
   },

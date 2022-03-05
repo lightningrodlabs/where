@@ -82,7 +82,7 @@ jobs:
       # Build happ
       - name: Build happ
         run: |
-          npm run package
+          npm run build:ui
       # Setup sign & notarize
       - name: Setup sign and notarize (macos only)
         if: ${{ runner.os == 'macOs' }}

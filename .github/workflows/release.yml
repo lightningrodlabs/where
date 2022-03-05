@@ -104,7 +104,12 @@ jobs:
       - name: Install nodejs dependencies
         run: |
           npm install where-app --ignore-scripts
+          npm run ci:ui-install
           npm run ci:electron-install
+      - name: Install nodejs dependencies (2)
+        continue-on-error: true
+        run: |
+          npm run ci:app-install
       # Build happ
       - name: Build happ
         run: |

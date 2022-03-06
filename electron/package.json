@@ -2,6 +2,10 @@
   "name": "where-app",
   "version": "0.0.8",
   "description": "A playground for group self-awareness",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lightningrodlabs/where.git"
+  },
   "main": "dist/index.js",
   "scripts": {
     "start": "tsc && electron .",
@@ -38,6 +42,9 @@
     "directories": {
       "buildResources": "web",
       "output": "out"
+    },
+    "publish": {
+      "provider": "github"
     }
   },
   "devDependencies": {

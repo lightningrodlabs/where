@@ -1,11 +1,9 @@
 name: Release x64
 
-on:
-  push:
-     tags:
-      - v[0-9]+.*
-
-#workflow_dispatch
+on: workflow_dispatch
+#  push:
+#     tags:
+#      - v[0-9]+.*
 
 env:
   WHERE_VERSION: 0.0.8

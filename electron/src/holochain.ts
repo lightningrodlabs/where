@@ -34,7 +34,7 @@ export function stateSignalToText(state: StateSignal): StateSignalText {
 }
 
 const whereDnaPath = app.isPackaged
-  ? path.join(app.getAppPath(), '../app/where.happ')
+  ? path.join(app.getAppPath(), '../app/binaries/where.happ')
   : path.join(app.getAppPath(), '../dna/workdir/happ/where.happ')
 
 // in production
@@ -46,11 +46,11 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
   ? {
       holochainRunnerBinaryPath: path.join(
         __dirname,
-        `../../app/node_modules/electron-holochain/binaries/holochain-runner${fileExt}`
+        `../../app/binaries/holochain-runner${fileExt}`
       ),
       lairKeystoreBinaryPath: path.join(
         __dirname,
-        `../../app/node_modules/electron-holochain/binaries/lair-keystore${fileExt}`,
+        `../../app/binaries/lair-keystore${fileExt}`,
       ),
     }
   : undefined

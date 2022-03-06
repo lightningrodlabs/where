@@ -30,8 +30,6 @@
     "files": [
       "dist/**/*",
       "web/**/*",
-      "where.dna",
-      "where.happ",
       "binaries/**/*",
       "node_modules/**/*",
       "package.json"

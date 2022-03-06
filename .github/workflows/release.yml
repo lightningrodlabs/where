@@ -108,7 +108,7 @@ jobs:
       # Build happ
       - name: Build happ
         run: |
-          npm run build:ui
+          npm run build
       # Setup sign & notarize
       #- name: Setup sign and notarize (macos only)
       #  continue-on-error: true
@@ -141,18 +141,18 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "dna/workdir/happ/where.happ" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "workdir/where.webhapp" --clobber
+          gh release upload "0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
+          gh release upload "0.0.8-rc6" "dna/workdir/happ/where.happ" --clobber
+          gh release upload "0.0.8-rc6" "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
+          gh release upload "0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
       - name: upload binary (Windows only)
         if: ${{ runner.os == 'Windows' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "$($env:GITHUB_REF -replace "refs/tags/")" "electron/out/Where.Setup.$env:WHERE_VERSION.exe" --clobber
+          gh release upload "0.0.8-rc6" "electron/out/Where.Setup.$env:WHERE_VERSION.exe" --clobber

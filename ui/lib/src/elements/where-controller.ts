@@ -530,7 +530,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile.value ? html`` : html`
       <where-space-dialog id="space-dialog"
-                          .myProfile=${this._myProfile.value}
+                          .currentProfile=${this._myProfile.value}
                           @play-added=${(e:any) => this.selectPlay(e.detail)}>
       </where-space-dialog>
     `}

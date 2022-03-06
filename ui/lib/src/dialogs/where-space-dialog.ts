@@ -49,7 +49,7 @@ import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   /** Public properties */
-  @property() myProfile: Profile| undefined = undefined;
+  @property() currentProfile: Profile| undefined = undefined;
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
@@ -536,7 +536,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   renderMarkerTypePreview(markerType: MarkerType) {
     let locMeta: LocationMeta = defaultLocationMeta();
     locMeta.markerType = markerType;
-    locMeta.img = this.myProfile!.fields.avatar;
+    locMeta.img = this.currentProfile!.fields.avatar;
     switch (markerType) {
       case MarkerType.EmojiGroup:
         locMeta.emoji = "⚽️";
@@ -549,8 +549,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         locMeta.emoji = "♥️";
         break;
     }
-    locMeta.color = this.myProfile!.fields.color;
-    locMeta.authorName = this.myProfile!.nickname;
+    locMeta.color = this.currentProfile!.fields.color;
+    locMeta.authorName = this.currentProfile!.nickname;
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
 
@@ -811,7 +811,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         const markers = Object.entries(this._svgMarkers.value).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
-            let currentMarker = renderSvgMarker(svgMarker.value, this.myProfile!.fields.color)
+            let currentMarker = renderSvgMarker(svgMarker.value, this.currentProfile!.fields.color)
             return html`
                      <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == this._currentMeta.svgMarker}>
                        ${svgMarker.name}
@@ -825,7 +825,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         if (this._currentMeta.svgMarker) {
           const marker = this._svgMarkers.value[this._currentMeta.svgMarker]
           //console.log({marker})
-          selectedMarker = renderSvgMarker(marker.value, this.myProfile!.fields.color)
+          selectedMarker = renderSvgMarker(marker.value, this.currentProfile!.fields.color)
         }
         /** Render */
         maybeMarkerTypeItems = html`

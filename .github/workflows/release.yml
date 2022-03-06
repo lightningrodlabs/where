@@ -1,9 +1,9 @@
 name: Release x64
 
-on:
-  push:
-     tags:
-      - v[0-9]+.*
+on: workflow_dispatch
+#  push:
+#     tags:
+#      - v[0-9]+.*
 
 # workflow_dispatch
 

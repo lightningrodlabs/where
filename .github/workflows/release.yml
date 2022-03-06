@@ -111,6 +111,7 @@ jobs:
           npm run build:ui
       # Setup sign & notarize
       #- name: Setup sign and notarize (macos only)
+      #  continue-on-error: true
       #  if: ${{ runner.os == 'macOs' }}
       #  uses:  figleafteam/import-codesign-certs@v2
       #  with:

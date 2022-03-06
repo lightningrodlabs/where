@@ -1,5 +1,5 @@
 {
-  "name": "where",
+  "name": "where-ui",
   "version": "0.0.8",
   "scripts": {
     "build": "tsc",

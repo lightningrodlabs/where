@@ -135,24 +135,29 @@ jobs:
         continue-on-error: true
         run: ls
         working-directory: electron/out
+      #
+      - name: list releases
+        continue-on-error: true
+        run: |
+          gh release list
       # upload binary for each platform
       - name: upload binary (ubuntu only)
         if: ${{ runner.os == 'Linux' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "refs/tags/0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "refs/tags/0.0.8-rc6" "dna/workdir/happ/where.happ" --clobber
-          gh release upload "refs/tags/0.0.8-rc6" "workdir/where.webhapp" --clobber
+          gh release upload "refs/tags/v0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
+          gh release upload "refs/tags/v0.0.8-rc6" "dna/workdir/happ/where.happ" --clobber
+          gh release upload "refs/tags/v0.0.8-rc6" "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "refs/tags/0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
+          gh release upload "refs/tags/v0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
       - name: upload binary (Windows only)
         if: ${{ runner.os == 'Windows' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "refs/tags/0.0.8-rc6" "electron/out/Where.Setup.$env:WHERE_VERSION.exe" --clobber
+          gh release upload "refs/tags/v0.0.8-rc6" "electron/out/Where.Setup.$env:WHERE_VERSION.exe" --clobber

@@ -67,6 +67,7 @@ jobs:
   build-binaries:
     needs: build-dna
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -109,12 +110,12 @@ jobs:
         run: |
           npm run build:ui
       # Setup sign & notarize
-      - name: Setup sign and notarize (macos only)
-        if: ${{ runner.os == 'macOs' }}
-        uses:  figleafteam/import-codesign-certs@v2
-        with:
-          p12-file-base64: ${{ secrets.HBE_APPLE_CERTIFICATE_BASE64 }}
-          p12-password: ${{ secrets.HBE_APPLE_CERTIFICATE_PASS }}
+      #- name: Setup sign and notarize (macos only)
+      #  if: ${{ runner.os == 'macOs' }}
+      #  uses:  figleafteam/import-codesign-certs@v2
+      #  with:
+      #    p12-file-base64: ${{ secrets.HBE_APPLE_CERTIFICATE_BASE64 }}
+      #    p12-password: ${{ secrets.HBE_APPLE_CERTIFICATE_PASS }}
       # Build installers and binaries
       - name: Build binaries
         shell: bash

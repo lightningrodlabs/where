@@ -37,7 +37,7 @@
     "@holochain-open-dev/profiles": "^0.0.8",
     "@holochain/client": "^0.3.2",
     "@holochain-open-dev/context": "^0.0.3",
-    "@where/elements": "^0.0.1",
+    "@where/elements": "file:../../lib",
     "lit": "^2.1.1"
   }
 }

@@ -138,6 +138,8 @@ jobs:
       #
       - name: list releases
         continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release list
       # upload binary for each platform

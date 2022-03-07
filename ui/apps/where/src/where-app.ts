@@ -38,7 +38,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   @state()
   loaded = false;
 
-  hasProfile = false;
+  hasProfile: boolean = false;
 
   /**
    *
@@ -83,17 +83,20 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   onNewProfile(profile: Profile) {
     console.log({profile})
     this.hasProfile = true;
+    this.requestUpdate();
   }
 
   render() {
-    if (!this.loaded) return html`<span>Loading...</span>`;
-    console.log(this.hasProfile)
+    console.log("where-app render() - " + this.hasProfile)
+    if (!this.loaded) {
+      return html`<span>Loading...</span>`;
+    }
     return html`
         <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
-        @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
-            ${this.hasProfile ? html `` 
-                 : html`<where-controller examples></where-controller>`
-            }
+            @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
+            ${this.hasProfile
+                    ? html `<where-controller examples></where-controller>`
+                    : html``}
         </profile-prompt>
         <!-- <where-controller id="controller" dummy examples></where-controller> -->
     `;

@@ -30,10 +30,8 @@ jobs:
         run: |
           npm install
           npm run ci:ui-install
-          npm run ci:electron-install
-      - name: Install nodejs dependencies (2)
-        run: |
           npm run ci:app-install
+          npm run ci:electron-install
       # Build happ
       - name: Build happ
         run: |

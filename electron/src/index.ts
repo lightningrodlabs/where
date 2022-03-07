@@ -285,16 +285,28 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   statusEmitter.on(ERROR_EVENT, (error: Error) => {
     const error_msg = "HOLOCHAIN ERROR_EVENT: " + error;
     log('error', error_msg)
-    splashWindow.webContents.send('status', error_msg)
+    if (g_mainWindow == null) {
+      splashWindow.webContents.send('status', error_msg)
+    }
   })
   statusEmitter.on(HOLOCHAIN_RUNNER_QUIT, () => {
-    log('debug', "HOLOCHAIN_RUNNER_QUIT event received")
-    splashWindow.webContents.send('status', "HOLOCHAIN_RUNNER_QUIT event received")
+    const msg = "HOLOCHAIN_RUNNER_QUIT event received"
+    log('debug', msg)
+    if (g_mainWindow) {
+      promptHolochainError(g_mainWindow, msg)
+    } else {
+      splashWindow.webContents.send('status', msg)
+    }
     //app.quit()
   })
   statusEmitter.on(LAIR_KEYSTORE_QUIT, (e) => {
-    log('debug', "LAIR_KEYSTORE_QUIT event received")
-    splashWindow.webContents.send('status', "LAIR_KEYSTORE_QUIT event received")
+    let msg = "LAIR_KEYSTORE_QUIT event received"
+    log('debug', msg)
+    if (g_mainWindow) {
+      promptHolochainError(g_mainWindow, msg)
+    } else {
+      splashWindow.webContents.send('status', msg)
+    }
     //app.quit()
   })
 }
@@ -428,6 +440,21 @@ async function showAbout() {
     //iconIndex: 0,
     //icon: CONFIG.ICON,
     //icon: app.getFileIcon(path)
+  });
+}
+
+
+/**
+ *
+ */
+async function promptHolochainError(browserWindow: BrowserWindow, msg: string) {
+  await dialog.showMessageBoxSync(browserWindow, {
+    //width: 900,
+    title: `Fatal Error`,
+    message: `Holochain not running`,
+    detail: `${msg}`,
+    buttons: ['OK'],
+    type: "error",
   });
 }
 

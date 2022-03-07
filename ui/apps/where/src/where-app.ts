@@ -1,13 +1,13 @@
 import {contextProvided, ContextProvider} from "@holochain-open-dev/context";
-import { serializeHash } from '@holochain-open-dev/core-types';
+import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 import {
   WhereController,
-  WhereSpace,
   WhereStore,
   whereContext,
 } from "@where/elements";
 import {
+  Profile,
   ProfilePrompt,
   ProfilesStore,
   profilesStoreContext,
@@ -38,8 +38,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   @state()
   loaded = false;
 
-  async firstUpdated() {
+  hasProfile = false;
 
+  /**
+   *
+   */
+  async firstUpdated() {
     const wsUrl = `ws://localhost:${HC_PORT}`
     const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
       ? APP_ID
@@ -58,24 +62,40 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
-    const store = new ProfilesStore(cellClient, {avatarMode: "avatar"})
+    const profilesStore = new ProfilesStore(cellClient, {
+      //additionalFields: ['color'],
+      avatarMode: "avatar"
+    })
+    console.log({profilesStore})
+    await profilesStore.fetchAllProfiles()
+    const me = await profilesStore.fetchAgentProfile(profilesStore.myAgentPubKey);
+    console.log({me})
+    if (me) {
+      this.hasProfile = true;
+    }
 
-    store.fetchAllProfiles()
-
-    new ContextProvider(this, profilesStoreContext, store);
-    new ContextProvider(this, whereContext, new WhereStore(cellClient, store));
+    new ContextProvider(this, profilesStoreContext, profilesStore);
+    new ContextProvider(this, whereContext, new WhereStore(cellClient, profilesStore));
 
     this.loaded = true;
   }
 
+  onNewProfile(profile: Profile) {
+    console.log({profile})
+    this.hasProfile = true;
+  }
 
   render() {
     if (!this.loaded) return html`<span>Loading...</span>`;
+    // console.log(this.hasProfile)
     return html`
-        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;">
-            <where-controller examples></where-controller>
+        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
+        @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
+            ${this.hasProfile ? html `` 
+                 : html`<where-controller examples></where-controller>
+            `}
         </profile-prompt>
-      <!-- <where-controller id="controller" dummy examples></where-controller> -->
+        <!-- <where-controller id="controller" dummy examples></where-controller> -->
     `;
   }
 

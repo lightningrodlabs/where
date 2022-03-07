@@ -65,7 +65,7 @@ jobs:
   build-binaries:
     needs: build-dna
     strategy:
-      fail-fast: false
+      #fail-fast: false
       matrix:
         os:
           - ubuntu-latest
@@ -106,7 +106,6 @@ jobs:
           npm run ci:ui-install
           npm run ci:electron-install
       - name: Install nodejs dependencies (2)
-        continue-on-error: true
         run: |
           npm run ci:app-install
       # Build happ

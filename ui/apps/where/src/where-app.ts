@@ -87,7 +87,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   render() {
     if (!this.loaded) return html`<span>Loading...</span>`;
-    // console.log(this.hasProfile)
+    console.log(this.hasProfile)
     return html`
         <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
         @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>

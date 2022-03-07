@@ -51,13 +51,13 @@ jobs:
         continue-on-error: true
         run: ls
         working-directory: electron/out
-      #
-      - name: list releases
-        continue-on-error: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release list
+#      #
+#      - name: list releases
+#        continue-on-error: true
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        run: |
+#          gh release list
       # upload binary for each platform
       - name: upload binary (ubuntu only)
         if: ${{ runner.os == 'Linux' }}

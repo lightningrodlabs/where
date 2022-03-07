@@ -92,8 +92,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
         <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
         @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
             ${this.hasProfile ? html `` 
-                 : html`<where-controller examples></where-controller>
-            `}
+                 : html`<where-controller examples></where-controller>`
+            }
         </profile-prompt>
         <!-- <where-controller id="controller" dummy examples></where-controller> -->
     `;

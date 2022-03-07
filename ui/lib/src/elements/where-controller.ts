@@ -181,6 +181,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
+    console.log("where-controller first updated!")
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
@@ -442,7 +443,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
-    // console.log("where-controller render() - " + this._currentSpaceEh)
+    console.log("where-controller render() - " + this._currentSpaceEh)
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }

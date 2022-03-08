@@ -21,17 +21,15 @@ jobs:
       # Checkout repo
       - uses: actions/checkout@v2
       # Check if exist
-      - name: list happ
+      - name: tsc
         continue-on-error: true
-        run: ls -R
+        run: |
+          tsc --version
         working-directory: dna/workdir/happ
       # Setup npm
       - name: Install nodejs dependencies
         run: |
           npm install
-          npm run ci:ui-install
-          npm run ci:app-install
-          npm run ci:electron-install
       # Build happ
       - name: Build happ
         run: |

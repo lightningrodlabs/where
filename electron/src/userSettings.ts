@@ -3,7 +3,6 @@ import {APP_DATA_PATH} from "./constants";
 
 const path = require('path');
 const fs = require('fs');
-const { app, remote } = require('electron');
 
 
 /**

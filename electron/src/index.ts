@@ -56,6 +56,8 @@ process.env.RUST_LOG="WARN";
 // -- Globals
 //--------------------------------------------------------------------------------------------------
 
+let g_shutdown = undefined;
+let g_canQuit = false;
 let g_userSettings = undefined;
 let g_sessionDataPath = undefined;
 let g_tray = null;
@@ -97,7 +99,7 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   if (process.platform === 'linux') {
     options.icon = LINUX_ICON_FILE
   }
-  const mainWindow = new BrowserWindow(options)
+  let mainWindow = new BrowserWindow(options)
 
   /** Things to setup at start */
   let { x, y } = g_userSettings.get('windowPosition');
@@ -142,13 +144,35 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   mainWindow.on('close', (event) => {
     let positions = mainWindow.getPosition();
     g_userSettings.set('windowPosition', { x: Math.floor(positions[0]), y: Math.floor(positions[1]) });
-    // if (g_canQuit) {
-    //   mainWindow = null;
-    // } else {
+    if (g_canQuit) {
+       mainWindow = null;
+    } else {
     event.preventDefault();
     mainWindow.hide();
-    // }
+    }
   })
+
+  /** Emitted when the window is closed. */
+  mainWindow.on('closed', async function () {
+    log('debug', 'WINDOW EVENT "closed"');
+    if (g_shutdown) {
+      await g_shutdown();
+    }
+    /** Wait for kill subprocess to finish on slow machines */
+    let start = Date.now();
+    let diff = 0;
+    do {
+      diff = Date.now() - start;
+    } while(diff < 1000);
+    log('info', '*** Holochain Closed');
+    /**
+     * Dereference the window object, usually you would store windows
+     * in an array if your app supports multi windows, this is the time
+     * when you should delete the corresponding element.
+     */
+    g_mainWindow = null;
+  });
+
   /** Done */
   return mainWindow
 }
@@ -254,7 +278,7 @@ function create_tray() {
   }
 }
 
-let g_shutdown = undefined;
+
 /**
  *
  */
@@ -318,6 +342,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
  * explicitly with Cmd + Q.
  */
 app.on('window-all-closed', async () => {
+  log('debug', "APP EVENT  - window-all-closed")
   if (process.platform !== 'darwin') {
     if (g_shutdown) {
       await g_shutdown();
@@ -334,6 +359,30 @@ app.on('activate', () => {
   }
 })
 
+
+/**
+ * When main window has been closed and the application will quit, destroy conductor subprocess
+ */
+app.on('will-quit', (event) => {
+  log('debug','APP EVENT "will-quit"');
+  if (!g_canQuit) {
+    event.preventDefault();
+    //killHolochain();
+  }
+});
+
+
+/**
+ *
+ */
+app.on('before-quit', function () {
+  log('debug','APP EVENT "before-quit"');
+  g_canQuit = true;
+});
+
+/**************************************************************************************************
+ * IPC
+ *************************************************************************************************/
 
 // ipcMain.handle('getProjectsPath', () => {
 //   return whereDnaPath

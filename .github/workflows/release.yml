@@ -103,11 +103,6 @@ jobs:
       - name: Install nodejs dependencies
         run: |
           npm install
-          npm run ci:ui-install
-          npm run ci:electron-install
-      - name: Install nodejs dependencies (2)
-        run: |
-          npm run ci:app-install
       # Build happ
       - name: Build happ
         run: |

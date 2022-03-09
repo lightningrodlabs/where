@@ -117,13 +117,13 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   /** load the index.html of the app */
   let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
   mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
-  log('debug', "createMainWindow ; loadURL: " + mainUrl)
+  log('info', "createMainWindow ; loadURL: " + mainUrl)
   mainWindow.loadURL(mainUrl)
 
   /** Open <a href='' target='_blank'> with default system browser */
   mainWindow.webContents.on('new-window', function (event, url) {
     event.preventDefault()
-    console.debug("new-window ; open: " + url)
+    log('info', "new-window ; open: " + url)
     shell.openExternal(url)
   })
   /** once its ready to show, show */
@@ -155,8 +155,12 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   /** Emitted when the window is closed. */
   mainWindow.on('closed', async function () {
     log('debug', 'WINDOW EVENT "closed"');
-    if (g_shutdown) {
-      await g_shutdown();
+    try {
+      if (g_shutdown) {
+        await g_shutdown();
+      }
+    } catch (e) {
+      log('info', 'g_shutdown() failed: '+ e);
     }
     /** Wait for kill subprocess to finish on slow machines */
     let start = Date.now();
@@ -164,7 +168,7 @@ const createMainWindow = (appPort: string): BrowserWindow => {
     do {
       diff = Date.now() - start;
     } while(diff < 1000);
-    log('info', '*** Holochain Closed');
+    log('info', '*** Holochain Closed\n');
     /**
      * Dereference the window object, usually you would store windows
      * in an array if your app supports multi windows, this is the time
@@ -260,7 +264,10 @@ app.on('ready', async () => {
   await startMainWindow(splashWindow)
 })
 
-// Create sys tray
+
+/**
+ * Create sys tray
+ */
 function create_tray() {
   try {
     g_tray = new Tray('web/logo/logo16.png');
@@ -297,6 +304,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
         // otherwise this triggers the 'all-windows-closed' event
         g_mainWindow = createMainWindow(g_appPort)
         splashWindow.close()
+        g_mainWindow.show()
         break
       default:
         splashWindow.webContents.send('status', stateSignalToText(state))

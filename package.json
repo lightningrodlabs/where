@@ -37,6 +37,7 @@
     "ci:ui-install"         : "cd ui/lib && npm install --ignore-scripts",
     "ci:app-install"        : "cd ui/apps/where && npm install --ignore-scripts",
     "dist"                  : "cd electron && npm run tsc && npm run dist",
+    "dist-linux"            : "cd electron && npm run tsc && npm run dist-linux",
     "ci:tsc"                : "tsc --version",
     "electron"              : "npm run package && npm run start -w where"
   },

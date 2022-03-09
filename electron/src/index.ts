@@ -118,13 +118,18 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
   mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
   log('info', "createMainWindow ; loadURL: " + mainUrl)
-  mainWindow.loadURL(mainUrl)
+  try {
+    mainWindow.loadURL(mainUrl)
+  } catch(err) {
+    log('error', 'loadURL() failed:');
+    log('error',{err});
+  }
 
   /** Open <a href='' target='_blank'> with default system browser */
   mainWindow.webContents.on('new-window', function (event, url) {
     event.preventDefault()
     log('info', "new-window ; open: " + url)
-    shell.openExternal(url)
+    shell.openExternal(url).then(_r => {});
   })
   /** once its ready to show, show */
   mainWindow.once('ready-to-show', () => {
@@ -160,7 +165,7 @@ const createMainWindow = (appPort: string): BrowserWindow => {
         await g_shutdown();
       }
     } catch (e) {
-      log('info', 'g_shutdown() failed: '+ e);
+      log('error', 'g_shutdown() failed: '+ e);
     }
     /** Wait for kill subprocess to finish on slow machines */
     let start = Date.now();
@@ -352,8 +357,12 @@ async function startMainWindow(splashWindow: BrowserWindow) {
 app.on('window-all-closed', async () => {
   log('debug', "APP EVENT  - window-all-closed")
   if (process.platform !== 'darwin') {
-    if (g_shutdown) {
-      await g_shutdown();
+    try {
+      if (g_shutdown) {
+        await g_shutdown();
+      }
+    } catch (e) {
+      log('error', 'g_shutdown() failed: '+ e);
     }
     app.quit()
   }
@@ -375,7 +384,6 @@ app.on('will-quit', (event) => {
   log('debug','APP EVENT "will-quit"');
   if (!g_canQuit) {
     event.preventDefault();
-    //killHolochain();
   }
 });
 

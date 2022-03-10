@@ -56,7 +56,7 @@ process.env.RUST_LOG="WARN";
 //--------------------------------------------------------------------------------------------------
 // -- Globals
 //--------------------------------------------------------------------------------------------------
-
+let g_statusEmitter = undefined;
 let g_shutdown = undefined;
 let g_canQuit = false;
 let g_userSettings = undefined;
@@ -147,10 +147,12 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   });
 
   /** Save position on close */
-  mainWindow.on('close', (event) => {
+  mainWindow.on('close', async (event) => {
     let positions = mainWindow.getPosition();
     g_userSettings.set('windowPosition', { x: Math.floor(positions[0]), y: Math.floor(positions[1]) });
     if (g_canQuit) {
+      log('info', 'WINDOW EVENT "close" -> canQuit')
+       await try_shutdown();
        mainWindow = null;
     } else {
     event.preventDefault();
@@ -160,7 +162,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
 
   /** Emitted when the window is closed. */
   mainWindow.on('closed', async function () {
-    log('debug', 'WINDOW EVENT "closed"');
+    log('info', 'WINDOW EVENT "closed"');
     await try_shutdown();
     /** Wait for kill subprocess to finish on slow machines */
     let start = Date.now();
@@ -307,6 +309,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   const opts = createHolochainOptions(g_uid, g_sessionDataPath)
   log('debug', {opts})
   const {statusEmitter, shutdown } = await initAgent(app, opts, BINARY_PATHS)
+  g_statusEmitter = statusEmitter;
   g_shutdown = shutdown;
   statusEmitter.on(STATUS_EVENT, async (state: StateSignal) => {
     //log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
@@ -328,7 +331,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
     g_appPort = appPort
   })
   statusEmitter.on(ERROR_EVENT, (error: Error) => {
-    const error_msg = "HOLOCHAIN ERROR_EVENT: " + error;
+    const error_msg = error;
     log('error', error_msg)
     if (g_mainWindow == null) {
       splashWindow.webContents.send('status', error_msg)
@@ -363,13 +366,17 @@ async function startMainWindow(splashWindow: BrowserWindow) {
  * explicitly with Cmd + Q.
  */
 app.on('window-all-closed', async () => {
-  log('debug', "APP EVENT  - window-all-closed")
+  log('info', 'APP EVENT "window-all-closed"')
   if (process.platform !== 'darwin') {
     await try_shutdown();
     app.quit()
   }
 })
 
+
+/**
+ *
+ */
 app.on('activate', async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
@@ -383,7 +390,7 @@ app.on('activate', async () => {
  * When main window has been closed and the application will quit, destroy conductor subprocess
  */
 app.on('will-quit', async (event) => {
-  log('debug','APP EVENT "will-quit"');
+  log('info','APP EVENT "will-quit"');
   if (!g_canQuit) {
     event.preventDefault();
   } else {
@@ -399,6 +406,7 @@ app.on('before-quit', function () {
   log('debug','APP EVENT "before-quit"');
   g_canQuit = true;
 });
+
 
 /**************************************************************************************************
  * IPC

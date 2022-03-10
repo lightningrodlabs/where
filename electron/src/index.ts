@@ -76,7 +76,7 @@ let g_dnaHash = '(unknown)'
 /**
  *
  */
-const createMainWindow = (appPort: string): BrowserWindow => {
+const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   /** Create the browser window */
   let { width, height } = g_userSettings.get('windowBounds');
   let title = "Where v" + app.getVersion() + " - " + g_uid
@@ -117,9 +117,13 @@ const createMainWindow = (appPort: string): BrowserWindow => {
   /** load the index.html of the app */
   let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
   mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
-  log('info', "createMainWindow ; loadURL: " + mainUrl)
+  log('info', "createMainWindow ; mainUrl = " + mainUrl)
   try {
-    mainWindow.loadURL(mainUrl)
+    // if (app.isPackaged) {
+    //   await mainWindow.loadFile(mainUrl)
+    // } else {
+      await mainWindow.loadURL("file://" + mainUrl)
+    //}
   } catch(err) {
     log('error', 'loadURL() failed:');
     log('error',{err});
@@ -300,14 +304,14 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   log('debug', {opts})
   const {statusEmitter, shutdown } = await initAgent(app, opts, BINARY_PATHS)
   g_shutdown = shutdown;
-  statusEmitter.on(STATUS_EVENT, (state: StateSignal) => {
+  statusEmitter.on(STATUS_EVENT, async (state: StateSignal) => {
     //log('debug', "STATUS EVENT: " + stateSignalToText(state) + " (" + state + ")")
     switch (state) {
       case StateSignal.IsReady:
         log('debug', "STATUS EVENT: IS READY")
         // Its important to create the window before closing the current one
         // otherwise this triggers the 'all-windows-closed' event
-        g_mainWindow = createMainWindow(g_appPort)
+        g_mainWindow = await createMainWindow(g_appPort)
         splashWindow.close()
         g_mainWindow.show()
         break
@@ -368,11 +372,11 @@ app.on('window-all-closed', async () => {
   }
 })
 
-app.on('activate', () => {
+app.on('activate', async () => {
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) {
-    createMainWindow(g_appPort)
+    await createMainWindow(g_appPort)
   }
 })
 

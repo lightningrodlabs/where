@@ -37,7 +37,7 @@ const whereDnaPath = app.isPackaged
   ? path.join(app.getAppPath(), '../app/binaries/where.happ')
   : path.join(app.getAppPath(), '../dna/workdir/happ/where.happ')
 
-console.log({whereDnaPath})
+//console.log({whereDnaPath})
 
 // in production
 // must point to unpacked versions, not in an asar archive
@@ -57,7 +57,7 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
     }
   : undefined
 
-console.log({BINARY_PATHS})
+//console.log({BINARY_PATHS})
 
 /**
  *

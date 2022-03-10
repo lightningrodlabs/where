@@ -5,7 +5,8 @@ import {
   globalShortcut, ipcMain as ipc,
   ipcMain,
   Menu,
-  MenuItemConstructorOptions, nativeImage, Notification,
+  MenuItemConstructorOptions, nativeImage,
+  Notification,
   screen,
   shell, Tray
 } from 'electron'
@@ -119,11 +120,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
   log('info', "createMainWindow ; mainUrl = " + mainUrl)
   try {
-    // if (app.isPackaged) {
-    //   await mainWindow.loadFile(mainUrl)
-    // } else {
       await mainWindow.loadURL("file://" + mainUrl)
-    //}
   } catch(err) {
     log('error', 'loadURL() failed:');
     log('error',{err});
@@ -220,7 +217,6 @@ const createSplashWindow = (): BrowserWindow => {
     /** development */
     //splashWindow.webContents.openDevTools();
     splashWindow.loadURL(`${DEVELOPMENT_UI_URL}/splashscreen.html`)
-    //splashWindow.loadURL("C:\\github\\where-damien\\web\\splashscreen.html")
   }
   /** once its ready to show, show */
   splashWindow.once('ready-to-show', () => {

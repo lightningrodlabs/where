@@ -161,13 +161,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   /** Emitted when the window is closed. */
   mainWindow.on('closed', async function () {
     log('debug', 'WINDOW EVENT "closed"');
-    try {
-      if (g_shutdown) {
-        await g_shutdown();
-      }
-    } catch (e) {
-      log('error', 'g_shutdown() failed: '+ e);
-    }
+    await try_shutdown();
     /** Wait for kill subprocess to finish on slow machines */
     let start = Date.now();
     let diff = 0;
@@ -187,6 +181,20 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   return mainWindow
 }
 
+
+/**
+ *
+ */
+async function try_shutdown() {
+  try {
+    if (g_shutdown) {
+      log('info', 'calling g_shutdown()...');
+      await g_shutdown();
+    }
+  } catch (e) {
+    log('error', 'g_shutdown() failed: '+ e);
+  }
+}
 
 /**
  *
@@ -328,7 +336,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   })
   statusEmitter.on(HOLOCHAIN_RUNNER_QUIT, () => {
     const msg = "HOLOCHAIN_RUNNER_QUIT event received"
-    log('debug', msg)
+    log('warn', msg)
     if (g_mainWindow) {
       promptHolochainError(g_mainWindow, msg)
     } else {
@@ -338,7 +346,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   })
   statusEmitter.on(LAIR_KEYSTORE_QUIT, (e) => {
     let msg = "LAIR_KEYSTORE_QUIT event received"
-    log('debug', msg)
+    log('warn', msg)
     if (g_mainWindow) {
       promptHolochainError(g_mainWindow, msg)
     } else {
@@ -357,13 +365,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
 app.on('window-all-closed', async () => {
   log('debug', "APP EVENT  - window-all-closed")
   if (process.platform !== 'darwin') {
-    try {
-      if (g_shutdown) {
-        await g_shutdown();
-      }
-    } catch (e) {
-      log('error', 'g_shutdown() failed: '+ e);
-    }
+    await try_shutdown();
     app.quit()
   }
 })
@@ -380,10 +382,12 @@ app.on('activate', async () => {
 /**
  * When main window has been closed and the application will quit, destroy conductor subprocess
  */
-app.on('will-quit', (event) => {
+app.on('will-quit', async (event) => {
   log('debug','APP EVENT "will-quit"');
   if (!g_canQuit) {
     event.preventDefault();
+  } else {
+    await try_shutdown();
   }
 });
 

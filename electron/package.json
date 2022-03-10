@@ -41,7 +41,7 @@
       "artifactName": "${productName}.Setup.${version}.${ext}"
     },
     "directories": {
-      "buildResources": "web",
+      "buildResources": "web/logo",
       "output": "out"
     },
     "publish": {

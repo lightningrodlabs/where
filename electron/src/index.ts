@@ -188,14 +188,14 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
  *
  */
 async function try_shutdown() {
-  try {
-    if (g_shutdown) {
-      log('info', 'calling g_shutdown()...');
-      await g_shutdown();
-    }
-  } catch (e) {
-    log('error', 'g_shutdown() failed: '+ e);
-  }
+  // try {
+  //   if (g_shutdown) {
+  //     log('info', 'calling g_shutdown()...');
+  //     await g_shutdown();
+  //   }
+  // } catch (e) {
+  //   log('error', 'g_shutdown() failed: '+ e);
+  // }
 }
 
 /**

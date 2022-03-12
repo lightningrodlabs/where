@@ -70,7 +70,7 @@ export default async (orchestrator) => {
     // Create template
 
     const template1_eh64 = await alice_where.call(
-      "hc_zome_where",
+      "where",
       "create_template",
       template1
     );
@@ -78,7 +78,7 @@ export default async (orchestrator) => {
     console.log("template1_eh64", template1_eh64);
 
     const templates = await alice_where.call(
-      "hc_zome_where",
+      "where",
       "get_templates",
       null
     );
@@ -89,14 +89,14 @@ export default async (orchestrator) => {
     space1.origin = template1_eh64;
 
     const space1_hash = await alice_where.call(
-      "hc_zome_where",
+      "where",
       "create_space",
       space1
     );
     t.ok(space1_hash);
     console.log("space1_hash", space1_hash);
 
-    const spaces = await alice_where.call("hc_zome_where", "get_spaces", null);
+    const spaces = await alice_where.call("where", "get_spaces", null);
     console.log(spaces);
     t.deepEqual(spaces, [{ hash: space1_hash, content: space1 }]);
 
@@ -106,7 +106,7 @@ export default async (orchestrator) => {
       name: "first",
     };
     const session_eh = await alice_where.call(
-      "hc_zome_where",
+      "where",
       "create_next_session",
       nextSession
     );
@@ -126,7 +126,7 @@ export default async (orchestrator) => {
       meta: here1.meta,
     };
     const here1_link_hh = await alice_where.call(
-      "hc_zome_where",
+      "where",
       "add_here",
       addHereInput
     );
@@ -134,7 +134,7 @@ export default async (orchestrator) => {
     console.log(here1_link_hh);
 
     let heres = await alice_where.call(
-      "hc_zome_where",
+      "where",
       "get_heres",
       session_eh
     );
@@ -143,9 +143,9 @@ export default async (orchestrator) => {
     t.deepEqual(heres[0].linkHh, here1_link_hh);
     t.deepEqual(heres[0].author, serializeHash(alice_where.cellId[1]));
 
-    await alice_where.call("hc_zome_where", "delete_here", here1_link_hh);
+    await alice_where.call("where", "delete_here", here1_link_hh);
 
-    heres = await alice_where.call("hc_zome_where", "get_heres", session_eh);
+    heres = await alice_where.call("where", "get_heres", session_eh);
     t.ok(heres);
     t.equal(heres.length, 0);
   });

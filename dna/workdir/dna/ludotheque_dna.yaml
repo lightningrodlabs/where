@@ -1,0 +1,10 @@
+---
+manifest_version: "1"
+name: where
+uuid: 00000000-0000-0000-0000-000000000000
+properties: ~
+zomes:
+  - name: where_playset
+    bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
+  - name: where_ludotheque
+    bundled: ../../../target/wasm32-unknown-unknown/release/where_ludotheque.wasm

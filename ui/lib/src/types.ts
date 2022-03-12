@@ -4,7 +4,7 @@ import { AgentPubKeyB64, HeaderHashB64, EntryHashB64 } from "@holochain-open-dev
 import { createContext, Context } from "@holochain-open-dev/context";
 import { WhereStore } from "./where.store";
 
-export const whereContext : Context<WhereStore> = createContext('hc_zome_where/service');
+export const whereContext : Context<WhereStore> = createContext('where/service');
 
 export type Dictionary<T> = { [key: string]: T };
 

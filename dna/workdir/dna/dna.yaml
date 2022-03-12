@@ -4,7 +4,9 @@ name: where
 uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
 zomes:
-  - name: hc_zome_where
+  - name: where_playset
+    bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm-
+  - name: where
     bundled: ../../../target/wasm32-unknown-unknown/release/where.wasm
   - name: profiles
     bundled: ../../../target/wasm32-unknown-unknown/release/profiles.wasm

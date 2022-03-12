@@ -1,0 +1,26 @@
+---
+manifest_version: "1"
+name: where
+description: ~
+roles:
+  - id: ludotheque
+    provisioning:
+      strategy: create
+      deferred: false
+    dna:
+      bundled: "../dna/ludotheque.dna"
+      properties: ~
+      uid: ~
+      version: ~
+      clone_limit: 1
+  - id: where
+    provisioning:
+      strategy: createclone
+      deferred: true
+    dna:
+      bundled: "../dna/where.dna"
+      uid: ~
+      properties:
+        mother: <dnaHash>
+        imports: <[EntryHash]>
+      clone_limit: 0

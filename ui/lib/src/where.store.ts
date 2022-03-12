@@ -54,7 +54,7 @@ export class WhereStore {
   constructor(
     protected cellClient: CellClient,
     profilesStore: ProfilesStore,
-    zomeName: string = 'hc_zome_where')
+    zomeName: string = 'where')
   {
     this.myAgentPubKey = serializeHash(cellClient.cellId[1]);
     this.profiles = profilesStore;

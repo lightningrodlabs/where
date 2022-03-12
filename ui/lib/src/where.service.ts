@@ -24,7 +24,7 @@ import {
 export class WhereService {
   constructor(
     public cellClient: CellClient,
-    protected zomeName = 'hc_zome_where'
+    protected zomeName = 'where'
   ) {}
 
   get myAgentPubKey() : AgentPubKeyB64 {

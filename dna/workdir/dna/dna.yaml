@@ -5,7 +5,7 @@ uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
 zomes:
   - name: where_playset
-    bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm-
+    bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
   - name: where
     bundled: ../../../target/wasm32-unknown-unknown/release/where.wasm
   - name: profiles

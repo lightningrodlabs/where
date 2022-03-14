@@ -2,9 +2,6 @@ use hdk::prelude::*;
 use hc_utils::get_links_and_load_type;
 use holo_hash::EntryHashB64;
 
-use crate::error::*;
-//use crate::signals::*;
-
 /// Template Entry
 #[hdk_entry(id = "emojigroup")]
 #[derive(Clone)]
@@ -57,8 +54,9 @@ fn get_all_emoji_groups(_: ()) -> ExternResult<Vec<EmojiGroupOutput>> {
     Ok(templates)
 }
 
-fn get_all_inner(base: EntryHash) -> WhereResult<Vec<EmojiGroupOutput>> {
-    let entries = get_links_and_load_type(base, None, false)?;
+fn get_all_inner(base: EntryHash) -> ExternResult<Vec<EmojiGroupOutput>> {
+    let entries = get_links_and_load_type(base, None, false)
+      .map_err(|err| WasmError::Guest(err.to_string()))?;
     let mut templates = vec![];
     for e in entries {
         templates.push(EmojiGroupOutput {hash: hash_entry(&e)?.into(), content: e});

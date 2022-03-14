@@ -10,6 +10,7 @@ import {WhereStore} from "./where.store";
 
 export async function addHardcodedSpaces(store: WhereStore) {
   /** Templates */
+  console.log("Templates...")
   const mapEh = await store.addTemplate({
     name: "Map2D",
     surface: JSON.stringify({
@@ -47,7 +48,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
 
 
   /** Emoji Groups */
-
+  console.log("Emojis...")
   const heartsEh = await store.addEmojiGroup({
     name: "hearts",
     description: "",
@@ -61,7 +62,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
 
 
   /** SVG Markers */
-
+  console.log("SVG Markers...")
   const pinEh = await store.addSvgMarker({
     name: "Pin",
     value: '<path data-name="layer1" d="M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" fill="%%color%%"></path>',
@@ -74,7 +75,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
 
 
   /** Spaces */
-
+  console.log("Spaces...")
   await store.newPlay({
     name: "Ecuador",
     origin: mapEh,
@@ -209,4 +210,6 @@ export async function addHardcodedSpaces(store: WhereStore) {
       subMap,
     }}
   );
+
+  console.log("examples - DONE")
 }

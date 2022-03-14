@@ -245,6 +245,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     /** load initial plays & templates if there are none */
     if (this.canLoadExamples && Object.keys(templates).length == 0) {
       await addHardcodedSpaces(this._store);
+      console.log("addHardcodedSpaces() - DONE");
     }
     // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
     //   console.warn("No plays or templates found")

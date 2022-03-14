@@ -2,8 +2,6 @@ pub use hdk::prelude::*;
 use hc_utils::get_links_and_load_type;
 use holo_hash::EntryHashB64;
 
-use crate::error::*;
-//use crate::signals::*;
 
 /// SvgMarker Entry
 #[hdk_entry(id = "svgmarker")]
@@ -56,8 +54,9 @@ fn get_svg_markers(_: ()) -> ExternResult<Vec<SvgMarkerOutput>> {
     Ok(templates)
 }
 
-fn get_inner(base: EntryHash) -> WhereResult<Vec<SvgMarkerOutput>> {
-    let entries = get_links_and_load_type(base, None, false)?;
+fn get_inner(base: EntryHash) -> ExternResult<Vec<SvgMarkerOutput>> {
+    let entries = get_links_and_load_type(base, None, false)
+      .map_err(|err| WasmError::Guest(err.to_string()))?;
     let mut templates = vec![];
     for e in entries {
         templates.push(SvgMarkerOutput {hash: hash_entry(&e)?.into(), content: e});

@@ -1,0 +1,15 @@
+[package]
+authors = ["eric@harris-braun.com"]
+edition = "2018"
+name = "where_playset"
+version = "0.0.1"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+name = "where_playset"
+
+[dependencies]
+serde = "1.0"
+hc_utils = {git = "https://github.com/holochain/hc-utils", rev = "038959a1e6abeec16560d4eae3a015678a14d0f0", package = "hc_utils"}
+hdk = "0.0.122"
+holo_hash = {version = "0.0.19", features = ["encoding"]}

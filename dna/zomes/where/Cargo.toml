@@ -13,9 +13,13 @@ chrono = {version = "0.4", features = ['alloc', 'std']}
 derive_more = "0.99"
 serde = "1.0.123"
 thiserror = "1.0.20"
+
 hc_utils = {git = "https://github.com/holochain/hc-utils", rev = "038959a1e6abeec16560d4eae3a015678a14d0f0", package = "hc_utils"}
 hdk = "0.0.122"
 holo_hash = {version = "0.0.19", features = ["encoding"]}
+
+#where_playset = {path = "../playset"}
+zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "122" }
 
 [dev-dependencies]
 futures = "0.3.1"

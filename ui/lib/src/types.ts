@@ -1,6 +1,6 @@
 // TODO: add globally available interfaces for your elements
 
-import { AgentPubKeyB64, HeaderHashB64, EntryHashB64 } from "@holochain-open-dev/core-types";
+import {AgentPubKeyB64, HeaderHashB64, EntryHashB64, HoloHashB64} from "@holochain-open-dev/core-types";
 import { createContext, Context } from "@holochain-open-dev/context";
 import { WhereStore } from "./where.store";
 
@@ -9,7 +9,7 @@ export const whereContext : Context<WhereStore> = createContext('where/service')
 export type Dictionary<T> = { [key: string]: T };
 
 export interface HoloHashed<T> {
-  hash: string;
+  hash: HoloHashB64;
   content: T;
 }
 
@@ -88,6 +88,7 @@ export interface Space {
   name: string;
   origin: EntryHashB64;
   surface: any;
+  //markerType: MarkerType,
   meta: PlayMeta;
 }
 
@@ -96,6 +97,12 @@ export interface Play {
   visible: boolean;
   sessions: Dictionary<PlacementSession>,
 }
+
+
+// export interface SpaceMeta {
+//   ui: UiItem[],
+//   subMap: Map<string, string>,
+// }
 
 
 export interface PlayMeta {
@@ -136,9 +143,9 @@ export interface UiBox {
 export enum MarkerType {
   AnyEmoji,
   Avatar,
-  SvgMarker,
   Initials,
   SingleEmoji,
+  SvgMarker,
   EmojiGroup,
   Tag,
 }
@@ -179,16 +186,16 @@ export type Signal =
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, HeaderHashB64]}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: SpaceEntry}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: EntryHashB64}
 }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: [EntryHashB64, TemplateEntry]}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: EntryHashB64}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: [EntryHashB64, EmojiGroupEntry]}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EntryHashB64}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: [EntryHashB64, SvgMarkerEntry] }
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: EntryHashB64 }
   }
 
 

@@ -86,37 +86,37 @@ export class WhereStore {
         case "Pong":
           break;
         case "NewSvgMarker":
-          const svgEh = signal.message.content[0]
-          if (!get(this.svgMarkers)[svgEh]) {
+          const svgEh = signal.message.content
+          this.service.getSvgMarker(svgEh).then(svg => {
             this.svgMarkerStore.update(store => {
-              store[svgEh] = signal.message.content[1]
+              store[svgEh] = svg
               return store
             })
-          }
+          })
           break;
         case "NewEmojiGroup":
-          const groupEh = signal.message.content[0]
-          if (!get(this.emojiGroups)[groupEh]) {
+          const groupEh = signal.message.content
+          this.service.getEmojiGroup(groupEh).then(group => {
             this.emojiGroupStore.update(emojiGroups => {
-              emojiGroups[groupEh] = signal.message.content[1]
+              emojiGroups[groupEh] = group
               return emojiGroups
             })
-          }
+          })
           break;
       case "NewTemplate":
-        const templateEh = signal.message.content[0]
-        if (!get(this.templates)[templateEh]) {
+        const templateEh = signal.message.content
+        this.service.getTemplate(templateEh).then(template => {
           this.templateStore.update(templates => {
-            templates[templateEh] = signal.message.content[1]
+            templates[templateEh] = template
             return templates
           })
-        }
+        })
         break;
       case "NewSpace":
-        const spaceEh = signal.message.content[0]
+        const spaceEh = signal.message.content
         if (!get(this.plays)[spaceEh]) {
           console.log("addPlay() from signal: " + spaceEh)
-          this.addPlay(spaceEh)
+          /*await*/ this.addPlay(spaceEh)
         }
         break;
       case "NewHere":
@@ -206,7 +206,7 @@ export class WhereStore {
       })
     }
     // - Set currentSession for new Play
-    const firstSessionEh = await this.service.getSessionHash(spaceEh, 0);
+    const firstSessionEh = await this.service.getSessionAddress(spaceEh, 0);
     // console.log("addPlay() firstSessionEh: " + firstSessionEh)
     if (firstSessionEh) {
       this.updateCurrentSession(spaceEh, firstSessionEh)
@@ -216,15 +216,15 @@ export class WhereStore {
   }
 
   async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createTemplate(template)
+    const eh: EntryHashB64 = await this.service.createTemplate(template)
     this.templateStore.update(templates => {
-      templates[eh64] = template
+      templates[eh] = template
       return templates
     })
     this.service.notify(
-      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content:[eh64, template]}}
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content: eh}}
       , this.others());
-    return eh64
+    return eh
   }
 
   async updatePlays() : Promise<Dictionary<Play>> {
@@ -272,27 +272,27 @@ export class WhereStore {
   }
 
   async addEmojiGroup(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createEmojiGroup(emojiGroup)
+    const eh: EntryHashB64 = await this.service.createEmojiGroup(emojiGroup)
     this.emojiGroupStore.update(emojiGroups => {
-      emojiGroups[eh64] = emojiGroup
+      emojiGroups[eh] = emojiGroup
       return emojiGroups
     })
     this.service.notify(
-      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content: [eh64, emojiGroup]}}
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content: eh}}
       , this.others());
-    return eh64
+    return eh
   }
 
   async addSvgMarker(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createSvgMarker(svgMarker)
+    const eh: EntryHashB64 = await this.service.createSvgMarker(svgMarker)
     this.svgMarkerStore.update(svgMarkers => {
-      svgMarkers[eh64] = svgMarker
+      svgMarkers[eh] = svgMarker
       return svgMarkers
     })
     this.service.notify(
-      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:[eh64, svgMarker]}}
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:eh}}
       , this.others());
-    return eh64
+    return eh
   }
 
   /** Get latest entries of each type and update local store accordingly */
@@ -317,7 +317,7 @@ export class WhereStore {
       return Promise.reject("Play not found")
     }
     // - Sessions
-    const sessionEhs = await this.service.getAllSessions(spaceEh);
+    const sessionEhs = await this.service.getSpaceSessions(spaceEh);
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of sessionEhs) {
       const session = await this.service.sessionFromEntry(sessionEh);
@@ -349,7 +349,7 @@ export class WhereStore {
     const entry = this.service.spaceIntoEntry(space);
     const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, sessionNames)
     // - Notify others
-    const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: entry}};
+    const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
     this.service.notify(newSpace, this.others());
     // - Add play to store
     console.log("newPlay(): " + space.name + " | " + spaceEh)

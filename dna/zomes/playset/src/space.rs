@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
 /// Space entry definition
-#[hdk_entry(id = "space")]
+#[hdk_entry(id = "Space")]
 #[derive(Clone)]
 pub struct Space {
     pub name: String,

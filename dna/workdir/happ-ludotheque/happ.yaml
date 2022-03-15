@@ -8,19 +8,17 @@ roles:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dna/ludotheque.dna"
+      bundled: "../dna-ludotheque/ludotheque.dna"
       properties: ~
       uid: ~
       version: ~
-      clone_limit: 1
+      clone_limit: 0
   - id: where
     provisioning:
-      strategy: createclone
-      deferred: true
+      strategy: create
+      deferred: false
     dna:
-      bundled: "../dna/where.dna"
+      bundled: "../dna-where/where.dna"
       uid: ~
-      properties:
-        mother: <dnaHash>
-        imports: <[EntryHash]>
+      properties: ~
       clone_limit: 0

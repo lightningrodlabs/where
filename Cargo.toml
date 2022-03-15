@@ -2,7 +2,7 @@
 members = [
   "dna/zomes/where",
   "dna/zomes/playset",
-  #"dna/zomes/ludotheque",
+  "dna/zomes/ludotheque",
   "dna/zomes/profiles"
   ]
 

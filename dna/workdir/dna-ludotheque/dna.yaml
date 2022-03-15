@@ -1,6 +1,6 @@
 ---
 manifest_version: "1"
-name: where
+name: ludotheque
 uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
 zomes:

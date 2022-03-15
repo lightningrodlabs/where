@@ -3,7 +3,7 @@ use hc_utils::get_links_and_load_type;
 use holo_hash::EntryHashB64;
 
 /// Template Entry
-#[hdk_entry(id = "emojigroup")]
+#[hdk_entry(id = "EmojiGroup")]
 #[derive(Clone)]
 pub struct EmojiGroup {
     pub name: String,

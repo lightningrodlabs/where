@@ -10,7 +10,7 @@ use crate::{
 
 
 /// Entry definition
-#[hdk_entry(id = "placement-session")]
+#[hdk_entry(id = "PlacementSession")]
 #[derive(Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct PlacementSession {

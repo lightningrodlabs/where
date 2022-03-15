@@ -1,4 +1,4 @@
-pub use hdk::prelude::*;
+use hdk::prelude::*;
 use hc_utils::get_links_and_load_type;
 use holo_hash::EntryHashB64;
 
@@ -44,8 +44,8 @@ fn get_playset(input: EntryHashB64) -> ExternResult<Option<Playset>> {
   let eh: EntryHash = input.into();
   match get_details(eh, GetOptions::content())? {
     Some(Details::Entry(EntryDetails {entry, .. })) => {
-      let tmpl: EmojiGroup = entry.try_into()?;
-      Ok(Some(tmpl))
+      let obj: Playset = entry.try_into()?;
+      Ok(Some(obj))
     }
     _ => Ok(None),
   }

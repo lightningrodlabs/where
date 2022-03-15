@@ -4,7 +4,7 @@ use holo_hash::EntryHashB64;
 
 
 /// SvgMarker Entry
-#[hdk_entry(id = "svgmarker")]
+#[hdk_entry(id = "SvgMarker")]
 #[derive(Clone)]
 pub struct SvgMarker {
     pub name: String,

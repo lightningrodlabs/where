@@ -18,7 +18,7 @@ import {
   defaultPlayMeta,
   PlacementSession,
   PlacementSessionEntry,
-  Space,
+  Space, PlaysetEntry,
 } from './types';
 
 export class WhereService {
@@ -30,6 +30,21 @@ export class WhereService {
   get myAgentPubKey() : AgentPubKeyB64 {
     return serializeHash(this.cellClient.cellId[1]);
   }
+
+  /** Playsets */
+
+  async getPlayset(eh: EntryHashB64): Promise<PlaysetEntry> {
+    return this.callLudothequeZome('get_playset', eh);
+  }
+
+  async createPlayset(entry: PlaysetEntry): Promise<EntryHashB64> {
+    return this.callLudothequeZome('create_playset', entry);
+  }
+
+  async getPlaysets(): Promise<Array<HoloHashed<PlaysetEntry>>> {
+    return this.callLudothequeZome('get_all_playsets', null);
+  }
+
 
   /** Svg Markers */
 
@@ -206,6 +221,15 @@ export class WhereService {
     return result;
   }
 
+  private callLudothequeZome(fn_name: string, payload: any): Promise<any> {
+    //console.debug("callZome: " + fn_name)
+    //console.debug({payload})
+    const result = this.cellClient.callZome("where_ludotheque", fn_name, payload);
+    //console.debug("callZome: " + fn_name + "() result")
+    //console.debug({result})
+    return result;
+  }
+
   /** -- Conversions -- */
 
   async sessionFromEntry(sessionEh: EntryHashB64): Promise<PlacementSession> {
@@ -240,7 +264,7 @@ export class WhereService {
   }
 
   metaFromEntry(meta: Dictionary<string>): PlayMeta {
-    let spaceMeta:any = {};
+    let spaceMeta: any = {};
     try {
       for (const [key, value] of Object.entries(meta)) {
         Object.assign(spaceMeta, {[key]: JSON.parse(value, this.reviver)})

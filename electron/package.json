@@ -11,8 +11,8 @@
     "start": "tsc && electron .",
     "build": "tsc && npm run dist",
     "tsc": "tsc",
-    "dist": "cp ../dna/workdir/happ/where.happ . && electron-builder build",
-    "dist-linux": "cp ../dna/workdir/happ/where.happ . && electron-builder --linux tar.gz",
+    "dist": "cp ../dna/workdir/happ-where/where.happ . && electron-builder build",
+    "dist-linux": "cp ../dna/workdir/happ-where/where.happ . && electron-builder --linux tar.gz",
     "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"
   },

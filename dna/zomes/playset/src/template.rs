@@ -3,7 +3,7 @@ use holo_hash::EntryHashB64;
 use hc_utils::get_links_and_load_type;
 
 /// Template Entry
-#[hdk_entry(id = "template")]
+#[hdk_entry(id = "Template")]
 #[derive(Clone)]
 pub struct Template {
     pub name: String,

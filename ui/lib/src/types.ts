@@ -3,8 +3,11 @@
 import {AgentPubKeyB64, HeaderHashB64, EntryHashB64, HoloHashB64} from "@holochain-open-dev/core-types";
 import { createContext, Context } from "@holochain-open-dev/context";
 import { WhereStore } from "./where.store";
+import {LudothequeStore} from "./ludotheque.store";
 
 export const whereContext : Context<WhereStore> = createContext('where/service');
+
+export const ludothequeContext : Context<LudothequeStore> = createContext('where/service');
 
 export type Dictionary<T> = { [key: string]: T };
 
@@ -123,6 +126,14 @@ export interface PlayMeta {
   sessionCount: number,
   canModifyPast: boolean,
   sessionLabels: string[],
+}
+
+export interface PlaysetEntry {
+  name: string;
+  description: string;
+  spaces: EntryHashB64[];
+  templates: EntryHashB64[];
+  markers: EntryHashB64[];
 }
 
 

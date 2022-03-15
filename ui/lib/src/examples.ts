@@ -7,8 +7,9 @@ import {
 } from "./templates";
 import {MarkerType} from "./types";
 import {WhereStore} from "./where.store";
+import {LudothequeStore} from "./ludotheque.store";
 
-export async function addHardcodedSpaces(store: WhereStore) {
+export async function addHardcodedSpaces(store: LudothequeStore) {
   /** Templates */
   console.log("Templates...")
   const mapEh = await store.addTemplate({
@@ -76,7 +77,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
 
   /** Spaces */
   console.log("Spaces...")
-  await store.newPlay({
+  await store.newSpace({
     name: "Ecuador",
     origin: mapEh,
     surface: {
@@ -92,7 +93,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     }
   });
 
-  await store.newPlay({
+  await store.newSpace({
     name:"earth",
     origin: mapEh,
     surface: {
@@ -109,7 +110,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
   });
 
 
-  await store.newPlay({
+  await store.newSpace({
     name:"Abstract",
     origin:boxEh,
     surface:{
@@ -125,7 +126,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
     }}
   );
 
-  await store.newPlay({
+  await store.newSpace({
     name:"Zodiac",
     origin:mapEh,
     surface:{
@@ -143,7 +144,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
 
   let subMap = new Map([["param1","Cost"], ["param2","Quality"], ["param3","Time"]]) as Map<string, string>;
 
-  await store.newPlay({
+  await store.newSpace({
     name:"Project Triangle",
     origin:triangleEh,
     surface:{
@@ -160,7 +161,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
   );
 
   subMap = new Map([["ImageUrl","https://i1.wp.com/www.pedrosolorzano.com/wp-content/uploads/2019/08/blobtreepedro.jpg"]]) as Map<string, string>;
-  await store.newPlay({
+  await store.newSpace({
     name: "Blob Tree",
     origin: mapEh,
     surface: {
@@ -177,7 +178,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
   );
 
   subMap = new Map([["ImageUrl","https://upload.wikimedia.org/wikipedia/commons/2/2c/Johari_Window.PNG"]]) as Map<string, string>;
-  await store.newPlay({
+  await store.newSpace({
     name: "Johari Window",
     origin: mapEh,
     surface: {
@@ -195,7 +196,7 @@ export async function addHardcodedSpaces(store: WhereStore) {
   );
 
   subMap = new Map([["pixel-size","6"]]) as Map<string, string>;
-  await store.newPlay({
+  await store.newSpace({
     name: "Canvas Sample",
     origin: canvasEh,
     surface: {

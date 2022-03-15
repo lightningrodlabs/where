@@ -19,7 +19,7 @@ pub enum MarkerKind {
 
 
 /// Space entry definition
-#[hdk_entry(id = "space")]
+#[hdk_entry(id = "Playfield")]
 #[derive(Clone)]
 pub struct Playfield {
   pub name: String,

@@ -1,11 +1,10 @@
-import {contextProvided, ContextProvider} from "@holochain-open-dev/context";
-import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
-import { state } from "lit/decorators.js";
+import {ContextProvider} from "@holochain-open-dev/context";
+import {serializeHash} from '@holochain-open-dev/core-types';
+
 import {
   ludothequeContext,
   LudothequeController,
   LudothequeStore,
-  whereContext,
 } from "@where/elements";
 
 import { HolochainClient } from "@holochain-open-dev/cell-client";
@@ -31,7 +30,7 @@ console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
 
 
 export class LudothequeApp extends ScopedElementsMixin(LitElement) {
-  @state()
+
   loaded = false;
 
   /**

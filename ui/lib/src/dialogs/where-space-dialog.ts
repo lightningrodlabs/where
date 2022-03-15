@@ -49,11 +49,12 @@ import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   /** Public properties */
-  @property() currentProfile: Profile| undefined = undefined;
+  @property({ type: Object}) currentProfile: Profile | undefined = undefined;
 
   /** Dependencies */
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
+
   _templates = new StoreSubscriber(this, () => this._store.templates);
   _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
   _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);

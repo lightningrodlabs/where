@@ -4,15 +4,13 @@ import { state, property } from "lit/decorators.js";
 import { contextProvided } from "@holochain-open-dev/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
-import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Play, Dictionary, ludothequeContext, SpaceEntry, PlaysetEntry} from "../types";
-import { WhereStore } from "../where.store";
+import { Dictionary, ludothequeContext, PlaysetEntry} from "../types";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
 import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
 import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
-import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
+import {SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -20,12 +18,10 @@ import {
   IconButton,
   Button, TextField, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu, Tab, TabBar,
 } from "@scoped-elements/material-web";
-import {prefix_canvas} from "../templates";
-import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
+import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
 import {addHardcodedSpaces} from "../examples";
 import {LudothequeStore} from "../ludotheque.store";
-import {query} from "lit/decorators";
 
 /**
  * @element ludotheque-controller
@@ -63,7 +59,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   private _initializing: boolean = false;
 
 
-  @query('#body-tab-bar') bodyTabBar!: TabBar;
+  get tabElem() : TabBar {
+    return this.shadowRoot!.getElementById("body-tab-bar") as TabBar;
+  }
 
   get drawerElem() : Drawer {
     return this.shadowRoot!.getElementById("my-drawer") as Drawer;
@@ -326,11 +324,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       )
     }
 
-    console.log("tab bar index: " + this.bodyTabBar.activeIndex);
+    console.log("tab bar index: " + this.tabElem.activeIndex);
 
 
     let bodyItems;
-    switch (this.bodyTabBar.activeIndex) {
+    switch (this.tabElem.activeIndex) {
       case 0:
         bodyItems = [html`<div>INDEX 0</div>`]
         break;

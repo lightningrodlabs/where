@@ -1,28 +1,26 @@
 import { html, css, LitElement } from "lit";
-import { state, property } from "lit/decorators.js";
+import { property } from "lit/decorators.js";
 
 import { contextProvided } from "@holochain-open-dev/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
-import randomColor from "randomcolor";
 import { sharedStyles } from "../sharedStyles";
-import {whereContext, Play, Dictionary, Signal, Coord, MarkerType, EmojiGroupEntry} from "../types";
+import {whereContext} from "../types";
 import { WhereStore } from "../where.store";
-import {SlAvatar, SlBadge, SlIcon, SlInput, SlTooltip} from '@scoped-elements/shoelace';
+import {SlAvatar, SlBadge, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField, List, Icon, Switch, Formfield, Slider, Menu, Fab, IconButtonToggle,
+  Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle,
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
   ProfilesStore,
-  Profile,
 } from "@holochain-open-dev/profiles";
-import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
-import {MARKER_WIDTH, renderSurface} from "../sharedRender";
+import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
+import {MARKER_WIDTH} from "../sharedRender";
 
 
 /**
@@ -36,7 +34,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   /** Public attributes */
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
-  @property() canShowTable: boolean = true;
+  @property({type: Boolean}) canShowTable: boolean = true;
 
 
   /** Dependencies */

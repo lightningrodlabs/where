@@ -67,7 +67,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   @query('#sessions-tab-bar') sessionTabBar!: TabBar;
 
-  @property() currentSpaceEh: null | EntryHashB64 = null;
+  @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
   // @state() _currentSessionEh: null | EntryHashB64 = null;
 
   @contextProvided({ context: whereContext })
@@ -90,7 +90,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private _sessions?:any;
   private _activeIndex:number = -1;
 
-  @property() neighborWidth = 0;
+  @property({type: Number}) neighborWidth: number = 0;
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
   async initFab(fab: Fab) {

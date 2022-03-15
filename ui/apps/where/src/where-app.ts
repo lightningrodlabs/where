@@ -1,4 +1,4 @@
-import {contextProvided, ContextProvider} from "@holochain-open-dev/context";
+import {ContextProvider} from "@holochain-open-dev/context";
 import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 import {

@@ -4,14 +4,9 @@ import {query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@holochain-open-dev/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import {Coord, ludothequeContext, PlaysetEntry, TemplateEntry, TemplateType, whereContext} from "../types";
+import {Coord, ludothequeContext, PlaysetEntry, TemplateEntry, TemplateType} from "../types";
 import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
-import parser from "fast-xml-parser";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {prefix_canvas} from "../templates";
-import {unsafeHTML} from "lit/directives/unsafe-html.js";
-import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {LudothequeStore} from "../ludotheque.store";
 
 

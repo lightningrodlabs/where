@@ -42,9 +42,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean, attribute: 'dummy' })
   canLoadDummy: boolean = false;
 
-  @property({ type: Boolean, attribute: 'examples' })
-  canLoadExamples: boolean = false;
-
   /** Dependencies */
 
   @contextProvided({ context: whereContext })
@@ -233,6 +230,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /**
+   * Called once a profile has been set
+   */
   private async init() {
     this._initializing = true
     console.log("where-controller.init() - START");
@@ -242,6 +242,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const templates = this._templates.value;
     console.log({plays})
     console.log({templates})
+
     /** load initial plays & templates if there are none */
     // FIXME
     // if (this.canLoadExamples && Object.keys(templates).length == 0) {

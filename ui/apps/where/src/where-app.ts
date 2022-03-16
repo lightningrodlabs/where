@@ -50,9 +50,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
 
-    const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
-    console.log({hcClient})
-    const cellClient = hcClient.forCell(hcClient.appInfo.cell_data[0]);
+    const whereClient = await HolochainClient.connect(wsUrl, installed_app_id);
+    console.log({whereClient})
+    const ludoClient = await HolochainClient.connect(wsUrl, "where_ludotheque");
+    console.log({ludoClient})
+    const cellClient = whereClient.forCell(whereClient.appInfo.cell_data[0]);
     console.log({cellClient})
 
     // Send dnaHash to electron
@@ -92,11 +94,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       return html`<span>Loading...</span>`;
     }
     return html`
-        <!--<profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
+        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
             @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
-            <where-controller examples></where-controller>
-        </profile-prompt>-->
-         <where-controller id="controller" dummy examples></where-controller>
+            <where-controller></where-controller>
+        </profile-prompt>
+        <!--<where-controller id="controller" dummy></where-controller>-->
     `;
   }
 

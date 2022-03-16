@@ -7,6 +7,7 @@ rm -rf electron/node_modules
 rm -rf electron/node_modules
 rm -rf electron/dist
 rm -rf electron/out
+rm electron/package-lock.json
 
 rm -rf node_modules
 rm -rf test/node_modules

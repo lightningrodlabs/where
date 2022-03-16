@@ -3,7 +3,7 @@ use holo_hash::EntryHashB64;
 use hc_utils::get_links_and_load_type;
 
 /// Template Entry
-#[hdk_entry(id = "Template")]
+#[hdk_entry(id = "template")]
 #[derive(Clone)]
 pub struct Template {
     pub name: String,
@@ -21,7 +21,7 @@ fn get_templates_path() -> Path {
 }
 
 #[hdk_extern]
-fn create_template(input: Template) -> ExternResult<EntryHashB64> {
+pub fn create_template(input: Template) -> ExternResult<EntryHashB64> {
     let _hh = create_entry(&input)?;
     let eh = hash_entry(input.clone())?;
     let path = get_templates_path();

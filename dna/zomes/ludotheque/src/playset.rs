@@ -5,12 +5,14 @@ use holo_hash::EntryHashB64;
 /// Template Entry
 #[hdk_entry(id = "playset")]
 #[derive(Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct Playset {
   pub name: String,
   pub description: String,
-  pub spaces: Vec<EntryHashB64>,
-  pub markers: Vec<EntryHashB64>,
   pub templates: Vec<EntryHashB64>,
+  pub svg_markers: Vec<EntryHashB64>,
+  pub emoji_groups: Vec<EntryHashB64>,
+  pub spaces: Vec<EntryHashB64>,
 }
 
 #[derive(Clone, Serialize, Deserialize, Debug)]

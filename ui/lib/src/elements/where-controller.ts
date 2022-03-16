@@ -424,6 +424,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  private showLudotheque(e?: any) {
+    console.log("showLudotheque()")
+    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: {}, bubbles: true, composed: true }));
+  }
+
   async handleColorChange(e: any) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
@@ -512,6 +517,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       <div slot="title">Where - ${spaceName}</div>
       <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <mwc-icon-button slot="actionItems" icon="logout" @click=${this.showLudotheque}></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>

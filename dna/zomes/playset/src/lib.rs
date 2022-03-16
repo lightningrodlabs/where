@@ -8,6 +8,7 @@ mod template;
 mod emoji_group;
 mod svg_marker;
 mod space;
+mod import_entry;
 
 pub use template::*;
 pub use emoji_group::*;

@@ -22,7 +22,7 @@ fn get_svg_marker_path() -> Path {
 }
 
 #[hdk_extern]
-fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
+pub fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
     let _hh = create_entry(&input)?;
     let eh = hash_entry(input.clone())?;
     let path = get_svg_marker_path();

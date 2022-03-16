@@ -68,9 +68,10 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     return {
       name: this._nameField.value,
       description: this._descriptionField.value,
-      spaces: [],
-      markers: [],
       templates: [],
+      svgMarkers: [],
+      emojiGroups: [],
+      spaces: [],
     }
   }
 

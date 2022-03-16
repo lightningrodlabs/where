@@ -5,12 +5,21 @@ import { contextProvided } from "@holochain-open-dev/context";
 import { StoreSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
-import { Dictionary, ludothequeContext, PlaysetEntry} from "../types";
+import {Dictionary, ludothequeContext, PlaysetEntry, TemplateType} from "../types";
 import { WhereSpace } from "./where-space";
 import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
 import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
 import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
-import {SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
+import {
+  SlButton,
+  SlCard, SlIcon,
+  SlIconButton,
+  SlRating,
+  SlTab,
+  SlTabGroup,
+  SlTabPanel,
+  SlTooltip
+} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
@@ -53,6 +62,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
 
   /** Private properties */
+
+  @state() _currentWhereId: null | string = null;
 
   @state() _currentPlayset: null | PlaysetEntry = null;
   @state() _currentPlaysetEh: null | EntryHashB64 = null;
@@ -99,7 +110,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
 
   /** Launch init when myProfile has been set */
-  private subscribePlayset() {
+  private async subscribePlayset() {
     this._store.playsets.subscribe(async (playsets) => {
       if (!this._currentPlaysetEh) {
         // /** Select first play */
@@ -110,28 +121,14 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         //   console.log("    starting Playset: ", playsets[firstEh].name, this._currentPlaysetEh);
         //   //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentPlaysetEh);
         // }
-        await this.init();
       }
     });
+    await this.init();
   }
 
   /** After first render only */
   async firstUpdated() {
-    this.subscribePlayset();
-  }
-
-
-  private getFirstVisiblePlayset(playsets: Dictionary<PlaysetEntry>): null| EntryHashB64 {
-    if (Object.keys(playsets).length == 0) {
-      return null;
-    }
-    for (let eh in playsets) {
-      const play = playsets[eh]
-      // if (play.visible) {
-         return eh;
-      // }
-    }
-    return null;
+    await this.subscribePlayset();
   }
 
 
@@ -167,10 +164,6 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         menuButton.style.marginRight = margin;
       });
     }
-    /** Menu */
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
-    menu.anchor = button
     /** Done */
     this._initialized = true
     this._initializing = false
@@ -248,6 +241,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  /**
+   *
+   */
   private async handlePlaysetDialogClosing(e: any) {
     console.log("handlePlaysetDialogClosing() : " + JSON.stringify(e.detail))
     //const playset = e.detail;
@@ -255,6 +251,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
+
+  /**
+   *
+   */
   private async commitPlayset() {
     console.log("commitPlayset() : " + JSON.stringify(this._currentPlayset))
     if (!this._currentPlayset) {
@@ -270,15 +270,23 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.spaces = selectedSpaces;
-    await this._store.addPlayset(this._currentPlayset!);
+    await this._store.addPlaysetWithCheck(this._currentPlayset!);
     this.resetCurrentPlayset();
     this.requestUpdate();
   }
 
+
+  /**
+   *
+   */
   private resetCurrentPlayset() {
     this._currentPlayset = null;
   }
 
+
+  /**
+   *
+   */
   private async handleArchiveDialogClosing(e: any) {
     // const spaces = this._plays.value;
     // /** Check if current play has been archived */
@@ -298,40 +306,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  openTopMenu() {
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    menu.open = true;
-  }
-
-  handleMenuSelect(e: any) {
-    const menu = e.currentTarget as Menu;
-    // console.log("handleMenuSelect: " + menu)
-    const selected = menu.selected as ListItem;
-    //console.log({selected})
-    switch (selected.value) {
-      case "fork_template":
-        this.openTemplateDialog(this._currentTemplateEh)
-        break;
-      case "fork_space":
-        //this.openSpaceDialog(this._currentSpaceEh? this._currentSpaceEh : undefined)
-        break;
-      case "archive_space":
-        this.archiveSpace()
-        break;
-      default:
-        break;
-    }
-  }
-
-  // private async handleSpaceClick(event: any) {
-  //   await this.pingOthers();
-  // }
-
   /**
    *
    */
   render() {
-    console.log("ludotheque-controller render() - " + this._currentPlaysetEh)
+    console.log("ludotheque-controller render() - " + this._initialized)
     const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
@@ -361,10 +340,17 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         }
       )
     }
+    // let cellItems = [html``];
+    // playsetItems = Object.values(playset?.spaces).map(spaceEh => {
+    //   return html`
+    //     <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Html)} selected value="html">HTML
+    //     </mwc-list-item>
+    //   `;
+    // });
 
-//      console.log("tab bar index: " + this.tabElem.activeIndex);
 
-     return html`
+
+    return html`
 <!--  DRAWER -->
 <mwc-drawer type="dismissible" id="my-drawer">
   <div>
@@ -391,9 +377,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       ${playsetItems}
     </mwc-list>-->
     <div>
-      <div>   Spaces: ${this._currentPlayset?.spaces.length}</div>
-      <div>Templates: ${this._currentPlayset?.templates.length}</div>
-      <div>  Markers: ${this._currentPlayset?.markers.length}</div>
+      <div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
+      <div>   Templates: ${this._currentPlayset?.templates.length}</div>
+      <div> SVG Markers: ${this._currentPlayset?.svgMarkers.length}</div>
+      <div>Emoji Groups: ${this._currentPlayset?.emojiGroups.length}</div>
     </div>
     <div id="drawer-button-bar">
       <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>reset</mwc-button>
@@ -405,15 +392,13 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title">Where - Ludothèque</div>
+      <div slot="title">Ludothèque</div>
+      <!-- <mwc-select required id="where-cell-field" label="WhereId">
+      </mwc-select> -->
+
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
-                       .disabled=${!this._currentPlaysetEh}></mwc-icon-button>
-      <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
-        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
-      </mwc-menu>
+      <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
+      ></mwc-icon-button>
     </mwc-top-app-bar>
     <!-- APP BODY -->
     <div class="appBody">
@@ -451,20 +436,42 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 `;
   }
 
+  private exitLudotheque(e?: any) {
+    console.log("exitLudotheque()")
+    this.dispatchEvent(new CustomEvent('exit', { detail: {}, bubbles: true, composed: true }));
+  }
+
+  private importPlayset(key: string) {
+    console.log("importPlayset() in " + this._currentWhereId + " | " + key)
+    this.dispatchEvent(new CustomEvent('import-playset', { detail: key, bubbles: true, composed: true }));
+  }
+
   private renderPlaysets() {
     const items = Object.entries(this._playsets.value).map(
       ([key, playset]) => {
-        //const template = this._store.template(space.origin);
+        // return html`
+        //   <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
+        //     <span>${playset.name} (${playset.spaces.length})</span>
+        //     <span slot="secondary">${playset.description}</span>
+        //   </mwc-list-item>
+        //   `
         return html`
-          <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
-            <span>${playset.name} (${playset.spaces.length})</span>
-            <span slot="secondary">${playset.description}</span>
-          </mwc-list-item>
-          `
+        <sl-card class="card-header">
+        <div slot="header">
+          ${playset.name}
+            <sl-icon-button name="pencil-square"></sl-icon-button>
+        </div>
+          ${playset.description}
+          <div slot="footer">
+            <sl-rating></sl-rating>
+            <sl-button slot="footer" variant="primary" @click=${(e:any) => this.importPlayset(key)}>Import</sl-button>
+          </div>
+        </sl-card>
+        `
       }
     )
     return html `
-      <mwc-list noninteractive id="playset-list" class="body-list">
+      <mwc-list id="playset-list" class="body-list">
         ${items}
       </mwc-list>
     `;
@@ -580,6 +587,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       "mwc-icon": Icon,
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
+      "sl-card": SlCard,
+      "sl-icon": SlIcon,
+      "sl-icon-button": SlIconButton,
+      "sl-button": SlButton,
+      "sl-rating": SlRating,
       'sl-tab-group': SlTabGroup,
       'sl-tab': SlTab,
       'sl-tab-panel': SlTabPanel,
@@ -616,6 +628,34 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         mwc-top-app-bar {
           --mdc-theme-primary: #d78a18;
           --mdc-theme-on-primary: black;
+        }
+
+        .card-header {
+          max-width: 300px;
+        }
+
+        .card-header [slot='header'] {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+        }
+
+        .card-header h3 {
+          margin: 0;
+        }
+
+        .card-header sl-icon-button {
+          font-size: var(--sl-font-size-medium);
+        }
+
+        .card-footer {
+          max-width: 300px;
+        }
+
+        .card-footer [slot='footer'] {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
         }
 
         #app-bar {

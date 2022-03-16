@@ -131,9 +131,10 @@ export interface PlayMeta {
 export interface PlaysetEntry {
   name: string;
   description: string;
-  spaces: EntryHashB64[];
   templates: EntryHashB64[];
-  markers: EntryHashB64[];
+  svgMarkers: EntryHashB64[];
+  emojiGroups: EntryHashB64[];
+  spaces: EntryHashB64[];
 }
 
 

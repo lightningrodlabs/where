@@ -22,7 +22,7 @@ fn get_emoji_group_path() -> Path {
 }
 
 #[hdk_extern]
-fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
+pub fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
     let _hh = create_entry(&input)?;
     let eh = hash_entry(input.clone())?;
     let path = get_emoji_group_path();

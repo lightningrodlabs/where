@@ -16,7 +16,6 @@ import {
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 import {Picker} from "emoji-picker-element";
-import {EMOJI_WIDTH} from "../sharedRender";
 
 /**
  * @element where-emoji-group

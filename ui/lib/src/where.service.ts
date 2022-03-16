@@ -20,6 +20,7 @@ import {
   PlacementSessionEntry,
   Space, PlaysetEntry,
 } from './types';
+import {CellId} from "@holochain/client/lib/types/common";
 
 export class WhereService {
   constructor(
@@ -45,6 +46,10 @@ export class WhereService {
     return this.callLudothequeZome('get_all_playsets', null);
   }
 
+  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<EntryHashB64> {
+    this.callLudothequeZome('export_playset', {playsetEh, cellId})
+    return playsetEh;
+  }
 
   /** Svg Markers */
 
@@ -222,11 +227,11 @@ export class WhereService {
   }
 
   private callLudothequeZome(fn_name: string, payload: any): Promise<any> {
-    //console.debug("callZome: " + fn_name)
-    //console.debug({payload})
+    console.debug("callZome: " + fn_name)
+    console.debug({payload})
     const result = this.cellClient.callZome("where_ludotheque", fn_name, payload);
-    //console.debug("callZome: " + fn_name + "() result")
-    //console.debug({result})
+    console.debug("callZome: " + fn_name + "() result")
+    console.debug({result})
     return result;
   }
 

@@ -13,6 +13,7 @@ import {
   SvgMarkerEntry,
   TemplateEntry,
 } from './types';
+import {CellId} from "@holochain/client/lib/types/common";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
@@ -245,11 +246,8 @@ export class LudothequeStore {
   }
 
 
-  /**
-   * Create new playset with starting spaces
-   */
   async newPlayset(name: string, spaces: HoloHashed<SpaceEntry>[]): Promise<EntryHashB64> {
-    // Get templates
+// Get templates
     let templates = new Array();
     for (const space of spaces) {
       if (!templates.includes(space.content.origin)) {
@@ -257,20 +255,24 @@ export class LudothequeStore {
       }
     }
     // Get markers
-    let markers = new Array();
+    let svgMarkers = new Array();
+    let emojiGroups = new Array();
     for (const entry of spaces) {
-      let markerEh = undefined;
       let space = this.service.spaceFromEntry(entry.content);
       if (space.meta.markerType == MarkerType.SvgMarker) {
-        markerEh = space.meta.svgMarker
+        let markerEh = space.meta.svgMarker;
+        if (markerEh && !svgMarkers.includes(markerEh)) {
+          svgMarkers.push(markerEh)
+        }
       } else {
         if (space.meta.markerType == MarkerType.EmojiGroup) {
-          markerEh = space.meta.svgMarker
+          let eh = space.meta.emojiGroup;
+          if (eh && !svgMarkers.includes(eh)) {
+            emojiGroups.push(eh)
+          }
         }
       }
-      if (markerEh && !markers.includes(markerEh)) {
-        markers.push(markerEh)
-      }
+
     }
     // Get space hashes
     let spaceEhs = new Array();
@@ -280,10 +282,11 @@ export class LudothequeStore {
     // - Create and commit PlaysetEntry
     const playset: PlaysetEntry = {
       name,
-        description: "",
-        spaces: spaceEhs,
-        templates,
-        markers,
+      description: "",
+      spaces: spaceEhs,
+      templates,
+      svgMarkers,
+      emojiGroups,
     }
     const playsetEh = await this.addPlayset(playset);
     // - Notify others
@@ -291,6 +294,50 @@ export class LudothequeStore {
     // this.service.notify(newSpace, this.others());
     // - Add play to store
     console.log("newPlayset(): " + name + " | " + playsetEh)
+
+    // Done
+    return playsetEh;
+  }
+
+  /**
+   * Create new playset with starting spaces
+   */
+  async addPlaysetWithCheck(playset: PlaysetEntry): Promise<EntryHashB64> {
+    console.log("addPlaysetWithCheck() before: " + JSON.stringify(playset))
+    for (const spaceEh of playset.spaces) {
+      const space_entry = this.space(spaceEh);
+      let space = this.service.spaceFromEntry(space_entry);
+
+      // Get templates
+      if (!playset.templates.includes(space.origin)) {
+        playset.templates.push(space.origin)
+      }
+
+      // Get Markers
+      if (space.meta.markerType == MarkerType.SvgMarker) {
+        let markerEh = space.meta.svgMarker;
+        if (markerEh && !playset.svgMarkers.includes(markerEh)) {
+          playset.svgMarkers.push(markerEh)
+        }
+      } else {
+        if (space.meta.markerType == MarkerType.EmojiGroup) {
+          let eh = space.meta.emojiGroup;
+          if (eh && !playset.emojiGroups.includes(eh)) {
+            playset.emojiGroups.push(eh)
+          }
+        }
+      }
+    }
+
+    console.log("addPlaysetWithCheck() after: " + JSON.stringify(playset))
+
+    // - Commit PlaysetEntry
+    const playsetEh = await this.addPlayset(playset);
+    // - Notify others
+    // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    // this.service.notify(newSpace, this.others());
+    // - Add play to store
+    console.log("addPlaysetWithCheck(): " + playset.name + " | " + playsetEh)
 
     // Done
     return playsetEh;
@@ -310,6 +357,14 @@ export class LudothequeStore {
     console.log("newSpace(): " + space.name + " | " + spaceEh)
     // Done
     return spaceEh;
+  }
+
+
+  /**
+   *
+   */
+  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<void> {
+    await this.service.exportPlayset(playsetEh, cellId)
   }
 
 

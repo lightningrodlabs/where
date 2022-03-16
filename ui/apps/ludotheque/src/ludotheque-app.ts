@@ -1,5 +1,5 @@
 import {ContextProvider} from "@holochain-open-dev/context";
-import {serializeHash} from '@holochain-open-dev/core-types';
+import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 
 import {
@@ -11,6 +11,7 @@ import {
 import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
+import {Dialog} from "@scoped-elements/material-web";
 
 
 let APP_ID = 'where'
@@ -61,7 +62,6 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
-
     new ContextProvider(this, ludothequeContext, new LudothequeStore(cellClient));
 
     this.loaded = true;
@@ -74,8 +74,12 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       return html`<span>Loading...</span>`;
     }
     return html`
-         <ludotheque-controller id="controller" examples></ludotheque-controller>
+         <ludotheque-controller id="controller" examples @import-playset="${this.handleImportRequest}"></ludotheque-controller>
     `;
+  }
+
+  private async handleImportRequest(e: any) {
+    console.log("handleImportRequest() : " + JSON.stringify(e.detail))
   }
 
   static get scopedElements() {

@@ -4,14 +4,14 @@ import {query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@holochain-open-dev/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Coord, ludothequeContext, PlaysetEntry, TemplateEntry, TemplateType} from "../types";
-import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
+import {Coord, ludothequeContext, PlaysetEntry} from "../types";
+import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {LudothequeStore} from "../ludotheque.store";
 
 
 /**
- * @element where-template
+ * @element where-playset-dialog
  */
 export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
@@ -24,7 +24,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
   open(playsetEh?: EntryHashB64) {
     this._playsetToPreload = playsetEh;
-    const dialog = this.shadowRoot!.getElementById("playset-dialog") as Dialog
+    const dialog = this.shadowRoot!.getElementById("playset-inner-dialog") as Dialog
     dialog.open = true
   }
 
@@ -34,7 +34,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
   @query('#name-field')
   _nameField!: TextField;
-  @query('#surface-field')
+  @query('#description-field')
   _descriptionField!: TextArea;
 
 
@@ -43,6 +43,11 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     const playsetToPreload = this._store.playset(playsetEh);
     this._nameField.value = 'Fork of ' + playsetToPreload.name;
     this._descriptionField.value = playsetToPreload.description;
+  }
+
+  clearAllFields() {
+    this._nameField.value = "";
+    this._descriptionField.value = "";
   }
 
   private isValid() {
@@ -79,7 +84,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     // - Clear all fields
     this.clearAllFields();
     // - Close Dialog
-    const dialog = this.shadowRoot!.getElementById("playset-dialog") as Dialog;
+    const dialog = this.shadowRoot!.getElementById("playset-inner-dialog") as Dialog;
     dialog.close()
   }
 
@@ -91,19 +96,14 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
-  clearAllFields(e?: any) {
-    this._nameField.value = "";
-    this._descriptionField.value = "";
-  }
-
 
   render() {
     return html`
-<mwc-dialog id="playset-dialog" heading="New Playset" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="playset-inner-dialog" heading="New Playset" @opened=${this.handleDialogOpened}>
   <mwc-textfield dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextArea).reportValidity()}
+  <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("description-field") as TextArea).reportValidity()}
                 id="description-field" placeholder="<description>" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>

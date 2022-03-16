@@ -467,7 +467,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
-            <span slot="graphic" style="width:75px;">${renderSurface(play.space, 70, 56)}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
           </mwc-list-item>

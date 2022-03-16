@@ -5,7 +5,7 @@ import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@holochain-open-dev/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {EmojiGroupEntry, SvgMarkerEntry, TemplateEntry, TemplateType, whereContext} from "../types";
+import {SvgMarkerEntry, whereContext} from "../types";
 import {
   Button,
   Dialog,
@@ -15,10 +15,7 @@ import {
   TextField
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
-import {Picker} from "emoji-picker-element";
-import {EMOJI_WIDTH, MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
-import {unsafeHTML} from "lit/directives/unsafe-html";
-import {unsafeSVG} from "lit/directives/unsafe-svg";
+import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
 
 /**
  * @element where-svg-marker-dialog
@@ -119,13 +116,13 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
-  private handleMarkerSelect(name: string): void {
-    console.log("handleMarkerSelect: " /*+ emojiGroup.name*/)
-    console.log(name)
-    //this._currentGroup = emojiGroup;
-    //this._currentUnicodes = this._currentGroup?.unicodes!
-    this.requestUpdate()
-  }
+  // private handleMarkerSelect(name: string): void {
+  //   console.log("handleMarkerSelect: " /*+ emojiGroup.name*/)
+  //   console.log(name)
+  //   //this._currentGroup = emojiGroup;
+  //   //this._currentUnicodes = this._currentGroup?.unicodes!
+  //   this.requestUpdate()
+  // }
 
 
   private previewSvgMarker() {

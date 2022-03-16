@@ -119,7 +119,7 @@ export class LudothequeStore {
     const templates = await this.updateTemplates();
     const spaces = await this.updateSpaces();
     const playsets = await this.updatePlaysets();
-    console.log(`Entries found: ${Object.keys(playsets).length} | ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
+    console.log(`Entries found in DHT: ${Object.keys(playsets).length} | ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
     //console.log({plays})
   }
 

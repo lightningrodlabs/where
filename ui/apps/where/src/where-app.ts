@@ -52,9 +52,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const whereClient = await HolochainClient.connect(wsUrl, installed_app_id);
     console.log({whereClient})
-    const ludoClient = await HolochainClient.connect(wsUrl, "where_ludotheque");
-    console.log({ludoClient})
-    const cellClient = whereClient.forCell(whereClient.appInfo.cell_data[0]);
+    let where_cell = whereClient.cellDataByRoleId("where");
+    if (!where_cell) {
+      alert("Where Cell not found in happ")
+    }
+    const cellClient = whereClient.forCell(where_cell!);
     console.log({cellClient})
 
     // Send dnaHash to electron

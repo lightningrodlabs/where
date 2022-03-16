@@ -301,7 +301,7 @@ export class WhereStore {
     const emojiGroups = await this.updateEmojiGroups();
     const templates = await this.updateTemplates();
     const spaces = await this.updatePlays();
-    console.log(`Entries found: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
+    console.log(`Entries found in DHT: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
     //console.log({plays})
   }
 

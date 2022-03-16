@@ -1,5 +1,6 @@
 import {ContextProvider} from "@holochain-open-dev/context";
 import {serializeHash} from '@holochain-open-dev/core-types';
+import { state } from "lit/decorators.js";
 
 import {
   ludothequeContext,
@@ -11,7 +12,8 @@ import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 
-let APP_ID = 'ludotheque'
+
+let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
 let NETWORK_ID: any = null
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
@@ -31,7 +33,7 @@ console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
 
 export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
-  loaded = false;
+  @state() loaded = false;
 
   /**
    *
@@ -45,7 +47,11 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
     const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
     console.log({hcClient})
-    const cellClient = hcClient.forCell(hcClient.appInfo.cell_data[0]);
+    let ludo_cell = hcClient.cellDataByRoleId("ludotheque");
+    if (!ludo_cell) {
+      alert("Ludotheque Cell not found in happ")
+    }
+    const cellClient = hcClient.forCell(ludo_cell!);
     console.log({cellClient})
 
     // Send dnaHash to electron

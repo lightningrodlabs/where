@@ -139,13 +139,13 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
         <mwc-dialog id="importing-dialog"  heading="Importing Playset" scrimClickAction="" escapeKeyAction="">
             <div>Playset ${this._currentPlaysetEh}...</div>
-            <mwc-button
-                    slot="primaryAction"
+            <!--<mwc-button
+                    slot="secondaryAction"
                     dialogAction="discard">
                 Discard
-            </mwc-button>
+            </mwc-button>-->
             <mwc-button
-                    slot="secondaryAction"
+                    slot="primaryAction"
                     dialogAction="cancel">
                 Cancel
             </mwc-button>

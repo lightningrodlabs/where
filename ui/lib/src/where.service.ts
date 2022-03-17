@@ -3,7 +3,6 @@ import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@hol
 
 import {
   SpaceEntry,
-  Play,
   HoloHashed,
   HereEntry,
   LocationInfo,
@@ -46,9 +45,8 @@ export class WhereService {
     return this.callLudothequeZome('get_all_playsets', null);
   }
 
-  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<EntryHashB64> {
-    this.callLudothequeZome('export_playset', {playsetEh, cellId})
-    return playsetEh;
+  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<void> {
+    return this.callLudothequeZome('export_playset', {playsetEh, cellId});
   }
 
   /** Svg Markers */
@@ -255,6 +253,7 @@ export class WhereService {
       name: entry.name,
       origin: entry.origin,
       surface: JSON.parse(entry.surface),
+      maybeMarkerPiece: entry.maybeMarkerPiece,
       meta: entry.meta ? this.metaFromEntry(entry.meta) : defaultPlayMeta(),
     }
   }
@@ -264,6 +263,7 @@ export class WhereService {
       name: space.name,
       origin: space.origin,
       surface: JSON.stringify(space.surface),
+      maybeMarkerPiece: space.maybeMarkerPiece,
       meta: this.metaIntoEntry(space.meta)
     }
   }

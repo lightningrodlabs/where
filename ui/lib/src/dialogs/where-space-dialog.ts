@@ -7,10 +7,10 @@ import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {
   defaultLocationMeta,
-  defaultPlayMeta,
-  LocationMeta,
+  defaultPlayMeta, EmojiGroupVariant,
+  LocationMeta, MarkerPiece,
   MarkerType,
-  PlayMeta,
+  PlayMeta, SvgMarkerVariant,
   TemplateEntry,
   UiItem,
   whereContext
@@ -65,6 +65,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentPlaceHolders: Array<string> = [];
 
   @state() _currentMeta: PlayMeta = defaultPlayMeta();
+
+  @state() _currentMarker?: MarkerPiece;
 
   _spaceToPreload?: EntryHashB64;
   _useTemplateSize: boolean = true // have size fields set to default only when changing template
@@ -154,6 +156,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
     console.log("loading preset: " + originalPlay.space.name)
     this._currentMeta = { ...originalPlay.space.meta };
+
+    this._currentMarker = originalPlay.space.maybeMarkerPiece;
 
     this._nameField.value = 'Fork of ' + originalPlay.space.name;
     this._templateField.value = originalPlay.space.origin;
@@ -351,6 +355,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         name: this._nameField.value,
         origin: this._templateField.value,
         surface,
+        maybeMarkerPiece: this._currentMarker,
         meta: this._currentMeta
       },
       sessionNames);
@@ -672,7 +677,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     for (const [eh, group] of Object.entries(this._emojiGroups.value)) {
       if (group.name == selectedName) {
         unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
-        this._currentMeta.emojiGroup = eh;
+        this._currentMarker = {emojiGroup: eh};
         break;
       }
     }
@@ -700,7 +705,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     for (const [eh, svgMarker] of Object.entries(this._svgMarkers.value)) {
       if (svgMarker.name == selectedName) {
         // console.log("svg marker found: " + selectedName)
-        this._currentMeta.svgMarker = eh;
+        this._currentMarker = {svg: eh};
         break;
       }
     }
@@ -759,6 +764,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Render emoji picker / selector */
     let maybeMarkerTypeItems = html ``
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
+    let marker_eh: EntryHashB64 | null = null;
     switch (markerType) {
       case MarkerType.SingleEmoji:
         let emoji = this._currentMeta.singleEmoji != "" ? this._currentMeta.singleEmoji : "😀";
@@ -772,13 +778,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         `
         break;
       case MarkerType.EmojiGroup:
+        marker_eh = (this._currentMarker as EmojiGroupVariant).emojiGroup;
         /** Build group list */
         console.log("** Building emoji group field:")
         const groups = Object.entries(this._emojiGroups.value).map(
           ([key, emojiGroup]) => {
             console.log({emojiGroup})
             return html`
-                     <mwc-list-item class="emoji-group-li" value="${emojiGroup.name}" .selected=${key == this._currentMeta.emojiGroup}>
+                     <mwc-list-item class="emoji-group-li" value="${emojiGroup.name}" .selected=${key == marker_eh}>
                        ${emojiGroup.name}
                      </mwc-list-item>
                    `
@@ -786,14 +793,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         )
         /** Get current unicodes */
         let unicodes = ""
-        if (this._currentMeta.emojiGroup) {
-          const currentGroup = this._emojiGroups.value[this._currentMeta.emojiGroup];
+        if (this._currentMarker && "emojiGroup" in this._currentMarker) {
+          const currentGroup = this._emojiGroups.value[this._currentMarker.emojiGroup];
           unicodes = currentGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
         }
         /** Render */
         maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(null)}></mwc-icon-button>
-          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(this._currentMeta.emojiGroup)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(marker_eh)}></mwc-icon-button>
           <mwc-select id="emoji-group-field" required style="" label="Subset" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
             ${groups}
           </mwc-select>
@@ -805,16 +812,17 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         break;
 
       case MarkerType.SvgMarker:
+        marker_eh = (this._currentMarker as SvgMarkerVariant).svg;
         /** Build marker list */
-        if (!this._currentMeta.svgMarker && Object.keys(this._svgMarkers.value).length > 0) {
-          this._currentMeta.svgMarker = Object.keys(this._svgMarkers.value)[0];
+        if ((!this._currentMarker || "emojiGroup" in this._currentMarker) && Object.keys(this._svgMarkers.value).length > 0) {
+          this._currentMarker = {svg: Object.keys(this._svgMarkers.value)[0]};
         }
         const markers = Object.entries(this._svgMarkers.value).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
             let currentMarker = renderSvgMarker(svgMarker.value, this.currentProfile!.fields.color)
             return html`
-                     <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == this._currentMeta.svgMarker}>
+                     <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == marker_eh}>
                        ${svgMarker.name}
                        ${currentMarker}
                      </mwc-list-item>
@@ -823,15 +831,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         )
         /** Get current unicodes */
         let selectedMarker = html``;
-        if (this._currentMeta.svgMarker) {
-          const marker = this._svgMarkers.value[this._currentMeta.svgMarker]
+        if (this._currentMarker && "svg" in this._currentMarker) {
+          const marker = this._svgMarkers.value[this._currentMarker?.svg]
           //console.log({marker})
           selectedMarker = renderSvgMarker(marker.value, this.currentProfile!.fields.color)
         }
         /** Render */
         maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(null)}></mwc-icon-button>
-          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(this._currentMeta.svgMarker)}></mwc-icon-button>
+          <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(marker_eh)}></mwc-icon-button>
           <mwc-select id="svg-marker-field" required style="display:inline-flex;width:230px;" label="Name" @closing=${(e:any)=>{e.stopPropagation(); this.handleSvgMarkerSelect(e)}}>
             ${markers}
           </mwc-select>
@@ -969,7 +977,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   handleGroupAdded(eh: EntryHashB64) {
-    this._currentMeta.emojiGroup = eh;
+    this._currentMarker = {emojiGroup: eh};
     const emojiGroup = this._emojiGroups.value[eh];
     const unicodes = emojiGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
     let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
@@ -981,7 +989,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
   handleSvgMarkerAdded(eh: EntryHashB64) {
-    this._currentMeta.svgMarker = eh;
+    this._currentMarker = {svg: eh};
     //const svgMarker = this._svgMarkers.value[eh];
     //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");
     //svgMarkerContainer!.innerHTML = svgMarker.value

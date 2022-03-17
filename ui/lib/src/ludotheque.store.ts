@@ -4,19 +4,20 @@ import {derived, get, Readable, Writable, writable} from 'svelte/store';
 import {WhereService} from './where.service';
 import {
   Dictionary,
-  EmojiGroupEntry, HoloHashed,
+  EmojiGroupEntry, EmojiGroupVariant, HoloHashed,
   MarkerType,
   PlaysetEntry,
   Signal,
   Space,
   SpaceEntry,
-  SvgMarkerEntry,
+  SvgMarkerEntry, SvgMarkerVariant,
   TemplateEntry,
 } from './types';
 import {CellId} from "@holochain/client/lib/types/common";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
+
 
 export class LudothequeStore {
   /** Private */
@@ -247,7 +248,9 @@ export class LudothequeStore {
 
 
   async newPlayset(name: string, spaces: HoloHashed<SpaceEntry>[]): Promise<EntryHashB64> {
-// Get templates
+    console.log("newPlayset() called:")
+    console.log({spaces})
+    // Get templates
     let templates = new Array();
     for (const space of spaces) {
       if (!templates.includes(space.content.origin)) {
@@ -260,13 +263,13 @@ export class LudothequeStore {
     for (const entry of spaces) {
       let space = this.service.spaceFromEntry(entry.content);
       if (space.meta.markerType == MarkerType.SvgMarker) {
-        let markerEh = space.meta.svgMarker;
+        let markerEh = (space.maybeMarkerPiece! as SvgMarkerVariant).svg;
         if (markerEh && !svgMarkers.includes(markerEh)) {
           svgMarkers.push(markerEh)
         }
       } else {
         if (space.meta.markerType == MarkerType.EmojiGroup) {
-          let eh = space.meta.emojiGroup;
+          let eh = (space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup;
           if (eh && !svgMarkers.includes(eh)) {
             emojiGroups.push(eh)
           }
@@ -306,7 +309,9 @@ export class LudothequeStore {
     console.log("addPlaysetWithCheck() before: " + JSON.stringify(playset))
     for (const spaceEh of playset.spaces) {
       const space_entry = this.space(spaceEh);
+      console.log({space_entry})
       let space = this.service.spaceFromEntry(space_entry);
+      console.log({space})
 
       // Get templates
       if (!playset.templates.includes(space.origin)) {
@@ -315,13 +320,13 @@ export class LudothequeStore {
 
       // Get Markers
       if (space.meta.markerType == MarkerType.SvgMarker) {
-        let markerEh = space.meta.svgMarker;
+        let markerEh = (space.maybeMarkerPiece! as SvgMarkerVariant).svg;
         if (markerEh && !playset.svgMarkers.includes(markerEh)) {
           playset.svgMarkers.push(markerEh)
         }
       } else {
         if (space.meta.markerType == MarkerType.EmojiGroup) {
-          let eh = space.meta.emojiGroup;
+          let eh = (space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup!;
           if (eh && !playset.emojiGroups.includes(eh)) {
             playset.emojiGroups.push(eh)
           }
@@ -364,7 +369,7 @@ export class LudothequeStore {
    *
    */
   async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<void> {
-    await this.service.exportPlayset(playsetEh, cellId)
+    return this.service.exportPlayset(playsetEh, cellId);
   }
 
 

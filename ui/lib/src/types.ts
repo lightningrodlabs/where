@@ -80,10 +80,15 @@ export interface PlacementSessionEntry {
   spaceEh: EntryHashB64,
 }
 
+export type SvgMarkerVariant = {svg: EntryHashB64}
+export type EmojiGroupVariant = {emojiGroup: EntryHashB64}
+export type MarkerPiece = SvgMarkerVariant | EmojiGroupVariant
+
 export interface SpaceEntry {
   name: string;
   origin: EntryHashB64;
   surface: string;
+  maybeMarkerPiece?: MarkerPiece;
   meta?: Dictionary<string>;
 }
 
@@ -91,7 +96,7 @@ export interface Space {
   name: string;
   origin: EntryHashB64;
   surface: any;
-  //markerType: MarkerType,
+  maybeMarkerPiece?: MarkerPiece;
   meta: PlayMeta;
 }
 
@@ -114,8 +119,8 @@ export interface PlayMeta {
   // Marker
   markerType: MarkerType,
   singleEmoji: string,
-  emojiGroup: EntryHashB64 | null,
-  svgMarker: EntryHashB64 | null,
+  //emojiGroup: EntryHashB64 | null,
+  //svgMarker: EntryHashB64 | null,
   // Tag
   multi: boolean,
   canTag: boolean,
@@ -219,8 +224,8 @@ export function defaultPlayMeta(): PlayMeta {
     markerType: MarkerType.Avatar,
     multi: false,
     singleEmoji: "😀",
-    emojiGroup: null,
-    svgMarker: null,
+    //emojiGroup: null,
+    //svgMarker: null,
     // Tag
     canTag: false,
     tagVisible: false,

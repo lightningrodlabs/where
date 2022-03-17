@@ -4,16 +4,14 @@
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
 
-mod template;
-mod emoji_group;
-mod svg_marker;
-mod space;
-mod import_entry;
+mod pieces;
+mod import_piece;
+mod export_piece;
+mod export_space;
 
-pub use template::*;
-pub use emoji_group::*;
-pub use svg_marker::*;
-pub use space::*;
+pub use pieces::*;
+pub use export_piece::*;
+
 
 entry_defs![
     PathEntry::entry_def(),

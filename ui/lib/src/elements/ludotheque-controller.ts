@@ -306,145 +306,6 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
-  render() {
-    console.log("ludotheque-controller render() - " + this._initialized)
-    const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
-
-    //this._activeIndex = -1
-
-    let playsetItems = [html``];
-    if (playset) {
-      /** Build playset */
-      playsetItems = Object.values(playset?.spaces).map(spaceEh => {
-          // if (!playset.visible) {
-          //   return html ``;
-          // }
-          // if (key == this._currentPlaysetEh) {
-          //   playsetName = space.name;
-          // }
-          const space = this._store.spaceFromEh(spaceEh)
-          //const template = this._store.template(play.space.origin);
-          return html`
-            <mwc-list-item class="space-li"
-                           multipleGraphics twoline value="${space.name}" graphic="large">
-              <span>${space.name}</span>
-              <span slot="secondary">${space.meta.markerType}</span>
-              <span slot="graphic" style="width:75px;">${renderSurface(space.surface, space.name, 70, 56)}</span>
-              <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
-                <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
-            </mwc-list-item>
-          `
-        }
-      )
-    }
-    // let cellItems = [html``];
-    // playsetItems = Object.values(playset?.spaces).map(spaceEh => {
-    //   return html`
-    //     <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Html)} selected value="html">HTML
-    //     </mwc-list-item>
-    //   `;
-    // });
-
-
-
-    return html`
-<!--  DRAWER -->
-<mwc-drawer type="dismissible" id="my-drawer">
-  <div>
-    <mwc-list>
-      <mwc-list-item twoline hasMeta>
-        ${!this._currentPlayset
-          ? html`<span>No playset selected</span>`
-          : html`
-          <span>${this._currentPlayset?.name}</span>
-          <span slot="secondary">${this._currentPlayset?.description}</span>
-          <span slot="meta">${this._currentPlayset?.spaces.length}</span>
-        `}
-      </mwc-list-item>
-        <li divider role="separator"></li>
-    </mwc-list>
-    <mwc-button icon="add_circle" @click=${() => this.openPlaysetDialog()}>Playset</mwc-button>
-    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
-    <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
-    <!-- <mwc-formfield label="View Archived">
-      <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
-    </mwc-formfield>
-    <mwc-list id="playset-list">
-      ${playsetItems}
-    </mwc-list>-->
-    <div>
-      <div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
-      <div>   Templates: ${this._currentPlayset?.templates.length}</div>
-      <div> SVG Markers: ${this._currentPlayset?.svgMarkers.length}</div>
-      <div>Emoji Groups: ${this._currentPlayset?.emojiGroups.length}</div>
-    </div>
-    <div id="drawer-button-bar">
-      <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>reset</mwc-button>
-      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>ok</mwc-button>
-    </div>
-  </div>
-  <!-- END DRAWER -->
-  <div slot="appContent">
-    <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense style="position: relative;">
-      <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title">Ludothèque</div>
-      <!-- <mwc-select required id="where-cell-field" label="WhereId">
-      </mwc-select> -->
-
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
-      ></mwc-icon-button>
-    </mwc-top-app-bar>
-    <!-- APP BODY -->
-    <div class="appBody">
-      <sl-tab-group id="body-tab-group">
-        <sl-tab id="playsets-tab" slot="nav" panel="playsets">Playsets</sl-tab>
-        <sl-tab id="spaces-tab" slot="nav" panel="spaces">Spaces</sl-tab>
-        <sl-tab id="templates-tab" slot="nav" panel="templates">Templates</sl-tab>
-        <sl-tab id="svg-markers-tab" slot="nav" panel="svg-markers">Svg Markers</sl-tab>
-        <sl-tab id="emoji-groups-tab" slot="nav" panel="emoji-groups">Emoji Groups</sl-tab>
-        <!-- LISTs -->
-        <sl-tab-panel name="playsets">
-          ${this.renderPlaysets()}
-        </sl-tab-panel>
-        <sl-tab-panel name="spaces">
-          ${this.renderSpaces()}
-        </sl-tab-panel>
-        <sl-tab-panel name="templates">
-          ${this.renderTemplates()}
-        </sl-tab-panel>
-        <sl-tab-panel name="svg-markers">
-          ${this.renderSvgMarkers()}
-        </sl-tab-panel>
-        <sl-tab-panel name="emoji-groups">
-          ${this.renderEmojiGroups()}
-        </sl-tab-panel>
-      </sl-tab-group>
-    </div>
-    <!-- DIALOGS -->
-      <!--<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog> -->
-    <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-
-  </div>
-</mwc-drawer>
-`;
-  }
-
-  private exitLudotheque(e?: any) {
-    console.log("exitLudotheque()")
-    this.dispatchEvent(new CustomEvent('exit', { detail: {}, bubbles: true, composed: true }));
-  }
-
-  private importPlayset(key: string) {
-    console.log("importPlayset() in " + this._currentWhereId + " | " + key)
-    this.dispatchEvent(new CustomEvent('import-playset', { detail: key, bubbles: true, composed: true }));
-  }
 
   private renderPlaysets() {
     const items = Object.entries(this._playsets.value).map(
@@ -544,7 +405,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     const items = Object.entries(this._emojiGroups.value).map(
       ([key, emojiGroup]) => {
         return html`
-          <mwc-check-list-item class="space-li" twoline value="${key}" graphic="large">
+          <mwc-check-list-item class="space-li" twoline value="${key}">
             <span>${emojiGroup.name}</span>
             <span slot="secondary">${emojiGroup.unicodes}</span>
           </mwc-check-list-item>
@@ -556,6 +417,146 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         ${items}
       </mwc-list>
     `;
+  }
+
+
+  /**
+   *
+   */
+  render() {
+    console.log("ludotheque-controller render() - " + this._initialized)
+    const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
+
+    //this._activeIndex = -1
+
+    let playsetItems = [html``];
+    if (playset) {
+      /** Build playset */
+      playsetItems = Object.values(playset?.spaces).map(spaceEh => {
+          // if (!playset.visible) {
+          //   return html ``;
+          // }
+          // if (key == this._currentPlaysetEh) {
+          //   playsetName = space.name;
+          // }
+          const space = this._store.spaceFromEh(spaceEh)
+          //const template = this._store.template(play.space.origin);
+          return html`
+            <mwc-list-item class="space-li"
+                           multipleGraphics twoline value="${space.name}" graphic="large">
+              <span>${space.name}</span>
+              <span slot="secondary">${space.meta.markerType}</span>
+              <span slot="graphic" style="width:75px;">${renderSurface(space.surface, space.name, 70, 56)}</span>
+              <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
+                <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
+            </mwc-list-item>
+          `
+        }
+      )
+    }
+    // let cellItems = [html``];
+    // playsetItems = Object.values(playset?.spaces).map(spaceEh => {
+    //   return html`
+    //     <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Html)} selected value="html">HTML
+    //     </mwc-list-item>
+    //   `;
+    // });
+
+
+
+    return html`
+<!--  DRAWER -->
+<mwc-drawer type="dismissible" id="my-drawer">
+  <div>
+    <mwc-list>
+      <mwc-list-item twoline hasMeta>
+        ${!this._currentPlayset
+          ? html`<span>No playset selected</span>`
+          : html`
+          <span>${this._currentPlayset?.name}</span>
+          <span slot="secondary">${this._currentPlayset?.description}</span>
+          <span slot="meta">${this._currentPlayset?.spaces.length}</span>
+        `}
+      </mwc-list-item>
+        <li divider role="separator"></li>
+    </mwc-list>
+    <mwc-button icon="add_circle" @click=${() => this.openPlaysetDialog()}>Playset</mwc-button>
+    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
+    <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
+    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
+    <!-- <mwc-formfield label="View Archived">
+      <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
+    </mwc-formfield>
+    <mwc-list id="playset-list">
+      ${playsetItems}
+    </mwc-list>-->
+    <div>
+      <div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
+      <div>   Templates: ${this._currentPlayset?.templates.length}</div>
+      <div> SVG Markers: ${this._currentPlayset?.svgMarkers.length}</div>
+      <div>Emoji Groups: ${this._currentPlayset?.emojiGroups.length}</div>
+    </div>
+    <div id="drawer-button-bar">
+      <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>reset</mwc-button>
+      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>ok</mwc-button>
+    </div>
+  </div>
+  <!-- END DRAWER -->
+  <div slot="appContent">
+    <!-- TOP APP BAR -->
+    <mwc-top-app-bar id="app-bar" dense style="position: relative;">
+      <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
+      <div slot="title"><mwc-icon>library_books</mwc-icon>Ludothèque</div>
+      <!-- <mwc-select required id="where-cell-field" label="WhereId">
+      </mwc-select> -->
+      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
+      ></mwc-icon-button>
+    </mwc-top-app-bar>
+    <!-- APP BODY -->
+    <div class="appBody">
+      <sl-tab-group id="body-tab-group">
+        <sl-tab id="playsets-tab" slot="nav" panel="playsets">Playsets</sl-tab>
+        <sl-tab id="spaces-tab" slot="nav" panel="spaces">Spaces</sl-tab>
+        <sl-tab id="templates-tab" slot="nav" panel="templates">Templates</sl-tab>
+        <sl-tab id="svg-markers-tab" slot="nav" panel="svg-markers">Svg Markers</sl-tab>
+        <sl-tab id="emoji-groups-tab" slot="nav" panel="emoji-groups">Emoji Groups</sl-tab>
+        <!-- LISTs -->
+        <sl-tab-panel name="playsets">
+          ${this.renderPlaysets()}
+        </sl-tab-panel>
+        <sl-tab-panel name="spaces">
+          ${this.renderSpaces()}
+        </sl-tab-panel>
+        <sl-tab-panel name="templates">
+          ${this.renderTemplates()}
+        </sl-tab-panel>
+        <sl-tab-panel name="svg-markers">
+          ${this.renderSvgMarkers()}
+        </sl-tab-panel>
+        <sl-tab-panel name="emoji-groups">
+          ${this.renderEmojiGroups()}
+        </sl-tab-panel>
+      </sl-tab-group>
+    </div>
+    <!-- DIALOGS -->
+      <!--<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
+    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog> -->
+    <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
+
+  </div>
+</mwc-drawer>
+`;
+  }
+
+  private exitLudotheque(e?: any) {
+    console.log("exitLudotheque()")
+    this.dispatchEvent(new CustomEvent('exit', { detail: {}, bubbles: true, composed: true }));
+  }
+
+  private importPlayset(key: string) {
+    console.log("importPlayset() in " + this._currentWhereId + " | " + key)
+    this.dispatchEvent(new CustomEvent('import-playset', { detail: key, bubbles: true, composed: true }));
   }
 
   async openPlaysetDialog(eh?: any) {

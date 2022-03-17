@@ -5,10 +5,9 @@ import { WhereService } from './where.service';
 import {
   Dictionary,
   Play,
-  SpaceEntry,
   LocationInfo,
   Location,
-  Coord, HoloHashed,
+  Coord,
   TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space,
 } from './types';
 import {
@@ -191,8 +190,13 @@ export class WhereStore {
   }
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
+    // - Check if already added
+    if (get(this.plays)[spaceEh]) {
+      console.log("addPlay() aborted. Already have this space")
+      return;
+    }
     // - Construct Play and add it to store
-    const play: Play = await this.getPlay(spaceEh)
+    const play: Play = await this.constructPlay(spaceEh)
     this.playStore.update(plays => {
       plays[spaceEh] = play
       //console.log({play})
@@ -297,19 +301,20 @@ export class WhereStore {
 
   /** Get latest entries of each type and update local store accordingly */
   async pullDht() {
+    console.log("pullDht()")
     const svgMarkers = await this.updateSvgMarkers();
     const emojiGroups = await this.updateEmojiGroups();
     const templates = await this.updateTemplates();
     const spaces = await this.updatePlays();
-    console.log(`Entries found in DHT: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
+    console.log(`Entries found: ${Object.keys(spaces).length} | ${Object.keys(templates).length} | ${Object.keys(emojiGroups).length} | ${Object.keys(svgMarkers).length}`)
     //console.log({plays})
   }
 
+
   /**
    * Construct Play from all related DNA entries
-   * @param spaceEh
    */
-  async getPlay(spaceEh: EntryHashB64): Promise<Play> {
+  async constructPlay(spaceEh: EntryHashB64): Promise<Play> {
     // - Space
     const spaceEntry = await this.service.getSpace(spaceEh)
     if (!spaceEntry) {
@@ -318,6 +323,11 @@ export class WhereStore {
     }
     // - Sessions
     const sessionEhs = await this.service.getSpaceSessions(spaceEh);
+    console.log("constructPlay() - session count: " + sessionEhs.length);
+    if (sessionEhs.length == 0) {
+      const session_eh = await this.service.createNextSession(spaceEh, "global");
+      sessionEhs.push(session_eh)
+    }
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of sessionEhs) {
       const session = await this.service.sessionFromEntry(sessionEh);
@@ -335,6 +345,7 @@ export class WhereStore {
       sessions,
     } as Play;
   }
+
 
   /**
    * Create new empty play with starting space
@@ -358,6 +369,10 @@ export class WhereStore {
     return spaceEh;
   }
 
+
+  /**
+   *
+   */
   async hidePlay(spaceEh: EntryHashB64) : Promise<boolean> {
     const _hh = await this.service.hideSpace(spaceEh);
     this.playStore.update(plays => {

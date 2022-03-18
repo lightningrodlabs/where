@@ -8,6 +8,7 @@ mod pieces;
 mod import_piece;
 mod export_piece;
 mod export_space;
+mod get_inventory;
 
 pub use pieces::*;
 pub use export_piece::*;

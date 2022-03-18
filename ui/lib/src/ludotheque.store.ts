@@ -1,11 +1,11 @@
 import {AgentPubKeyB64, EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
-import {CellClient} from '@holochain-open-dev/cell-client';
+import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
 import {derived, get, Readable, Writable, writable} from 'svelte/store';
 import {WhereService} from './where.service';
 import {
   Dictionary,
-  EmojiGroupEntry, EmojiGroupVariant, HoloHashed,
-  MarkerType,
+  EmojiGroupEntry, EmojiGroupVariant, HoloHashed, Inventory,
+  MarkerType, PieceType,
   PlaysetEntry,
   Signal,
   Space,
@@ -21,7 +21,7 @@ const areEqual = (first: Uint8Array, second: Uint8Array) =>
 
 export class LudothequeStore {
   /** Private */
-  private service : WhereService
+  private service: WhereService
 
   /** SvgMarkerEh -> SvgMarker */
   private svgMarkerStore: Writable<Dictionary<SvgMarkerEntry>> = writable({});
@@ -45,9 +45,11 @@ export class LudothequeStore {
   public playsets: Readable<Dictionary<PlaysetEntry>> = derived(this.playsetStore, i => i)
 
 
-  constructor(protected cellClient: CellClient) {
-    this.myAgentPubKey = serializeHash(cellClient.cellId[1]);
-    this.service = new WhereService(cellClient, "where");
+  constructor(protected hcClient: BaseClient) {
+    this.service = new WhereService(hcClient, "ludotheque");
+
+    let cellClient = this.service.cellClient
+    this.myAgentPubKey = this.service.myAgentPubKey
 
     cellClient.addSignalHandler( appSignal => {
       if (! areEqual(cellClient.cellId[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cellId[1], appSignal.data.cellId[1])) {
@@ -373,6 +375,14 @@ export class LudothequeStore {
   }
 
 
+  async exportPiece(pieceEh: EntryHashB64, pieceType: PieceType, cellId: CellId) : Promise<void> {
+    if (pieceType == PieceType.Space) {
+      return this.service.exportSpace(pieceEh, cellId);
+    }
+    return this.service.exportPiece(pieceEh, pieceType, cellId);
+  }
+
+
   // async hidePlay(spaceEh: EntryHashB64) : Promise<boolean> {
   //   const _hh = await this.service.hideSpace(spaceEh);
   //   this.playStore.update(plays => {
@@ -397,6 +407,10 @@ export class LudothequeStore {
     return this.service.spaceFromEntry(entry);
   }
 
+
+  async getWhereInventory(): Promise<Inventory> {
+    return this.service.getInventory("where");
+  }
 
   /** Getters */
 

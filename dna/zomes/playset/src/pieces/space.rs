@@ -19,7 +19,7 @@ pub struct Space {
 }
 
 
-fn get_spaces_path() -> Path {
+pub fn get_spaces_path() -> Path {
     Path::from("spaces")
 }
 

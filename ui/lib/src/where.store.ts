@@ -1,5 +1,5 @@
 import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash} from '@holochain-open-dev/core-types';
-import { CellClient } from '@holochain-open-dev/cell-client';
+import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import { WhereService } from './where.service';
 import {
@@ -8,7 +8,7 @@ import {
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space,
+  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space, Inventory,
 } from './types';
 import {
   ProfilesStore,
@@ -50,14 +50,12 @@ export class WhereStore {
   public currentSessions: Readable<Dictionary<EntryHashB64>> = derived(this.currentSessionStore, i => i)
 
 
-  constructor(
-    protected cellClient: CellClient,
-    profilesStore: ProfilesStore,
-    zomeName: string = 'where')
-  {
-    this.myAgentPubKey = serializeHash(cellClient.cellId[1]);
+  constructor(protected hcClient: BaseClient, profilesStore: ProfilesStore) {
+    this.service = new WhereService(hcClient, "where");
+
+    let cellClient = this.service.cellClient
+    this.myAgentPubKey = this.service.myAgentPubKey;
     this.profiles = profilesStore;
-    this.service = new WhereService(cellClient, zomeName);
 
     cellClient.addSignalHandler( appSignal => {
       if (! areEqual(cellClient.cellId[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cellId[1], appSignal.data.cellId[1])) {
@@ -151,9 +149,9 @@ export class WhereStore {
         break;
       }
     })
-
   }
 
+  
   pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
     const ping: Signal = {maybeSpaceHash: spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})

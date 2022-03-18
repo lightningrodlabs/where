@@ -16,6 +16,28 @@ export interface HoloHashed<T> {
   content: T;
 }
 
+export enum PieceType {
+  Template = 'template',
+  Space = 'space',
+  SvgMarker = 'SvgMarker',
+  EmojiGroup = 'EmojiGroup'
+}
+
+export interface Inventory {
+  templates: EntryHashB64[];
+  svgMarkers: EntryHashB64[];
+  emojiGroups: EntryHashB64[];
+  spaces: EntryHashB64[];
+}
+
+export function count_inventory(inventory: Inventory): number {
+  return inventory.templates.length
+  + inventory.spaces.length
+  + inventory.svgMarkers.length
+  + inventory.emojiGroups.length;
+}
+
+
 /** A 'Location' is a deserialized 'Here' with a {x,y} object as value */
 
 /** A 'Play' is a live 'Space' with locations and sessions */

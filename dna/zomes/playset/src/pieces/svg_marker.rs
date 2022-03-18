@@ -17,7 +17,7 @@ pub struct SvgMarkerOutput {
     content: SvgMarker,
 }
 
-fn get_svg_marker_path() -> Path {
+pub fn get_svg_marker_path() -> Path {
     Path::from("svg-marker")
 }
 

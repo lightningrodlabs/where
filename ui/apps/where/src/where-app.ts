@@ -5,6 +5,7 @@ import {
   WhereController,
   WhereStore,
   whereContext, LudothequeController, ludothequeContext, LudothequeStore,
+  Inventory,
 } from "@where/elements";
 import {
   Profile,
@@ -12,7 +13,7 @@ import {
   ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
-import { HolochainClient } from "@holochain-open-dev/cell-client";
+import {BaseClient, HolochainClient} from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {Dialog} from "@scoped-elements/material-web";
@@ -45,6 +46,9 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   _currentPlaysetEh: null | EntryHashB64 = null;
 
   _ludoStore: LudothequeStore | null = null;
+  _whereStore: WhereStore | null = null;
+
+  _inventory: Inventory | null = null;
 
   _whereCellId: CellId | null = null;
 
@@ -99,10 +103,15 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       this.hasProfile = true;
     }
 
-    this._ludoStore = new LudothequeStore(ludoClient)
-    new ContextProvider(this, profilesStoreContext, profilesStore);
+    this._ludoStore = new LudothequeStore(hcClient)
+
     new ContextProvider(this, ludothequeContext, this._ludoStore);
-    new ContextProvider(this, whereContext, new WhereStore(whereClient, profilesStore));
+
+    new ContextProvider(this, profilesStoreContext, profilesStore);
+
+    this._whereStore = new WhereStore(hcClient, profilesStore);
+
+    new ContextProvider(this, whereContext, this._whereStore);
 
     this.loaded = true;
   }
@@ -118,16 +127,13 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     if (!this.loaded) {
       return html`<span>Loading...</span>`;
     }
-
-
-
-
     return html`
         <!--<profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
             @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>-->
         
             ${this._canLudotheque? html`
-                  <ludotheque-controller id="controller" examples 
+                  <ludotheque-controller id="ludo-controller" examples
+                                         .whereCellId=${this._whereCellId}
                                          @import-playset="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-controller>`

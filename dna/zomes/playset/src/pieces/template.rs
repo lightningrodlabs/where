@@ -16,7 +16,7 @@ pub struct TemplateOutput {
     content: Template,
 }
 
-fn get_templates_path() -> Path {
+pub fn get_templates_path() -> Path {
     Path::from("templates")
 }
 

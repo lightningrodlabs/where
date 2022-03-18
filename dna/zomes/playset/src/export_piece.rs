@@ -2,7 +2,7 @@ use hdk::prelude::*;
 use holo_hash::EntryHashB64;
 
 use zome_utils::*;
-
+use crate::import_piece::ImportPieceInput;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,11 +15,11 @@ pub struct ExportPieceInput {
 #[hdk_extern]
 pub fn export_piece(input: ExportPieceInput) -> ExternResult<()> {
   if input.piece_type_name == "space" {
-    return error("space peice should be exported with 'export_space()' zome function");
+    return error("space piece should be exported with 'export_space()' zome function");
   }
   if input.piece_type_name != "template"
-    || input.piece_type_name != "SvgMarker"
-    || input.piece_type_name != "EmojiGroup" {
+    && input.piece_type_name != "SvgMarker"
+    && input.piece_type_name != "EmojiGroup" {
     return error(&format!("unknown piece type: '{}'", input.piece_type_name));
   }
   let entry = get_entry_from_eh(input.piece_eh.into())?;
@@ -29,17 +29,11 @@ pub fn export_piece(input: ExportPieceInput) -> ExternResult<()> {
 
 
 ///
-#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
-pub struct ExportEntryInput {
-  pub entry_type_name: String,
-  pub entry: Entry,
-}
-
-///
 pub fn export_entry(entry_type_name: &str, entry: Entry, cell_id: CellId) -> ExternResult<()> {
-  let input = ExportEntryInput {
-    entry_type_name: entry_type_name.to_string(),
-    entry
+  debug!("export_entry(): {} - {:?}", entry_type_name, cell_id);
+  let input = ImportPieceInput {
+    piece_type_name: entry_type_name.to_string(),
+    piece_entry: entry,
   };
   let res = call(
     CallTargetCell::Other(cell_id),

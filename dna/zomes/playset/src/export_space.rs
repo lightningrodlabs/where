@@ -8,8 +8,8 @@ use crate::export_piece::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportSpaceInput {
-  pub space_eh: EntryHashB64,
   pub cell_id: CellId,
+  pub space_eh: EntryHashB64,
 }
 
 

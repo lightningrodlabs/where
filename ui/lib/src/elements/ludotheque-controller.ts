@@ -1,18 +1,19 @@
-import { html, css, LitElement } from "lit";
-import { state, property } from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
+import {property, state} from "lit/decorators.js";
 
-import { contextProvided } from "@holochain-open-dev/context";
-import { StoreSubscriber } from "lit-svelte-stores";
+import {contextProvided} from "@holochain-open-dev/context";
+import {StoreSubscriber} from "lit-svelte-stores";
 
-import { sharedStyles } from "../sharedStyles";
-import {Dictionary, ludothequeContext, PlaysetEntry, TemplateType} from "../types";
-import { WhereSpace } from "./where-space";
-import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
-import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
-import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
+import {sharedStyles} from "../sharedStyles";
+import {count_inventory, Inventory, ludothequeContext, PieceType, PlaysetEntry} from "../types";
+import {WhereSpace} from "./where-space";
+import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
+import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
+import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {
   SlButton,
-  SlCard, SlIcon,
+  SlCard,
+  SlIcon,
   SlIconButton,
   SlRating,
   SlTab,
@@ -20,18 +21,30 @@ import {
   SlTabPanel,
   SlTooltip
 } from '@scoped-elements/shoelace';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
-  ListItem,
-  Select,
+  Button,
+  CheckListItem,
+  Drawer,
+  Formfield,
+  Icon,
   IconButton,
-  Button, TextField, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu, Tab, TabBar, CheckListItem,
+  List,
+  ListItem,
+  Menu,
+  Select,
+  Slider,
+  Switch,
+  TextField,
+  TopAppBar,
 } from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
 import {addHardcodedSpaces} from "../examples";
 import {LudothequeStore} from "../ludotheque.store";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
+import {CellId} from "@holochain/client/lib/types/common";
+
 
 /**
  * @element ludotheque-controller
@@ -40,6 +53,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
   }
+
+  @property()
+  whereCellId: CellId | null = null;
+
 
   /** Public attributes */
   @property({ type: Boolean, attribute: 'dummy' })
@@ -71,7 +88,20 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   private _initialized: boolean = false;
   private _initializing: boolean = false;
+  private _canCreatePlayset: boolean = false;
 
+  private _whereInventory: Inventory | null = null;
+
+
+  private pullWhereInventory() {
+    this._store.getWhereInventory().then(inventory => {
+      const nextCount = count_inventory(inventory);
+      if (!this._whereInventory || nextCount > count_inventory(this._whereInventory)) {
+        this._whereInventory = inventory;
+        this.requestUpdate();
+      }
+    });
+  }
 
   // get tabElem() : TabBar {
   //   return this.shadowRoot!.getElementById("body-tab-bar") as TabBar;
@@ -106,6 +136,35 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   get spaceDialogElem() : WhereSpaceDialog {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  }
+
+
+  /**
+   *
+   */
+  hasPiece(eh: EntryHashB64, type: PieceType): boolean {
+    if (!this._whereInventory) {
+      console.warn("No localInventory found")
+      return false;
+    }
+    switch(type) {
+      case PieceType.Template:
+        return this._whereInventory!.templates.includes(eh);
+        break;
+      case PieceType.SvgMarker:
+        return this._whereInventory!.svgMarkers.includes(eh);
+        break;
+      case PieceType.EmojiGroup:
+        return this._whereInventory!.emojiGroups.includes(eh);
+        break;
+      case PieceType.Space:
+        return this._whereInventory!.spaces.includes(eh);
+        break;
+      default:
+        console.warn("Unknown piece type: " + type)
+        break;
+    }
+    return false;
   }
 
 
@@ -338,20 +397,42 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+
+  /** */
+  private renderPieceIcon(key: string, type: PieceType) {
+    //console.log({whereCellId: this.whereCellId})
+    const hasPiece = this.hasPiece(key, type);
+    return hasPiece
+      ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
+      : html `<mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
+                               @click=${() => this._store.exportPiece(key, type, this.whereCellId!)}
+      ></mwc-icon-button>`;
+  }
+
+
+  /** */
   private renderSpaces() {
     const items = Object.entries(this._spaces.value).map(
       ([key, space]) => {
+        const icon = this.renderPieceIcon(key, PieceType.Space);
         const surface = JSON.parse(space.surface);
         const template = this._store.template(space.origin);
-        return html`
-          <mwc-check-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+        const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(surface, space.name, 70, 56)}</span>
-              <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
-              <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
-          </mwc-check-list-item>
+            ${icon}
+          `;
+        return this._canCreatePlayset? html`
+            <mwc-check-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+              ${itemContent}
+            </mwc-check-list-item>
           `
+          : html`
+            <mwc-list-item hasMeta class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+              ${itemContent}
+            </mwc-list-item>
+          `;
       }
     )
     return html `
@@ -361,39 +442,68 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+
+  /** */
   private renderTemplates() {
+    /* Render items */
     const items = Object.entries(this._templates.value).map(
       ([key, template]) => {
+        const icon = this.renderPieceIcon(key, PieceType.Template);
         const surface = JSON.parse(template.surface);
-        return html`
-          <mwc-check-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+        const itemContent = html`
             <span>${template.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(surface, template.name, 70, 56)}</span>
-          </mwc-check-list-item>
+            ${icon}
+            <!--<mwc-button slot="meta" style="margin-left:-40px;" dense unelevated>add</mwc-button>-->
+        `;
+
+        return this._canCreatePlayset? html`
+            <mwc-check-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+              ${itemContent}
+            </mwc-check-list-item>
           `
+          : html`
+            <mwc-list-item hasMeta class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+              ${itemContent}
+            </mwc-list-item>
+          `;
       }
     );
+    /* Render list */
     return html `
-      <mwc-list multi id="template-list" class="body-list">
+      <mwc-list id="template-list" class="body-list">
         ${items}
       </mwc-list>
     `;
   }
 
+
+  /** */
   private renderSvgMarkers() {
+    /* Render items */
     const items = Object.entries(this._svgMarkers.value).map(
       ([key, svgMarker]) => {
+        const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
-        return html`
-          <mwc-check-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+        const itemContent = html`
             <span>${svgMarker.name}</span>
-            <span slot="secondary">toto</span>
             <span slot="graphic" style="width:64px;">${svg}</span>
-          </mwc-check-list-item>
+            ${icon}
+          `;
+        return this._canCreatePlayset? html`
+            <mwc-check-list-item class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+              ${itemContent}
+            </mwc-check-list-item>
           `
+          : html`
+            <mwc-list-item hasMeta class="space-li" multipleGraphics twoline value="${key}" graphic="large">
+              ${itemContent}
+            </mwc-list-item>
+          `;
       }
     );
+    /* Render list */
     return html `
       <mwc-list multi id="svg-marker-list" class="body-list">
         ${items}
@@ -401,15 +511,27 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+
+  /* Render  */
   private renderEmojiGroups() {
     const items = Object.entries(this._emojiGroups.value).map(
       ([key, emojiGroup]) => {
-        return html`
-          <mwc-check-list-item class="space-li" twoline value="${key}">
+        const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
+        const itemContent = html`
             <span>${emojiGroup.name}</span>
             <span slot="secondary">${emojiGroup.unicodes}</span>
-          </mwc-check-list-item>
+            ${icon}
+          `;
+        return this._canCreatePlayset? html`
+            <mwc-check-list-item class="space-li" twoline value="${key}">
+              ${itemContent}
+            </mwc-check-list-item>
           `
+          : html`
+            <mwc-list-item hasMeta class="space-li" twoline value="${key}">
+              ${itemContent}
+            </mwc-list-item>
+          `;
       }
     );
     return html `
@@ -428,6 +550,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
+
+    this.pullWhereInventory();
 
     let playsetItems = [html``];
     if (playset) {
@@ -461,7 +585,6 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     //     </mwc-list-item>
     //   `;
     // });
-
 
 
     return html`
@@ -618,6 +741,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
           --padding: 0px;
           min-height: 500px;
         }
+
         sl-tab-group {
           --indicator-color: rgb(110, 20, 239);
         }
@@ -659,6 +783,21 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
           align-items: center;
         }
 
+        .piece-icon-button {
+          margin-top: -10px;
+          margin-left: -20px;
+          --mdc-icon-size: 32px;
+        }
+
+        .done-icon-button {
+          color: #16831b;
+        }
+
+        .import-icon-button {
+          color: #5443af;
+        }
+
+
         #app-bar {
           /*margin-top: -15px;*/
         }
@@ -669,10 +808,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
         #drawer-button-bar {
           display: flex;
-          justify-content:flex-end;
-          margin-top:20px;
-          margin-right:12px;
+          justify-content: flex-end;
+          margin-top: 20px;
+          margin-right: 12px;
         }
+
         #body-tab-group {
           /*width:100%;*/
         }

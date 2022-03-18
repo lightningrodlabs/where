@@ -1,4 +1,4 @@
-import { CellClient } from '@holochain-open-dev/cell-client';
+import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
 import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 
 import {
@@ -17,18 +17,50 @@ import {
   defaultPlayMeta,
   PlacementSession,
   PlacementSessionEntry,
-  Space, PlaysetEntry,
+  Space, PlaysetEntry, Inventory,
 } from './types';
 import {CellId} from "@holochain/client/lib/types/common";
 
+
 export class WhereService {
   constructor(
-    public cellClient: CellClient,
-    protected zomeName = 'where'
-  ) {}
+    public hcClient: BaseClient,
+    protected roleId: string,
+  ) {
+    let maybe_cell = hcClient.cellDataByRoleId(roleId);
+    if (!maybe_cell) {
+      throw new Error("Cell not found for role: " + roleId);
+    }
+    this.cellClient = hcClient.forCell(maybe_cell)
+  }
+
+  /** Fields */
+
+  cellClient: CellClient
+
+
+  /** Methods */
 
   get myAgentPubKey() : AgentPubKeyB64 {
     return serializeHash(this.cellClient.cellId[1]);
+  }
+
+  async getInventory(roleId?: string): Promise<Inventory> {
+    if (roleId) {
+      let maybe_cell = this.hcClient.cellDataByRoleId(roleId);
+      if (!maybe_cell) {
+        return Promise.reject("Cell not found for role: " + roleId);
+      }
+      const cellClient = this.hcClient.forCell(maybe_cell)
+      return cellClient.callZome(
+        "where_playset",
+        'get_inventory',
+        null,
+        15000
+      );
+    } else {
+      return this.callPlaysetZome('get_inventory', null);
+    }
   }
 
   /** Playsets */
@@ -47,6 +79,16 @@ export class WhereService {
 
   async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<void> {
     return this.callLudothequeZome('export_playset', {playsetEh, cellId});
+  }
+
+  async exportPiece(pieceEh: EntryHashB64, pieceTypeName: string, cellId: CellId) : Promise<void> {
+    const payload = {cellId, pieceEh, pieceTypeName};
+    console.log({payload})
+    return this.callPlaysetZome('export_piece', payload);
+  }
+
+  async exportSpace(spaceEh: EntryHashB64, cellId: CellId) : Promise<void> {
+    return this.callPlaysetZome('export_space', {cellId, spaceEh});
   }
 
   /** Svg Markers */
@@ -106,16 +148,16 @@ export class WhereService {
     console.log({space})
     let spaceEh = await this.createSpace(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
-    await this.callZome('create_sessions', {sessionNames, spaceEh});
+    await this.callWhereZome('create_sessions', {sessionNames, spaceEh});
     return spaceEh;
   }
 
   async hideSpace(spaceEh: EntryHashB64): Promise<EntryHashB64> {
-    return this.callZome('hide_space', spaceEh);
+    return this.callWhereZome('hide_space', spaceEh);
   }
 
   async unhideSpace(spaceEh: EntryHashB64): Promise<EntryHashB64> {
-    return this.callZome('unhide_space', spaceEh);
+    return this.callWhereZome('unhide_space', spaceEh);
   }
 
   /** Space·s */
@@ -137,7 +179,7 @@ export class WhereService {
   }
 
   async getHiddenSpaceList(): Promise<Array<EntryHashB64>> {
-    return this.callZome('get_hidden_spaces', null);
+    return this.callWhereZome('get_hidden_spaces', null);
   }
 
   async isSpaceVisible(spaceEh: EntryHashB64): Promise<boolean> {
@@ -154,19 +196,19 @@ export class WhereService {
   /** Session */
 
   async getSession(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
-    return this.callZome('get_session_from_eh', sessionEh);
+    return this.callWhereZome('get_session_from_eh', sessionEh);
   }
 
   async getSessionAddress(spaceEh: EntryHashB64, index: number): Promise<EntryHashB64 | null> {
-    return this.callZome('get_session', {spaceEh, index});
+    return this.callWhereZome('get_session', {spaceEh, index});
   }
 
   async getSpaceSessions(spaceEh: EntryHashB64): Promise<EntryHashB64[]> {
-    return this.callZome('get_space_sessions', spaceEh);
+    return this.callWhereZome('get_space_sessions', spaceEh);
   }
 
   async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
-    return this.callZome('create_next_session', {name, spaceEh});
+    return this.callWhereZome('create_next_session', {name, spaceEh});
   }
 
 
@@ -175,21 +217,21 @@ export class WhereService {
   async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
     const entry = this.hereFromLocation(location);
     const input = {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}
-    return this.callZome('add_here', input);
+    return this.callWhereZome('add_here', input);
   }
 
   async updateLocation(hereHh: HeaderHashB64, location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
     const entry = this.hereFromLocation(location);
     const input = {oldHereHh: hereHh, newHere: {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}}
-    return this.callZome('update_here', input);
+    return this.callWhereZome('update_here', input);
   }
 
   async deleteLocation(hereHh: HeaderHashB64): Promise<EntryHashB64> {
-    return this.callZome('delete_here', hereHh);
+    return this.callWhereZome('delete_here', hereHh);
   }
 
   async getLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
-    const hereInfos =  await this.callZome('get_heres', sessionEh);
+    const hereInfos =  await this.callWhereZome('get_heres', sessionEh);
     //console.debug({hereInfos})
     return hereInfos.map((info: HereInfo) => {
       return this.locationFromHere(info)
@@ -202,14 +244,14 @@ export class WhereService {
     //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
     //  console.debug(`NOTIFY ${signal.message.type}`, signal)
     //}
-    return this.callZome('notify', {signal, folks});
+    return this.callWhereZome('notify', {signal, folks});
   }
 
 
-  private callZome(fn_name: string, payload: any): Promise<any> {
+  private callWhereZome(fn_name: string, payload: any): Promise<any> {
     //console.debug("callZome: " + fn_name)
     //console.debug({payload})
-    const result = this.cellClient.callZome(this.zomeName, fn_name, payload);
+    const result = this.cellClient.callZome("where", fn_name, payload);
     //console.debug("callZome: " + fn_name + "() result")
     //console.debug({result})
     return result;

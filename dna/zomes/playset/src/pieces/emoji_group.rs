@@ -17,7 +17,7 @@ pub struct EmojiGroupOutput {
     content: EmojiGroup,
 }
 
-fn get_emoji_group_path() -> Path {
+pub fn get_emoji_group_path() -> Path {
     Path::from("emoji-groups")
 }
 

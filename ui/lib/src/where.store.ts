@@ -8,11 +8,21 @@ import {
   LocationInfo,
   Location,
   Coord,
-  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space, Inventory,
+  TemplateEntry,
+  Signal,
+  EmojiGroupEntry,
+  SvgMarkerEntry,
+  PlayMeta,
+  PlacementSession,
+  defaultPlayMeta,
+  Space,
+  Inventory,
+  PieceType,
 } from './types';
 import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
+import {CellId} from "@holochain/client/lib/types/common";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
@@ -151,7 +161,14 @@ export class WhereStore {
     })
   }
 
-  
+
+  async exportPiece(pieceEh: EntryHashB64, pieceType: PieceType, cellId: CellId) : Promise<void> {
+    if (pieceType == PieceType.Space) {
+      return this.service.exportSpace(pieceEh, cellId);
+    }
+    return this.service.exportPiece(pieceEh, pieceType, cellId);
+  }
+
   pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
     const ping: Signal = {maybeSpaceHash: spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})

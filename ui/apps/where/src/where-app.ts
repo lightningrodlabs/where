@@ -51,6 +51,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   _inventory: Inventory | null = null;
 
   _whereCellId: CellId | null = null;
+  _ludoCellId: CellId | null = null;
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -81,6 +82,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     if (!ludo_cell) {
       alert("Ludotheque Cell not found in happ")
     }
+    this._ludoCellId = ludo_cell!.cell_id;
     const ludoClient = hcClient.forCell(ludo_cell!);
     console.log({ludoClient})
 
@@ -137,7 +139,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
                                          @import-playset="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-controller>`
-              : html`<where-controller dummy @show-ludotheque="${() => this._canLudotheque = true}"></where-controller>`
+              : html`<where-controller dummy
+                                       .ludoCellId=${this._ludoCellId}
+                                       @show-ludotheque="${() => this._canLudotheque = true}"
+                    ></where-controller>`
             }
         
             <!--</profile-prompt>-->

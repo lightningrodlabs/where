@@ -1,34 +1,40 @@
-import { html, css, LitElement } from "lit";
-import { state, property } from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
+import {property, state} from "lit/decorators.js";
 
-import { contextProvided } from "@holochain-open-dev/context";
-import { StoreSubscriber } from "lit-svelte-stores";
+import {contextProvided} from "@holochain-open-dev/context";
+import {StoreSubscriber} from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
-import { sharedStyles } from "../sharedStyles";
-import {whereContext, Play, Dictionary} from "../types";
-import { WhereStore } from "../where.store";
-import { WhereSpace } from "./where-space";
-import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
-import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
-import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
+import {sharedStyles} from "../sharedStyles";
+import {Dictionary, PieceType, Play, whereContext} from "../types";
+import {WhereStore} from "../where.store";
+import {WhereSpace} from "./where-space";
+import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
+import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
+import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
-  ListItem,
-  Select,
+  Button,
+  Drawer,
+  Formfield,
+  Icon,
   IconButton,
-  Button, TextField, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu,
+  List,
+  ListItem,
+  Menu,
+  Select,
+  Slider,
+  Switch,
+  TextField,
+  TopAppBar,
 } from "@scoped-elements/material-web";
-import {
-  profilesStoreContext,
-  ProfilesStore,
-} from "@holochain-open-dev/profiles";
+import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
 import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
-import {addHardcodedSpaces} from "../examples";
 import {WhereFolks} from "./where-folks";
+import {CellId} from "@holochain/client/lib/types/common";
 
 /**
  * @element where-controller
@@ -41,6 +47,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   /** Public attributes */
   @property({ type: Boolean, attribute: 'dummy' })
   canLoadDummy: boolean = false;
+
+  @property()
+  ludoCellId: CellId | null = null;
 
   /** Dependencies */
 
@@ -419,6 +428,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       case "archive_space":
         this.archiveSpace()
         break;
+      case "export_space":
+        if (this._currentSpaceEh && this.ludoCellId) {
+          this._store.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
+        } else {
+          console.warn("No space or ludotheque cell to export to");
+        }
+        break;
       default:
         break;
     }
@@ -448,6 +464,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
   /**
    *
    */
@@ -456,7 +473,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }
-
     /** Build play list */
     let spaceName = "none"
     const playItems = Object.entries(this._plays.value).map(
@@ -523,7 +539,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_space"><span>Export Space</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
+
       </mwc-menu>
     </mwc-top-app-bar>
     <!-- APP BODY -->

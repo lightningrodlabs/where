@@ -542,7 +542,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   renderMarkerTypePreview(markerType: MarkerType) {
     let locMeta: LocationMeta = defaultLocationMeta();
     locMeta.markerType = markerType;
-    locMeta.img = this.currentProfile!.fields.avatar;
+    locMeta.img = this.currentProfile? this.currentProfile!.fields.avatar : "42";
     switch (markerType) {
       case MarkerType.EmojiGroup:
         locMeta.emoji = "⚽️";
@@ -555,8 +555,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         locMeta.emoji = "♥️";
         break;
     }
-    locMeta.color = this.currentProfile!.fields.color;
-    locMeta.authorName = this.currentProfile!.nickname;
+    locMeta.color = this.currentProfile? this.currentProfile!.fields.color : "blue";
+    locMeta.authorName = this.currentProfile? this.currentProfile!.nickname : "(none)";
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
 
@@ -776,6 +776,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "content": "Land of the Lost"}`
 
     /** Render emoji picker / selector */
+    let color = this.currentProfile? this.currentProfile!.fields.color : "blue";
     let maybeMarkerTypeItems = html ``
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
     let marker_eh: EntryHashB64 | null = null;
@@ -834,7 +835,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         const markers = Object.entries(this._svgMarkers.value).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
-            let currentMarker = renderSvgMarker(svgMarker.value, this.currentProfile!.fields.color)
+            let currentMarker = renderSvgMarker(svgMarker.value, color)
             return html`
                      <mwc-list-item class="svg-marker-li" value="${svgMarker.name}" .selected=${key == marker_eh}>
                        ${svgMarker.name}
@@ -848,7 +849,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         if (this._currentMarker && "svg" in this._currentMarker) {
           const marker = this._svgMarkers.value[this._currentMarker?.svg]
           //console.log({marker})
-          selectedMarker = renderSvgMarker(marker.value, this.currentProfile!.fields.color)
+          selectedMarker = renderSvgMarker(marker.value, color)
         }
         /** Render */
         maybeMarkerTypeItems = html`

@@ -44,6 +44,8 @@ import {addHardcodedSpaces} from "../examples";
 import {LudothequeStore} from "../ludotheque.store";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId} from "@holochain/client/lib/types/common";
+import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
+import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 
 
 /**
@@ -93,6 +95,47 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   private _whereInventory: Inventory | null = null;
 
 
+  get emojiGroupDialogElem() : WhereEmojiGroupDialog {
+    return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
+  }
+
+  get svgMarkerDialogElem() : WhereSvgMarkerDialog {
+    return this.shadowRoot!.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
+  }
+
+  get templateDialogElem() : WhereTemplateDialog {
+    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
+  }
+
+  get playsetDialogElem() : WherePlaysetDialog {
+    return this.shadowRoot!.getElementById("playset-dialog") as WherePlaysetDialog;
+  }
+
+  get spaceDialogElem() : WhereSpaceDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  }
+
+  get drawerElem() : Drawer {
+    return this.shadowRoot!.getElementById("my-drawer") as Drawer;
+  }
+
+  get spaceElem(): WhereSpace {
+    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+
+  // get archiveDialogElem() : WhereArchiveDialog {
+  //   return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
+  // }
+  //
+
+  // get playListElem(): List {
+  //   return this.shadowRoot!.getElementById("play-list") as List;
+  // }
+
+
+  /** -- methods -- */
+
   private pullWhereInventory() {
     this._store.getWhereInventory().then(inventory => {
       const nextCount = count_inventory(inventory);
@@ -102,42 +145,6 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     });
   }
-
-  // get tabElem() : TabBar {
-  //   return this.shadowRoot!.getElementById("body-tab-bar") as TabBar;
-  // }
-
-  get drawerElem() : Drawer {
-    return this.shadowRoot!.getElementById("my-drawer") as Drawer;
-  }
-
-
-  get playsetDialogElem() : WherePlaysetDialog {
-    return this.shadowRoot!.getElementById("playset-dialog") as WherePlaysetDialog;
-  }
-
-
-  // get archiveDialogElem() : WhereArchiveDialog {
-  //   return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
-  // }
-  //
-  // get templateDialogElem() : WhereTemplateDialog {
-  //   return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
-  // }
-
-  // get playListElem(): List {
-  //   return this.shadowRoot!.getElementById("play-list") as List;
-  // }
-
-  get spaceElem(): WhereSpace {
-    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
-  }
-
-
-  get spaceDialogElem() : WhereSpaceDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
-  }
-
 
   /**
    *
@@ -188,6 +195,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   /** After first render only */
   async firstUpdated() {
     await this.subscribePlayset();
+    /** Menu */
+    const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
+    menu.anchor = button
   }
 
 
@@ -284,12 +295,12 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
 
   async openTemplateDialog(templateEh?: any) {
-  //  this.templateDialogElem.clearAllFields();
-  //  this.templateDialogElem.open(templateEh);
+    this.templateDialogElem.clearAllFields();
+    this.templateDialogElem.open(templateEh);
   }
 
   async openArchiveDialog() {
-   // this.archiveDialogElem.open();
+   //this.archiveDialogElem.open();
   }
 
   async openSpaceDialog(spaceEh?: EntryHashB64) {
@@ -300,6 +311,66 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  openAddMenu() {
+    const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
+    menu.open = true;
+  }
+
+  async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
+    let group = undefined;
+    if (groupEh) {
+      group = this._emojiGroups.value[groupEh]
+    }
+    const dialog = this.emojiGroupDialogElem;
+    dialog.clearAllFields();
+    dialog.open(group);
+    if (group) {
+      dialog.loadPreset(group);
+    }
+  }
+
+  async openSvgMarkerDialog(eh: EntryHashB64 | null) {
+    let svgMarker = undefined;
+    if (eh) {
+      svgMarker = this._svgMarkers.value[eh]
+    }
+    const dialog = this.svgMarkerDialogElem;
+    dialog.clearAllFields();
+    dialog.open(svgMarker);
+    if (svgMarker) {
+      dialog.loadPreset(svgMarker);
+    }
+  }
+
+
+  handleAddMenuSelect(e: any) {
+    const menu = e.currentTarget as Menu;
+    // console.log("handleMenuSelect: " + menu)
+    const selected = menu.selected as ListItem;
+    //console.log({selected})
+    switch (selected.value) {
+      case "add_playset":
+        this.openPlaysetDialog()
+        break;
+      case "add_space":
+        this.openSpaceDialog()
+        break;
+      case "add_template":
+        this.openTemplateDialog()
+        break;
+      case "add_svgMarker":
+        this.openSvgMarkerDialog(null)
+        break;
+      case "add_emojiGroup":
+        this.openEmojiGroupDialog(null)
+        break;
+      default:
+        break;
+    }
+  }
+
+
   /**
    *
    */
@@ -307,6 +378,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     console.log("handlePlaysetDialogClosing() : " + JSON.stringify(e.detail))
     //const playset = e.detail;
     this._currentPlayset = e.detail;
+    this.drawerElem.open = true;
+    this._canCreatePlayset = true;
     this.requestUpdate();
   }
 
@@ -316,6 +389,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
    */
   private async commitPlayset() {
     console.log("commitPlayset() : " + JSON.stringify(this._currentPlayset))
+    this._canCreatePlayset = false;
+    this.drawerElem.open = false;
     if (!this._currentPlayset) {
       return;
     }
@@ -340,6 +415,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
    */
   private resetCurrentPlayset() {
     this._currentPlayset = null;
+    this._canCreatePlayset = false;
+    this.drawerElem.open = false;
   }
 
 
@@ -542,6 +619,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
+
   /**
    *
    */
@@ -597,27 +675,29 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
           ? html`<span>No playset selected</span>`
           : html`
           <span>${this._currentPlayset?.name}</span>
-          <span slot="secondary">${this._currentPlayset?.description}</span>
-          <span slot="meta">${this._currentPlayset?.spaces.length}</span>
+          <!--<span slot="secondary">${this._currentPlayset?.description}</span>
+          <span slot="meta">${this._currentPlayset?.spaces.length}</span>-->
         `}
       </mwc-list-item>
         <li divider role="separator"></li>
     </mwc-list>
-    <mwc-button icon="add_circle" @click=${() => this.openPlaysetDialog()}>Playset</mwc-button>
+      <!--<mwc-button icon="add_circle" @click=${() => this.openPlaysetDialog()}>Playset</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
+    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>-->
     <!-- <mwc-formfield label="View Archived">
       <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
     </mwc-formfield>
     <mwc-list id="playset-list">
       ${playsetItems}
     </mwc-list>-->
-    <div>
-      <div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
+      <div>
+          <!--<div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
       <div>   Templates: ${this._currentPlayset?.templates.length}</div>
       <div> SVG Markers: ${this._currentPlayset?.svgMarkers.length}</div>
       <div>Emoji Groups: ${this._currentPlayset?.emojiGroups.length}</div>
+      -->
+        ${this._currentPlayset?.description}
     </div>
     <div id="drawer-button-bar">
       <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>reset</mwc-button>
@@ -628,10 +708,19 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   <div slot="appContent">
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
-      <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title"><mwc-icon>library_books</mwc-icon>Ludothèque</div>
-      <!-- <mwc-select required id="where-cell-field" label="WhereId">
-      </mwc-select> -->
+        <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
+        <mwc-icon>library_books</mwc-icon>-->
+      <div slot="title">Ludothèque</div>
+
+      <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
+      <mwc-menu id="add-menu" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
+        <mwc-list-item value="add_playset"><span>Add Playset</span></mwc-list-item>
+        <mwc-list-item value="add_space"><span>Add Space</span></mwc-list-item>
+        <mwc-list-item value="add_template"><span>Add Template</span></mwc-list-item>
+        <mwc-list-item value="add_svgMarker"><span>Add SvgMarker</span></mwc-list-item>
+        <mwc-list-item value="add_emojiGroup"><span>Add EmojiGroup</span></mwc-list-item>
+      </mwc-menu>
+
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
       ></mwc-icon-button>
@@ -639,7 +728,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     <!-- APP BODY -->
     <div class="appBody">
       <sl-tab-group id="body-tab-group">
-        <sl-tab id="playsets-tab" slot="nav" panel="playsets">Playsets</sl-tab>
+        ${this._canCreatePlayset? html`` : html`<sl-tab id="playsets-tab" slot="nav" panel="playsets">Playsets</sl-tab>`}
         <sl-tab id="spaces-tab" slot="nav" panel="spaces">Spaces</sl-tab>
         <sl-tab id="templates-tab" slot="nav" panel="templates">Templates</sl-tab>
         <sl-tab id="svg-markers-tab" slot="nav" panel="svg-markers">Svg Markers</sl-tab>
@@ -663,10 +752,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       </sl-tab-group>
     </div>
     <!-- DIALOGS -->
-      <!--<where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog> -->
     <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-
+    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
+    <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
+    <where-space-dialog id="space-dialog" @play-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
   </div>
 </mwc-drawer>
 `;
@@ -719,10 +809,12 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       'sl-tab-group': SlTabGroup,
       'sl-tab': SlTab,
       'sl-tab-panel': SlTabPanel,
-      "where-space-dialog" : WhereSpaceDialog,
-      "where-template-dialog" : WhereTemplateDialog,
-      "where-archive-dialog" : WhereArchiveDialog,
       "where-playset-dialog" : WherePlaysetDialog,
+      "where-template-dialog" : WhereTemplateDialog,
+      "where-svg-marker-dialog" : WhereSvgMarkerDialog,
+      "where-emoji-group-dialog" : WhereEmojiGroupDialog,
+      "where-space-dialog" : WhereSpaceDialog,
+      "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-tooltip': SlTooltip,
@@ -743,7 +835,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         }
 
         sl-tab-group {
-          --indicator-color: rgb(110, 20, 239);
+          --indicator-color: #d78a18;
         }
 
         .mdc-drawer__header {
@@ -784,17 +876,17 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         }
 
         .piece-icon-button {
-          margin-top: -10px;
-          margin-left: -20px;
-          --mdc-icon-size: 32px;
         }
 
         .done-icon-button {
-          color: #16831b;
+          color: #343434;
         }
 
         .import-icon-button {
-          color: #5443af;
+          color: #d78a18;
+          margin-top: -10px;
+          margin-left: -20px;
+          --mdc-icon-size: 32px;
         }
 
 

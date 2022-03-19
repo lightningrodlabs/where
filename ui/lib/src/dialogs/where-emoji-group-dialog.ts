@@ -194,8 +194,6 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   <emoji-picker id="emoji-picker" class="light"></emoji-picker>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>Export</mwc-button>
-
   <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
   <mwc-button slot="secondaryAction" @click=${this.handleResetGroup}>reset</mwc-button>
 </mwc-dialog>

@@ -69,7 +69,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentMarker?: MarkerPiece;
 
   _spaceToPreload?: EntryHashB64;
-  _useTemplateSize: boolean = true // have size fields set to default only when changing template
+  _useTemplateSize: boolean = true; // have size fields set to default only when changing template
   _canvas: string = "";
 
 
@@ -643,18 +643,32 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   handleMarkerTypeSelect(e: any) {
     //console.log({e})
-    if (this._markerTypeField.value == MarkerType[MarkerType.Tag]) {
-      this._currentMeta.canTag = true;
-      this._currentMeta.tagVisible = true;
-      this._tagChk.checked = true;
-      this._tagChk.disabled = true;
-      this._tagVisibleChk.checked = true;
-      this._tagVisibleChk.disabled = true;
-      this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
-    } else {
-      this._tagChk.disabled = false;
-      this._tagVisibleChk.disabled = !this._currentMeta.canTag;
-      this.tagChkLabel.label = "Display tag on surface"
+    this._tagChk.disabled = false;
+    this._tagVisibleChk.disabled = !this._currentMeta.canTag;
+    this.tagChkLabel.label = "Display tag on surface"
+
+    switch(this._markerTypeField.value) {
+      case MarkerType[MarkerType.Tag]:
+        this._currentMeta.canTag = true;
+        this._currentMeta.tagVisible = true;
+        this._tagChk.checked = true;
+        this._tagChk.disabled = true;
+        this._tagVisibleChk.checked = true;
+        this._tagVisibleChk.disabled = true;
+        this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
+        break;
+      case MarkerType[MarkerType.SvgMarker]:
+        if (Object.keys(this._svgMarkers.value)[0]) {
+          this._currentMarker = {svg: Object.keys(this._svgMarkers.value)[0]};
+        }
+        break;
+      case MarkerType[MarkerType.EmojiGroup]:
+        if (Object.keys(this._emojiGroups.value)[0]) {
+          this._currentMarker = {svg: Object.keys(this._emojiGroups.value)[0]};
+        }
+        break;
+      default:
+        break;
     }
     this.requestUpdate()
   }

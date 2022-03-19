@@ -1,5 +1,5 @@
 import {ContextProvider} from "@holochain-open-dev/context";
-import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
+import {serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 
 import {
@@ -11,7 +11,6 @@ import {
 import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
-import {Dialog} from "@scoped-elements/material-web";
 
 
 let APP_ID = 'where'
@@ -62,7 +61,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
-    new ContextProvider(this, ludothequeContext, new LudothequeStore(cellClient));
+    new ContextProvider(this, ludothequeContext, new LudothequeStore(hcClient));
 
     this.loaded = true;
   }

@@ -428,6 +428,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       case "archive_space":
         this.archiveSpace()
         break;
+      case "export_template":
+        if (this._currentTemplateEh && this.ludoCellId) {
+          this._store.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
+        } else {
+          console.warn("No template or ludotheque cell to export to");
+        }
+        break;
       case "export_space":
         if (this._currentSpaceEh && this.ludoCellId) {
           this._store.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
@@ -537,8 +544,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
-        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_template"><span>Export Template</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="export_space"><span>Export Space</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
 

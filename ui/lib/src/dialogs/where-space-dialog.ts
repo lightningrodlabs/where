@@ -460,7 +460,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   renderMarkerTypePreview(markerType: MarkerType) {
     let locMeta: LocationMeta = defaultLocationMeta();
     locMeta.markerType = markerType;
-    locMeta.img = this.currentProfile? this.currentProfile!.fields.avatar : "42";
+    locMeta.img = "42"; // FIXME
     switch (markerType) {
       case MarkerType.EmojiGroup:
         locMeta.emoji = "⚽️";
@@ -473,18 +473,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         locMeta.emoji = "♥️";
         break;
     }
-    locMeta.color = this.currentProfile? this.currentProfile!.fields.color : "blue";
-    locMeta.authorName = this.currentProfile? this.currentProfile!.nickname : "(none)";
+    locMeta.color = "blue";
+    locMeta.authorName = "(none)";
     return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
   }
 
 
   renderSurfacePreview() {
-    const previewButton = html`<mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>preview</mwc-button>`;
-    const sizeFields = html`<mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-    <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>`
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      return html`<div id="thumbnail">${previewButton}${sizeFields}</div>`
+      return html``
     }
     let {surface, _subMap}: any = this.generateSurface();
     const ratio: number = (surface.size && surface.size.x > 0)? surface.size.y / surface.size.x : 1;
@@ -527,9 +524,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       <canvas id="preview-canvas" width="${w}" height="${h}"
               style="border:1px solid #324acb;">`
     }
-    return html`
-      <div id="thumbnail">${preview}${previewButton}${sizeFields}</div>
-    `
+    return html`${preview}`
   }
 
   handleCanTagClick(e: any) {
@@ -693,8 +688,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       "style": "background-color:white;border-radius:10px;",
       "content": "Land of the Lost"}`
 
-    /** Render emoji picker / selector */
-    let color = this.currentProfile? this.currentProfile!.fields.color : "blue";
+    /** Render emoji picker/selector */
+    let color = "blue";
     let maybeMarkerTypeItems = html ``
     const markerType: MarkerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
     let marker_eh: EntryHashB64 | null = null;
@@ -794,7 +789,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   <!-- Name & Surface -->
   <sl-tab-panel name="general">
-    ${this.renderSurfacePreview()}
+    <div id="thumbnail">
+      ${this.renderSurfacePreview()}
+      <mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>preview</mwc-button>
+      <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+      <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+    </div>
     <mwc-textfield outlined dialogInitialFocus type="text"
                    @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                    id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>

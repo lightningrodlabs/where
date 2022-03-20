@@ -562,11 +562,8 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
 
   renderSurfacePreview() {
-    const previewButton = html`<mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>preview</mwc-button>`;
-    const sizeFields = html`<mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-    <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>`
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      return html`<div id="thumbnail">${previewButton}${sizeFields}</div>`
+      return html``
     }
     let {surface, _subMap}: any = this.generateSurface();
     const ratio: number = (surface.size && surface.size.x > 0)? surface.size.y / surface.size.x : 1;
@@ -609,9 +606,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
       <canvas id="preview-canvas" width="${w}" height="${h}"
               style="border:1px solid #324acb;">`
     }
-    return html`
-      <div id="thumbnail">${preview}${previewButton}${sizeFields}</div>
-    `
+    return html`${preview}`
   }
 
   handleCanTagClick(e: any) {
@@ -880,7 +875,12 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
   <!-- Name & Surface -->
   <sl-tab-panel name="general">
-    ${this.renderSurfacePreview()}
+    <div id="thumbnail">
+      ${this.renderSurfacePreview()}
+      <mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>preview</mwc-button>
+      <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
+      <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+    </div>
     <mwc-textfield outlined dialogInitialFocus type="text"
                    @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                    id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>

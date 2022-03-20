@@ -1,4 +1,4 @@
-import {css, html, LitElement, PropertyValues} from "lit";
+import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
@@ -8,7 +8,7 @@ import {WhereStore} from "../where.store";
 import {
   defaultLocationMeta,
   defaultPlayMeta, EmojiGroupVariant,
-  LocationMeta, ludothequeContext, MarkerPiece,
+  LocationMeta, MarkerPiece,
   MarkerType,
   PlayMeta, SvgMarkerVariant,
   TemplateEntry,
@@ -41,17 +41,19 @@ import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
 import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
-import {LudothequeStore} from "../ludotheque.store";
 
 
 /**
- * @element where-space-dialog
+ * @element where-play-dialog
  */
-export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
+export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
+
+  /** Public properties */
+  @property({ type: Object}) currentProfile: Profile | undefined = undefined;
 
   /** Dependencies */
-  @contextProvided({ context: ludothequeContext })
-  _store!: LudothequeStore;
+  @contextProvided({ context: whereContext })
+  _store!: WhereStore;
 
   _templates = new StoreSubscriber(this, () => this._store.templates);
   _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
@@ -63,6 +65,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentPlaceHolders: Array<string> = [];
 
   @state() _currentMeta: PlayMeta = defaultPlayMeta();
+
   @state() _currentMarker?: MarkerPiece;
 
   _spaceToPreload?: EntryHashB64;
@@ -93,7 +96,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   _tagVisibleChk!: Checkbox;
   @query('#predefined-tags-field')
   _predefinedTagsField!: TextField;
-
+  // - Iterations
+  @query('#stop-count-field')
+  _sessionCountField!: TextField;
+  @query('#can-modify-past-chk')
+  _canModifyPastChk!: Checkbox;
+  @query('#stop-labels-field')
+  _sessionLabelsField!: TextField;
 
   get tagChkLabel() : Formfield {
     return this.shadowRoot!.getElementById("tag-chk-lbl") as Formfield;
@@ -111,6 +120,17 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
   }
 
+  get noStopRadioElem() : Radio {
+    return this.shadowRoot!.getElementById("no-stop-radio") as Radio;
+  }
+
+  get fixedStopRadioElem() : Radio {
+    return this.shadowRoot!.getElementById("fixed-stop-radio") as Radio;
+  }
+
+  get generativeStopRadioElem() : Radio {
+    return this.shadowRoot!.getElementById("generative-stop-radio") as Radio;
+  }
 
 
   /**
@@ -126,42 +146,52 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     dialog.open = true
   }
 
-
   /**
    *
    */
   loadPreset(spaceEh: EntryHashB64) {
-    const originalSpace = this._store.spaceFromEh(spaceEh);
-    if (!originalSpace) {
+    const originalPlay = this._store.play(spaceEh);
+    if (!originalPlay) {
       return;
     }
-    console.log("loading preset: " + originalSpace.name)
-    this._currentMeta = { ...originalSpace.meta };
+    console.log("loading preset: " + originalPlay.space.name)
+    this._currentMeta = { ...originalPlay.space.meta };
 
-    this._currentMarker = originalSpace.maybeMarkerPiece;
+    this._currentMarker = originalPlay.space.maybeMarkerPiece;
 
-    this._nameField.value = 'Fork of ' + originalSpace.name;
-    this._templateField.value = originalSpace.origin;
-    this._widthField.value = originalSpace.surface.size.x;
-    this._heightField.value = originalSpace.surface.size.y;
-    this._uiField.value = originalSpace!.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
+    this._nameField.value = 'Fork of ' + originalPlay.space.name;
+    this._templateField.value = originalPlay.space.origin;
+    this._widthField.value = originalPlay.space.surface.size.x;
+    this._heightField.value = originalPlay.space.surface.size.y;
+    this._uiField.value = originalPlay.space.meta.ui ? JSON.stringify(originalPlay.space.meta!.ui) : "[\n]";
     // - Markers
-    this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
-    this._multiChk.checked = originalSpace.meta.multi;
+    this._markerTypeField.value = MarkerType[originalPlay.space.meta.markerType];
+    this._multiChk.checked = originalPlay.space.meta.multi;
     // - Tags
-    this._tagChk.checked = originalSpace.meta.canTag;
+    this._tagChk.checked = originalPlay.space.meta.canTag;
     this.tagChkLabel.label = "Display tag on surface"
-    this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
-    this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
-    this._predefinedTagsField.disabled = !originalSpace.meta.canTag;
-    this._predefinedTagsField.value = originalSpace.meta.predefinedTags.join();
-    if (originalSpace.meta.markerType == MarkerType.Tag) {
+    this._tagVisibleChk.disabled = !originalPlay.space.meta.canTag;
+    this._tagVisibleChk.checked = originalPlay.space.meta.tagVisible;
+    this._predefinedTagsField.disabled = !originalPlay.space.meta.canTag;
+    this._predefinedTagsField.value = originalPlay.space.meta.predefinedTags.join();
+    if (originalPlay.space.meta.markerType == MarkerType.Tag) {
       this._tagChk.disabled = true;
       this._tagVisibleChk.disabled = true;
       this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
     }
+    // - Iterations
+    this.noStopRadioElem.checked = originalPlay.space.meta.sessionCount == 0 || originalPlay.space.meta.sessionCount == 1;
+    this.fixedStopRadioElem.checked = originalPlay.space.meta.sessionCount > 1;
+    this.generativeStopRadioElem.checked = originalPlay.space.meta.sessionCount < 0;
+    this._sessionCountField.value = originalPlay.space.meta.sessionCount.toString();
+    this._sessionLabelsField.value = originalPlay.space.meta.sessionLabels.join();
+    this._sessionCountField.disabled = !this.fixedStopRadioElem.checked;
+    this._sessionLabelsField.disabled = !this.fixedStopRadioElem.checked;
+    this._canModifyPastChk.disabled = !this.generativeStopRadioElem.checked;
+    this._canModifyPastChk.checked = originalPlay.space.meta.canModifyPast;
+
     /** Templated fields */
-    for (let [key, value] of originalSpace.meta.subMap!) {
+    for (let [key, value] of originalPlay.space.meta.subMap!) {
       let field = this.shadowRoot!.getElementById(key + '-gen') as TextField;
       if (!field) {
         console.log('Textfield not found: ' + key + '-gen')
@@ -210,11 +240,14 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
    */
   private async handleOk(e: any) {
     /** Check validity */
+
     let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
     let locationsTab = this.shadowRoot!.getElementById("locations-tab") as SlTab;
+    let iterationsTab = this.shadowRoot!.getElementById("iterations-tab") as SlTab;
     let advancedTab = this.shadowRoot!.getElementById("advanced-tab") as SlTab;
     generalTab.tab.style.color = "grey";
     locationsTab.tab.style.color = "grey";
+    iterationsTab.tab.style.color = "grey";
     advancedTab.tab.style.color = "grey";
 
     /** Advanced Tab */
@@ -256,9 +289,32 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     let isLocationsValid = true;
     // n/a
 
+    /** Iterations Tab */
+    let isIterationsValid = true;
+    // Iterations
+    if (this.fixedStopRadioElem.checked) {
+      isIterationsValid &&= this._sessionCountField.validity.valid;
+      if (!this._sessionCountField.validity.valid) {
+        this._sessionCountField.reportValidity()
+      }
+      // check stop label validity (must be empty or have correct number of labels)
+      if (this._sessionLabelsField.value != "") {
+        const strs = this._sessionLabelsField.value.split(",");
+        const isStopLabelsValid = strs.length == parseInt(this._sessionCountField.value);
+        isIterationsValid &&= isStopLabelsValid
+        if (!isStopLabelsValid) {
+          this._sessionLabelsField.setCustomValidity("Label count mismatch")
+          this._sessionLabelsField.reportValidity()
+        }
+      }
+    }
+
+    if (!isIterationsValid) {
+      iterationsTab.tab.style.color = "red";
+    }
 
     /** Finish Validation */
-    let isValid = isGeneralValid && isAdvancedValid && isLocationsValid;
+    let isValid = isGeneralValid && isAdvancedValid && isIterationsValid && isLocationsValid;
     if (!isValid) return
 
     /** Generate PlayMeta */
@@ -273,16 +329,38 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     // - Tag
     this._currentMeta.multi = this._multiChk.checked;
     this._currentMeta.predefinedTags = this._predefinedTagsField.value.split(",")
+    // - Iterations
+    this._currentMeta.sessionCount = this._sessionCountField.value? parseInt(this._sessionCountField.value) : 2;
+    this._currentMeta.sessionLabels = this._sessionLabelsField.value.split(",")
+    // - Session names
+    let sessionNames: string[] = [];
+    if (this.generativeStopRadioElem.checked) {
+      this._currentMeta.sessionCount = -1
+      const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
+      sessionNames = [today];
+    }
+    // Generate session names if field is empty
+    if (this.fixedStopRadioElem.checked) {
+      if (this._currentMeta.sessionLabels.length == 1 && this._currentMeta.sessionLabels[0] == "") {
+        for (let i = 1; i <= this._currentMeta.sessionCount; i++) {
+          sessionNames.push(i.toString());
+        }
+      } else {
+        sessionNames = this._currentMeta.sessionLabels;
+      }
+    }
+
     /** Create and share new Play */
-    const newSpaceEh = await this._store.newSpace({
+    const newSpaceEh = await this._store.newPlay({
         name: this._nameField.value,
         origin: this._templateField.value,
         surface,
         maybeMarkerPiece: this._currentMarker,
         meta: this._currentMeta
-      });
+      },
+      sessionNames);
     // - Notify parent
-    this.dispatchEvent(new CustomEvent('space-added', { detail: newSpaceEh, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('play-added', { detail: newSpaceEh, bubbles: true, composed: true }));
     // - Clear all fields
     // this.resetAllFields();
     // - Close dialog
@@ -291,15 +369,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
   resetAllFields(canResetName?: boolean) {
+
     let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
     let locationsTab = this.shadowRoot!.getElementById("locations-tab") as SlTab;
+    let iterationsTab = this.shadowRoot!.getElementById("iterations-tab") as SlTab;
     let advancedTab = this.shadowRoot!.getElementById("advanced-tab") as SlTab;
     generalTab.tab.style.color = "grey";
     locationsTab.tab.style.color = "grey";
+    iterationsTab.tab.style.color = "grey";
     advancedTab.tab.style.color = "grey";
 
     // set first tab
@@ -326,11 +404,15 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._tagChk.disabled = false;
     this._tagVisibleChk.checked = false;
     this._predefinedTagsField.value = ''
+    // - Sessions
+    this.noStopRadioElem.checked = true;
+    this.fixedStopRadioElem.checked = false;
+    this.generativeStopRadioElem.checked = false;
+    this._sessionCountField.value = "2"
+    this._sessionLabelsField.value = ''
+    this._canModifyPastChk.checked = false;
   }
 
-  /**
-   *
-   */
   private async handleDialogOpened(e: any) {
     if (this._spaceToPreload) {
       this.loadPreset(this._spaceToPreload);
@@ -784,12 +866,16 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         break;
     }
 
+    const isFixedSelected = this.fixedStopRadioElem && this.fixedStopRadioElem.checked;
+    const isGenSelected = this.generativeStopRadioElem && this.generativeStopRadioElem.checked;
+
     /** Main Render */
     return html`
 <mwc-dialog id="space-dialog" heading="NEW SPACE" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   <sl-tab-group id="space-tab-group">
     <sl-tab id="general-tab" slot="nav" panel="general">GENERAL</sl-tab>
     <sl-tab id="locations-tab" slot="nav" panel="locations">LOCATIONS</sl-tab>
+    <sl-tab id="iterations-tab" slot="nav" panel="iterations">ITERATIONS</sl-tab>
     <sl-tab id="advanced-tab" slot="nav" panel="advanced">ADVANCED</sl-tab>
 
   <!-- Name & Surface -->
@@ -844,6 +930,38 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
                    id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
     </mwc-textfield>
   </sl-tab-panel>
+  <!-- Iterations -->
+  <sl-tab-panel name="iterations">
+    <h4 style="margin-top:15px;margin-bottom:5px;">Iterations</h4>
+    <!-- None -->
+    <mwc-formfield label="None">
+      <mwc-radio id="no-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
+    </mwc-formfield>
+    <!-- Predefined Iterations -->
+    <mwc-formfield label="Predefined">
+      <mwc-radio id="fixed-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
+    </mwc-formfield>
+    <div id="fixed-stops-div" style="margin-left:30px;margin-top:5px;">
+      <mwc-textfield id="stop-count-field" outlined type="number" style="margin-right:10px;width:90px;"
+                     .disabled="${!isFixedSelected}"
+                     label="Number" helper="min:2" min="2" pattern="[0-9]+" minlength="3" maxlength="4"
+                     value="${this._currentMeta.sessionCount}" autoValidate=true required>
+      </mwc-textfield>
+      <mwc-textfield id="stop-labels-field" outlined type="text"  style="flex-grow:5;"
+                     .disabled="${!isFixedSelected}" label="labels"
+                     helper="comma separated text, leave empty for just numbers">
+      </mwc-textfield>
+    </div>
+    <!-- Generative Iterations -->
+    <mwc-formfield label="One per day">
+      <mwc-radio id="generative-stop-radio" name="a" value="generative" @change=${this.handleIterationTypeChange}></mwc-radio>
+    </mwc-formfield>
+    <div id="generative-stops-div" style="margin-left:20px;min-height:50px;">
+      <mwc-formfield label="Allow modification of past iterations">
+      <mwc-checkbox id="can-modify-past-chk" .disabled="${!isGenSelected}" @click=${this.handleCanModifyPastClick}></mwc-checkbox>
+      </mwc-formfield>
+    </div>
+  </sl-tab-panel>
   <!-- UI BOX -->
   <sl-tab-panel name="advanced">
       <!-- <details style="margin-top:10px;"> -->
@@ -861,15 +979,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <!--<mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>-->
   <!-- Inner dialogs -->
   <where-emoji-dialog id="emoji-dialog" @emoji-selected=${(e:any) => this.handleEmojiSelected(e.detail)}></where-emoji-dialog>
-  <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
-  <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._store}" @svg-marker-added=${(e:any) => this.handleSvgMarkerAdded(e.detail)}></where-svg-marker-dialog>
+  <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
+  <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => this.handleSvgMarkerAdded(e.detail)}></where-svg-marker-dialog>
 </mwc-dialog>
 `
   }
 
-
-  /**
-   */
   handleEmojiSelected(emoji: string) {
     console.log("handleEmojiSelected(): " + emoji)
     this._currentMeta.singleEmoji = emoji;

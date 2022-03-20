@@ -519,6 +519,10 @@ export class WhereStore {
     return get(this.playStore)[spaceEh];
   }
 
+  space(spaceEh: EntryHashB64): Space {
+    return get(this.playStore)[spaceEh].space;
+  }
+
   currentSession(spaceEh: EntryHashB64): EntryHashB64 {
     return get(this.currentSessionStore)[spaceEh];
   }

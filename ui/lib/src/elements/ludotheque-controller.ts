@@ -195,10 +195,6 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   /** After first render only */
   async firstUpdated() {
     await this.subscribePlayset();
-    /** Menu */
-    const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
-    menu.anchor = button
   }
 
 
@@ -238,6 +234,14 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this._initialized = true
     this._initializing = false
     console.log("ludotheque-controller.init() - DONE");
+  }
+
+
+  updated(changedProperties: any) {
+    /** Menu */
+    const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
+    menu.anchor = button
   }
 
 
@@ -481,9 +485,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     const hasPiece = this.hasPiece(key, type);
     return hasPiece
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
-      : html `<mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
+      : html `
+        <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
                                @click=${() => this._store.exportPiece(key, type, this.whereCellId!)}
-      ></mwc-icon-button>`;
+        ></mwc-icon-button>
+      `;
   }
 
 
@@ -753,10 +759,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
-    <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
-    <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
-    <where-space-dialog id="space-dialog" @play-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
+    <where-template-dialog id="template-dialog" .store="${this._store}" @template-added=${(e:any) => console.log(e.detail)}
+    ></where-template-dialog>
+    <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
+    <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._store}" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
+    <where-space-dialog id="space-dialog" @space-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
   </div>
 </mwc-drawer>
 `;
@@ -880,6 +887,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
         .done-icon-button {
           color: #343434;
+          margin-left: -10px;
         }
 
         .import-icon-button {

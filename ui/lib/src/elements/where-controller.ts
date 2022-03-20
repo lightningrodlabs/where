@@ -9,7 +9,7 @@ import {sharedStyles} from "../sharedStyles";
 import {Dictionary, PieceType, Play, whereContext} from "../types";
 import {WhereStore} from "../where.store";
 import {WhereSpace} from "./where-space";
-import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
+import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
@@ -100,8 +100,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-folks") as WhereFolks;
   }
 
-  get spaceDialogElem() : WhereSpaceDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  get spaceDialogElem() : WherePlayDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WherePlayDialog;
   }
 
 
@@ -564,12 +564,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-template-dialog id="template-dialog" .store="${this._store}" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile.value ? html`` : html`
-      <where-space-dialog id="space-dialog"
+      <where-play-dialog id="space-dialog"
                           .currentProfile=${this._myProfile.value}
                           @play-added=${(e:any) => this.selectPlay(e.detail)}>
-      </where-space-dialog>
+      </where-play-dialog>
     `}
   </div>
 </mwc-drawer>
@@ -590,7 +590,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "mwc-icon": Icon,
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
-      "where-space-dialog" : WhereSpaceDialog,
+      "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,

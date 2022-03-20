@@ -12,6 +12,8 @@ import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
+import {LudothequeStore} from "../ludotheque.store";
+import {property} from "lit/decorators.js";
 
 function isValidXml(input: string) {
   if (input === undefined || input === null) {
@@ -44,8 +46,11 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Dependencies */
-  @contextProvided({ context: whereContext })
-  _store!: WhereStore;
+  //@contextProvided({ context: whereContext })
+  //_store: WhereStore;
+
+  @property()
+  store: WhereStore | LudothequeStore | null = null;
 
   open(templateEh?: EntryHashB64) {
     this._templateToPreload = templateEh;
@@ -81,7 +86,11 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   /** preload fields with current template values */
   loadPreset(templateEh: EntryHashB64) {
-    const templateToPreload = this._store.template(templateEh);
+    if (!this.store) {
+      console.warn("No store available in template-dialog")
+      return;
+    }
+    const templateToPreload = this.store.template(templateEh);
     const surface = JSON.parse(templateToPreload.surface)
 
     this._nameField.value = 'Fork of ' + templateToPreload.name;
@@ -219,8 +228,12 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   private async handleOk(e: any) {
     if (!this.isValid()) return
+    if (!this.store) {
+      console.warn("No store available in template-dialog")
+      return;
+    }
     const template = this.createTemplate()
-    const newTemplateEh = await this._store.addTemplate(template);
+    const newTemplateEh = await this.store.addTemplate(template);
     console.log("newTemplateEh: " + newTemplateEh)
     this.dispatchEvent(new CustomEvent('template-added', { detail: newTemplateEh, bubbles: true, composed: true }));
     // - Clear all fields

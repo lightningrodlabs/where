@@ -16,6 +16,8 @@ import {
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 import {Picker} from "emoji-picker-element";
+import {property} from "lit/decorators.js";
+import {LudothequeStore} from "../ludotheque.store";
 
 /**
  * @element where-emoji-group
@@ -25,10 +27,11 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentUnicodes: string[] = [];
 
   /** Dependencies */
-  @contextProvided({ context: whereContext })
-  _store!: WhereStore;
+  //@contextProvided({ context: whereContext })
+  //_store!: WhereStore;
+  @property()
+  store: WhereStore | LudothequeStore | null = null;
 
-  _groups = new StoreSubscriber(this, () => this._store.emojiGroups);
 
   /** Private properties */
 
@@ -109,8 +112,12 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
   private async handleOk(e: any) {
     if (!this.isValid()) return
+    if (!this.store) {
+      console.warn("No store available in svg-marker-dialog")
+      return;
+    }
     const emojiGroup = this.createEmojiGroup()
-    const newGroupEh = await this._store.addEmojiGroup(emojiGroup);
+    const newGroupEh = await this.store.addEmojiGroup(emojiGroup);
     console.log("newGroupEh: " + newGroupEh)
     this.dispatchEvent(new CustomEvent('emoji-group-added', { detail: newGroupEh, bubbles: true, composed: true }));
     // - Clear all fields
@@ -148,21 +155,6 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    /** Build group list */
-    const groups = Object.entries(this._groups.value).map(
-      ([key, emojiGroup]) => {
-        // if (!emojiGroup.visible) {
-        //   return html ``;
-        // }
-        const currentName = this._currentGroup? this._currentGroup.name : "<none>"
-        return html`
-          <mwc-list-item class="space-li" .selected=${emojiGroup.name == currentName} value="${emojiGroup.name}"
-                          >
-            ${emojiGroup.name}
-          </mwc-list-item>
-          `
-      }
-    )
     // @request-selected=${this.handleGroupSelect(emojiGroup)}
     /** Build emoji list */
     const emojis = Object.entries(this._currentUnicodes).map(
@@ -180,10 +172,6 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
                  style="display: block;"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <!-- Group Combo box
-  <mwc-select outlined id="group-field" label="Existing groups" @closing=${(e:any)=>e.stopPropagation()} @select=${this.handleGroupSelect}>
-    ${groups}
-  </mwc-select>-->
   <!-- Display Unicode List / Grid -->
   <div style="margin:10px 0px 10px 0px;">
     <div class="unicodes-container">

@@ -16,6 +16,8 @@ import {
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
+import {property} from "lit/decorators.js";
+import {LudothequeStore} from "../ludotheque.store";
 
 /**
  * @element where-svg-marker-dialog
@@ -25,10 +27,11 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
   @state() _currentSvg: string = "";
 
   /** Dependencies */
-  @contextProvided({ context: whereContext })
-  _store!: WhereStore;
+  //@contextProvided({ context: whereContext })
+  //_store!: WhereStore;
 
-  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
+  @property()
+  store: WhereStore | LudothequeStore | null = null;
 
   /** Private properties */
 
@@ -96,8 +99,12 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
   private async handleOk(e: any) {
     if (!this.isValid()) return
+    if (!this.store) {
+      console.warn("No store available in svg-marker-dialog")
+      return;
+    }
     const svgMarker = this.createSvgMarker()
-    const newSvgMarkerEh = await this._store.addSvgMarker(svgMarker);
+    const newSvgMarkerEh = await this.store.addSvgMarker(svgMarker);
     console.log("newSvgMarkerEh: " + newSvgMarkerEh)
     this.dispatchEvent(new CustomEvent('svg-marker-added', { detail: newSvgMarkerEh, bubbles: true, composed: true }));
     // - Clear all fields

@@ -1,6 +1,6 @@
 ---
 manifest_version: "1"
-name: where
+name: ludotheque
 description: ~
 roles:
   - id: ludotheque
@@ -12,13 +12,4 @@ roles:
       properties: ~
       uid: ~
       version: ~
-      clone_limit: 0
-  - id: where
-    provisioning:
-      strategy: create
-      deferred: false
-    dna:
-      bundled: "../dna-where/where.dna"
-      uid: ~
-      properties: ~
       clone_limit: 0

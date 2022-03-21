@@ -125,13 +125,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
   render() {
-    console.log("where-app render() - " + this.hasProfile)
+    console.log("where-app render() | " + this.hasProfile)
+    console.log("_canLudotheque: " + this._canLudotheque)
     if (!this.loaded) {
       return html`<span>Loading...</span>`;
     }
     return html`
-        <!--<profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
-            @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>-->
+        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
+            @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
         
             ${this._canLudotheque? html`
                   <ludotheque-controller id="ludo-controller" examples
@@ -145,7 +146,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
                     ></where-controller>`
             }
         
-            <!--</profile-prompt>-->
+            </profile-prompt>
             <!--<where-controller id="controller" dummy></where-controller>-->
 
         <mwc-dialog id="importing-dialog"  heading="Importing Playset" scrimClickAction="" escapeKeyAction="">

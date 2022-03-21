@@ -19,7 +19,7 @@ import {
   Drawer,
   Formfield,
   Icon,
-  IconButton,
+  IconButton, IconButtonToggle,
   List,
   ListItem,
   Menu,
@@ -539,16 +539,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${spaceName}</div>
-      <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button>
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button-toggle>
+        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button> -->
+      <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque}></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_template"><span>Export Template</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_template"><span>Share Template</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_space"><span>Export Space</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_space"><span>Share Space</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
       </mwc-menu>
     </mwc-top-app-bar>
@@ -589,6 +590,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "mwc-list-item": ListItem,
       "mwc-icon": Icon,
       "mwc-icon-button": IconButton,
+      "mwc-icon-button-toggle": IconButtonToggle,
       "mwc-button": Button,
       "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,

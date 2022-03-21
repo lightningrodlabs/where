@@ -123,6 +123,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
 
+  get tabElem(): SlTabGroup {
+    return this.shadowRoot!.getElementById("body-tab-group") as SlTabGroup;
+  }
 
   // get archiveDialogElem() : WhereArchiveDialog {
   //   return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
@@ -381,6 +384,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   private async handlePlaysetDialogClosing(e: any) {
     console.log("handlePlaysetDialogClosing() : " + JSON.stringify(e.detail))
     //const playset = e.detail;
+    this.tabElem.show("spaces");
     this._currentPlayset = e.detail;
     this.drawerElem.open = true;
     this._canCreatePlayset = true;
@@ -393,12 +397,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
    */
   private async commitPlayset() {
     console.log("commitPlayset() : " + JSON.stringify(this._currentPlayset))
-    this._canCreatePlayset = false;
-    this.drawerElem.open = false;
     if (!this._currentPlayset) {
       return;
     }
-
+    // Spaces
     const spaceList = this.shadowRoot!.getElementById("space-list") as List;
     let selectedSpaces = new Array();
     for (const item of spaceList.items) {
@@ -408,8 +410,50 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.spaces = selectedSpaces;
+    // Templates
+    const templateList = this.shadowRoot!.getElementById("template-list") as List;
+    let selectedTemplates = new Array();
+    for (const item of templateList.items) {
+      //console.log({item})
+      if (item.selected) {
+        selectedTemplates.push(item.value)
+      }
+    }
+    this._currentPlayset.templates = selectedTemplates;
+    // SvgMarkers
+    const svgList = this.shadowRoot!.getElementById("svg-marker-list") as List;
+    let selectedSvg = new Array();
+    for (const item of svgList.items) {
+      //console.log({item})
+      if (item.selected) {
+        selectedSvg.push(item.value)
+      }
+    }
+    this._currentPlayset.svgMarkers = selectedSvg;
+    // EmojiGroups
+    const emojiGroupList = this.shadowRoot!.getElementById("emoji-group-list") as List;
+    let selectedGroups = new Array();
+    for (const item of emojiGroupList.items) {
+      //console.log({item})
+      if (item.selected) {
+        selectedGroups.push(item.value)
+      }
+    }
+    this._currentPlayset.emojiGroups = selectedGroups;
+    // Check
+    if (this._currentPlayset.spaces.length == 0
+    && this._currentPlayset.templates.length == 0
+    && this._currentPlayset.svgMarkers.length == 0
+    && this._currentPlayset.emojiGroups.length == 0) {
+      console.warn("No piece added to playset")
+      return;
+    }
+    // Commit
     await this._store.addPlaysetWithCheck(this._currentPlayset!);
+    // Reset
     this.resetCurrentPlayset();
+    this._canCreatePlayset = false;
+    this.drawerElem.open = false;
     this.requestUpdate();
   }
 
@@ -421,6 +465,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this._currentPlayset = null;
     this._canCreatePlayset = false;
     this.drawerElem.open = false;
+    this.requestUpdate();
   }
 
 
@@ -459,13 +504,19 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         return html`
         <sl-card class="card-header">
         <div slot="header">
-          ${playset.name}
-            <sl-icon-button name="pencil-square"></sl-icon-button>
+          <bold>${playset.name}</bold>
+          <mwc-icon-button name="pencil-square"></mwc-icon-button>
         </div>
-          ${playset.description}
+          <div style="margin-left:10px;">
+            ${playset.description}
+            <div style="margin-top:10px;">Spaces: ${playset.spaces.length}</div>
+            <div>   Templates: ${playset.templates.length}</div>
+            <div> SVG Markers: ${playset.svgMarkers.length}</div>
+            <div>Emoji Groups: ${playset.emojiGroups.length}</div>
+          </h4>
           <div slot="footer">
             <sl-rating></sl-rating>
-            <sl-button slot="footer" variant="primary" @click=${(e:any) => this.importPlayset(key)}>Import</sl-button>
+            <mwc-button id="primary-action-button" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>Import</mwc-button>
           </div>
         </sl-card>
         `
@@ -555,7 +606,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     );
     /* Render list */
     return html `
-      <mwc-list id="template-list" class="body-list">
+      <mwc-list multi id="template-list" class="body-list">
         ${items}
       </mwc-list>
     `;
@@ -637,31 +688,30 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
     this.pullWhereInventory();
 
-    let playsetItems = [html``];
-    if (playset) {
-      /** Build playset */
-      playsetItems = Object.values(playset?.spaces).map(spaceEh => {
-          // if (!playset.visible) {
-          //   return html ``;
-          // }
-          // if (key == this._currentPlaysetEh) {
-          //   playsetName = space.name;
-          // }
-          const space = this._store.spaceFromEh(spaceEh)
-          //const template = this._store.template(play.space.origin);
-          return html`
-            <mwc-list-item class="space-li"
-                           multipleGraphics twoline value="${space.name}" graphic="large">
-              <span>${space.name}</span>
-              <span slot="secondary">${space.meta.markerType}</span>
-              <span slot="graphic" style="width:75px;">${renderSurface(space.surface, space.name, 70, 56)}</span>
-              <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
-                <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
-            </mwc-list-item>
-          `
-        }
-      )
-    }
+    // let playsetItems = [html``];
+    // if (playset) {
+    //   /** Build playset */
+    //   playsetItems = Object.values(playset?.spaces).map(spaceEh => {
+    //       // if (!playset.visible) {
+    //       //   return html ``;
+    //       // }
+    //       // if (key == this._currentPlaysetEh) {
+    //       //   playsetName = space.name;
+    //       // }
+    //       const space = this._store.spaceFromEh(spaceEh)
+    //       //const template = this._store.template(play.space.origin);
+    //       return html`
+    //         <mwc-list-item class="space-li" multipleGraphics twoline value="${space.name}" graphic="large">
+    //           <span>${space.name}</span>
+    //           <span slot="secondary">${space.meta.markerType}</span>
+    //           <span slot="graphic" style="width:75px;">${renderSurface(space.surface, space.name, 70, 56)}</span>
+    //           <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
+    //             <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
+    //         </mwc-list-item>
+    //       `
+    //     }
+    //   )
+    // }
     // let cellItems = [html``];
     // playsetItems = Object.values(playset?.spaces).map(spaceEh => {
     //   return html`
@@ -677,13 +727,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   <div>
     <mwc-list>
       <mwc-list-item twoline hasMeta>
-        ${!this._currentPlayset
-          ? html`<span>No playset selected</span>`
-          : html`
-          <span>${this._currentPlayset?.name}</span>
-          <!--<span slot="secondary">${this._currentPlayset?.description}</span>
-          <span slot="meta">${this._currentPlayset?.spaces.length}</span>-->
-        `}
+        <bold>New Playset</bold>
+        <span slot="secondary">${this._currentPlayset?.name}</span>
+        <!--<span slot="secondary">${this._currentPlayset?.description}</span>
+        <span slot="meta">${this._currentPlayset?.spaces.length}</span>-->
       </mwc-list-item>
         <li divider role="separator"></li>
     </mwc-list>
@@ -695,9 +742,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
     </mwc-formfield>
     <mwc-list id="playset-list">
-      ${playsetItems}
+      playsetItems
     </mwc-list>-->
-      <div>
+    <h4 style="margin-top:0px;margin-left:10px;">Description</h4>
+    <div style="margin-left:20px;">
           <!--<div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
       <div>   Templates: ${this._currentPlayset?.templates.length}</div>
       <div> SVG Markers: ${this._currentPlayset?.svgMarkers.length}</div>
@@ -706,8 +754,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         ${this._currentPlayset?.description}
     </div>
     <div id="drawer-button-bar">
-      <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>reset</mwc-button>
-      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>ok</mwc-button>
+      <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>cancel</mwc-button>
+      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>create</mwc-button>
     </div>
   </div>
   <!-- END DRAWER -->
@@ -743,7 +791,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         <sl-tab-panel name="playsets">
           ${this.renderPlaysets()}
         </sl-tab-panel>
-        <sl-tab-panel name="spaces">
+        <sl-tab-panel id="spaces-panel" name="spaces">
           ${this.renderSpaces()}
         </sl-tab-panel>
         <sl-tab-panel name="templates">

@@ -40,6 +40,7 @@ export default async (orchestrator) => {
     let space1 = {
       name: "mountain map",
       origin: "placeholder",
+      maybeMarkerPiece: null,
       /*      dimensionality: {
         type: "orthogonal",
         coords: {x: "integer", y:"integer"},
@@ -74,7 +75,7 @@ export default async (orchestrator) => {
     // Create template
 
     const template1_eh = await alice_where.call(
-      "where",
+      "where_playset",
       "create_template",
       template1
     );
@@ -84,7 +85,7 @@ export default async (orchestrator) => {
 
 
     const templates = await alice_where.call(
-      "where",
+      "where_playset",
       "get_templates",
       null
     );
@@ -95,7 +96,7 @@ export default async (orchestrator) => {
     space1.origin = template1_eh;
 
     const space1_eh = await alice_where.call(
-      "where",
+      "where_playset",
       "create_space",
       space1
     );
@@ -103,7 +104,7 @@ export default async (orchestrator) => {
     console.log("space1_hash", space1_eh);
     g_space1_eh = space1_eh
 
-    const spaces = await alice_where.call("where", "get_spaces", null);
+    const spaces = await alice_where.call("where_playset", "get_spaces", null);
     console.log(spaces);
     t.deepEqual(spaces, [{ hash: space1_eh, content: space1 }]);
 

@@ -25,7 +25,7 @@ jobs:
         continue-on-error: true
         run: |
           tsc --version
-        working-directory: dna/workdir/happ
+        working-directory: dna/workdir/happ-where
       # Setup npm
       - name: Install nodejs dependencies
         run: |

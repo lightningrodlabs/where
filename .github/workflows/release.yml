@@ -37,12 +37,12 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: where-dna-artifact
-          path: dna/workdir/dna/where.dna
+          path: dna/workdir/dna-where/where.dna
       # "upload" happ as build artifact
       - uses: actions/upload-artifact@master
         with:
           name: where-happ-artifact
-          path: dna/workdir/happ/where.happ
+          path: dna/workdir/happ-where/where.happ
       # Setup npm
       - name: Install nodejs dependencies
         run: |
@@ -79,17 +79,17 @@ jobs:
       - name: clearing precompiled dna files
         continue-on-error: true
         run: |
-          rm dna/workdir/dna/where.dna
-          rm dna/workdir/happ/where.happ
+          rm dna/workdir/dna-where/where.dna
+          rm dna/workdir/happ-where/where.happ
       # Download previously uploaded artifacts
       - uses: actions/download-artifact@master
         with:
           name: where-dna-artifact
-          path: dna/workdir/dna
+          path: dna/workdir/dna-where
       - uses: actions/download-artifact@master
         with:
           name: where-happ-artifact
-          path: dna/workdir/happ
+          path: dna/workdir/happ-where
       - uses: actions/download-artifact@master
         with:
           name: where-webapp-artifact
@@ -140,7 +140,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${GITHUB_REF#refs/tags/}"  "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ/where.happ" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ-where/where.happ" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}"  "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}

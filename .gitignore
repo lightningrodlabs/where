@@ -10,8 +10,8 @@ node_modules/
 dist/
 .cargo/
 .hc*
-dna/workdir/dna/*.dna
-dna/workdir/happ/*.happ
+dna/workdir/dna*/*.dna
+dna/workdir/happ*/*.happ
 workdir/*.webhapp
 *.tsbuildinfo
 .running

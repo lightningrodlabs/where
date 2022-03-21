@@ -8,8 +8,8 @@
 # ensure all necessary binaries are packaged in the app
 rm -rf electron/binaries
 mkdir electron/binaries
-cp dna/workdir/dna/where.dna electron/binaries/where.dna
-cp dna/workdir/happ/where.happ electron/binaries/where.happ
+cp dna/workdir/dna-where/where.dna electron/binaries/where.dna
+cp dna/workdir/happ-where/where.happ electron/binaries/where.happ
 bash scripts/copy-binaries.sh
 
 # ui

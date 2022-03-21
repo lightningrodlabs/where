@@ -95,7 +95,7 @@ export const networkedConductorConfig = Config.gen({ network })
 
 
 // Construct proper paths for your DNAs
-export const chatDna = path.join(__dirname, "../../dna/workdir/dna/where.dna")
+export const chatDna = path.join(__dirname, "../../dna/workdir/dna-where/where.dna")
 
 // create an InstallAgentsHapps array with your DNAs to tell tryorama what
 // to install into the conductor.

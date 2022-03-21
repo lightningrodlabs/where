@@ -5,9 +5,9 @@
     "build": "tsc",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
     "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "package": "rm -rf ludotheque-ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd ./dist && cp * ../../../../electron/web && bestzip ../ludotheque-ui.zip *"
+    "package": "rm -rf ludotheque-ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd ./dist && bestzip ../ludotheque-ui.zip *"
   },
-  "devDependencies": {
+  "devDependencies":
     "@babel/preset-env": "^7.15.0",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "18.0.0",

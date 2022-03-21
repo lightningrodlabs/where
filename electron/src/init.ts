@@ -99,6 +99,8 @@ export function initApp() {
 
 
 export function addUidToDisk(newUid: string, sessionDataPath: string): boolean {
+  //log('info','addUidToDisk(): ' + newUid);
+  //log('info','addUidToDisk() sessionDataPath = ' + sessionDataPath);
   let uidListPath = path.join(sessionDataPath, UID_LIST_FILENAME);
   try {
     fs.appendFileSync(uidListPath, newUid + '\n');

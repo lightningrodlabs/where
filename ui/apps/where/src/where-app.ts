@@ -140,9 +140,9 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
                                          @import-playset="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-controller>`
-              : html`<where-controller dummy
-                                       .ludoCellId=${this._ludoCellId}
-                                       @show-ludotheque="${() => this._canLudotheque = true}"
+              : html`<where-controller                                       
+                .ludoCellId=${this._ludoCellId}
+                @show-ludotheque="${() => this._canLudotheque = true}"
                     ></where-controller>`
             }
         

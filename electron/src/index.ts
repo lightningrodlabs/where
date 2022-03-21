@@ -247,7 +247,7 @@ app.on('ready', async () => {
   /** Load user settings */
   g_userSettings = loadUserSettings(1920, 1080);
   /** init app */
-  const {sessionDataPath, uidList } = initApp();
+  const { sessionDataPath, uidList } = initApp();
   g_sessionDataPath = sessionDataPath
   g_uidList = uidList
   /** Determine starting UID */
@@ -455,7 +455,9 @@ async function promptUid(canExitOnCancel: boolean) {
       app.quit();
     }
   } else {
-    const succeeded = addUidToDisk(r, g_sessionDataPath);
+    const sessionPath = path.join(g_sessionDataPath, "../")
+    const succeeded = addUidToDisk(r, sessionPath);
+    //log('info', "promptUid() succeeded = " + succeeded)
     if (succeeded) {
       g_uid = r
       g_uidList.push(r)

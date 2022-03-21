@@ -5,11 +5,10 @@ import {
   triangle_template_svg,
   tvstatic_template_canvas
 } from "./templates";
-import {MarkerType} from "./types";
-import {WhereStore} from "./where.store";
+import {HoloHashed, MarkerType, SpaceEntry} from "./types";
 import {LudothequeStore} from "./ludotheque.store";
 
-export async function addHardcodedSpaces(store: LudothequeStore) {
+export async function addExamplePieces(store: LudothequeStore) {
   /** Templates */
   console.log("Templates...")
   const mapEh = await store.addTemplate({
@@ -75,9 +74,14 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
   });
 
 
+
+
   /** Spaces */
+
+  let spaceList: Array<HoloHashed<SpaceEntry>> = new Array();
+
   console.log("Spaces...")
-  await store.newSpace({
+  const equador = {
     name: "Ecuador",
     origin: mapEh,
     surface: {
@@ -91,9 +95,12 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       multi: true, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg"]]),
     }
-  });
+  };
+  const equadorEh = await store.newSpace(equador);
+  spaceList.push({hash: equadorEh, content: store.spaceIntoEntry(equador)})
 
-  await store.newSpace({
+
+  const earth = {
     name:"earth",
     origin: mapEh,
     surface: {
@@ -108,10 +115,12 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       subMap: new Map([["ImageUrl","https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg"]]),
       ui: [{box:{left:450,top:320,width:100,height:20},style:"padding:10px;background-color:#ffffffb8;border-radius: 10px;",content:"Place of Birth"}]
     }
-  });
+  };
+  const earthEh = await store.newSpace(earth);
+  spaceList.push({hash: earthEh, content: store.spaceIntoEntry(earth)})
 
 
-  await store.newSpace({
+  const abstract = {
     name:"Abstract",
     origin:boxEh,
     surface:{
@@ -124,10 +133,11 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       subMap: new Map([["style","background-image:linear-gradient(to bottom right, red, yellow);"]]),
       ui: [{box:{left:200,top:200,width:200,height:200},style:"background-image: linear-gradient(to bottom right, blue, red);",content:""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}],
       multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
-    }}
-  );
+    }};
+  const abstractEh = await store.newSpace(abstract);
+  spaceList.push({hash: abstractEh, content: store.spaceIntoEntry(abstract)})
 
-  await store.newSpace({
+  const zodiac = {
     name:"Zodiac",
     origin:mapEh,
     surface:{
@@ -140,12 +150,13 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       markerType: MarkerType.Avatar, singleEmoji: "",
       multi: false, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg"]])
-    }}
-  );
+    }};
+  const zodiacEh = await store.newSpace(zodiac);
+  spaceList.push({hash: zodiacEh, content: store.spaceIntoEntry(zodiac)})
 
   let subMap = new Map([["param1","Cost"], ["param2","Quality"], ["param3","Time"]]) as Map<string, string>;
 
-  await store.newSpace({
+  const triangle = {
     name:"Project Triangle",
     origin:triangleEh,
     surface:{
@@ -158,11 +169,12 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       markerType: MarkerType.SingleEmoji, singleEmoji: "💥",
       multi: false, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
-    }}
-  );
+    }};
+  const projectEh = await store.newSpace(triangle);
+  spaceList.push({hash: projectEh, content: store.spaceIntoEntry(triangle)})
 
   subMap = new Map([["ImageUrl","https://i1.wp.com/www.pedrosolorzano.com/wp-content/uploads/2019/08/blobtreepedro.jpg"]]) as Map<string, string>;
-  await store.newSpace({
+  const blob = {
     name: "Blob Tree",
     origin: mapEh,
     surface: {
@@ -176,11 +188,12 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       markerType: MarkerType.EmojiGroup, singleEmoji: "",
       multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap,
-    }}
-  );
+    }};
+  const blobEh = await store.newSpace(blob);
+  spaceList.push({hash: blobEh, content: store.spaceIntoEntry(blob)})
 
   subMap = new Map([["ImageUrl","https://upload.wikimedia.org/wikipedia/commons/2/2c/Johari_Window.PNG"]]) as Map<string, string>;
-  await store.newSpace({
+  const johari = {
     name: "Johari Window",
     origin: mapEh,
     surface: {
@@ -194,11 +207,12 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       multi: true, canTag: true, tagVisible: true, tagAsMarker: true,
       predefinedTags: ["able", "accepting", "caring", "dignified", "happy", "introverted", "modest", "silly"],
       subMap,
-    }}
-  );
+    }};
+  const johariEh = await store.newSpace(johari);
+  spaceList.push({hash: johariEh, content: store.spaceIntoEntry(johari)})
 
   subMap = new Map([["pixel-size","6"]]) as Map<string, string>;
-  await store.newSpace({
+  const canvas = {
     name: "Canvas Sample",
     origin: canvasEh,
     surface: {
@@ -212,8 +226,12 @@ export async function addHardcodedSpaces(store: LudothequeStore) {
       markerType: MarkerType.SvgMarker, singleEmoji: "",
       multi: true, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
-    }}
-  );
+    }};
+  const canvasSpaceEh = await store.newSpace(canvas);
+  spaceList.push({hash: canvasSpaceEh, content: store.spaceIntoEntry(canvas)})
 
-  console.log("examples - DONE")
+  /** Playset */
+  const playsetEh = await store.newPlayset("Demo Example", spaceList);
+
+  console.log("examples - DONE | " + playsetEh)
 }

@@ -40,7 +40,7 @@ import {
 } from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
-import {addHardcodedSpaces} from "../examples";
+import {addExamplePieces} from "../examples";
 import {LudothequeStore} from "../ludotheque.store";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId} from "@holochain/client/lib/types/common";
@@ -216,8 +216,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
     /** load initial plays & templates if there are none */
     if (this.canLoadExamples && Object.keys(playsets).length == 0) {
-      await addHardcodedSpaces(this._store);
-      console.log("addHardcodedSpaces() - DONE");
+      await addExamplePieces(this._store);
+      console.log("addExamplePieces() - DONE");
     }
     // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
     //   console.warn("No plays or templates found")

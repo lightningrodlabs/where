@@ -366,6 +366,9 @@ export class LudothequeStore {
     return spaceEh;
   }
 
+  spaceIntoEntry(space: Space): SpaceEntry {
+    return this.service.spaceIntoEntry(space);
+  }
 
   /**
    *

@@ -116,7 +116,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
   get drawerElem() : Drawer {
-    return this.shadowRoot!.getElementById("my-drawer") as Drawer;
+    return this.shadowRoot!.getElementById("playset-drawer") as Drawer;
   }
 
   get spaceElem(): WhereSpace {
@@ -245,7 +245,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     /** Menu */
     const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
     const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
-    menu.anchor = button
+    if (menu && button) {
+      menu.anchor = button
+    }
   }
 
 
@@ -727,7 +729,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
     return html`
 <!--  DRAWER -->
-<mwc-drawer type="dismissible" id="my-drawer">
+<mwc-drawer type="dismissible" id="playset-drawer">
   <div>
     <mwc-list>
       <mwc-list-item twoline hasMeta>
@@ -954,7 +956,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
           /*margin-top: -15px;*/
         }
 
-        #my-drawer {
+        #playset-drawer {
           margin-top: -20px;
         }
 

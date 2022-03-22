@@ -74,6 +74,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private _initialized: boolean = false;
   private _initializing: boolean = false;
+  private _canPostInit: boolean = false;
 
 
   get drawerElem() : Drawer {
@@ -197,10 +198,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** After each render */
   async updated(changedProperties: any) {
-    /** Menu */
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
-    menu.anchor = button
+    if (this._canPostInit) {
+      this.postInit();
+    }
     // look for canvas in plays and render them
     for (let spaceEh in this._plays.value) {
       let play: Play = this._plays.value[spaceEh];
@@ -255,34 +255,29 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const templates = this._templates.value;
     console.log({plays})
     console.log({templates})
-
-    /** load initial plays & templates if there are none */
-    // FIXME
-    // if (this.canLoadExamples && Object.keys(templates).length == 0) {
-    //   await addExamplePieces(this._store);
-    //   console.log("addExamplePieces() - DONE");
-    // }
-
-    // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
-    //   console.warn("No plays or templates found")
-    // }
-
-    /** Drawer */
-    if (this.drawerElem) {
-      const container = this.drawerElem.parentNode!;
-      container.addEventListener('MDCTopAppBar:nav', () => {
-        this.drawerElem.open = !this.drawerElem.open;
-        const margin = this.drawerElem.open? '256px' : '0px';
-        const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
-        menuButton.style.marginRight = margin;
-        this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
-      });
-    }
     /** Done */
     this._initialized = true
     this._initializing = false
+    this._canPostInit = true;
     this.requestUpdate();
     console.log("where-controller.init() - DONE");
+  }
+
+  private postInit() {
+    /** Menu */
+    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
+    menu.anchor = button
+    /** Drawer */
+    const container = this.drawerElem.parentNode!;
+    container.addEventListener('MDCTopAppBar:nav', () => {
+      this.drawerElem.open = !this.drawerElem.open;
+      const margin = this.drawerElem.open? '256px' : '0px';
+      const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
+      menuButton.style.marginRight = margin;
+      this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
+    });
+    this._canPostInit = false;
   }
 
 

@@ -236,6 +236,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     /** Done */
     this._initialized = true
     this._initializing = false
+    this.requestUpdate();
     console.log("ludotheque-controller.init() - DONE");
   }
 
@@ -685,8 +686,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
-
     this.pullWhereInventory();
+
+    if (!this._initialized) {
+      return html`<span>Loading...</span>`;
+    }
 
     // let playsetItems = [html``];
     // if (playset) {
@@ -764,7 +768,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">Ludothèque</div>
+      <div slot="title">Library</div>
 
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
       <mwc-menu id="add-menu" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>

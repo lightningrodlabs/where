@@ -197,6 +197,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** After each render */
   async updated(changedProperties: any) {
+    /** Menu */
+    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
+    menu.anchor = button
     // look for canvas in plays and render them
     for (let spaceEh in this._plays.value) {
       let play: Play = this._plays.value[spaceEh];
@@ -274,13 +278,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
       });
     }
-    /** Menu */
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
-    menu.anchor = button
     /** Done */
     this._initialized = true
     this._initializing = false
+    this.requestUpdate();
     console.log("where-controller.init() - DONE");
   }
 
@@ -477,7 +478,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
-    console.log("where-controller render() - " + this._currentSpaceEh)
+    console.log("where-controller render() - " + this._currentSpaceEh);
+    if (!this._initialized) {
+      return html`<span>Loading...</span>`;
+    }
+
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }

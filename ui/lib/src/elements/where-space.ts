@@ -76,12 +76,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
-  _plays = new StoreSubscriber(this, () => this._store.plays);
-  _zooms = new StoreSubscriber(this, () => this._store.zooms);
-  _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
-  _currentSessions = new StoreSubscriber(this, () => this._store.currentSessions);
+  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
+  _plays = new StoreSubscriber(this, () => this._store?.plays);
+  _zooms = new StoreSubscriber(this, () => this._store?.zooms);
+  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
+  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
+  _currentSessions = new StoreSubscriber(this, () => this._store?.currentSessions);
 
   private dialogCoord = { x: 0, y: 0 };
   private dialogCanEdit = false;

@@ -29,7 +29,7 @@ import {
   TextField,
   TopAppBar,
 } from "@scoped-elements/material-web";
-import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
+import {ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
@@ -53,16 +53,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: whereContext })
-  _store!: WhereStore;
-
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
-  _plays = new StoreSubscriber(this, () => this._store.plays);
-  _templates = new StoreSubscriber(this, () => this._store.templates);
+  @contextProvided({ context: whereContext })
+  _store!: WhereStore;
+
+  _plays = new StoreSubscriber(this, () => this._store?.plays);
+  _templates = new StoreSubscriber(this, () => this._store?.templates);
+  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
+  _knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
 
   @state() _canShowFolks: boolean = true;
   @state() _neighborWidth: number = 150;

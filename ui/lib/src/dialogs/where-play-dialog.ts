@@ -55,9 +55,9 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: whereContext })
   _store!: WhereStore;
 
-  _templates = new StoreSubscriber(this, () => this._store.templates);
-  _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
+  _templates = new StoreSubscriber(this, () => this._store?.templates);
+  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
+  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
 
   /** Private properties */
   @state() _currentTemplate: null | TemplateEntry = null;

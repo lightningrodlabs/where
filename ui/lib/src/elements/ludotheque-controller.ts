@@ -73,11 +73,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   _store!: LudothequeStore;
 
 
-  _playsets = new StoreSubscriber(this, () => this._store.playsets);
-  _spaces = new StoreSubscriber(this, () => this._store.spaces);
-  _templates = new StoreSubscriber(this, () => this._store.templates);
-  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
-  _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
+  _playsets = new StoreSubscriber(this, () => this._store?.playsets);
+  _spaces = new StoreSubscriber(this, () => this._store?.spaces);
+  _templates = new StoreSubscriber(this, () => this._store?.templates);
+  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
+  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
 
 
   /** Private properties */

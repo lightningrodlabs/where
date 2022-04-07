@@ -1,4 +1,4 @@
-import {ContextProvider} from "@holochain-open-dev/context";
+import {ContextProvider, provide} from "@holochain-open-dev/context";
 import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 import {
@@ -86,13 +86,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const ludoClient = hcClient.forCell(ludo_cell!);
     console.log({ludoClient})
 
-    // Send dnaHash to electron
+    /** Send dnaHash to electron */
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
       const dnaHashB64 = serializeHash(whereClient.cellId[0])
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
+    /** ProfilesStore */
     const profilesStore = new ProfilesStore(whereClient, {
       //additionalFields: ['color'],
       avatarMode: "avatar"
@@ -104,30 +105,40 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     if (me) {
       this.hasProfile = true;
     }
-
-    this._ludoStore = new LudothequeStore(hcClient)
-
-    new ContextProvider(this, ludothequeContext, this._ludoStore);
-
     new ContextProvider(this, profilesStoreContext, profilesStore);
 
-    this._whereStore = new WhereStore(hcClient, profilesStore);
+    /** LudothequeStore */
+    this._ludoStore = new LudothequeStore(hcClient)
+    new ContextProvider(this, ludothequeContext, this._ludoStore);
 
+
+    /** WhereStore */
+    this._whereStore = new WhereStore(hcClient, profilesStore);
     new ContextProvider(this, whereContext, this._whereStore);
 
     this.loaded = true;
   }
 
+
+  /**
+   *
+   */
   onNewProfile(profile: Profile) {
     console.log({profile})
     this.hasProfile = true;
     this.requestUpdate();
   }
 
+
+  /**
+   *
+   */
   render() {
-    console.log("where-app render() | " + this.hasProfile)
+    console.log("where-app render() || " + this.hasProfile)
     console.log("_canLudotheque: " + this._canLudotheque)
+
     if (!this.loaded) {
+      console.log("where-app render() => Loading...");
       return html`<span>Loading...</span>`;
     }
     return html`

@@ -30,7 +30,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Private properties */
-  _plays = new StoreSubscriber(this, () => this._store.plays);
+  _plays = new StoreSubscriber(this, () => this._store?.plays);
 
   @query('#space-list')
   _spaceList!: List;

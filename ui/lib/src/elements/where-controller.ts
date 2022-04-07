@@ -478,6 +478,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return html`<span>Loading...</span>`;
     }
 
+    //var userLang = navigator.language
+    //console.log({userLang})
+
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }

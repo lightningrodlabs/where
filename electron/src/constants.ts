@@ -12,6 +12,8 @@ export const COMMUNITY_PROXY_URL =
   'kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--'
 
 /** App consts */
+export const DNA_VERSION_FILENAME = "dna_version.txt";
+export const RUNNING_ZOME_HASH_FILEPATH = 'dna/where_zome_hash.txt';
 export const MAIN_APP_ID = 'main-app'
 export const APP_DATA_PATH = IS_DEBUG
   ? path.join(__dirname, '../../.dev-app-data')

@@ -1,0 +1,56 @@
+name: build-dna
+
+on:
+  workflow_call:
+
+jobs:
+  build-dna:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # install hc tool
+      - name: Install hc tool and wasm target
+        shell: bash # important because this runs shell scripts
+        run: |
+          npm run ci:hc-install
+      # build dna
+      - name: Build DNA
+        run: |
+          npm run build:happ
+      # Hash Zome
+      - name: Hash Zome Install
+        run: |
+          npm run hash-zome-install
+      - name: Hash Zome Install
+        run: |
+          npm run hash-zome
+      # "upload" dna build artifacts
+      - uses: actions/upload-artifact@master
+        with:
+          name: where-dna-artifact
+          path: dna/workdir/dna-where/where.dna
+      - uses: actions/upload-artifact@master
+        with:
+          name: where-happ-artifact
+          path: dna/workdir/happ-where/where.happ
+      - uses: actions/upload-artifact@master
+        with:
+          name: where-hash-artifact
+          path: dna/where_zome_hash.txt
+      # Setup npm
+      - name: Install nodejs dependencies
+        run: |
+          npm install where --ignore-scripts
+      # Build happ
+      - name: Build happ
+        run: |
+          npm run build:ui
+      # Build web-happ
+      - name: Build web-happ
+        run: |
+          npm run build:webapp
+      # "upload" web-happ as build artifact
+      - uses: actions/upload-artifact@master
+        with:
+          name: where-webapp-artifact
+          path: workdir/where.webhapp

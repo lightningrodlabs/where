@@ -7,8 +7,13 @@ env:
   USE_HARD_LINKS: false
 
 jobs:
+  # Build the dna & happ
+  call-build-dna:
+    uses: ./.github/workflows/build-dna.yml
+
   # upload the app package for each target os
   build-binaries:
+    needs: call-build-dna
     strategy:
       fail-fast: false
       matrix:
@@ -50,7 +55,7 @@ jobs:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #        run: |
 #          npm run dist-linux
-#          gh release upload "v0.0.8-rc6" "electron/out/where-$WHERE_VERSION.tar.gz" --clobber
+#          gh release upload "manual-release" "electron/out/where-$WHERE_VERSION.tar.gz" --clobber
       # upload installers and binaries
       - name: list builds
         continue-on-error: true
@@ -69,16 +74,16 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "v0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
+          gh release upload "manual-release" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "v0.0.8-rc6" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
+          gh release upload "manual-release" "electron/out/Where-$WHERE_VERSION.dmg" --clobber
       - name: upload binary (Windows only)
         if: ${{ runner.os == 'Windows' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "v0.0.8-rc6" "electron/out/Where.Setup.$env:WHERE_VERSION.exe" --clobber
+          gh release upload "manual-release" "electron/out/Where.Setup.$env:WHERE_VERSION.exe" --clobber

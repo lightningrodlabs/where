@@ -35,6 +35,8 @@
     "clean:hc"              : "rm -rf .hc*",
     "playground"            : "run-singleton \"holochain-playground\"",
     "ci:hc-install"         : "bash scripts/install-hc-tools.sh",
+    "hash-zome-install"     : "bash scripts/download-hash-zome.sh",
+    "hash-zome"             : "bash scripts/write-zome-hash.sh",
     "dist"                  : "cd electron && npm run tsc && npm run dist",
     "dist-linux"            : "cd electron && npm run tsc && npm run dist-linux",
     "ci:tsc"                : "tsc --version",

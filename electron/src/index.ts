@@ -247,9 +247,11 @@ app.on('ready', async () => {
   /** Load user settings */
   g_userSettings = loadUserSettings(1920, 1080);
   /** init app */
-  const { sessionDataPath, uidList } = initApp();
-  g_sessionDataPath = sessionDataPath
-  g_uidList = uidList
+  {
+    const {sessionDataPath, uidList} = initApp();
+    g_sessionDataPath = sessionDataPath
+    g_uidList = uidList
+  }
   /** Determine starting UID */
   const maybeUid = g_userSettings.get("lastUid")
   const hasUid = maybeUid? g_uidList.includes(maybeUid): false;

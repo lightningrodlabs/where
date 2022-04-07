@@ -20,50 +20,13 @@ jobs:
           # (required)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-dna:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # install hc tool
-      - name: Install hc tool and wasm target
-        shell: bash # important because this runs shell scripts
-        run: |
-          npm run ci:hc-install
-      # build dna
-      - name: Build DNA
-        run: |
-          npm run build:happ
-      # "upload" dna as build artifact
-      - uses: actions/upload-artifact@master
-        with:
-          name: where-dna-artifact
-          path: dna/workdir/dna-where/where.dna
-      # "upload" happ as build artifact
-      - uses: actions/upload-artifact@master
-        with:
-          name: where-happ-artifact
-          path: dna/workdir/happ-where/where.happ
-      # Setup npm
-      - name: Install nodejs dependencies
-        run: |
-          npm install where --ignore-scripts
-      # Build happ
-      - name: Build happ
-        run: |
-          npm run build:ui
-      # Build web-happ
-      - name: Build web-happ
-        run: |
-          npm run build:webapp
-      # "upload" web-happ as build artifact
-      - uses: actions/upload-artifact@master
-        with:
-          name: where-webapp-artifact
-          path: workdir/where.webhapp
+  # Build the dna & happ
+  call-build-dna:
+    uses: ./.github/workflows/build-dna.yml
 
   # upload the app package for each target os
   build-binaries:
-    needs: build-dna
+    needs: call-build-dna
     strategy:
       #fail-fast: false
       matrix:
@@ -93,6 +56,10 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-webapp-artifact
+          path: workdir
+      - uses: actions/download-artifact@master
+        with:
+          name: where-hash-artifact
           path: workdir
       # Check if exist
       - name: list webhapp

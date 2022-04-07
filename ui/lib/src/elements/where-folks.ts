@@ -21,6 +21,7 @@ import {
 } from "@holochain-open-dev/profiles";
 import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH} from "../sharedRender";
+import {g_stringStore} from "../stringStore";
 
 
 /**
@@ -147,7 +148,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       <!-- <mwc-toggle mini id="toggle-other-fab" onIcon="location_on"  offIcon="location_off" style=""></mwc-toggle> -->
       <!-- <mwc-toggle mini id="toggle-view-fab" onIcon="visibility" offIcon="visibility_off" style="" @click=${() => this.toggleView()}></mwc-toggle> -->
       <!-- <mwc-textfield id="filter-field" outlined icon="search" class="rounded" style="width: 180px" @input=${() =>this.requestUpdate()}></mwc-textfield> -->
-      <sl-input id="filter-field" placeholder="filter" clearable size="small" pill @input=${() =>this.requestUpdate()} @sl-clear=${() =>this.requestUpdate()}>
+      <sl-input id="filter-field" placeholder=${g_stringStore.get("filter")} clearable size="small" pill @input=${() =>this.requestUpdate()} @sl-clear=${() =>this.requestUpdate()}>
         <mwc-icon style="color:gray;" slot="prefix">search</mwc-icon>
       </sl-input>
       <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch>

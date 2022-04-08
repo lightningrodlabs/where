@@ -19,7 +19,7 @@ import initAgent, {
   APP_PORT_EVENT,
   ERROR_EVENT,
   HOLOCHAIN_RUNNER_QUIT,
-  LAIR_KEYSTORE_QUIT
+  LAIR_KEYSTORE_QUIT,
 } from 'electron-holochain'
 
 import {

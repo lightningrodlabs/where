@@ -1,17 +1,42 @@
 // TODO: add globally available interfaces for your elements
 
-import { AgentPubKeyB64, HeaderHashB64, EntryHashB64 } from "@holochain-open-dev/core-types";
+import {AgentPubKeyB64, HeaderHashB64, EntryHashB64, HoloHashB64} from "@holochain-open-dev/core-types";
 import { createContext, Context } from "@holochain-open-dev/context";
 import { WhereStore } from "./where.store";
+import {LudothequeStore} from "./ludotheque.store";
 
-export const whereContext : Context<WhereStore> = createContext('hc_zome_where/service');
+export const whereContext : Context<WhereStore> = createContext('where/service');
+
+export const ludothequeContext : Context<LudothequeStore> = createContext('where/service');
 
 export type Dictionary<T> = { [key: string]: T };
 
 export interface HoloHashed<T> {
-  hash: string;
+  hash: HoloHashB64;
   content: T;
 }
+
+export enum PieceType {
+  Template = 'template',
+  Space = 'space',
+  SvgMarker = 'SvgMarker',
+  EmojiGroup = 'EmojiGroup'
+}
+
+export interface Inventory {
+  templates: EntryHashB64[];
+  svgMarkers: EntryHashB64[];
+  emojiGroups: EntryHashB64[];
+  spaces: EntryHashB64[];
+}
+
+export function count_inventory(inventory: Inventory): number {
+  return inventory.templates.length
+  + inventory.spaces.length
+  + inventory.svgMarkers.length
+  + inventory.emojiGroups.length;
+}
+
 
 /** A 'Location' is a deserialized 'Here' with a {x,y} object as value */
 
@@ -77,10 +102,15 @@ export interface PlacementSessionEntry {
   spaceEh: EntryHashB64,
 }
 
+export type SvgMarkerVariant = {svg: EntryHashB64}
+export type EmojiGroupVariant = {emojiGroup: EntryHashB64}
+export type MarkerPiece = SvgMarkerVariant | EmojiGroupVariant
+
 export interface SpaceEntry {
   name: string;
   origin: EntryHashB64;
   surface: string;
+  maybeMarkerPiece?: MarkerPiece;
   meta?: Dictionary<string>;
 }
 
@@ -88,6 +118,7 @@ export interface Space {
   name: string;
   origin: EntryHashB64;
   surface: any;
+  maybeMarkerPiece?: MarkerPiece;
   meta: PlayMeta;
 }
 
@@ -98,14 +129,20 @@ export interface Play {
 }
 
 
+// export interface SpaceMeta {
+//   ui: UiItem[],
+//   subMap: Map<string, string>,
+// }
+
+
 export interface PlayMeta {
   ui: UiItem[],
   subMap: Map<string, string>,
   // Marker
   markerType: MarkerType,
   singleEmoji: string,
-  emojiGroup: EntryHashB64 | null,
-  svgMarker: EntryHashB64 | null,
+  //emojiGroup: EntryHashB64 | null,
+  //svgMarker: EntryHashB64 | null,
   // Tag
   multi: boolean,
   canTag: boolean,
@@ -116,6 +153,15 @@ export interface PlayMeta {
   sessionCount: number,
   canModifyPast: boolean,
   sessionLabels: string[],
+}
+
+export interface PlaysetEntry {
+  name: string;
+  description: string;
+  templates: EntryHashB64[];
+  svgMarkers: EntryHashB64[];
+  emojiGroups: EntryHashB64[];
+  spaces: EntryHashB64[];
 }
 
 
@@ -136,9 +182,9 @@ export interface UiBox {
 export enum MarkerType {
   AnyEmoji,
   Avatar,
-  SvgMarker,
   Initials,
   SingleEmoji,
+  SvgMarker,
   EmojiGroup,
   Tag,
 }
@@ -179,16 +225,16 @@ export type Signal =
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, HeaderHashB64]}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: SpaceEntry}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: EntryHashB64}
 }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: [EntryHashB64, TemplateEntry]}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewTemplate", content: EntryHashB64}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: [EntryHashB64, EmojiGroupEntry]}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewEmojiGroup", content: EntryHashB64}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: [EntryHashB64, SvgMarkerEntry] }
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: { type: "NewSvgMarker", content: EntryHashB64 }
   }
 
 
@@ -200,8 +246,8 @@ export function defaultPlayMeta(): PlayMeta {
     markerType: MarkerType.Avatar,
     multi: false,
     singleEmoji: "😀",
-    emojiGroup: null,
-    svgMarker: null,
+    //emojiGroup: null,
+    //svgMarker: null,
     // Tag
     canTag: false,
     tagVisible: false,

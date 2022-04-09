@@ -1,34 +1,40 @@
-import { html, css, LitElement } from "lit";
-import { state, property } from "lit/decorators.js";
+import {css, html, LitElement} from "lit";
+import {property, state} from "lit/decorators.js";
 
-import { contextProvided } from "@holochain-open-dev/context";
-import { StoreSubscriber } from "lit-svelte-stores";
+import {contextProvided} from "@holochain-open-dev/context";
+import {StoreSubscriber} from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
-import { sharedStyles } from "../sharedStyles";
-import {whereContext, Play, Dictionary} from "../types";
-import { WhereStore } from "../where.store";
-import { WhereSpace } from "./where-space";
-import { WhereSpaceDialog } from "../dialogs/where-space-dialog";
-import { WhereTemplateDialog } from "../dialogs/where-template-dialog";
-import { WhereArchiveDialog } from "../dialogs/where-archive-dialog";
+import {sharedStyles} from "../sharedStyles";
+import {Dictionary, PieceType, Play, whereContext} from "../types";
+import {WhereStore} from "../where.store";
+import {WhereSpace} from "./where-space";
+import {WherePlayDialog} from "../dialogs/where-play-dialog";
+import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
+import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
+  Button,
+  Drawer,
+  Formfield,
+  Icon,
+  IconButton, IconButtonToggle,
+  List,
   ListItem,
+  Menu,
   Select,
-  IconButton,
-  Button, TextField, TopAppBar, Drawer, List, Icon, Switch, Formfield, Slider, Menu,
+  Slider,
+  Switch,
+  TextField,
+  TopAppBar,
 } from "@scoped-elements/material-web";
-import {
-  profilesStoreContext,
-  ProfilesStore,
-} from "@holochain-open-dev/profiles";
+import {ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
-import {addHardcodedSpaces} from "../examples";
 import {WhereFolks} from "./where-folks";
+import {CellId} from "@holochain/client/lib/types/common";
 
 /**
  * @element where-controller
@@ -42,21 +48,21 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean, attribute: 'dummy' })
   canLoadDummy: boolean = false;
 
-  @property({ type: Boolean, attribute: 'examples' })
-  canLoadExamples: boolean = false;
+  @property()
+  ludoCellId: CellId | null = null;
 
   /** Dependencies */
-
-  @contextProvided({ context: whereContext })
-  _store!: WhereStore;
 
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles.knownProfiles);
-  _plays = new StoreSubscriber(this, () => this._store.plays);
-  _templates = new StoreSubscriber(this, () => this._store.templates);
+  @contextProvided({ context: whereContext })
+  _store!: WhereStore;
+
+  _plays = new StoreSubscriber(this, () => this._store?.plays);
+  _templates = new StoreSubscriber(this, () => this._store?.templates);
+  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
+  _knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
 
   @state() _canShowFolks: boolean = true;
   @state() _neighborWidth: number = 150;
@@ -68,6 +74,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   private _initialized: boolean = false;
   private _initializing: boolean = false;
+  private _canPostInit: boolean = false;
 
 
   get drawerElem() : Drawer {
@@ -94,8 +101,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-folks") as WhereFolks;
   }
 
-  get spaceDialogElem() : WhereSpaceDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+  get spaceDialogElem() : WherePlayDialog {
+    return this.shadowRoot!.getElementById("space-dialog") as WherePlayDialog;
   }
 
 
@@ -191,6 +198,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** After each render */
   async updated(changedProperties: any) {
+    if (this._canPostInit) {
+      this.postInit();
+    }
     // look for canvas in plays and render them
     for (let spaceEh in this._plays.value) {
       let play: Play = this._plays.value[spaceEh];
@@ -233,6 +243,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /**
+   * Called once a profile has been set
+   */
   private async init() {
     this._initializing = true
     console.log("where-controller.init() - START");
@@ -242,33 +255,29 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const templates = this._templates.value;
     console.log({plays})
     console.log({templates})
-    /** load initial plays & templates if there are none */
-    if (this.canLoadExamples && Object.keys(templates).length == 0) {
-      await addHardcodedSpaces(this._store);
-    }
-    // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
-    //   console.warn("No plays or templates found")
-    // }
+    /** Done */
+    this._initialized = true
+    this._initializing = false
+    this._canPostInit = true;
+    this.requestUpdate();
+    console.log("where-controller.init() - DONE");
+  }
 
-    /** Drawer */
-    if (this.drawerElem) {
-      const container = this.drawerElem.parentNode!;
-      container.addEventListener('MDCTopAppBar:nav', () => {
-        this.drawerElem.open = !this.drawerElem.open;
-        const margin = this.drawerElem.open? '256px' : '0px';
-        const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
-        menuButton.style.marginRight = margin;
-        this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
-      });
-    }
+  private postInit() {
     /** Menu */
     const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
     const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
     menu.anchor = button
-    /** Done */
-    this._initialized = true
-    this._initializing = false
-    console.log("where-controller.init() - DONE");
+    /** Drawer */
+    const container = this.drawerElem.parentNode!;
+    container.addEventListener('MDCTopAppBar:nav', () => {
+      this.drawerElem.open = !this.drawerElem.open;
+      const margin = this.drawerElem.open? '256px' : '0px';
+      const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
+      menuButton.style.marginRight = margin;
+      this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
+    });
+    this._canPostInit = false;
   }
 
 
@@ -400,6 +409,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     menu.open = true;
   }
 
+
   handleMenuSelect(e: any) {
     const menu = e.currentTarget as Menu;
     // console.log("handleMenuSelect: " + menu)
@@ -415,9 +425,28 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       case "archive_space":
         this.archiveSpace()
         break;
+      case "export_template":
+        if (this._currentTemplateEh && this.ludoCellId) {
+          this._store.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
+        } else {
+          console.warn("No template or ludotheque cell to export to");
+        }
+        break;
+      case "export_space":
+        if (this._currentSpaceEh && this.ludoCellId) {
+          this._store.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
+        } else {
+          console.warn("No space or ludotheque cell to export to");
+        }
+        break;
       default:
         break;
     }
+  }
+
+  private showLudotheque(e?: any) {
+    console.log("showLudotheque()")
+    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: {}, bubbles: true, composed: true }));
   }
 
   async handleColorChange(e: any) {
@@ -439,15 +468,22 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
   /**
    *
    */
   render() {
-    console.log("where-controller render() - " + this._currentSpaceEh)
+    console.log("where-controller render() - " + this._currentSpaceEh);
+    if (!this._initialized) {
+      return html`<span>Loading...</span>`;
+    }
+
+    //var userLang = navigator.language
+    //console.log({userLang})
+
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }
-
     /** Build play list */
     let spaceName = "none"
     const playItems = Object.entries(this._plays.value).map(
@@ -463,7 +499,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
-            <span slot="graphic" style="width:75px;">${renderSurface(play, 70, 56)}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
           </mwc-list-item>
@@ -506,13 +542,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${spaceName}</div>
-      <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button>
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button-toggle>
+        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button> -->
+      <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque}></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
-        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">build</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">edit</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_template"><span>Share Template</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_space"><span>Share Space</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
       </mwc-menu>
     </mwc-top-app-bar>
@@ -528,12 +568,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-template-dialog id="template-dialog" .store="${this._store}" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile.value ? html`` : html`
-      <where-space-dialog id="space-dialog"
+      <where-play-dialog id="space-dialog"
                           .currentProfile=${this._myProfile.value}
                           @play-added=${(e:any) => this.selectPlay(e.detail)}>
-      </where-space-dialog>
+      </where-play-dialog>
     `}
   </div>
 </mwc-drawer>
@@ -553,8 +593,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "mwc-list-item": ListItem,
       "mwc-icon": Icon,
       "mwc-icon-button": IconButton,
+      "mwc-icon-button-toggle": IconButtonToggle,
       "mwc-button": Button,
-      "where-space-dialog" : WhereSpaceDialog,
+      "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,

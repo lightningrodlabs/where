@@ -2,12 +2,8 @@ use hdk::prelude::*;
 
 use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
 
-use crate::template::*;
-use crate::space::*;
 use crate::here::*;
-use crate::emoji_group::*;
 use crate::placement_session::PlacementSession;
-use crate::svg_marker::SvgMarker;
 
 ///
 /// Messages sent by UI ONLY
@@ -19,12 +15,12 @@ pub enum Message {
     Pong(AgentPubKeyB64),
     NewHere(HereOutput),
     DeleteHere((EntryHashB64,HeaderHashB64)), // sessionEh, hereLinkHh
-    NewSpace(Space),
+    NewSpace(EntryHashB64),
     // - with entry hash of entries
     NewSession((EntryHashB64, PlacementSession)),
-    NewTemplate((EntryHashB64, Template)),
-    NewSvgMarker((EntryHashB64, SvgMarker)),
-    NewEmojiGroup((EntryHashB64, EmojiGroup)),
+    NewTemplate(EntryHashB64),
+    NewSvgMarker(EntryHashB64),
+    NewEmojiGroup(EntryHashB64),
 }
 
 #[derive(Serialize, Deserialize, Debug)]

@@ -1,10 +1,11 @@
-import {contextProvided, ContextProvider} from "@holochain-open-dev/context";
+import {ContextProvider, provide} from "@holochain-open-dev/context";
 import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 import {
   WhereController,
   WhereStore,
-  whereContext,
+  whereContext, LudothequeController, ludothequeContext, LudothequeStore,
+  Inventory,
 } from "@where/elements";
 import {
   Profile,
@@ -12,9 +13,11 @@ import {
   ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
-import { HolochainClient } from "@holochain-open-dev/cell-client";
+import {BaseClient, HolochainClient} from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
+import {Dialog} from "@scoped-elements/material-web";
+import {CellId} from "@holochain/client";
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
@@ -35,10 +38,24 @@ console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
 
 
 export class WhereApp extends ScopedElementsMixin(LitElement) {
-  @state()
-  loaded = false;
+
+  @state() loaded = false;
+  @state() _canLudotheque: boolean = false;
 
   hasProfile: boolean = false;
+  _currentPlaysetEh: null | EntryHashB64 = null;
+
+  _ludoStore: LudothequeStore | null = null;
+  _whereStore: WhereStore | null = null;
+
+  _inventory: Inventory | null = null;
+
+  _whereCellId: CellId | null = null;
+  _ludoCellId: CellId | null = null;
+
+  get importingDialogElem() : Dialog {
+    return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
+  }
 
   /**
    *
@@ -52,17 +69,32 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
     console.log({hcClient})
-    const cellClient = hcClient.forCell(hcClient.appInfo.cell_data[0]);
-    console.log({cellClient})
+    // Where
+    let where_cell = hcClient.cellDataByRoleId("where");
+    if (!where_cell) {
+      alert("Where Cell not found in happ")
+    }
+    this._whereCellId = where_cell!.cell_id;
+    const whereClient = hcClient.forCell(where_cell!);
+    console.log({whereClient})
+    // Ludotheque
+    let ludo_cell = hcClient.cellDataByRoleId("ludotheque");
+    if (!ludo_cell) {
+      alert("Ludotheque Cell not found in happ")
+    }
+    this._ludoCellId = ludo_cell!.cell_id;
+    const ludoClient = hcClient.forCell(ludo_cell!);
+    console.log({ludoClient})
 
-    // Send dnaHash to electron
+    /** Send dnaHash to electron */
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
-      const dnaHashB64 = serializeHash(cellClient.cellId[0])
+      const dnaHashB64 = serializeHash(whereClient.cellId[0])
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
-    const profilesStore = new ProfilesStore(cellClient, {
+    /** ProfilesStore */
+    const profilesStore = new ProfilesStore(whereClient, {
       //additionalFields: ['color'],
       avatarMode: "avatar"
     })
@@ -73,37 +105,101 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     if (me) {
       this.hasProfile = true;
     }
-
     new ContextProvider(this, profilesStoreContext, profilesStore);
-    new ContextProvider(this, whereContext, new WhereStore(cellClient, profilesStore));
+
+    /** LudothequeStore */
+    this._ludoStore = new LudothequeStore(hcClient)
+    new ContextProvider(this, ludothequeContext, this._ludoStore);
+
+
+    /** WhereStore */
+    this._whereStore = new WhereStore(hcClient, profilesStore);
+    new ContextProvider(this, whereContext, this._whereStore);
 
     this.loaded = true;
   }
 
+
+  /**
+   *
+   */
   onNewProfile(profile: Profile) {
     console.log({profile})
     this.hasProfile = true;
     this.requestUpdate();
   }
 
+
+  /**
+   *
+   */
   render() {
-    console.log("where-app render() - " + this.hasProfile)
+    console.log("where-app render() || " + this.hasProfile)
+    console.log("_canLudotheque: " + this._canLudotheque)
+
     if (!this.loaded) {
+      console.log("where-app render() => Loading...");
       return html`<span>Loading...</span>`;
     }
     return html`
-         <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
+        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
             @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
-            <where-controller examples></where-controller>
-        </profile-prompt>
-         <!--<where-controller id="controller" dummy examples></where-controller>-->
+        
+            ${this._canLudotheque? html`
+                  <ludotheque-controller id="ludo-controller" examples
+                                         .whereCellId=${this._whereCellId}
+                                         @import-playset="${this.handleImportRequest}"
+                                         @exit="${() => this._canLudotheque = false}"
+                  ></ludotheque-controller>`
+              : html`<where-controller                                       
+                .ludoCellId=${this._ludoCellId}
+                @show-ludotheque="${() => this._canLudotheque = true}"
+                    ></where-controller>`
+            }
+        
+            </profile-prompt>
+            <!--<where-controller id="controller" dummy></where-controller>-->
+
+        <mwc-dialog id="importing-dialog"  heading="Importing Playset" scrimClickAction="" escapeKeyAction="">
+            <div>Playset ${this._currentPlaysetEh}...</div>
+            <!--<mwc-button
+                    slot="secondaryAction"
+                    dialogAction="discard">
+                Discard
+            </mwc-button>-->
+            <mwc-button
+                    slot="primaryAction"
+                    dialogAction="cancel">
+                Cancel
+            </mwc-button>
+        </mwc-dialog>
     `;
   }
+
+
+  private async handleImportRequest(e: any) {
+    console.log("handleImportRequest() : " + JSON.stringify(e.detail))
+    this._currentPlaysetEh = e.detail;
+    if(!this._currentPlaysetEh) {
+      console.warn("this._currentPlaysetEh is null can't import")
+      return;
+    }
+    if(!this._ludoStore || !this._whereCellId) {
+      console.error("No ludoStore or whereCell in where-app")
+      return;
+    }
+    this.importingDialogElem.open = true;
+    await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
+    this.importingDialogElem.open = false;
+  }
+
 
   static get scopedElements() {
     return {
       "profile-prompt": ProfilePrompt,
       "where-controller": WhereController,
+      "ludotheque-controller": LudothequeController,
+      "mwc-dialog": Dialog,
     };
   }
 }

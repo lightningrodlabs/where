@@ -1,19 +1,28 @@
 import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash} from '@holochain-open-dev/core-types';
-import { CellClient } from '@holochain-open-dev/cell-client';
+import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import { WhereService } from './where.service';
 import {
   Dictionary,
   Play,
-  SpaceEntry,
   LocationInfo,
   Location,
-  Coord, HoloHashed,
-  TemplateEntry, Signal, EmojiGroupEntry, SvgMarkerEntry, PlayMeta, PlacementSession, defaultPlayMeta, Space,
+  Coord,
+  TemplateEntry,
+  Signal,
+  EmojiGroupEntry,
+  SvgMarkerEntry,
+  PlayMeta,
+  PlacementSession,
+  defaultPlayMeta,
+  Space,
+  Inventory,
+  PieceType,
 } from './types';
 import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
+import {CellId} from "@holochain/client/lib/types/common";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
@@ -51,14 +60,12 @@ export class WhereStore {
   public currentSessions: Readable<Dictionary<EntryHashB64>> = derived(this.currentSessionStore, i => i)
 
 
-  constructor(
-    protected cellClient: CellClient,
-    profilesStore: ProfilesStore,
-    zomeName: string = 'hc_zome_where')
-  {
-    this.myAgentPubKey = serializeHash(cellClient.cellId[1]);
+  constructor(protected hcClient: BaseClient, profilesStore: ProfilesStore) {
+    this.service = new WhereService(hcClient, "where");
+
+    let cellClient = this.service.cellClient
+    this.myAgentPubKey = this.service.myAgentPubKey;
     this.profiles = profilesStore;
-    this.service = new WhereService(cellClient, zomeName);
 
     cellClient.addSignalHandler( appSignal => {
       if (! areEqual(cellClient.cellId[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cellId[1], appSignal.data.cellId[1])) {
@@ -86,37 +93,37 @@ export class WhereStore {
         case "Pong":
           break;
         case "NewSvgMarker":
-          const svgEh = signal.message.content[0]
-          if (!get(this.svgMarkers)[svgEh]) {
+          const svgEh = signal.message.content
+          this.service.getSvgMarker(svgEh).then(svg => {
             this.svgMarkerStore.update(store => {
-              store[svgEh] = signal.message.content[1]
+              store[svgEh] = svg
               return store
             })
-          }
+          })
           break;
         case "NewEmojiGroup":
-          const groupEh = signal.message.content[0]
-          if (!get(this.emojiGroups)[groupEh]) {
+          const groupEh = signal.message.content
+          this.service.getEmojiGroup(groupEh).then(group => {
             this.emojiGroupStore.update(emojiGroups => {
-              emojiGroups[groupEh] = signal.message.content[1]
+              emojiGroups[groupEh] = group
               return emojiGroups
             })
-          }
+          })
           break;
       case "NewTemplate":
-        const templateEh = signal.message.content[0]
-        if (!get(this.templates)[templateEh]) {
+        const templateEh = signal.message.content
+        this.service.getTemplate(templateEh).then(template => {
           this.templateStore.update(templates => {
-            templates[templateEh] = signal.message.content[1]
+            templates[templateEh] = template
             return templates
           })
-        }
+        })
         break;
       case "NewSpace":
-        const spaceEh = signal.message.content[0]
+        const spaceEh = signal.message.content
         if (!get(this.plays)[spaceEh]) {
           console.log("addPlay() from signal: " + spaceEh)
-          this.addPlay(spaceEh)
+          /*await*/ this.addPlay(spaceEh)
         }
         break;
       case "NewHere":
@@ -152,7 +159,14 @@ export class WhereStore {
         break;
       }
     })
+  }
 
+
+  async exportPiece(pieceEh: EntryHashB64, pieceType: PieceType, cellId: CellId) : Promise<void> {
+    if (pieceType == PieceType.Space) {
+      return this.service.exportSpace(pieceEh, cellId);
+    }
+    return this.service.exportPiece(pieceEh, pieceType, cellId);
   }
 
   pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
@@ -191,8 +205,13 @@ export class WhereStore {
   }
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
+    // - Check if already added
+    if (get(this.plays)[spaceEh]) {
+      console.log("addPlay() aborted. Already have this space")
+      return;
+    }
     // - Construct Play and add it to store
-    const play: Play = await this.getPlay(spaceEh)
+    const play: Play = await this.constructPlay(spaceEh)
     this.playStore.update(plays => {
       plays[spaceEh] = play
       //console.log({play})
@@ -206,7 +225,7 @@ export class WhereStore {
       })
     }
     // - Set currentSession for new Play
-    const firstSessionEh = await this.service.getSessionHash(spaceEh, 0);
+    const firstSessionEh = await this.service.getSessionAddress(spaceEh, 0);
     // console.log("addPlay() firstSessionEh: " + firstSessionEh)
     if (firstSessionEh) {
       this.updateCurrentSession(spaceEh, firstSessionEh)
@@ -216,15 +235,15 @@ export class WhereStore {
   }
 
   async addTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createTemplate(template)
+    const eh: EntryHashB64 = await this.service.createTemplate(template)
     this.templateStore.update(templates => {
-      templates[eh64] = template
+      templates[eh] = template
       return templates
     })
     this.service.notify(
-      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content:[eh64, template]}}
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content: eh}}
       , this.others());
-    return eh64
+    return eh
   }
 
   async updatePlays() : Promise<Dictionary<Play>> {
@@ -272,31 +291,32 @@ export class WhereStore {
   }
 
   async addEmojiGroup(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createEmojiGroup(emojiGroup)
+    const eh: EntryHashB64 = await this.service.createEmojiGroup(emojiGroup)
     this.emojiGroupStore.update(emojiGroups => {
-      emojiGroups[eh64] = emojiGroup
+      emojiGroups[eh] = emojiGroup
       return emojiGroups
     })
     this.service.notify(
-      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content: [eh64, emojiGroup]}}
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content: eh}}
       , this.others());
-    return eh64
+    return eh
   }
 
   async addSvgMarker(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
-    const eh64: EntryHashB64 = await this.service.createSvgMarker(svgMarker)
+    const eh: EntryHashB64 = await this.service.createSvgMarker(svgMarker)
     this.svgMarkerStore.update(svgMarkers => {
-      svgMarkers[eh64] = svgMarker
+      svgMarkers[eh] = svgMarker
       return svgMarkers
     })
     this.service.notify(
-      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:[eh64, svgMarker]}}
+      {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:eh}}
       , this.others());
-    return eh64
+    return eh
   }
 
   /** Get latest entries of each type and update local store accordingly */
   async pullDht() {
+    console.log("pullDht()")
     const svgMarkers = await this.updateSvgMarkers();
     const emojiGroups = await this.updateEmojiGroups();
     const templates = await this.updateTemplates();
@@ -305,11 +325,11 @@ export class WhereStore {
     //console.log({plays})
   }
 
+
   /**
    * Construct Play from all related DNA entries
-   * @param spaceEh
    */
-  async getPlay(spaceEh: EntryHashB64): Promise<Play> {
+  async constructPlay(spaceEh: EntryHashB64): Promise<Play> {
     // - Space
     const spaceEntry = await this.service.getSpace(spaceEh)
     if (!spaceEntry) {
@@ -317,7 +337,12 @@ export class WhereStore {
       return Promise.reject("Play not found")
     }
     // - Sessions
-    const sessionEhs = await this.service.getAllSessions(spaceEh);
+    const sessionEhs = await this.service.getSpaceSessions(spaceEh);
+    console.log("constructPlay() - session count: " + sessionEhs.length);
+    if (sessionEhs.length == 0) {
+      const session_eh = await this.service.createNextSession(spaceEh, "global");
+      sessionEhs.push(session_eh)
+    }
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of sessionEhs) {
       const session = await this.service.sessionFromEntry(sessionEh);
@@ -336,6 +361,7 @@ export class WhereStore {
     } as Play;
   }
 
+
   /**
    * Create new empty play with starting space
    * Creates a default "global" session
@@ -349,7 +375,7 @@ export class WhereStore {
     const entry = this.service.spaceIntoEntry(space);
     const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, sessionNames)
     // - Notify others
-    const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: entry}};
+    const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
     this.service.notify(newSpace, this.others());
     // - Add play to store
     console.log("newPlay(): " + space.name + " | " + spaceEh)
@@ -358,6 +384,10 @@ export class WhereStore {
     return spaceEh;
   }
 
+
+  /**
+   *
+   */
   async hidePlay(spaceEh: EntryHashB64) : Promise<boolean> {
     const _hh = await this.service.hideSpace(spaceEh);
     this.playStore.update(plays => {
@@ -487,6 +517,10 @@ export class WhereStore {
 
   play(spaceEh: EntryHashB64): Play {
     return get(this.playStore)[spaceEh];
+  }
+
+  space(spaceEh: EntryHashB64): Space {
+    return get(this.playStore)[spaceEh].space;
   }
 
   currentSession(spaceEh: EntryHashB64): EntryHashB64 {

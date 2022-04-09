@@ -9,7 +9,7 @@ use crate::{
 };
 
 /// Here entry definition
-#[hdk_entry(id = "here")]
+#[hdk_entry(id = "Here")]
 #[derive(Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct Here {

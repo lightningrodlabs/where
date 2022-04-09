@@ -6,7 +6,7 @@ on:
       - v[0-9]+.*
 
 env:
-  WHERE_VERSION: 0.0.8
+  WHERE_VERSION: 0.0.9
   USE_HARD_LINKS: false
 
 jobs:
@@ -20,50 +20,13 @@ jobs:
           # (required)
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-  build-dna:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      # install hc tool
-      - name: Install hc tool and wasm target
-        shell: bash # important because this runs shell scripts
-        run: |
-          npm run ci:hc-install
-      # build dna
-      - name: Build DNA
-        run: |
-          npm run build:happ
-      # "upload" dna as build artifact
-      - uses: actions/upload-artifact@master
-        with:
-          name: where-dna-artifact
-          path: dna/workdir/dna/where.dna
-      # "upload" happ as build artifact
-      - uses: actions/upload-artifact@master
-        with:
-          name: where-happ-artifact
-          path: dna/workdir/happ/where.happ
-      # Setup npm
-      - name: Install nodejs dependencies
-        run: |
-          npm install where --ignore-scripts
-      # Build happ
-      - name: Build happ
-        run: |
-          npm run build:ui
-      # Build web-happ
-      - name: Build web-happ
-        run: |
-          npm run build:webapp
-      # "upload" web-happ as build artifact
-      - uses: actions/upload-artifact@master
-        with:
-          name: where-webapp-artifact
-          path: workdir/where.webhapp
+  # Build the dna & happ
+  call-build-dna:
+    uses: ./.github/workflows/build-dna.yml
 
   # upload the app package for each target os
   build-binaries:
-    needs: build-dna
+    needs: call-build-dna
     strategy:
       #fail-fast: false
       matrix:
@@ -79,20 +42,24 @@ jobs:
       - name: clearing precompiled dna files
         continue-on-error: true
         run: |
-          rm dna/workdir/dna/where.dna
-          rm dna/workdir/happ/where.happ
+          rm dna/workdir/dna-where/where.dna
+          rm dna/workdir/happ-where/where.happ
       # Download previously uploaded artifacts
       - uses: actions/download-artifact@master
         with:
           name: where-dna-artifact
-          path: dna/workdir/dna
+          path: dna/workdir/dna-where
       - uses: actions/download-artifact@master
         with:
           name: where-happ-artifact
-          path: dna/workdir/happ
+          path: dna/workdir/happ-where
       - uses: actions/download-artifact@master
         with:
           name: where-webapp-artifact
+          path: workdir
+      - uses: actions/download-artifact@master
+        with:
+          name: where-hash-artifact
           path: workdir
       # Check if exist
       - name: list webhapp
@@ -140,7 +107,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "${GITHUB_REF#refs/tags/}"  "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ/where.happ" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ-where/where.happ" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}"  "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}

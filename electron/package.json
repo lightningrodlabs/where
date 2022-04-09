@@ -1,6 +1,6 @@
 {
   "name": "where",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "A playground for group self-awareness",
   "repository": {
     "type": "git",
@@ -11,8 +11,8 @@
     "start": "tsc && electron .",
     "build": "tsc && npm run dist",
     "tsc": "tsc",
-    "dist": "cp ../dna/workdir/happ/where.happ . && electron-builder build",
-    "dist-linux": "cp ../dna/workdir/happ/where.happ . && electron-builder --linux tar.gz",
+    "dist": "cp ../dna/workdir/happ-where/where.happ . && electron-builder build",
+    "dist-linux": "cp ../dna/workdir/happ-where/where.happ . && electron-builder --linux tar.gz",
     "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"
   },
@@ -59,7 +59,7 @@
     "typescript": "^4.5.5"
   },
   "dependencies": {
-    "electron-holochain": "^0.0.34",
+    "electron-holochain": "0.0.35",
     "electron-prompt": "^1.7.0",
     "electron-log": "^4.4.6",
     "electron-notarize": "^1.1.1",

@@ -19,7 +19,7 @@ import initAgent, {
   APP_PORT_EVENT,
   ERROR_EVENT,
   HOLOCHAIN_RUNNER_QUIT,
-  LAIR_KEYSTORE_QUIT
+  LAIR_KEYSTORE_QUIT,
 } from 'electron-holochain'
 
 import {
@@ -188,14 +188,14 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
  *
  */
 async function try_shutdown() {
-  // try {
-  //   if (g_shutdown) {
-  //     log('info', 'calling g_shutdown()...');
-  //     await g_shutdown();
-  //   }
-  // } catch (e) {
-  //   log('error', 'g_shutdown() failed: '+ e);
-  // }
+  try {
+    if (g_shutdown) {
+      log('info', 'calling g_shutdown()...');
+      await g_shutdown();
+    }
+  } catch (e) {
+    log('error', 'g_shutdown() failed: '+ e);
+  }
 }
 
 /**
@@ -247,9 +247,11 @@ app.on('ready', async () => {
   /** Load user settings */
   g_userSettings = loadUserSettings(1920, 1080);
   /** init app */
-  const {sessionDataPath, uidList } = initApp();
-  g_sessionDataPath = sessionDataPath
-  g_uidList = uidList
+  {
+    const {sessionDataPath, uidList} = initApp();
+    g_sessionDataPath = sessionDataPath
+    g_uidList = uidList
+  }
   /** Determine starting UID */
   const maybeUid = g_userSettings.get("lastUid")
   const hasUid = maybeUid? g_uidList.includes(maybeUid): false;
@@ -455,7 +457,9 @@ async function promptUid(canExitOnCancel: boolean) {
       app.quit();
     }
   } else {
-    const succeeded = addUidToDisk(r, g_sessionDataPath);
+    const sessionPath = path.join(g_sessionDataPath, "../")
+    const succeeded = addUidToDisk(r, sessionPath);
+    //log('info', "promptUid() succeeded = " + succeeded)
     if (succeeded) {
       g_uid = r
       g_uidList.push(r)

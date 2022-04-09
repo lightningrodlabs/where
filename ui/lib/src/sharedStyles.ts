@@ -2,6 +2,11 @@ import { css } from 'lit';
 import {EMOJI_WIDTH, MARKER_WIDTH} from "./sharedRender";
 
 export const sharedStyles = css`
+  :root {
+    --mdc-theme-primary: #fcb8ab;
+    --mdc-theme-secondary: #feeae6;
+  }
+
   .column {
     display: flex;
     flex-direction: column;

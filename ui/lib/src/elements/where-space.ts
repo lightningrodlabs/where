@@ -14,7 +14,7 @@ import {
   LocOptions,
   MarkerType,
   EmojiGroupEntry,
-  UiItem, PlacementSession
+  UiItem, PlacementSession, SvgMarkerVariant, EmojiGroupVariant
 } from "../types";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
@@ -67,7 +67,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   @query('#sessions-tab-bar') sessionTabBar!: TabBar;
 
-  @property() currentSpaceEh: null | EntryHashB64 = null;
+  @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
   // @state() _currentSessionEh: null | EntryHashB64 = null;
 
   @contextProvided({ context: whereContext })
@@ -76,12 +76,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles.myProfile);
-  _plays = new StoreSubscriber(this, () => this._store.plays);
-  _zooms = new StoreSubscriber(this, () => this._store.zooms);
-  _emojiGroups = new StoreSubscriber(this, () => this._store.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store.svgMarkers);
-  _currentSessions = new StoreSubscriber(this, () => this._store.currentSessions);
+  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
+  _plays = new StoreSubscriber(this, () => this._store?.plays);
+  _zooms = new StoreSubscriber(this, () => this._store?.zooms);
+  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
+  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
+  _currentSessions = new StoreSubscriber(this, () => this._store?.currentSessions);
 
   private dialogCoord = { x: 0, y: 0 };
   private dialogCanEdit = false;
@@ -90,7 +90,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private _sessions?:any;
   private _activeIndex:number = -1;
 
-  @property() neighborWidth = 0;
+  @property({type: Number}) neighborWidth: number = 0;
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
   async initFab(fab: Fab) {
@@ -233,7 +233,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       }
       this.openLocationDialog(options);
     } else {
-      const svgMarker = !play.space.meta?.svgMarker? "" : this._svgMarkers.value[play.space.meta.svgMarker].value;
+      let svgMarker = ""
+      if (play.space.maybeMarkerPiece && "svg" in play.space.maybeMarkerPiece) {
+        let eh = (play.space.maybeMarkerPiece as SvgMarkerVariant).svg;
+        svgMarker = this._svgMarkers.value[eh].value;
+      }
       const location: Location = {
         coord,
         sessionEh: this._currentSessions.value[this.currentSpaceEh!],
@@ -322,13 +326,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let emojiValue = ""
     let markerType = MarkerType.Initials
     if(this.currentSpaceEh) {
-      const currentSpace = this._plays.value[this.currentSpaceEh]
-      markerType = currentSpace.space.meta!.markerType;
-      emojiValue = currentSpace.space.meta!.singleEmoji;
-      if (currentSpace.space.meta!.svgMarker) {
-        svgMarker = this._svgMarkers.value[currentSpace.space.meta!.svgMarker].value
+      const currentPlay = this._plays.value[this.currentSpaceEh]
+      markerType = currentPlay.space.meta!.markerType;
+      emojiValue = currentPlay.space.meta!.singleEmoji;
+      if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
+        let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
+        svgMarker = this._svgMarkers.value[eh].value
       }
-       currentSpace.space.meta!.svgMarker? currentSpace.space.meta!.svgMarker : "";
     }
     if (emojiMarkerElem) {
       emojiValue = emojiMarkerElem.innerHTML
@@ -618,7 +622,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[play!.space.meta.emojiGroup!];
+      const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[(play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup];
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`

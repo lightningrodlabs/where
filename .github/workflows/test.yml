@@ -26,11 +26,27 @@ jobs:
       # Checkout repo
       - uses: actions/checkout@v2
       # Check if exist
-      - name: tsc
-        continue-on-error: true
-        run: |
-          tsc --version
-        working-directory: dna/workdir/happ-where
+      #- name: tsc
+      #   continue-on-error: true
+      #  run: |
+      #     tsc --version
+      # Download previously uploaded artifacts
+      - uses: actions/download-artifact@master
+        with:
+          name: where-dna-artifact
+          path: dna/workdir/dna-where
+      - uses: actions/download-artifact@master
+        with:
+          name: where-happ-artifact
+          path: dna/workdir/happ-where
+      - uses: actions/download-artifact@master
+        with:
+          name: where-webapp-artifact
+          path: workdir
+      - uses: actions/download-artifact@master
+        with:
+          name: where-hash-artifact
+          path: workdir
       # Setup npm
       - name: Install nodejs dependencies
         run: |
@@ -59,7 +75,7 @@ jobs:
       # upload installers and binaries
       - name: list builds
         continue-on-error: true
-        run: ls
+        run: ls -R
         working-directory: electron/out
 #      #
 #      - name: list releases
@@ -75,6 +91,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "manual-release" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
+          gh release upload "manual-release"  "dna/workdir/happ-where/where.happ" --clobber
+          gh release upload "manual-release"  "workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

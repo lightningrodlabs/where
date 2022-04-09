@@ -457,7 +457,10 @@ async function promptUid(canExitOnCancel: boolean) {
       app.quit();
     }
   } else {
-    const sessionPath = path.join(g_sessionDataPath, "../")
+    let sessionPath = g_sessionDataPath;
+    if (g_uid) {
+      sessionPath = path.join(g_sessionDataPath, "../")
+    }
     const succeeded = addUidToDisk(r, sessionPath);
     //log('info', "promptUid() succeeded = " + succeeded)
     if (succeeded) {

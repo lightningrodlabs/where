@@ -11,8 +11,8 @@
     "start": "tsc && electron .",
     "build": "tsc && npm run dist",
     "tsc": "tsc",
-    "dist": "cp ../dna/workdir/happ-where/where.happ . && electron-builder build",
-    "dist-linux": "cp ../dna/workdir/happ-where/where.happ . && electron-builder --linux tar.gz",
+    "dist": "cp ../dna/workdir/happ-where/where.happ ./binaries && electron-builder build",
+    "dist-linux": "cp ../dna/workdir/happ-where/where.happ ./binaries && electron-builder --linux tar.gz",
     "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"
   },
@@ -29,6 +29,8 @@
     "copyright": "© 2021-2022 Harris-Braun Enterprises, LLC",
     "asar": false,
     "files": [
+      "dna/ludotheque_zome_hash.txt",
+      "dna/where_zome_hash.txt",
       "dist/**/*",
       "web/**/*",
       "binaries/**/*",

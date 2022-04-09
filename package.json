@@ -28,7 +28,7 @@
     "build"                 : "bash scripts/build.sh",
     "build:ui"              : "npm run build -w @where/elements && npm run package -w where-ui && npm run package -w ludotheque-ui",
     "build:webapp"          : "hc web-app pack workdir",
-    "build:happ"            : "npm run build:dna && hc app pack dna/workdir/happ-where",
+    "build:happ"            : "npm run build:dna && hc app pack dna/workdir/happ-where && npm run hash-zome",
     "build:dna"             : "npm run build:zome && hc dna pack dna/workdir/dna-where && hc dna pack dna/workdir/dna-ludotheque",
     "build:zome"            : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown",
     "clean"                 : "bash scripts/clean.sh",

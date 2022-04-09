@@ -27,10 +27,6 @@ jobs:
       # "upload" dna build artifacts
       - uses: actions/upload-artifact@master
         with:
-          name: where-dna-artifact
-          path: dna/workdir/dna-where/where.dna
-      - uses: actions/upload-artifact@master
-        with:
           name: where-happ-artifact
           path: dna/workdir/happ-where/where.happ
       - uses: actions/upload-artifact@master

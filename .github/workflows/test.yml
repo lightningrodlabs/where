@@ -33,10 +33,6 @@ jobs:
       # Download previously uploaded artifacts
       - uses: actions/download-artifact@master
         with:
-          name: where-dna-artifact
-          path: dna/workdir/dna-where
-      - uses: actions/download-artifact@master
-        with:
           name: where-happ-artifact
           path: dna/workdir/happ-where
       - uses: actions/download-artifact@master
@@ -46,7 +42,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-hash-artifact
-          path: workdir
+          path: dna
       # Setup npm
       - name: Install nodejs dependencies
         run: |

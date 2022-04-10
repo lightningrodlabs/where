@@ -42,7 +42,6 @@ jobs:
       - name: clearing precompiled dna files
         continue-on-error: true
         run: |
-          rm dna/workdir/dna-where/where.dna
           rm dna/workdir/happ-where/where.happ
       # Download previously uploaded artifacts
       - uses: actions/download-artifact@master
@@ -56,7 +55,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-hash-artifact
-          path: dna
+          path: electron/binaries
       # Check if exist
       - name: list webhapp
         continue-on-error: true

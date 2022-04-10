@@ -42,7 +42,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-hash-artifact
-          path: dna
+          path: electron/binaries
       # Setup npm
       - name: Install nodejs dependencies
         run: |

@@ -29,8 +29,6 @@
     "copyright": "© 2021-2022 Harris-Braun Enterprises, LLC",
     "asar": false,
     "files": [
-      "dna/ludotheque_zome_hash.txt",
-      "dna/where_zome_hash.txt",
       "dist/**/*",
       "web/**/*",
       "binaries/**/*",

@@ -408,7 +408,7 @@ app.on('will-quit', async (event) => {
   if (!g_canQuit) {
     event.preventDefault();
   } else {
-    await try_shutdown();
+    //await try_shutdown();
   }
 });
 
@@ -778,7 +778,7 @@ const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
   { type: 'separator' },
   { label: 'About', click: async function (menuItem, _browserWindow, _event) { await showAbout(); } },
   { type: 'separator' },
-  { label: 'Exit', click: function (menuItem, _browserWindow, _event) { app.quit() } }
+  { label: 'Exit', role: 'quit' }
 ];
 
 

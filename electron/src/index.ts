@@ -154,7 +154,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
     g_userSettings.set('windowPosition', { x: Math.floor(positions[0]), y: Math.floor(positions[1]) });
     if (g_canQuit) {
       log('info', 'WINDOW EVENT "close" -> canQuit')
-       await try_shutdown();
+       //await try_shutdown();
        mainWindow = null;
     } else {
     event.preventDefault();
@@ -165,20 +165,21 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   /** Emitted when the window is closed. */
   mainWindow.on('closed', async function () {
     log('info', 'WINDOW EVENT "closed"');
-    await try_shutdown();
-    /** Wait for kill subprocess to finish on slow machines */
-    let start = Date.now();
-    let diff = 0;
-    do {
-      diff = Date.now() - start;
-    } while(diff < 1000);
-    log('info', '*** Holochain Closed\n');
+    // await try_shutdown();
+    // /** Wait for kill subprocess to finish on slow machines */
+    // let start = Date.now();
+    // let diff = 0;
+    // do {
+    //   diff = Date.now() - start;
+    // } while(diff < 1000);
+    // log('info', '*** Holochain Closed\n');
     /**
      * Dereference the window object, usually you would store windows
      * in an array if your app supports multi windows, this is the time
      * when you should delete the corresponding element.
      */
     g_mainWindow = null;
+    // g_statusEmitter = null;
   });
 
   /** Done */
@@ -330,7 +331,9 @@ async function startMainWindow(splashWindow: BrowserWindow) {
         g_mainWindow.show()
         break
       default:
-        splashWindow.webContents.send('status', stateSignalToText(state))
+        if (splashWindow) {
+          splashWindow.webContents.send('status', stateSignalToText(state))
+        }
     }
   })
   statusEmitter.on(APP_PORT_EVENT, (appPort: string) => {
@@ -340,7 +343,7 @@ async function startMainWindow(splashWindow: BrowserWindow) {
   statusEmitter.on(ERROR_EVENT, (error: Error) => {
     const error_msg = error;
     log('error', error_msg)
-    if (g_mainWindow == null) {
+    if (g_mainWindow == null && splashWindow) {
       splashWindow.webContents.send('status', error_msg)
     }
   })
@@ -350,7 +353,9 @@ async function startMainWindow(splashWindow: BrowserWindow) {
     if (g_mainWindow) {
       promptHolochainError(g_mainWindow, msg)
     } else {
-      splashWindow.webContents.send('status', msg)
+      if (splashWindow) {
+        splashWindow.webContents.send('status', msg)
+      }
     }
     //app.quit()
   })
@@ -360,7 +365,9 @@ async function startMainWindow(splashWindow: BrowserWindow) {
     if (g_mainWindow) {
       promptHolochainError(g_mainWindow, msg)
     } else {
-      splashWindow.webContents.send('status', msg)
+      if (splashWindow) {
+        splashWindow.webContents.send('status', msg)
+      }
     }
     //app.quit()
   })

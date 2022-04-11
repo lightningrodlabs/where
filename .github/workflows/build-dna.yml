@@ -32,7 +32,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: where-hash-artifact
-          path: dna/where_zome_hash.txt
+          path: electron/binaries/where_zome_hash.txt
       # Setup npm
       - name: Install nodejs dependencies
         run: |

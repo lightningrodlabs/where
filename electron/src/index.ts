@@ -590,7 +590,7 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
       if (changed) {
         console.log("*** Joining...");
         g_mainWindow = null;
-        g_statusEmitter = null;
+        //g_statusEmitter = null;
         //await try_shutdown();
         app.relaunch()
         //app.exit(0)
@@ -606,7 +606,7 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
       if (changed) {
         console.log("*** Switching...");
         g_mainWindow = null;
-        g_statusEmitter = null;
+        //g_statusEmitter = null;
         //await try_shutdown();
         console.log("*** Switching: RELAUNCH");
         app.relaunch()

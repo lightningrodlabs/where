@@ -43,6 +43,8 @@ import {
 import {initApp, addUidToDisk} from "./init";
 import * as prompt from 'electron-prompt';
 
+export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
+
 //--------------------------------------------------------------------------------------------------
 // PRE-INIT
 //--------------------------------------------------------------------------------------------------
@@ -259,6 +261,9 @@ app.on('ready', async () => {
     g_uid = maybeUid
   } else {
     if (g_uidList.length == 0) {
+      while (!splashWindow.isVisible()) {
+        await delay(20)
+      }
       await promptUid(true, splashWindow);
     }
     g_uid = g_uidList[0]

@@ -26,4 +26,5 @@ export const BACKGROUND_COLOR = '#fbf9f7'
 //export const CURRENT_DIR = path.join(__dirname, '..');
 export const MAIN_FILE = path.join(__dirname, '../web/index.html')
 export const SPLASH_FILE = path.join(__dirname, '../web/splashscreen.html')
-export const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/logo256.png')
+export const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/icon512.png')
+export const ICON_FILEPATH = path.join(__dirname, "/logo/logo256.png")

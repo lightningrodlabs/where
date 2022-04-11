@@ -37,7 +37,7 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  IS_DEBUG, APP_DATA_PATH
+  IS_DEBUG, APP_DATA_PATH, ICON_FILEPATH
 } from './constants'
 
 import {initApp, addUidToDisk} from "./init";
@@ -97,10 +97,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
       webgl: false,
       enableWebSQL: false,
     },
-    icon: __dirname + `/logo/logo256.png`,
-  }
-  if (process.platform === 'linux') {
-    options.icon = LINUX_ICON_FILE
+    icon: process.platform === 'linux'? LINUX_ICON_FILE : ICON_FILEPATH,
   }
   let mainWindow = new BrowserWindow(options)
 
@@ -221,7 +218,7 @@ const createSplashWindow = (): BrowserWindow => {
       webgl: false,
       enableWebSQL: false,
     },
-    icon: path.join(__dirname, "/logo/logo256.png"),
+    icon: process.platform === 'linux'? LINUX_ICON_FILE : ICON_FILEPATH,
   })
   /** and load it */
   if (app.isPackaged) {

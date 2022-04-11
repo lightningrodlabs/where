@@ -591,8 +591,13 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
     click: async function (menuItem, browserWindow, _event) {
       let changed = await promptUid(false, g_mainWindow);
       if (changed) {
+        console.log("*** Joining...");
+        g_mainWindow = null;
+        g_statusEmitter = null;
+        //await try_shutdown();
         app.relaunch()
-        app.exit(0)
+        //app.exit(0)
+        app.quit()
       }
     },
   },
@@ -602,8 +607,14 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
     click: async function (menuItem, _browserWindow, _event) {
       let changed = await promptUidSelect(false);
       if (changed) {
+        console.log("*** Switching...");
+        g_mainWindow = null;
+        g_statusEmitter = null;
+        //await try_shutdown();
+        console.log("*** Switching: RELAUNCH");
         app.relaunch()
-        app.exit(0)
+        //app.exit(0)
+        app.quit()
       }
     },
   },

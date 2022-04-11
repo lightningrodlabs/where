@@ -259,7 +259,7 @@ app.on('ready', async () => {
     g_uid = maybeUid
   } else {
     if (g_uidList.length == 0) {
-      await promptUid(true);
+      await promptUid(true, splashWindow);
     }
     g_uid = g_uidList[0]
     g_userSettings.set('lastUid', g_uid)
@@ -435,7 +435,7 @@ ipc.on('dnaHash', (event, dnaHash) => {
  /**
  * @returns false if user cancelled
  */
-async function promptUid(canExitOnCancel: boolean) {
+async function promptUid(canExitOnCancel: boolean, parentBrowserWindow: BrowserWindow) {
   let r = await prompt({
     title: 'Where: Join new Network',
     height: 180,
@@ -443,6 +443,7 @@ async function promptUid(canExitOnCancel: boolean) {
     alwaysOnTop: true,
     label: 'Network Access Key:',
     value: g_uid,
+    parentBrowserWindow,
     inputAttrs: {
       minlength: "2",
       required: true,
@@ -576,7 +577,7 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
     id: 'join-network',
     label: 'Join new Network',
     click: async function (menuItem, browserWindow, _event) {
-      let changed = await promptUid(false);
+      let changed = await promptUid(false, g_mainWindow);
       if (changed) {
         app.relaunch()
         app.exit(0)

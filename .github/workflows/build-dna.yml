@@ -13,14 +13,14 @@ jobs:
         shell: bash # important because this runs shell scripts
         run: |
           npm run ci:hc-install
-      # build dna
-      - name: Build DNA
-        run: |
-          npm run build:happ
       # Hash Zome
       - name: Hash Zome Install
         run: |
           npm run hash-zome-install
+      # build dna
+      - name: Build DNA
+        run: |
+          npm run build:happ
       - name: Hash Zome Install
         run: |
           npm run hash-zome

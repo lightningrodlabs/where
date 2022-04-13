@@ -8,6 +8,7 @@ import {
   MenuItemConstructorOptions, nativeImage,
   Notification,
   screen,
+  RelaunchOptions,
   shell, Tray
 } from 'electron'
 import * as path from 'path'
@@ -28,7 +29,7 @@ import {
   BINARY_PATHS,
 } from './holochain'
 
-import {electronLogger, log} from './logger'
+import { electronLogger, log } from './logger'
 import  { loadUserSettings } from './userSettings'
 
 import {
@@ -42,6 +43,8 @@ import {
 
 import {initApp, addUidToDisk} from "./init";
 import * as prompt from 'electron-prompt';
+
+import { execFile } from 'child_process'
 
 export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 
@@ -71,6 +74,7 @@ let g_mainWindow: BrowserWindow | null = null;
 let g_runner_version = 'holochain runner version (unknown)'
 let g_lair_version = 'lair version (unknown)'
 let g_dnaHash = '(unknown)'
+
 
 //--------------------------------------------------------------------------------------------------
 // -- Functions
@@ -119,7 +123,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
   log('info', "createMainWindow ; mainUrl = " + mainUrl)
   try {
-      await mainWindow.loadURL("file://" + mainUrl)
+    await mainWindow.loadURL("file://" + mainUrl)
   } catch(err) {
     log('error', 'loadURL() failed:');
     log('error',{err});
@@ -151,11 +155,11 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
     g_userSettings.set('windowPosition', { x: Math.floor(positions[0]), y: Math.floor(positions[1]) });
     if (g_canQuit) {
       log('info', 'WINDOW EVENT "close" -> canQuit')
-       //await try_shutdown();
-       mainWindow = null;
+      //await try_shutdown();
+      mainWindow = null;
     } else {
-    event.preventDefault();
-    mainWindow.hide();
+      event.preventDefault();
+      mainWindow.hide();
     }
   })
 
@@ -238,9 +242,9 @@ const createSplashWindow = (): BrowserWindow => {
 
 
 /**
-* This method will be called when Electron has finished initialization and is ready to create browser windows.
-* Some APIs can only be used after this event occurs.
-*/
+ * This method will be called when Electron has finished initialization and is ready to create browser windows.
+ * Some APIs can only be used after this event occurs.
+ */
 app.on('ready', async () => {
   log('debug', "ELECTRON READY - " + __dirname)
   const splashWindow = createSplashWindow()
@@ -441,7 +445,7 @@ ipc.on('dnaHash', (event, dnaHash) => {
  * PROMPTS
  *************************************************************************************************/
 
- /**
+/**
  * @returns false if user cancelled
  */
 async function promptUid(canExitOnCancel: boolean, parentBrowserWindow: BrowserWindow) {
@@ -576,6 +580,39 @@ async function promptHolochainError(browserWindow: BrowserWindow, msg: string) {
 //   },
 // ];
 
+async function restart() {
+  log('debug', "*** Restarting...");
+  g_mainWindow = null;
+  //g_statusEmitter = null;
+  //await try_shutdown();
+  log('debug', "*** Restarting: RELAUNCH");
+
+  if (app.isPackaged && process.env.APPIMAGE) {
+    log('debug', "*** ... with APPIMAGE: " + process.env.APPIMAGE);
+    //log('debug', "*** ... with execPath: " + process.execPath);
+
+    // // Pipe errors if console.log() is called + plus possible other issues when relaunching again
+    // const options: RelaunchOptions = {
+    //   args: process.argv.slice(1).concat(['--relaunch']),
+    //   execPath: process.execPath
+    // };
+    // execFile(process.env.APPIMAGE, options.args);
+    // app.quit();
+    // return;
+
+    // FUSE can still fail
+    let options: RelaunchOptions = {
+      execPath: process.env.APPIMAGE,
+     args:['--appimage-extract-and-run']
+    };
+    //console.log({options})
+    app.relaunch(options)
+  } else {
+    app.relaunch()
+  }
+  app.exit(0)
+}
+
 
 /**
  * In this file you can include the rest of your app's specific main process code.
@@ -588,13 +625,7 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
     click: async function (menuItem, browserWindow, _event) {
       let changed = await promptUid(false, g_mainWindow);
       if (changed) {
-        console.log("*** Joining...");
-        g_mainWindow = null;
-        //g_statusEmitter = null;
-        //await try_shutdown();
-        app.relaunch()
-        //app.exit(0)
-        app.quit()
+        await restart()
       }
     },
   },
@@ -604,14 +635,7 @@ const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
     click: async function (menuItem, _browserWindow, _event) {
       let changed = await promptUidSelect(false);
       if (changed) {
-        console.log("*** Switching...");
-        g_mainWindow = null;
-        //g_statusEmitter = null;
-        //await try_shutdown();
-        console.log("*** Switching: RELAUNCH");
-        app.relaunch()
-        //app.exit(0)
-        app.quit()
+        await restart()
       }
     },
   },
@@ -687,9 +711,7 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
   {
     label: 'Restart Holochain',
     click: async function (menuItem, _browserWindow, _event) {
-      //await startConductorAndLoadPage(false);
-      app.relaunch()
-      app.exit(0)
+      await restart()
     }
   },
   {
@@ -700,6 +722,7 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
     }
   },
 ];
+
 
 /**
  *
@@ -769,7 +792,7 @@ export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
  */
 const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
   { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
-    g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
+      g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
     }
   },
   {
@@ -777,8 +800,7 @@ const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
     click: async function (menuItem, _browserWindow, _event) {
       let changed = await promptUidSelect(false);
       if(changed) {
-        app.relaunch()
-        app.exit(0)
+        await restart()
       }
     }
   },

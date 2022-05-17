@@ -107,7 +107,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("description-field") as TextArea).reportValidity()}
                 id="description-field" placeholder="<description>" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>next</mwc-button>
   <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
 </mwc-dialog>
 `

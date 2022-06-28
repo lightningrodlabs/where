@@ -1,4 +1,4 @@
-import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
+import {HolochainClient, CellClient} from '@holochain-open-dev/cell-client';
 import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
 
 import {
@@ -19,12 +19,12 @@ import {
   PlacementSessionEntry,
   Space, PlaysetEntry, Inventory,
 } from './types';
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 
 
 export class WhereService {
   constructor(
-    public hcClient: BaseClient,
+    public hcClient: HolochainClient,
     protected roleId: string,
   ) {
     let maybe_cell = hcClient.cellDataByRoleId(roleId);
@@ -42,7 +42,7 @@ export class WhereService {
   /** Methods */
 
   get myAgentPubKey() : AgentPubKeyB64 {
-    return serializeHash(this.cellClient.cellId[1]);
+    return serializeHash(this.cellClient.cell.cell_id[1]);
   }
 
   async getInventory(roleId?: string): Promise<Inventory> {

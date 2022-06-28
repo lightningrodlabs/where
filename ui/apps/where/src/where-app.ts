@@ -1,4 +1,4 @@
-import {ContextProvider, provide} from "@holochain-open-dev/context";
+import { ContextProvider } from "@lit-labs/context";
 import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 import {
@@ -10,14 +10,15 @@ import {
 import {
   Profile,
   ProfilePrompt,
+  ProfilesService,
   ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
-import {BaseClient, HolochainClient} from "@holochain-open-dev/cell-client";
+import { CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {Dialog} from "@scoped-elements/material-web";
-import {CellId} from "@holochain/client";
+import {AppWebsocket, CellId, InstalledCell} from "@holochain/client";
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
@@ -67,36 +68,52 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
 
-    const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
-    console.log({hcClient})
+
     // Where
-    let where_cell = hcClient.cellDataByRoleId("where");
-    if (!where_cell) {
+    const appWebsocket = await AppWebsocket.connect(wsUrl);
+    const hcClient = new HolochainClient(appWebsocket);
+    console.log({hcClient})
+
+    const appInfo = await appWebsocket.appInfo({
+      installed_app_id: installed_app_id,
+    });
+
+    const installedCells = appInfo.cell_data;
+    const whereCell = installedCells.find(
+      c => c.role_id === 'where'
+    ) as InstalledCell;
+
+    if (!whereCell) {
       alert("Where Cell not found in happ")
     }
-    this._whereCellId = where_cell!.cell_id;
-    const whereClient = hcClient.forCell(where_cell!);
+
+    const whereClient = new CellClient(hcClient, whereCell);
+    this._whereCellId = whereCell!.cell_id;
     console.log({whereClient})
     // Ludotheque
-    let ludo_cell = hcClient.cellDataByRoleId("ludotheque");
+    const ludo_cell = installedCells.find(
+      c => c.role_id === 'ludotheque'
+    ) as InstalledCell;
+
     if (!ludo_cell) {
       alert("Ludotheque Cell not found in happ")
     }
+
+    const ludoClient = new CellClient(hcClient, ludo_cell);
     this._ludoCellId = ludo_cell!.cell_id;
-    const ludoClient = hcClient.forCell(ludo_cell!);
     console.log({ludoClient})
 
     /** Send dnaHash to electron */
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
-      const dnaHashB64 = serializeHash(whereClient.cellId[0])
+      const dnaHashB64 = serializeHash(whereClient.cell.cell_id[0])
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
     /** ProfilesStore */
-    const profilesStore = new ProfilesStore(whereClient, {
+    const profilesStore = new ProfilesStore(new ProfilesService(whereClient), {
       //additionalFields: ['color'],
-      avatarMode: "avatar"
+      avatarMode: "avatar-optional"
     })
     console.log({profilesStore})
     await profilesStore.fetchAllProfiles()
@@ -144,19 +161,19 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     return html`
         <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
             @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
-        
+
             ${this._canLudotheque? html`
                   <ludotheque-controller id="ludo-controller" examples
                                          .whereCellId=${this._whereCellId}
                                          @import-playset="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-controller>`
-              : html`<where-controller                                       
+              : html`<where-controller
                 .ludoCellId=${this._ludoCellId}
                 @show-ludotheque="${() => this._canLudotheque = true}"
                     ></where-controller>`
             }
-        
+
             </profile-prompt>
             <!--<where-controller id="controller" dummy></where-controller>-->
 

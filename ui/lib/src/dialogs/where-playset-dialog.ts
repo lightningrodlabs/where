@@ -2,7 +2,7 @@ import {css, html, LitElement} from "lit";
 import {query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@holochain-open-dev/context";
+import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Coord, ludothequeContext, PlaysetEntry} from "../types";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";

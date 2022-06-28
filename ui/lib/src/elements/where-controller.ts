@@ -1,8 +1,8 @@
 import {css, html, LitElement} from "lit";
 import {property, state} from "lit/decorators.js";
 
-import {contextProvided} from "@holochain-open-dev/context";
-import {StoreSubscriber} from "lit-svelte-stores";
+import {contextProvided} from "@lit-labs/context";
+import {StoreSubscriber, TaskSubscriber} from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
@@ -34,7 +34,7 @@ import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
 import {WhereFolks} from "./where-folks";
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 
 /**
  * @element where-controller
@@ -61,8 +61,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   _plays = new StoreSubscriber(this, () => this._store?.plays);
   _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
+  _myProfile = new TaskSubscriber(
+    this,
+    () => this._profiles.fetchMyProfile(),
+    () => [this._profiles]
+  );
+  _knownProfiles = new TaskSubscriber(
+    this,
+    () => this._profiles?.fetchAllProfiles(),
+    () => [this._profiles]
+  );
 
   @state() _canShowFolks: boolean = true;
   @state() _neighborWidth: number = 150;
@@ -107,13 +115,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   get myNickName(): string {
-    return this._myProfile.value.nickname;
+    return this._myProfile.value!.nickname;
   }
   get myAvatar(): string {
-    return this._myProfile.value.fields.avatar;
+    return this._myProfile.value!.fields.avatar;
   }
   get myColor(): string {
-    return this._myProfile.value.fields.color;
+    return this._myProfile.value!.fields.color;
   }
 
 
@@ -158,17 +166,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  /** Launch init when myProfile has been set */
-  private subscribeProfile() {
-    this._profiles.myProfile.subscribe(async (profile) => {
-      console.log({profile})
-      if (profile) {
-        if (!this._initialized && !this._initializing) {
-          await this.init();
-        }
-      }
-    });
-  }
 
   /** Launch init when myProfile has been set */
   private subscribePlay() {
@@ -192,7 +189,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
-    this.subscribeProfile();
     this.subscribePlay();
   }
 
@@ -452,7 +448,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async handleColorChange(e: any) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
-    const profile = this._myProfile.value;
+    const profile = this._myProfile.value!;
     await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
   }
 

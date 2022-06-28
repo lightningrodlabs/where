@@ -1,8 +1,8 @@
 import { html, css, LitElement } from "lit";
 import { property } from "lit/decorators.js";
 
-import { contextProvided } from "@holochain-open-dev/context";
-import { StoreSubscriber } from "lit-svelte-stores";
+import { contextProvided } from "@lit-labs/context";
+import { StoreSubscriber, TaskSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
 import {whereContext} from "../types";
@@ -45,8 +45,16 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
+  _myProfile = new TaskSubscriber(
+    this,
+    () => this._profiles.fetchMyProfile(),
+    () => [this._profiles]
+  );
+  _knownProfiles = new TaskSubscriber(
+    this,
+    () => this._profiles?.fetchAllProfiles(),
+    () => [this._profiles]
+  );
   _agentPresences = new StoreSubscriber(this, () => this._store?.agentPresences);
 
   /** Methods */
@@ -86,7 +94,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField? filterField.value : "";
 
-    const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
+    const visibleProfiles = Object.entries(this._knownProfiles.value!).filter(([key, profile]) =>
       filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
 
     //console.log({visibleProfiles})

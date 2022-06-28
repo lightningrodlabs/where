@@ -1,8 +1,8 @@
 import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
 
-import {contextProvided} from "@holochain-open-dev/context";
-import {StoreSubscriber} from "lit-svelte-stores";
+import {contextProvided} from "@lit-labs/context";
+import {StoreSubscriber, TaskSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
 import {
@@ -76,7 +76,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
+  _myProfile = new TaskSubscriber(
+    this,
+    () => this._profiles.fetchMyProfile(),
+    () => [this._profiles]
+  );
   _plays = new StoreSubscriber(this, () => this._store?.plays);
   _zooms = new StoreSubscriber(this, () => this._store?.zooms);
   _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
@@ -164,7 +168,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
   get myNickName(): string {
-    return this._myProfile.value.nickname;
+    return this._myProfile.value!.nickname;
   }
 
   private getCoordsFromEvent(event: any): Coord {
@@ -228,7 +232,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         tag: play.space.meta?.canTag ? "" : null,
         emoji: "",
         name: this.myNickName,
-        img: this._myProfile.value.fields.avatar,
+        img: this._myProfile.value!.fields.avatar,
         canEdit: false,
       }
       this.openLocationDialog(options);
@@ -244,8 +248,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         meta: {
           markerType: play.space.meta.markerType,
           tag: "",
-          img: this._myProfile.value.fields.avatar,
-          color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#000000",
+          img: this._myProfile.value!.fields.avatar,
+          color: this._myProfile.value!.fields.color? this._myProfile.value!.fields.color : "#000000",
           authorName: this.myNickName,
           emoji: play.space.meta?.singleEmoji,
           svgMarker,
@@ -342,12 +346,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       coord: this.dialogCoord,
       sessionEh: this._currentSessions.value[this.currentSpaceEh!],
       meta: {
-        authorName: this._myProfile.value.nickname,
+        authorName: this._myProfile.value!.nickname,
         markerType,
         tag: tagValue,
         emoji: emojiValue,
-        img: markerType == MarkerType.Avatar? this._myProfile.value.fields['avatar']: "",
-        color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#858585",
+        img: markerType == MarkerType.Avatar? this._myProfile.value!.fields['avatar']: "",
+        color: this._myProfile.value!.fields.color? this._myProfile.value!.fields.color : "#858585",
         svgMarker,
       },
     };

@@ -1,4 +1,4 @@
-import {ContextProvider} from "@holochain-open-dev/context";
+import {ContextProvider} from "@lit-labs/context";
 import {serializeHash} from '@holochain-open-dev/core-types';
 import { state } from "lit/decorators.js";
 
@@ -8,9 +8,10 @@ import {
   LudothequeStore,
 } from "@where/elements";
 
-import { HolochainClient } from "@holochain-open-dev/cell-client";
+import { CellClient, HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
+import { AppWebsocket, InstalledCell } from "@holochain/client";
 
 
 let APP_ID = 'where'
@@ -45,19 +46,32 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
 
-    const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
+
+    const appWebsocket = await AppWebsocket.connect(wsUrl);
+    const hcClient = new HolochainClient(appWebsocket);
     console.log({hcClient})
-    let ludo_cell = hcClient.cellDataByRoleId("ludotheque");
-    if (!ludo_cell) {
+
+    const appInfo = await appWebsocket.appInfo({
+      installed_app_id: installed_app_id,
+    });
+
+    const installedCells = appInfo.cell_data;
+
+    const ludoCell = installedCells.find(
+      c => c.role_id === 'ludotheque'
+    ) as InstalledCell;
+
+    if (!ludoCell) {
       alert("Ludotheque Cell not found in happ")
     }
-    const cellClient = hcClient.forCell(ludo_cell!);
-    console.log({cellClient})
+
+    const ludoClient = new CellClient(hcClient, ludoCell);
+    console.log({ludoClient})
 
     // Send dnaHash to electron
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
-      const dnaHashB64 = serializeHash(cellClient.cellId[0])
+      const dnaHashB64 = serializeHash(ludoClient.cell.cell_id[0])
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 

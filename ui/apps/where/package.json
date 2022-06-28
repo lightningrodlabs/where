@@ -33,10 +33,10 @@
     "typescript": "4.3.5"
   },
   "dependencies": {
-    "@holochain-open-dev/cell-client": "^0.3.2",
-    "@holochain-open-dev/profiles": "^0.0.9",
-    "@holochain/client": "^0.3.2",
-    "@holochain-open-dev/context": "^0.0.3",
+    "@holochain-open-dev/cell-client": "^0.5.3",
+    "@holochain-open-dev/profiles": "^0.3.4",
+    "@holochain/client": "^0.4.1",
+    "@lit-labs/context": "^0.1.1",
     "@where/elements": "file:../../lib",
     "lit": "^2.1.1"
   }

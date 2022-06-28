@@ -2,7 +2,7 @@ import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@holochain-open-dev/context";
+import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
 import {

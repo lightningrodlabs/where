@@ -1,5 +1,5 @@
 import {AgentPubKeyB64, EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
-import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
+import { HolochainClient} from '@holochain-open-dev/cell-client';
 import {derived, get, Readable, Writable, writable} from 'svelte/store';
 import {WhereService} from './where.service';
 import {
@@ -13,7 +13,7 @@ import {
   SvgMarkerEntry, SvgMarkerVariant,
   TemplateEntry,
 } from './types';
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
@@ -45,14 +45,14 @@ export class LudothequeStore {
   public playsets: Readable<Dictionary<PlaysetEntry>> = derived(this.playsetStore, i => i)
 
 
-  constructor(protected hcClient: BaseClient) {
+  constructor(protected hcClient: HolochainClient) {
     this.service = new WhereService(hcClient, "ludotheque");
 
     let cellClient = this.service.cellClient
     this.myAgentPubKey = this.service.myAgentPubKey
 
     cellClient.addSignalHandler( appSignal => {
-      if (! areEqual(cellClient.cellId[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cellId[1], appSignal.data.cellId[1])) {
+      if (! areEqual(cellClient.cell.cell_id[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cell.cell_id[1], appSignal.data.cellId[1])) {
         return
       }
       const signal = appSignal.data.payload

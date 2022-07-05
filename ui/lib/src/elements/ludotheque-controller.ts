@@ -5,7 +5,8 @@ import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
-import {count_inventory, Inventory, ludothequeContext, PieceType, PlaysetEntry} from "../types";
+import {count_inventory, Inventory, PieceType, PlaysetEntry} from "../types";
+import { ludothequeContext } from "../context";
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";

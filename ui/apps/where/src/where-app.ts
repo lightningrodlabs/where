@@ -125,12 +125,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     new ContextProvider(this, profilesStoreContext, profilesStore);
 
     /** LudothequeStore */
-    this._ludoStore = new LudothequeStore(hcClient)
+    this._ludoStore = new LudothequeStore(ludoClient)
     new ContextProvider(this, ludothequeContext, this._ludoStore);
 
 
     /** WhereStore */
-    this._whereStore = new WhereStore(hcClient, profilesStore);
+    this._whereStore = new WhereStore(whereClient, profilesStore);
     new ContextProvider(this, whereContext, this._whereStore);
 
     this.loaded = true;

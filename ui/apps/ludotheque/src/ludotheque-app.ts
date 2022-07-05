@@ -75,7 +75,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       let _reply = ipc.sendSync('dnaHash', dnaHashB64);
     }
 
-    new ContextProvider(this, ludothequeContext, new LudothequeStore(hcClient));
+    new ContextProvider(this, ludothequeContext, new LudothequeStore(ludoClient));
 
     this.loaded = true;
   }

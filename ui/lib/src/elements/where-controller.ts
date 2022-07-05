@@ -6,7 +6,8 @@ import {StoreSubscriber, TaskSubscriber} from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
-import {Dictionary, PieceType, Play, whereContext} from "../types";
+import {Dictionary, PieceType, Play} from "../types";
+import {whereContext} from "../context";
 import {WhereStore} from "../where.store";
 import {WhereSpace} from "./where-space";
 import {WherePlayDialog} from "../dialogs/where-play-dialog";

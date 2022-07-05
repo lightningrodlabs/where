@@ -1,7 +1,0 @@
----
-manifest_version: "1"
-name: where
-ui:
-  bundled: "../dist.zip"
-happ_manifest:
-  bundled: "./where.happ"

@@ -5,7 +5,8 @@ import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {SvgMarkerEntry, whereContext} from "../types";
+import {SvgMarkerEntry} from "../types";
+import {whereContext} from "../context";
 import {
   Button,
   Dialog,

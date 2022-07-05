@@ -5,7 +5,7 @@ import { contextProvided } from "@lit-labs/context";
 import { StoreSubscriber, TaskSubscriber } from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
-import {whereContext} from "../types";
+import {whereContext} from "../context";
 import { WhereStore } from "../where.store";
 import {SlAvatar, SlBadge, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";

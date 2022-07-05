@@ -10,12 +10,12 @@ import {
   Location,
   LocationInfo,
   Play,
-  whereContext,
   LocOptions,
   MarkerType,
   EmojiGroupEntry,
   UiItem, PlacementSession, SvgMarkerVariant, EmojiGroupVariant
 } from "../types";
+import { whereContext } from "../context";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";

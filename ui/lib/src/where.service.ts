@@ -24,20 +24,10 @@ import {CellId} from "@holochain/client";
 
 export class WhereService {
   constructor(
-    public hcClient: HolochainClient,
-    protected roleId: string,
+    public cellClient: CellClient,
   ) {
-    let maybe_cell = hcClient.cellDataByRoleId(roleId);
-    if (!maybe_cell) {
-      throw new Error("Cell not found for role: " + roleId);
-    }
-    this.cellClient = hcClient.forCell(maybe_cell)
+    this.cellClient = cellClient
   }
-
-  /** Fields */
-
-  cellClient: CellClient
-
 
   /** Methods */
 
@@ -45,22 +35,13 @@ export class WhereService {
     return serializeHash(this.cellClient.cell.cell_id[1]);
   }
 
-  async getInventory(roleId?: string): Promise<Inventory> {
-    if (roleId) {
-      let maybe_cell = this.hcClient.cellDataByRoleId(roleId);
-      if (!maybe_cell) {
-        return Promise.reject("Cell not found for role: " + roleId);
-      }
-      const cellClient = this.hcClient.forCell(maybe_cell)
-      return cellClient.callZome(
-        "where_playset",
-        'get_inventory',
-        null,
-        15000
-      );
-    } else {
-      return this.callPlaysetZome('get_inventory', null);
-    }
+  async getInventory(): Promise<Inventory> {
+    return this.cellClient.callZome(
+      "where_playset",
+      'get_inventory',
+      null,
+      15000
+    );
   }
 
   /** Playsets */

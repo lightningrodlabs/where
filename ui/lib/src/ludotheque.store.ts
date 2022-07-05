@@ -1,5 +1,5 @@
 import {AgentPubKeyB64, EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
-import { HolochainClient} from '@holochain-open-dev/cell-client';
+import { CellClient, HolochainClient} from '@holochain-open-dev/cell-client';
 import {derived, get, Readable, Writable, writable} from 'svelte/store';
 import {WhereService} from './where.service';
 import {
@@ -45,10 +45,9 @@ export class LudothequeStore {
   public playsets: Readable<Dictionary<PlaysetEntry>> = derived(this.playsetStore, i => i)
 
 
-  constructor(protected hcClient: HolochainClient) {
-    this.service = new WhereService(hcClient, "ludotheque");
+  constructor(protected cellClient: CellClient) {
+    this.service = new WhereService(cellClient);
 
-    let cellClient = this.service.cellClient
     this.myAgentPubKey = this.service.myAgentPubKey
 
     cellClient.addSignalHandler( appSignal => {
@@ -412,7 +411,7 @@ export class LudothequeStore {
 
 
   async getWhereInventory(): Promise<Inventory> {
-    return this.service.getInventory("where");
+    return this.service.getInventory();
   }
 
   /** Getters */

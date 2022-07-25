@@ -5,10 +5,10 @@ import {
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
 import {HolochainClient, CellClient } from '@holochain-open-dev/cell-client';
-import { whereContext, WhereService, WhereStore } from "@where/elements";
+import { whereContext, WhereController, WhereService, WhereStore } from "@where/elements";
 import { InstalledAppInfo, AppWebsocket, InstalledCell } from "@holochain/client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { CircularProgress } from "@scoped-elements/material-web";
+import { CircularProgress, Dialog } from "@scoped-elements/material-web";
 import { LitElement, html, css } from "lit";
 
 export class WhereApplet extends ScopedElementsMixin(LitElement) {
@@ -32,7 +32,7 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
     const hcClient = new HolochainClient(this.appWebsocket);
 
     const appInfo = await this.appWebsocket.appInfo({
-      installed_app_id: 'where',
+      installed_app_id: 'where-applet',
     });
 
     const installedCells = appInfo.cell_data;
@@ -46,10 +46,6 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
 
     const whereClient = new CellClient(hcClient, whereCell);
     new ContextProvider(this, whereContext, new WhereStore(whereClient, this.profilesStore));
-    // TODO: Initialize any store that you have and create a ContextProvider for it
-    //
-    // eg:
-    // new ContextProvider(this, whereContext, new WhereStore(cellClient, store));
 
     this.loaded = true;
   }
@@ -63,13 +59,15 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
       </div>`;
 
     // TODO: add any elements that you have in your applet
-    return html`<span>This is my applet!</span>`;
+    return html`
+      <where-controller></where-controller>
+    `;
   }
 
   static get scopedElements() {
     return {
       "mwc-circular-progress": CircularProgress,
-      // TODO: add any elements that you have in your applet
+      "where-controller": WhereController,
     };
   }
 

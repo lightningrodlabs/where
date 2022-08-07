@@ -398,8 +398,8 @@ name = "hc_utils"
 version = "0.0.123"
 source = "git+https://github.com/holochain/hc-utils?rev=1da00e5677d50a837ebcf733e9b2d69064f814f0#1da00e5677d50a837ebcf733e9b2d69064f814f0"
 dependencies = [
- "hdk",
- "holo_hash",
+ "hdk 0.0.123",
+ "holo_hash 0.0.20",
  "serde",
  "thiserror",
 ]
@@ -411,7 +411,7 @@ source = "git+https://github.com/holochain-open-dev/profiles?tag=for-hc-v0.0.127
 dependencies = [
  "derive_more",
  "hc_zome_profiles_types",
- "hdk",
+ "hdk 0.0.123",
  "serde",
 ]
 
@@ -421,7 +421,7 @@ version = "0.0.1"
 source = "git+https://github.com/holochain-open-dev/profiles?tag=for-hc-v0.0.127#c117d3e675ab25b3f81010c41c10e041b3559f5e"
 dependencies = [
  "derive_more",
- "hdk",
+ "hdk 0.0.123",
  "serde",
 ]
 
@@ -431,10 +431,29 @@ version = "0.0.123"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef6a85565285d19223b72265868abc2413e530328d6ae0f4013a0455d203feab"
 dependencies = [
- "hdk_derive",
- "holo_hash",
+ "hdk_derive 0.0.25",
+ "holo_hash 0.0.20",
  "holochain_wasmer_guest",
- "holochain_zome_types",
+ "holochain_zome_types 0.0.25",
+ "paste",
+ "serde",
+ "serde_bytes",
+ "thiserror",
+ "tracing",
+ "tracing-core",
+]
+
+[[package]]
+name = "hdk"
+version = "0.0.136"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "203d92a9c805095f55e4020914504c4b0b6c4455551838f8dad880405294b72d"
+dependencies = [
+ "hdk_derive 0.0.35",
+ "holo_hash 0.0.27",
+ "holochain_deterministic_integrity",
+ "holochain_wasmer_guest",
+ "holochain_zome_types 0.0.35",
  "paste",
  "serde",
  "serde_bytes",
@@ -449,7 +468,20 @@ version = "0.0.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f30170490dc1b0468512cdcb72ada813d7cbf44e126fa6ab39a0b79165dd224"
 dependencies = [
- "holochain_zome_types",
+ "holochain_zome_types 0.0.25",
+ "paste",
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "hdk_derive"
+version = "0.0.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3b4de645eee248c529ed2079003ef8d46c0377523ab51e8dde0605a868f48ed3"
+dependencies = [
+ "holochain_integrity_types",
  "paste",
  "proc-macro2",
  "quote",
@@ -481,10 +513,58 @@ dependencies = [
  "blake2b_simd",
  "derive_more",
  "holochain_serialized_bytes",
- "kitsune_p2p_dht_arc",
+ "kitsune_p2p_dht_arc 0.0.9",
  "serde",
  "serde_bytes",
  "thiserror",
+]
+
+[[package]]
+name = "holo_hash"
+version = "0.0.27"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8a26d28040245acbfc9b4960926cb7c07a2788f8713e6ef1b28e01bd5d1e2734"
+dependencies = [
+ "base64",
+ "blake2b_simd",
+ "derive_more",
+ "holochain_serialized_bytes",
+ "kitsune_p2p_dht_arc 0.0.11",
+ "serde",
+ "serde_bytes",
+ "thiserror",
+]
+
+[[package]]
+name = "holochain_deterministic_integrity"
+version = "0.0.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7646630f2cded1e5c67f5acf258615e19afb8af632b87b86a6e1528907696df3"
+dependencies = [
+ "hdk_derive 0.0.35",
+ "holo_hash 0.0.27",
+ "holochain_integrity_types",
+ "holochain_wasmer_guest",
+ "paste",
+ "serde",
+ "serde_bytes",
+ "tracing",
+ "tracing-core",
+]
+
+[[package]]
+name = "holochain_integrity_types"
+version = "0.0.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a0ecc9e05ed493a30298d5d05fb65fbc3d14f211aabaa466388368f78490405f"
+dependencies = [
+ "holo_hash 0.0.27",
+ "holochain_serialized_bytes",
+ "kitsune_p2p_timestamp 0.0.9",
+ "serde",
+ "serde_bytes",
+ "subtle",
+ "tracing",
 ]
 
 [[package]]
@@ -544,10 +624,29 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2d51f55ac58054a6c87d046cda5c5e71c15cfcd9f11e9889817119c8218e3a7d"
 dependencies = [
  "chrono",
- "holo_hash",
+ "holo_hash 0.0.20",
  "holochain_serialized_bytes",
  "holochain_wasmer_common",
- "kitsune_p2p_timestamp",
+ "kitsune_p2p_timestamp 0.0.6",
+ "paste",
+ "serde",
+ "serde_bytes",
+ "subtle",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "holochain_zome_types"
+version = "0.0.35"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "015444f90fdef25867210eb8b672089eb6a567c25156c20ddc1c0a9277b5a0e0"
+dependencies = [
+ "holo_hash 0.0.27",
+ "holochain_integrity_types",
+ "holochain_serialized_bytes",
+ "holochain_wasmer_common",
+ "kitsune_p2p_timestamp 0.0.9",
  "paste",
  "serde",
  "serde_bytes",
@@ -638,6 +737,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "kitsune_p2p_dht_arc"
+version = "0.0.11"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b0d6fde19d44b897fc73b7ecd37ffbfd5d4641ad4f60e7e2bf8104d2012292b"
+dependencies = [
+ "derive_more",
+ "gcollections",
+ "intervallum",
+ "num-traits",
+ "serde",
+]
+
+[[package]]
 name = "kitsune_p2p_timestamp"
 version = "0.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -647,6 +759,16 @@ dependencies = [
  "derive_more",
  "serde",
  "thiserror",
+]
+
+[[package]]
+name = "kitsune_p2p_timestamp"
+version = "0.0.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "fed720caad6a76cf53300d2a138035930e2a01b85429e93e643fbd960ef93b44"
+dependencies = [
+ "chrono",
+ "serde",
 ]
 
 [[package]]
@@ -990,7 +1112,7 @@ name = "profiles"
 version = "0.0.1-alpha1"
 dependencies = [
  "hc_zome_profiles",
- "hdk",
+ "hdk 0.0.123",
 ]
 
 [[package]]
@@ -1613,15 +1735,15 @@ dependencies = [
  "derive_more",
  "futures",
  "hc_utils",
- "hdk",
- "holo_hash",
+ "hdk 0.0.136",
+ "holo_hash 0.0.27",
  "nanoid",
  "observability",
  "serde",
  "stream-cancel",
  "thiserror",
  "tokio",
- "zome_utils",
+ "zome_utils 0.0.136",
 ]
 
 [[package]]
@@ -1629,10 +1751,10 @@ name = "where_ludotheque"
 version = "0.0.1"
 dependencies = [
  "hc_utils",
- "hdk",
- "holo_hash",
+ "hdk 0.0.123",
+ "holo_hash 0.0.20",
  "serde",
- "zome_utils",
+ "zome_utils 0.0.123",
 ]
 
 [[package]]
@@ -1640,10 +1762,10 @@ name = "where_playset"
 version = "0.0.1"
 dependencies = [
  "hc_utils",
- "hdk",
- "holo_hash",
+ "hdk 0.0.123",
+ "holo_hash 0.0.20",
  "serde",
- "zome_utils",
+ "zome_utils 0.0.123",
 ]
 
 [[package]]
@@ -1725,7 +1847,17 @@ name = "zome_utils"
 version = "0.0.123"
 source = "git+https://github.com/ddd-mtl/zome-utils?branch=123#d4f24d1923d22f00105682b62d57d17ac8ea66f4"
 dependencies = [
- "hdk",
- "holo_hash",
+ "hdk 0.0.123",
+ "holo_hash 0.0.20",
+ "serde",
+]
+
+[[package]]
+name = "zome_utils"
+version = "0.0.136"
+source = "git+https://github.com/ddd-mtl/zome-utils?branch=136#cd55cbac06e60f3429503fe5048f9cc108e32a5a"
+dependencies = [
+ "hdk 0.0.136",
+ "holo_hash 0.0.27",
  "serde",
 ]

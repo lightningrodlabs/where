@@ -21,7 +21,7 @@ jobs:
       - name: Build DNA
         run: |
           npm run build:happ
-      - name: Hash Zome Install
+      - name: Hash Zome
         run: |
           npm run hash-zome
       # "upload" dna build artifacts
@@ -33,6 +33,7 @@ jobs:
         with:
           name: where-hash-artifact
           path: electron/binaries/where_zome_hash.txt
+      ## Upload webhapp
       # Setup npm
       - name: Install nodejs dependencies
         run: |

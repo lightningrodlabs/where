@@ -1,9 +1,10 @@
 use hdk::prelude::*;
 
-use holo_hash::{EntryHashB64, AgentPubKeyB64, HeaderHashB64};
+use holo_hash::{EntryHashB64, AgentPubKeyB64, ActionHashB64};
+
+use where_integrity::*;
 
 use crate::here::*;
-use crate::placement_session::PlacementSession;
 
 ///
 /// Messages sent by UI ONLY
@@ -14,7 +15,7 @@ pub enum Message {
     Ping(AgentPubKeyB64),
     Pong(AgentPubKeyB64),
     NewHere(HereOutput),
-    DeleteHere((EntryHashB64,HeaderHashB64)), // sessionEh, hereLinkHh
+    DeleteHere((EntryHashB64, ActionHashB64)), // sessionEh, hereLinkHh
     NewSpace(EntryHashB64),
     // - with entry hash of entries
     NewSession((EntryHashB64, PlacementSession)),
@@ -43,7 +44,7 @@ impl SignalPayload {
 
 #[hdk_extern]
 fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
-    let sig: SignalPayload = signal.decode()?;
+    let sig: SignalPayload = signal.decode().unwrap();
     debug!("Received signal {:?}", sig);
     Ok(emit_signal(&sig)?)
 }
@@ -64,6 +65,6 @@ fn notify(input: NotifyInput) -> ExternResult<()> {
         folks.push(a.into())
     }
     debug!("Sending signal {:?} to {:?}", input.signal, input.folks);
-    remote_signal(ExternIO::encode(input.signal)?,folks)?;
+    remote_signal(ExternIO::encode(input.signal).unwrap(),folks)?;
     Ok(())
 }

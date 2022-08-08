@@ -1,27 +1,21 @@
 [package]
 authors = ["eric@harris-braun.com"]
 edition = "2018"
-name = "where"
+name = "where_integrity"
 version = "0.0.1-alpha1"
 
+
 [lib]
+name = "where_integrity"
 crate-type = ["cdylib", "rlib"]
-name = "where"
+
 
 [dependencies]
-chrono = {version = "=0.4.19", features = ['alloc', 'std']}
-derive_more = "0.99"
 serde = "1.0"
-thiserror = "1.0.20"
 tracing = { version = "0.1", default-features = false }
 
-hdk = "0.0.142"
+hdi = { version = "0.0.14", default-features = false }
 holo_hash = {version = "0.0.30", features = ["encoding"]}
-
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "142" }
-
-where_playset = { path = "../playset" }
-where_integrity = { path = "../where_integrity" }
 
 
 [dev-dependencies]

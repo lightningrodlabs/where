@@ -6,12 +6,13 @@
 
 use hdk::prelude::*;
 
-pub mod error;
+//pub mod error;
 pub mod signals;
 pub mod here;
 pub mod placement_session;
 pub mod hide;
 //pub mod play;
+
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -28,16 +29,6 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 }
 
 
-entry_defs![
-    PathEntry::entry_def(),
-    //space::Space::entry_def(),
-    here::Here::entry_def(),
-    placement_session::PlacementSession::entry_def()
-];
-
-pub const PLAYSET_ZOME_NAME: &'static str = "where_playset";
-
-
 /// Helper function for calling the delivery-zome via inter-zome call
 pub fn call_playset_zome<T>(fn_name: &str, payload: T) -> ExternResult<ZomeCallResponse>
     where
@@ -45,7 +36,7 @@ pub fn call_playset_zome<T>(fn_name: &str, payload: T) -> ExternResult<ZomeCallR
 {
     call(
         CallTargetCell::Local,
-        PLAYSET_ZOME_NAME.into(),
+        where_integrity::PLAYSET_ZOME_NAME,
         fn_name.to_string().into(),
         None,
         payload,

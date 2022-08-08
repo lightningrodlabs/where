@@ -1,10 +1,10 @@
-use hdk::prelude::*;
+use hdi::prelude::*;
 use std::convert::Infallible;
 //use hc_utils::UtilsError;
 
-pub fn error<T>(reason: &str) -> ExternResult<T> {
-    Err(WasmError::Guest(String::from(reason)))
-}
+// pub fn error<T>(reason: &str) -> ExternResult<T> {
+//     Err(WasmError::Guest(String::from(reason)))
+// }
 
 #[derive(thiserror::Error, Debug)]
 pub enum WhereError {

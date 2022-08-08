@@ -4,15 +4,7 @@
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
 
-use hdk::prelude::*;
-
 mod playset;
 mod export_playset;
 
-pub use playset::*;
-
-entry_defs![
-    PathEntry::entry_def(),
-    Playset::entry_def()
-];
 

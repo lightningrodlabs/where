@@ -2,7 +2,7 @@ use hdk::prelude::*;
 use holo_hash::EntryHashB64;
 
 use zome_utils::*;
-use crate::*;
+use ludotheque_integrity::*;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -56,8 +56,8 @@ fn export_piece_inner(entry_type_name: &str, piece_entry: Entry, cell_id: CellId
     piece_entry
   };
   let res = call(
-    CallTargetCell::Other(cell_id),
-    "where_playset".into(),
+    CallTargetCell::OtherCell(cell_id),
+    "where_playset",
     "import_piece".into(),
     None,
     input,

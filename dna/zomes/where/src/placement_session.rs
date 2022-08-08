@@ -3,7 +3,7 @@ use holo_hash::EntryHashB64;
 use zome_utils::*;
 
 use where_integrity::*;
-use where_playset::*;
+//use playset_integrity::*;
 
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,6 +46,17 @@ pub fn get_session_from_eh(session_eh: EntryHashB64) -> ExternResult<Option<Plac
     _ => return Ok(None),
   };
   Ok(maybe_session)
+}
+
+
+///
+pub fn is_valid_space(space_eh: EntryHash) -> ExternResult<()> {
+  let _entry_type = get_entry_type_from_eh(space_eh)?;
+  // FIXME issue in HDK
+  // if entry_type != playset_integrity::UnitEntryTypes::Space.try_into().unwrap() {
+  //   return Err(wasm_error!(WasmErrorInner::Guest("input.space_eh does not point to a space entry".to_string())));
+  // }
+  Ok(())
 }
 
 

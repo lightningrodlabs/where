@@ -16,3 +16,4 @@ pub struct Space {
     pub maybe_marker_piece: Option<MarkerPiece>,
     pub meta: BTreeMap<String, String>,  // usable by the UI for whatever
 }
+

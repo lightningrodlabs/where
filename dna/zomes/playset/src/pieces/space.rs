@@ -6,16 +6,6 @@ use holo_hash::EntryHashB64;
 use playset_integrity::*;
 
 
-///
-pub fn is_valid_space(space_eh: EntryHash) -> ExternResult<()> {
-    let entry_type = get_entry_type_from_eh(space_eh)?;
-    if entry_type != UnitEntryTypes::Space.try_into().unwrap() {
-        return Err(wasm_error!(WasmErrorInner::Guest("input.space_eh does not point to a space entry".to_string())));
-    }
-    Ok(())
-}
-
-
 pub fn get_spaces_path() -> TypedPath {
     Path::from("spaces").typed(PlaysetLinkType::Spaces).unwrap()
 }

@@ -28,7 +28,7 @@ fn get_playset_path() -> Path {
 
 #[hdk_extern]
 fn create_playset(input: Playset) -> ExternResult<EntryHashB64> {
-  let _hh = create_entry(&input)?;
+  let _hh = create_entry(&LudothequeEntry::Playset(input))?;
   let eh = hash_entry(input.clone())?;
   let path = get_playset_path();
   path.ensure()?;

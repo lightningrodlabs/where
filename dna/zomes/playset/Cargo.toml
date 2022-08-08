@@ -10,7 +10,7 @@ name = "where_playset"
 
 [dependencies]
 serde = "1.0"
-hc_utils = {git = "https://github.com/holochain/hc-utils", rev = "1da00e5677d50a837ebcf733e9b2d69064f814f0", package = "hc_utils"}
-hdk = "0.0.123"
-holo_hash = {version = "0.0.20", features = ["encoding"]}
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "123" }
+hdk = { version = "0.0.142", default-features = false }
+holo_hash = {version = "0.0.30", features = ["encoding"]}
+zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "142" }
+playset_integrity = { package = "where_playset_integrity", path = "../playset_integrity" }

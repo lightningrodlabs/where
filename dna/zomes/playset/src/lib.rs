@@ -12,12 +12,3 @@ mod get_inventory;
 
 pub use pieces::*;
 pub use export_piece::*;
-
-
-entry_defs![
-    PathEntry::entry_def(),
-    SvgMarker::entry_def(),
-    EmojiGroup::entry_def(),
-    Template::entry_def(),
-    Space::entry_def()
-];

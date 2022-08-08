@@ -1,15 +1,8 @@
-pub use hdk::prelude::*;
-use hc_utils::get_links_and_load_type;
+use hdk::prelude::*;
+use hdk::hash_path::path::TypedPath;
+use zome_utils::get_typed_from_links;
 use holo_hash::EntryHashB64;
-
-
-/// SvgMarker Entry
-#[hdk_entry(id = "SvgMarker")]
-#[derive(Clone)]
-pub struct SvgMarker {
-    pub name: String,
-    pub value: String, // Json
-}
+use playset_integrity::*;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct SvgMarkerOutput {
@@ -17,18 +10,18 @@ pub struct SvgMarkerOutput {
     content: SvgMarker,
 }
 
-pub fn get_svg_marker_path() -> Path {
-    Path::from("svg-marker")
+pub fn get_svg_marker_path() -> TypedPath {
+    Path::from("svg-marker").typed(PlaysetLinkType::SvgMarkers).unwrap()
 }
 
 #[hdk_extern]
 pub fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
-    let _hh = create_entry(&input)?;
+    let _hh = create_entry(PlaysetEntry::SvgMarker(input.clone()))?;
     let eh = hash_entry(input.clone())?;
     let path = get_svg_marker_path();
     path.ensure()?;
     let anchor_eh = path.path_entry_hash()?;
-    create_link(anchor_eh, eh.clone(), ())?;
+    create_link(anchor_eh, eh.clone(), PlaysetLinkType::All, LinkTag::from(()))?;
     let eh64: EntryHashB64 = eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
     // emit_signal(&SignalPayload::new(None, me, Message::NewSvgMarker((eh64.clone(), input))))?;
@@ -55,11 +48,11 @@ fn get_svg_markers(_: ()) -> ExternResult<Vec<SvgMarkerOutput>> {
 }
 
 fn get_inner(base: EntryHash) -> ExternResult<Vec<SvgMarkerOutput>> {
-    let entries = get_links_and_load_type(base, None, false)
-      .map_err(|err| WasmError::Guest(err.to_string()))?;
+    let entries = get_typed_from_links(base, PlaysetLinkType::All, None)
+      .map_err(|err| wasm_error!(WasmErrorInner::Guest(err.to_string())))?;
     let mut templates = vec![];
-    for e in entries {
-        templates.push(SvgMarkerOutput {hash: hash_entry(&e)?.into(), content: e});
+    for pair in entries {
+        templates.push(SvgMarkerOutput {hash: hash_entry(&pair.0)?.into(), content: pair.0});
     }
     Ok(templates)
 }

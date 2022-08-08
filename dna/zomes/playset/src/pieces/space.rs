@@ -1,26 +1,13 @@
 use hdk::prelude::*;
-use hc_utils::get_links_and_load_type;
-use std::collections::BTreeMap;
+use hdk::hash_path::path::TypedPath;
+use zome_utils::get_typed_from_links;
 use holo_hash::EntryHashB64;
 
-use crate::pieces::MarkerPiece;
-
-/// Space entry definition
-#[hdk_entry(id = "space")]
-#[derive(Clone)]
-#[serde(rename_all = "camelCase")]
-pub struct Space {
-    pub name: String,
-    pub origin: EntryHashB64,
-    //pub dimensionality: CoordinateSystem,
-    pub surface: String, // Json
-    pub maybe_marker_piece: Option<MarkerPiece>,
-    pub meta: BTreeMap<String, String>,  // usable by the UI for whatever
-}
+use playset_integrity::*;
 
 
-pub fn get_spaces_path() -> Path {
-    Path::from("spaces")
+pub fn get_spaces_path() -> TypedPath {
+    Path::from("spaces").typed(PlaysetLinkType::Spaces).unwrap()
 }
 
 
@@ -28,12 +15,12 @@ pub fn get_spaces_path() -> Path {
 #[hdk_extern]
 pub fn create_space(input: Space) -> ExternResult<EntryHashB64> {
     debug!("create_space(): {:?}", input);
-    let _hh = create_entry(&input)?;
+    let _hh = create_entry(PlaysetEntry::Space(input.clone()))?;
     let space_eh = hash_entry(input.clone())?;
     let path = get_spaces_path();
     path.ensure()?;
     let anchor_eh = path.path_entry_hash()?;
-    create_link(anchor_eh, space_eh.clone(), ())?;
+    create_link(anchor_eh, space_eh.clone(), PlaysetLinkType::All, LinkTag::from(()))?;
     let eh64: EntryHashB64 = space_eh.clone().into();
     // let me = agent_info()?.agent_latest_pubkey.into();
     // emit_signal(&SignalPayload::new(None, me, Message::NewSpace(eh64.clone())))?;
@@ -72,11 +59,11 @@ fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
 }
 
 fn get_spaces_inner(base: EntryHash) -> ExternResult<Vec<SpaceOutput>> {
-    let entries = get_links_and_load_type(base, None, false)
-      .map_err(|err| WasmError::Guest(err.to_string()))?;
+    let entries = get_typed_from_links(base, PlaysetLinkType::All, None)
+      .map_err(|err| wasm_error!(WasmErrorInner::Guest(err.to_string())))?;
     let mut spaces = vec![];
-    for e in entries {
-        spaces.push(SpaceOutput {hash: hash_entry(&e)?.into(), content: e});
+    for pair in entries {
+        spaces.push(SpaceOutput {hash: hash_entry(&pair.0)?.into(), content: pair.0});
     }
     Ok(spaces)
 }

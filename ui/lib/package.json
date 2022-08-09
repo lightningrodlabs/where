@@ -16,6 +16,7 @@
     "@rollup/plugin-node-resolve": "^13.0.4",
     "@rollup/plugin-typescript": "^8.2.5",
     "@types/lodash-es": "^4.17.4",
+    "babel-plugin-transform-class-properties": "^6.24.1",
     "lit-analyzer": "^1.2.1",
     "rollup": "^2.56.3",
     "rollup-plugin-postcss": "^4.0.1",

@@ -20,7 +20,7 @@ import {
   PlacementSessionEntry,
   Space, PlaysetEntry, Inventory,
 } from './types';
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 import {InstalledAppInfo, InstalledCell} from "@holochain/client";
 
 

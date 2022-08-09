@@ -43,7 +43,7 @@ import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
 import {addExamplePieces} from "../examples";
 import {LudothequeStore} from "../ludotheque.store";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 

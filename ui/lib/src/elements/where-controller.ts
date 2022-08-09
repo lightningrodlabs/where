@@ -26,7 +26,7 @@ import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
 import {WhereFolks} from "./where-folks";
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 import {serializeHash} from "@holochain-open-dev/utils";
 
 /**

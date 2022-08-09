@@ -44,6 +44,7 @@ export default {
       "process.env.NODE_ENV": '"production"',
       "process.env.ENV": `"${process.env.ENV}"`,
       "process.env.HC_PORT": `"${HC_PORT}"`,
+      "preventAssignment": true,
     }),
     builtins(),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),

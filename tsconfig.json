@@ -12,6 +12,7 @@
     "importHelpers": true,
     "sourceMap": true,
     "inlineSources": true,
-    "declaration": true
+    "declaration": true,
+    "allowJs": true
   }
 }

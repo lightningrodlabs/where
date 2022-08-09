@@ -18,8 +18,7 @@ import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {Dialog} from "@scoped-elements/material-web";
-import {CellId, InstalledCell} from "@holochain/client";
-import {AppWebsocket} from "@holochain/client/lib/api/app/websocket";
+import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;

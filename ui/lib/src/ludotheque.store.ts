@@ -13,7 +13,7 @@ import {
   SvgMarkerEntry, SvgMarkerVariant,
   TemplateEntry,
 } from './types';
-import {CellId} from "@holochain/client/lib/types/common";
+import {CellId} from "@holochain/client";
 import {InstalledAppInfo} from "@holochain/client";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>

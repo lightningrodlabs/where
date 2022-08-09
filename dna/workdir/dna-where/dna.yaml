@@ -3,10 +3,19 @@ manifest_version: "1"
 name: where
 uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
-zomes:
-  - name: where_playset
-    bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
-  - name: where
-    bundled: ../../../target/wasm32-unknown-unknown/release/where.wasm
-  - name: profiles
-    bundled: ../../../target/wasm32-unknown-unknown/release/profiles.wasm
+integrity:
+  zomes:
+    - name: where_playset_integrity
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity.wasm
+    - name: where_integrity
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_integrity.wasm
+    - name: profiles_integrity
+      bundled: ../../../target/wasm32-unknown-unknown/release/profiles_integrity.wasm
+coordinator:
+  zomes:
+    - name: where_playset
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
+    - name: where
+      bundled: ../../../target/wasm32-unknown-unknown/release/where.wasm
+    - name: profiles
+      bundled: ../../../target/wasm32-unknown-unknown/release/profiles.wasm

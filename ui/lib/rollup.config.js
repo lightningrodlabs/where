@@ -3,6 +3,8 @@ import postcss from "rollup-plugin-postcss";
 import postcssLit from "rollup-plugin-postcss-lit";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
+import babel from "@rollup/plugin-babel";
+
 import postcssCQFill from "cqfill/postcss";
 
 const pkg = require("./package.json");
@@ -17,15 +19,23 @@ export default {
     clearScreen: false,
   },
   plugins: [
+    babel({
+      exclude: /node_modules/,
+      plugins: [
+        require.resolve("babel-plugin-transform-class-properties"),
+        'transform-class-properties'
+      ],
+    }),
     postcss({
       inject: false,
       plugins: [postcssCQFill],
     }),
     postcssLit(),
-    typescript({
-      target: "es6",
+    typescript(),
+    resolve({
+      preferBuiltins: false,
+      browser: true
     }),
-    resolve(),
     commonjs(),
   ],
 };

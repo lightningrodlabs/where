@@ -1,13 +1,13 @@
 // TODO: add globally available interfaces for your elements
 
-import {AgentPubKeyB64, HeaderHashB64, EntryHashB64, HoloHashB64} from "@holochain-open-dev/core-types";
-import { createContext, Context } from "@holochain-open-dev/context";
+import {AgentPubKeyB64, ActionHashB64, EntryHashB64, HoloHashB64} from "@holochain-open-dev/core-types";
+import { createContext } from '@lit-labs/context';
 import { WhereStore } from "./where.store";
 import {LudothequeStore} from "./ludotheque.store";
 
-export const whereContext : Context<WhereStore> = createContext('where/service');
+export const whereContext = createContext<WhereStore>('where/service');
 
-export const ludothequeContext : Context<LudothequeStore> = createContext('where/service');
+export const ludothequeContext = createContext<LudothequeStore>('where/service');
 
 export type Dictionary<T> = { [key: string]: T };
 
@@ -44,13 +44,13 @@ export function count_inventory(inventory: Inventory): number {
 
 export interface LocationInfo {
   location: Location;
-  linkHh: HeaderHashB64;
+  linkHh: ActionHashB64;
   authorPubKey: AgentPubKeyB64;
 }
 
 export interface HereInfo {
   entry: HereEntry,
-  linkHh: HeaderHashB64;
+  linkHh: ActionHashB64;
   author: AgentPubKeyB64,
 }
 
@@ -222,7 +222,7 @@ export type Signal =
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewHere", content:  HereInfo}
   }
   | {
-  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, HeaderHashB64]}
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, ActionHashB64]}
   }
   | {
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: EntryHashB64}

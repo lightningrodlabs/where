@@ -1,5 +1,5 @@
-import {EntryHashB64, HeaderHashB64, AgentPubKeyB64, serializeHash} from '@holochain-open-dev/core-types';
-import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
+import {EntryHashB64, ActionHashB64, AgentPubKeyB64} from '@holochain-open-dev/core-types';
+import {AgnosticClient} from '@holochain-open-dev/cell-client';
 import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import { WhereService } from './where.service';
 import {
@@ -23,6 +23,7 @@ import {
   ProfilesStore,
 } from "@holochain-open-dev/profiles";
 import {CellId} from "@holochain/client/lib/types/common";
+import {InstalledAppInfo} from "@holochain/client";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
@@ -60,15 +61,15 @@ export class WhereStore {
   public currentSessions: Readable<Dictionary<EntryHashB64>> = derived(this.currentSessionStore, i => i)
 
 
-  constructor(protected hcClient: BaseClient, profilesStore: ProfilesStore) {
-    this.service = new WhereService(hcClient, "where");
+  /** */
+  constructor(protected client: AgnosticClient, profilesStore: ProfilesStore, appInfo: InstalledAppInfo, mainCellId: CellId) {
+    this.service = new WhereService(client, appInfo, mainCellId);
 
-    let cellClient = this.service.cellClient
     this.myAgentPubKey = this.service.myAgentPubKey;
     this.profiles = profilesStore;
 
-    cellClient.addSignalHandler( appSignal => {
-      if (! areEqual(cellClient.cellId[0],appSignal.data.cellId[0]) || !areEqual(cellClient.cellId[1], appSignal.data.cellId[1])) {
+    client.addSignalHandler( appSignal => {
+      if (!areEqual(mainCellId[0],appSignal.data.cellId[0]) || !areEqual(mainCellId[1], appSignal.data.cellId[1])) {
         return
       }
       const signal = appSignal.data.payload
@@ -169,14 +170,14 @@ export class WhereStore {
     return this.service.exportPiece(pieceEh, pieceType, cellId);
   }
 
-  pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
+  async pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
     const ping: Signal = {maybeSpaceHash: spaceHash, from: this.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})
-    this.service.notify(ping, this.others());
+    this.service.notify(ping, await this.others());
   }
 
-  private others(): Array<AgentPubKeyB64> {
-    return Object.keys(get(this.profiles.knownProfiles)).filter((key)=> key != this.myAgentPubKey)
+  private async others(): Promise<Array<AgentPubKeyB64>> {
+    return Object.keys(get(await this.profiles.fetchAllProfiles())).filter((key)=> key != this.myAgentPubKey)
   }
 
   private updatePresence(from: AgentPubKeyB64) {
@@ -242,7 +243,7 @@ export class WhereStore {
     })
     this.service.notify(
       {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewTemplate", content: eh}}
-      , this.others());
+      , await this.others());
     return eh
   }
 
@@ -298,7 +299,7 @@ export class WhereStore {
     })
     this.service.notify(
       {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewEmojiGroup", content: eh}}
-      , this.others());
+      , await this.others());
     return eh
   }
 
@@ -310,7 +311,7 @@ export class WhereStore {
     })
     this.service.notify(
       {maybeSpaceHash: null, from: this.myAgentPubKey, message: {type:"NewSvgMarker", content:eh}}
-      , this.others());
+      , await this.others());
     return eh
   }
 
@@ -376,7 +377,7 @@ export class WhereStore {
     const spaceEh: EntryHashB64 = await this.service.createSpaceWithSessions(entry, sessionNames)
     // - Notify others
     const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    this.service.notify(newSpace, this.others());
+    this.service.notify(newSpace, await this.others());
     // - Add play to store
     console.log("newPlay(): " + space.name + " | " + spaceEh)
     this.addPlay(spaceEh);
@@ -424,7 +425,7 @@ export class WhereStore {
         type: "NewHere",
         content: {entry, linkHh, author: this.myAgentPubKey}
       }}
-      , this.others());
+      , await this.others());
   }
 
 
@@ -475,7 +476,7 @@ export class WhereStore {
         from: this.myAgentPubKey,
         message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkHh]
         }},
-      this.others());
+      await this.others());
   }
 
 
@@ -491,7 +492,7 @@ export class WhereStore {
       locInfo.location.meta.emoji = emoji
     }
     const session = await this.service.getSession(sessionEh);
-    const newLinkHh: HeaderHashB64 = await this.service.addLocation(locInfo.location, spaceEh, session!.index)
+    const newLinkHh: ActionHashB64 = await this.service.addLocation(locInfo.location, spaceEh, session!.index)
     await this.service.deleteLocation(locInfo.linkHh)
     const oldHereHh = locInfo.linkHh;
     locInfo.linkHh = newLinkHh;
@@ -501,8 +502,8 @@ export class WhereStore {
       return spaces
     })
     const entry = this.service.hereFromLocation(locInfo.location)
-    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}}, this.others());
-    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, linkHh: newLinkHh, author: this.myAgentPubKey}}}, this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}}, await this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, linkHh: newLinkHh, author: this.myAgentPubKey}}}, await this.others());
   }
 
   /** Get locIdx of first location from agent with given name */

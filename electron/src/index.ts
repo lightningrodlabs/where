@@ -21,7 +21,7 @@ import initAgent, {
   ERROR_EVENT,
   HOLOCHAIN_RUNNER_QUIT,
   LAIR_KEYSTORE_QUIT,
-} from 'electron-holochain'
+} from "@sprillow-connor/electron-holochain"
 
 import {
   createHolochainOptions,

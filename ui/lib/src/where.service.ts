@@ -1,5 +1,6 @@
-import {BaseClient, CellClient} from '@holochain-open-dev/cell-client';
-import { serializeHash, EntryHashB64, HeaderHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import {AgnosticClient, CellClient} from '@holochain-open-dev/cell-client';
+import { EntryHashB64, ActionHashB64, AgentPubKeyB64 } from '@holochain-open-dev/core-types';
+import {serializeHash} from "@holochain-open-dev/utils";
 
 import {
   SpaceEntry,
@@ -20,47 +21,45 @@ import {
   Space, PlaysetEntry, Inventory,
 } from './types';
 import {CellId} from "@holochain/client/lib/types/common";
+import {InstalledAppInfo, InstalledCell} from "@holochain/client";
 
 
 export class WhereService {
-  constructor(
-    public hcClient: BaseClient,
-    protected roleId: string,
-  ) {
-    let maybe_cell = hcClient.cellDataByRoleId(roleId);
-    if (!maybe_cell) {
-      throw new Error("Cell not found for role: " + roleId);
-    }
-    this.cellClient = hcClient.forCell(maybe_cell)
-  }
-
-  /** Fields */
-
-  cellClient: CellClient
+  constructor(public client: AgnosticClient, public appInfo: InstalledAppInfo, public mainCellId: CellId) {}
 
 
   /** Methods */
 
+  /** */
   get myAgentPubKey() : AgentPubKeyB64 {
-    return serializeHash(this.cellClient.cellId[1]);
+    return serializeHash(this.mainCellId[1]);
   }
 
+  /** */
   async getInventory(roleId?: string): Promise<Inventory> {
-    if (roleId) {
-      let maybe_cell = this.hcClient.cellDataByRoleId(roleId);
-      if (!maybe_cell) {
-        return Promise.reject("Cell not found for role: " + roleId);
-      }
-      const cellClient = this.hcClient.forCell(maybe_cell)
-      return cellClient.callZome(
-        "where_playset",
-        'get_inventory',
-        null,
-        15000
-      );
-    } else {
+    if (!roleId) {
       return this.callPlaysetZome('get_inventory', null);
     }
+
+    let cell: InstalledCell | undefined = undefined;
+    for (const cell_data of this.appInfo.cell_data) {
+      if (cell_data.role_id == roleId) {
+        cell = cell_data;
+        break;
+      }
+    }
+    if (cell == undefined) {
+      return Promise.reject("Cell not found for role: " + roleId);
+    }
+
+    return this.client.callZome(
+      cell.cell_id,
+      "where_playset",
+      'get_inventory',
+      null,
+      15000
+    );
+
   }
 
   /** Playsets */
@@ -214,19 +213,19 @@ export class WhereService {
 
   /** Location */
 
-  async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
+  async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
     const entry = this.hereFromLocation(location);
     const input = {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}
     return this.callWhereZome('add_here', input);
   }
 
-  async updateLocation(hereHh: HeaderHashB64, location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<HeaderHashB64> {
+  async updateLocation(hereHh: ActionHashB64, location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
     const entry = this.hereFromLocation(location);
     const input = {oldHereHh: hereHh, newHere: {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}}
     return this.callWhereZome('update_here', input);
   }
 
-  async deleteLocation(hereHh: HeaderHashB64): Promise<EntryHashB64> {
+  async deleteLocation(hereHh: ActionHashB64): Promise<EntryHashB64> {
     return this.callWhereZome('delete_here', hereHh);
   }
 
@@ -251,7 +250,7 @@ export class WhereService {
   private callWhereZome(fn_name: string, payload: any): Promise<any> {
     //console.debug("callZome: " + fn_name)
     //console.debug({payload})
-    const result = this.cellClient.callZome("where", fn_name, payload);
+    const result = this.client.callZome(this.mainCellId, "where", fn_name, payload, 10 * 1000);
     //console.debug("callZome: " + fn_name + "() result")
     //console.debug({result})
     return result;
@@ -260,7 +259,7 @@ export class WhereService {
   private callPlaysetZome(fn_name: string, payload: any): Promise<any> {
     //console.debug("callZome: " + fn_name)
     //console.debug({payload})
-    const result = this.cellClient.callZome("where_playset", fn_name, payload);
+    const result = this.client.callZome(this.mainCellId,"where_playset", fn_name, payload, 10 * 1000);
     //console.debug("callZome: " + fn_name + "() result")
     //console.debug({result})
     return result;
@@ -269,7 +268,7 @@ export class WhereService {
   private callLudothequeZome(fn_name: string, payload: any): Promise<any> {
     console.debug("callZome: " + fn_name)
     console.debug({payload})
-    const result = this.cellClient.callZome("where_ludotheque", fn_name, payload);
+    const result = this.client.callZome(this.mainCellId,"where_ludotheque", fn_name, payload, 10 * 1000);
     console.debug("callZome: " + fn_name + "() result")
     console.debug({result})
     return result;

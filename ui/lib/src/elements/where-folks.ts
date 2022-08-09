@@ -1,8 +1,8 @@
 import { html, css, LitElement } from "lit";
 import { property } from "lit/decorators.js";
 
-import { contextProvided } from "@holochain-open-dev/context";
-import { StoreSubscriber } from "lit-svelte-stores";
+import { contextProvided } from '@lit-labs/context';
+import {StoreSubscriber, TaskSubscriber} from "lit-svelte-stores";
 
 import { sharedStyles } from "../sharedStyles";
 import {whereContext} from "../types";
@@ -17,11 +17,12 @@ import {
 } from "@scoped-elements/material-web";
 import {
   profilesStoreContext,
-  ProfilesStore,
+  ProfilesStore, Profile,
 } from "@holochain-open-dev/profiles";
 import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
+import {HoloHashMap, serializeHash} from "@holochain-open-dev/utils";
 
 
 /**
@@ -45,16 +46,25 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
+  //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
   _agentPresences = new StoreSubscriber(this, () => this._store?.agentPresences);
+
+
+  private _allProfilesTask = new TaskSubscriber(
+    this,
+    () => this._profiles.fetchAllProfiles(),
+    () => [this._profiles]
+  );
+
+
 
   /** Methods */
 
 
+  /** */
   determineAgentStatus(key: AgentPubKeyB64) {
     // const status = "primary"; // "neutral"
-    if (key == this._profiles.myAgentPubKey) {
+    if (key == serializeHash(this._profiles.myAgentPubKey)) {
       return "success";
     }
     const lastPingTime: number = this._agentPresences.value[key];
@@ -70,6 +80,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   handleClickAvatar(e: any) {
     const key = e.currentTarget.id
     console.log("Avatar clicked: " + key)
@@ -79,14 +90,21 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     //this.requestUpdate();
   }
 
-  /**
-   *
-   */
-  render() {
-    const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
-    const filterStr = filterField? filterField.value : "";
 
-    const visibleProfiles = Object.entries(this._knownProfiles.value).filter(([key, profile]) =>
+  /** */
+  renderList(profiles: HoloHashMap<Profile>) {
+
+    if (profiles.keys().length === 0)
+      return html`
+        <mwc-list-item
+        >There are no created profiles yet
+        </mwc-list-item
+        >`;
+
+    const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
+    const filterStr = filterField ? filterField.value : "";
+
+    const visibleProfiles = profiles.entries().filter(([key, profile]) =>
       filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
 
     //console.log({visibleProfiles})
@@ -107,37 +125,41 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     // })
 
     /** Build avatar agent list */
-    const folks = visibleProfiles.map(([key, profile])=> {
+    const folks = visibleProfiles.map(([key, profile]) => {
+      let keyB64 = serializeHash(key)
       let opacity = 1.0;
-      if (this.soloAgent && this.soloAgent != key) {
+      if (this.soloAgent && this.soloAgent != keyB64) {
         opacity = 0.4;
       }
       return html`
         <li class="folk" style="opacity: ${opacity};">
-              <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar}
-                         style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;" >
-              </sl-avatar>
-              <sl-badge class="avatar-badge" type="${this.determineAgentStatus(key)}" pill></sl-badge>
-          <span style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">${profile.nickname}</span>
+          <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar}
+                     style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;">
+          </sl-avatar>
+          <sl-badge class="avatar-badge" type="${this.determineAgentStatus(keyB64)}" pill></sl-badge>
+          <span
+            style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">${profile.nickname}</span>
         </li>`
     })
 
     /** Build names agent list */
-    const list_folks = visibleProfiles.map(([key, profile])=> {
+    const list_folks = visibleProfiles.map(([key, profile]) => {
+      let keyB64 = serializeHash(key)
       let opacity = 1.0;
-      if (this.soloAgent && this.soloAgent != key) {
+      if (this.soloAgent && this.soloAgent != keyB64) {
         opacity = 0.4;
       }
-      const status = this.determineAgentStatus(key);
+      const status = this.determineAgentStatus(keyB64);
       const statusColor = this.status2color(status)
 
-     // y.js style ; need code to generate darken value
-     // <div style="background-color:${profile.fields['color']};width:4px;height:17px;display:inline-flex;"></div>
-     // <div style="color:${statusColor};margin-left:8px;margin-top:-21px;">${profile.nickname}</div>
+      // y.js style ; need code to generate darken value
+      // <div style="background-color:${profile.fields['color']};width:4px;height:17px;display:inline-flex;"></div>
+      // <div style="color:${statusColor};margin-left:8px;margin-top:-21px;">${profile.nickname}</div>
 
       return html`
         <li class="folk-row" style="opacity: ${opacity};" @click="${this.handleClickAvatar}" id=${key}>
-          <div style="background-color:${profile.fields['color']};width:9px;height:9px;display:inline-flex;border-radius:12px;border:1px solid gray;"></div>
+          <div
+            style="background-color:${profile.fields['color']};width:9px;height:9px;display:inline-flex;border-radius:12px;border:1px solid gray;"></div>
           <span style="color:${statusColor};margin-left:2px">${profile.nickname}</span>
         </li>`
     })
@@ -158,6 +180,18 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     `
   }
 
+  render() {
+    return this._allProfilesTask.render({
+      pending: () => html`<div class="fill center-content">
+        <mwc-circular-progress indeterminate></mwc-circular-progress>
+      </div>`,
+      complete: profiles => this.renderList(profiles),
+    });
+  }
+
+
+
+  /** */
   status2color(status: string): string {
     switch(status) {
       case "primary": return "rgb(14, 165, 233)"; break;
@@ -169,10 +203,14 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   toggleView() {
     this.canShowTable = !this.canShowTable;
   }
 
+
+  /** */
   static get scopedElements() {
     return {
       "mwc-menu": Menu,
@@ -193,6 +231,8 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     };
   }
 
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

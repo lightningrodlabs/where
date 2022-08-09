@@ -1,5 +1,6 @@
-import {ContextProvider, provide} from "@holochain-open-dev/context";
-import {EntryHashB64, serializeHash} from '@holochain-open-dev/core-types';
+import {ContextProvider} from "@lit-labs/context";
+import {EntryHashB64} from '@holochain-open-dev/core-types';
+import {serializeHash} from '@holochain-open-dev/utils';
 import { state } from "lit/decorators.js";
 import {
   WhereController,
@@ -9,15 +10,16 @@ import {
 } from "@where/elements";
 import {
   Profile,
-  ProfilePrompt,
+  ProfilePrompt, ProfilesService,
   ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
-import {BaseClient, HolochainClient} from "@holochain-open-dev/cell-client";
+import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {Dialog} from "@scoped-elements/material-web";
-import {CellId} from "@holochain/client";
+import {CellId, InstalledCell} from "@holochain/client";
+import {AppWebsocket} from "@holochain/client/lib/api/app/websocket";
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
@@ -67,36 +69,56 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
 
-    const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
+    const appWebsocket = await AppWebsocket.connect(wsUrl);
+    console.log({appWebsocket})
+    const hcClient = new HolochainClient(appWebsocket)
     console.log({hcClient})
-    // Where
-    let where_cell = hcClient.cellDataByRoleId("where");
-    if (!where_cell) {
-      alert("Where Cell not found in happ")
+
+    const appInfo = await hcClient.appWebsocket.appInfo({installed_app_id});
+
+    /** Get Cells by role by hand */
+    let where_cell: InstalledCell | undefined = undefined;
+    let ludo_cell: InstalledCell | undefined = undefined;
+    for (const cell_data of appInfo.cell_data) {
+      if (cell_data.role_id == "where") {
+        where_cell = cell_data;
+      }
+      if (cell_data.role_id == "ludotheque") {
+        ludo_cell = cell_data;
+      }
     }
-    this._whereCellId = where_cell!.cell_id;
-    const whereClient = hcClient.forCell(where_cell!);
-    console.log({whereClient})
-    // Ludotheque
-    let ludo_cell = hcClient.cellDataByRoleId("ludotheque");
+    if (where_cell == undefined) {
+      alert("Where Cell not found in happ");
+      return;
+    }
     if (!ludo_cell) {
       alert("Ludotheque Cell not found in happ")
+      return;
     }
-    this._ludoCellId = ludo_cell!.cell_id;
-    const ludoClient = hcClient.forCell(ludo_cell!);
-    console.log({ludoClient})
+
+
+    /** Where */
+    this._whereCellId = where_cell.cell_id;
+    const whereClient = new CellClient(hcClient, where_cell)
+    console.log({whereClient})
+
+
+    /**  Ludotheque */
+    this._ludoCellId = ludo_cell.cell_id;
+
 
     /** Send dnaHash to electron */
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
-      const dnaHashB64 = serializeHash(whereClient.cellId[0])
-      let _reply = ipc.sendSync('dnaHash', dnaHashB64);
+      const whereDnaHashB64 = serializeHash(where_cell.cell_id[0])
+      let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }
 
     /** ProfilesStore */
-    const profilesStore = new ProfilesStore(whereClient, {
+    const profilesService = new ProfilesService(whereClient);
+    const profilesStore = new ProfilesStore(profilesService, {
       //additionalFields: ['color'],
-      avatarMode: "avatar"
+      avatarMode: "avatar-required"
     })
     console.log({profilesStore})
     await profilesStore.fetchAllProfiles()
@@ -108,12 +130,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     new ContextProvider(this, profilesStoreContext, profilesStore);
 
     /** LudothequeStore */
-    this._ludoStore = new LudothequeStore(hcClient)
+    this._ludoStore = new LudothequeStore(hcClient, appInfo, ludo_cell.cell_id)
     new ContextProvider(this, ludothequeContext, this._ludoStore);
 
 
     /** WhereStore */
-    this._whereStore = new WhereStore(hcClient, profilesStore);
+    this._whereStore = new WhereStore(hcClient, profilesStore, appInfo, where_cell.cell_id);
     new ContextProvider(this, whereContext, this._whereStore);
 
     this.loaded = true;

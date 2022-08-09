@@ -1,8 +1,8 @@
 import {css, html, LitElement} from "lit";
 import {property, state} from "lit/decorators.js";
 
-import {contextProvided} from "@holochain-open-dev/context";
-import {StoreSubscriber} from "lit-svelte-stores";
+import { contextProvided } from '@lit-labs/context';
+import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
@@ -15,26 +15,19 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
-  Button,
-  Drawer,
-  Formfield,
-  Icon,
-  IconButton, IconButtonToggle,
-  List,
-  ListItem,
-  Menu,
-  Select,
-  Slider,
-  Switch,
-  TextField,
-  TopAppBar,
+  Button, Drawer, Formfield,
+  Icon, IconButton, IconButtonToggle,
+  List, ListItem,
+  Menu, Select,
+  Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
-import {ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
+import {Profile, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface} from "../sharedRender";
 import {WhereFolks} from "./where-folks";
 import {CellId} from "@holochain/client/lib/types/common";
+import {serializeHash} from "@holochain-open-dev/utils";
 
 /**
  * @element where-controller
@@ -53,7 +46,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: profilesStoreContext })
+  @contextProvided({context: profilesStoreContext, subscribe: true})
+  @property({ type: Object })
   _profiles!: ProfilesStore;
 
   @contextProvided({ context: whereContext })
@@ -61,8 +55,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   _plays = new StoreSubscriber(this, () => this._store?.plays);
   _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
-  _knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
+  _myProfile?: Profile; // new StoreSubscriber(this, async () => await this._profiles?.fetchMyProfile());
+  //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.fetchAllProfiles);
+
 
   @state() _canShowFolks: boolean = true;
   @state() _neighborWidth: number = 150;
@@ -107,16 +102,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   get myNickName(): string {
-    return this._myProfile.value.nickname;
+    return this._myProfile!.nickname;
   }
   get myAvatar(): string {
-    return this._myProfile.value.fields.avatar;
+    return this._myProfile!.fields.avatar;
   }
   get myColor(): string {
-    return this._myProfile.value.fields.color;
+    return this._myProfile!.fields.color;
   }
 
 
+  /** */
   private randomRobotName(): string {
     const charCodeA = "A".charCodeAt(0);
     const charCode0 = "0".charCodeAt(0);
@@ -129,9 +125,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const random3 = String.fromCharCode(charCode0 + Math.floor(Math.random() * 10));
 
     return randomA + randomB + '-' + random1 + random2 + random3;
-
   }
 
+
+  /** */
   private async createDummyProfile() {
     const nickname: string = this.randomRobotName();
     //console.log(nickname);
@@ -142,6 +139,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async updateProfile(nickname: string, avatar: string, color: string) {
     try {
       const fields: Dictionary<string> = {};
@@ -158,14 +156,17 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
   /** Launch init when myProfile has been set */
-  private subscribeProfile() {
-    this._profiles.myProfile.subscribe(async (profile) => {
+  private async subscribeProfile() {
+    const myProfileStore = await this._profiles.fetchMyProfile();
+    myProfileStore.subscribe(async (profile) => {
       console.log({profile})
       if (profile) {
         if (!this._initialized && !this._initializing) {
           await this.init();
         }
+        this._myProfile = profile;
       }
     });
   }
@@ -192,7 +193,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
-    this.subscribeProfile();
+    await this.subscribeProfile();
     this.subscribePlay();
   }
 
@@ -229,6 +230,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   private getFirstVisiblePlay(plays: Dictionary<Play>): null| EntryHashB64 {
     if (Object.keys(plays).length == 0) {
       return null;
@@ -243,9 +245,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   * Called once a profile has been set
-   */
+  /** Called once a profile has been set */
   private async init() {
     this._initializing = true
     console.log("where-controller.init() - START");
@@ -345,7 +345,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async pingOthers() {
     if (this._currentSpaceEh) {
       // console.log("Pinging All")
-      await this._store.pingOthers(this._currentSpaceEh, this._profiles.myAgentPubKey)
+      await this._store.pingOthers(this._currentSpaceEh, serializeHash(this._profiles.myAgentPubKey))
     }
   }
 
@@ -452,7 +452,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async handleColorChange(e: any) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
-    const profile = this._myProfile.value;
+    const profile = this._myProfile!;
     await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
@@ -513,12 +513,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   <div>
     <mwc-list>
     <mwc-list-item twoline graphic="avatar" hasMeta>
-      ${!this._myProfile.value ? html`` : html`
+      ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
       <span slot="secondary">${this._profiles.myAgentPubKey}</span>
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
-        value=${this._myProfile.value.fields['color']}></sl-color-picker>
+        value=${this._myProfile.fields['color']}></sl-color-picker>
       `}
     </mwc-list-item>
     <li divider role="separator"></li>
@@ -569,9 +569,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" .store="${this._store}" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
-    ${!this._myProfile.value ? html`` : html`
+    ${!this._myProfile ? html`` : html`
       <where-play-dialog id="space-dialog"
-                          .currentProfile=${this._myProfile.value}
+                          .currentProfile=${this._myProfile}
                           @play-added=${(e:any) => this.selectPlay(e.detail)}>
       </where-play-dialog>
     `}

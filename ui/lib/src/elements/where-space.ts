@@ -1,7 +1,7 @@
 import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
 
-import {contextProvided} from "@holochain-open-dev/context";
+import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
@@ -19,7 +19,7 @@ import {
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
 import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
+import {Profile, ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
 import {Button, Dialog, TextField, Fab, Slider, Radio, Tab, TabBar} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
@@ -76,7 +76,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext })
   _profiles!: ProfilesStore;
 
-  _myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
+  _myProfile?: Profile;
+  //_myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
   _plays = new StoreSubscriber(this, () => this._store?.plays);
   _zooms = new StoreSubscriber(this, () => this._store?.zooms);
   _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
@@ -87,12 +88,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private dialogCanEdit = false;
   private dialogIdx = 0;
 
-  private _sessions?:any;
-  private _activeIndex:number = -1;
+  private _sessions?: any;
+  private _activeIndex: number = -1;
 
   @property({type: Number}) neighborWidth: number = 0;
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
+
+  /** */
   async initFab(fab: Fab) {
     await fab.updateComplete;
     const button = fab.shadowRoot!.querySelector('button')! as HTMLElement;
@@ -101,7 +104,19 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     button.style.borderRadius = "25%";
   }
 
+
+  /** Launch init when myProfile has been set */
+  private async subscribeProfile() {
+    const myProfileStore = await this._profiles.fetchMyProfile();
+    myProfileStore.subscribe(async (profile) => {
+      this._myProfile = profile;
+    });
+  }
+
+
+  /** */
   async firstUpdated() {
+    await this.subscribeProfile();
     await this.initFab(this.resetFab);
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
@@ -109,6 +124,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   updated(changedProperties: any) {
     //console.log("*** updated() called!");
     if (!this.currentSpaceEh) {
@@ -138,6 +154,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   connectedCallback() {
     super.connectedCallback();
     window.addEventListener('resize', this._handleResize);
@@ -148,10 +166,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   private _handleResize = (e: UIEvent) => {
     this.requestUpdate();
   }
 
+
+  /** */
   private _handleWheel = (e: WheelEvent) => {
     if (e.target && this.currentSpaceEh) {
       e.preventDefault();
@@ -159,14 +180,20 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
    }
   };
 
+
+  /** */
   updateZoom(delta: number): void {
     this._store.updateZoom(this.currentSpaceEh!, delta);
   }
 
+
+  /** */
   get myNickName(): string {
-    return this._myProfile.value.nickname;
+    return this._myProfile!.nickname;
   }
 
+
+  /** */
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.currentTarget.getBoundingClientRect();
     const z = this._zooms.value[this.currentSpaceEh!];
@@ -174,6 +201,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const y = (event.clientY - rect.top) / z; //y position within the element.
     return { x, y };
   }
+
 
   /**
    * Can create a Location if :
@@ -196,9 +224,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   private canUpdateLocation(idx: number): boolean {
     if (!this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
@@ -209,9 +235,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return locInfo.location.meta.authorName == this.myNickName;
   }
 
-  /**
-   * on surface click, try to create Location
-   */
+
+  /** on surface click, try to create Location */
   private handleClick(event: any): void {
     if (!this.currentSpaceEh || event == null || !this.canCreateLocation()) {
       return;
@@ -228,7 +253,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         tag: play.space.meta?.canTag ? "" : null,
         emoji: "",
         name: this.myNickName,
-        img: this._myProfile.value.fields.avatar,
+        img: this._myProfile!.fields.avatar,
         canEdit: false,
       }
       this.openLocationDialog(options);
@@ -244,8 +269,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         meta: {
           markerType: play.space.meta.markerType,
           tag: "",
-          img: this._myProfile.value.fields.avatar,
-          color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#000000",
+          img: this._myProfile!.fields.avatar,
+          color: this._myProfile!.fields.color? this._myProfile!.fields.color : "#000000",
           authorName: this.myNickName,
           emoji: play.space.meta?.singleEmoji,
           svgMarker,
@@ -256,6 +281,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   openLocationDialog(
     options : LocOptions = { name: "", img: "", tag: "", canEdit: false, emoji: ""},
     coord?: Coord,
@@ -294,11 +320,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   get locationDialogElem(): Dialog {
     return this.shadowRoot!.getElementById("edit-location-dialog") as Dialog;
   }
 
 
+  /** */
   private async handleLocationDialogClosing(e: any) {
     //console.log("handleLocationDialogClosing: " + e.detail.action)
     let tagValue = ""
@@ -342,12 +370,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       coord: this.dialogCoord,
       sessionEh: this._currentSessions.value[this.currentSpaceEh!],
       meta: {
-        authorName: this._myProfile.value.nickname,
+        authorName: this._myProfile!.nickname,
         markerType,
         tag: tagValue,
         emoji: emojiValue,
-        img: markerType == MarkerType.Avatar? this._myProfile.value.fields['avatar']: "",
-        color: this._myProfile.value.fields.color? this._myProfile.value.fields.color : "#858585",
+        img: markerType == MarkerType.Avatar? this._myProfile!.fields['avatar']: "",
+        color: this._myProfile!.fields.color? this._myProfile!.fields.color : "#858585",
         svgMarker,
       },
     };
@@ -364,10 +392,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   private allowDrop(ev: Event) {
     ev.preventDefault();
   }
 
+
+  /** */
   private drag(dragEvent: DragEvent) {
     const ev = dragEvent as any;
     const target = dragEvent.currentTarget? dragEvent.currentTarget : ev.originalTarget;
@@ -391,6 +423,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return false;
   }
 
+
+  /** */
   private drop(ev: any) {
     ev.preventDefault();
     if (!ev.dataTransfer || !ev.target) {
@@ -420,6 +454,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this._store.updateLocation(this.currentSpaceEh!, idx, coord);
   }
 
+
+  /** */
   getIdx(target: any): number | null {
     if (!target) {
       return null;
@@ -433,9 +469,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     return idx;
   }
 
-  /**
-   * Open LocationDialog on clicked element if possible
-   */
+
+  /** Open LocationDialog on clicked element if possible */
   private handleLocationDblClick(ev: any) {
     const idx = this.getIdx(ev.target)!;
     if (!this.canUpdateLocation(idx)) {
@@ -457,6 +492,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     );
   }
 
+
+  /** */
   renderActiveSurface(surface: any, w: number, h: number) {
     if (surface.html) {
       return html`<div
@@ -496,12 +533,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   handleDeleteClick(ev: any) {
     const idx = this.getIdx(ev.target)!;
     this._store.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
   }
 
 
+  /** */
   canEditLocation(play?: Play) {
     if (!play && this.currentSpaceEh) {
       play = this._plays.value[this.currentSpaceEh!];
@@ -512,6 +551,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   renderLocation(locInfo: LocationInfo | null, z: number, play: Play, i: number) {
     if (locInfo === null) {
       return;
@@ -564,10 +604,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+
+  /** */
   async resetMyLocations() {
     await this._store.deleteAllMyLocations(this.currentSpaceEh!);
   }
 
+
+  /** */
   toggleHideHere() {
     if (this.hideFab.icon === 'visibility') {
       this.hideFab.icon = 'visibility_off'
@@ -577,6 +621,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
+
+  /** */
   private handleZoomSlider(input: number): void {
     /** update zoom from absolute value */
     const zoom = Math.min(input, 999);
@@ -586,6 +632,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async handleEmojiButtonClick(unicode: string) {
     // console.log("handleEmojiButtonClick: " + unicode)
     let emojiMarkerElem = this.shadowRoot!.getElementById("edit-location-emoji-marker");
@@ -594,6 +641,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async handleTagButtonClick(tag: string) {
     // console.log("handleEmojiButtonClick: " + unicode)
     let elem = this.shadowRoot!.getElementById("edit-location-predefined-tag");
@@ -601,6 +649,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+
+  /** */
   renderLocationDialog(play: Play | undefined) {
     if (!this.canEditLocation(play)) {
       return html``;
@@ -682,6 +732,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   // @input=${() => (this.shadowRoot!.getElementById("edit-location-tag") as TextField).reportValidity()} autoValidate=true
   // @closing=${this.handleLocationDialogClosing}
 
+
+  /** */
   private async handleTabSelected(e: any) {
     //console.log("handleTabSelected: " + e.detail.index)
     const selectedSessionEh = this._sessions[e.detail.index];
@@ -715,6 +767,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   render() {
     // console.log(" - where-space render() - " + this.currentSpaceEh)
     if (!this.currentSpaceEh || !this._plays.value[this.currentSpaceEh]) {
@@ -811,6 +864,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "sl-avatar": SlAvatar,

@@ -2,10 +2,9 @@ import {css, html, LitElement} from "lit";
 import {query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@holochain-open-dev/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {Coord, TemplateEntry, TemplateType, whereContext} from "../types";
+import {Coord, TemplateEntry, TemplateType} from "../types";
 import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import parser from "fast-xml-parser";
 import {EntryHashB64} from "@holochain-open-dev/core-types";

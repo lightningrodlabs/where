@@ -1,5 +1,5 @@
-import {ContextProvider} from "@holochain-open-dev/context";
-import {serializeHash} from '@holochain-open-dev/core-types';
+import { ContextProvider } from '@lit-labs/context';
+import { serializeHash } from '@holochain-open-dev/utils';
 import { state } from "lit/decorators.js";
 
 import {
@@ -11,6 +11,7 @@ import {
 import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
+import {AppWebsocket, InstalledCell} from "@holochain/client";
 
 
 let APP_ID = 'where'
@@ -45,23 +46,32 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
 
-    const hcClient = await HolochainClient.connect(wsUrl, installed_app_id);
+    const appWebsocket = await AppWebsocket.connect(wsUrl);
+    console.log({appWebsocket})
+    const hcClient = new HolochainClient(appWebsocket)
     console.log({hcClient})
-    let ludo_cell = hcClient.cellDataByRoleId("ludotheque");
+    const appInfo = await hcClient.appWebsocket.appInfo({installed_app_id});
+
+    /** Get Cells by role by hand */
+    let ludo_cell: InstalledCell | undefined = undefined;
+    for (const cell_data of appInfo.cell_data) {
+      if (cell_data.role_id == "ludotheque") {
+        ludo_cell = cell_data;
+      }
+    }
     if (!ludo_cell) {
       alert("Ludotheque Cell not found in happ")
+      return;
     }
-    const cellClient = hcClient.forCell(ludo_cell!);
-    console.log({cellClient})
 
     // Send dnaHash to electron
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
-      const dnaHashB64 = serializeHash(cellClient.cellId[0])
-      let _reply = ipc.sendSync('dnaHash', dnaHashB64);
+      const ludoDnaHashB64 = serializeHash(ludo_cell.cell_id[0])
+      let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }
 
-    new ContextProvider(this, ludothequeContext, new LudothequeStore(hcClient));
+    new ContextProvider(this, ludothequeContext, new LudothequeStore(hcClient, appInfo, ludo_cell.cell_id));
 
     this.loaded = true;
   }

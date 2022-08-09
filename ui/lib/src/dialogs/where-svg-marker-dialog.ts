@@ -2,10 +2,9 @@ import {css, html, LitElement} from "lit";
 import {query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@holochain-open-dev/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {WhereStore} from "../where.store";
-import {SvgMarkerEntry, whereContext} from "../types";
+import {SvgMarkerEntry} from "../types";
 import {
   Button,
   Dialog,

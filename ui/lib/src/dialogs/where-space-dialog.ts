@@ -1,10 +1,11 @@
 import {css, html, LitElement, PropertyValues} from "lit";
 import {property, query, state} from "lit/decorators.js";
+import {contextProvided} from "@lit-labs/context";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@holochain-open-dev/context";
+
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
+
 import {
   defaultLocationMeta,
   defaultPlayMeta, EmojiGroupVariant,

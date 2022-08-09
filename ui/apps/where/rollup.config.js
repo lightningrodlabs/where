@@ -12,6 +12,8 @@ import { terser } from "rollup-plugin-terser";
 import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
 
+const pkg = require("./package.json");
+
 const HC_PORT = process.env.HC_PORT || 8888;
 const DIST_FOLDER = "dist"
 
@@ -27,7 +29,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-
+  external: [...Object.keys(pkg.dependencies), /lodash-es/],
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
@@ -46,9 +48,8 @@ export default {
       "process.env.HC_PORT": `"${HC_PORT}"`,
       "preventAssignment": true,
     }),
-    builtins(),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
-    commonjs({}),
+    builtins(),
     globals(),
     /** Minify JS */
     terser(),
@@ -108,5 +109,6 @@ export default {
       clientsClaim: true,
       runtimeCaching: [{ urlPattern: "polyfills/*.js", handler: "CacheFirst" }],
     }),
+    commonjs(),
   ],
 };

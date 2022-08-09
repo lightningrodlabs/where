@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { app } from 'electron'
-import { HolochainRunnerOptions, StateSignal, PathOptions } from 'electron-holochain'
+import { ElectronHolochainOptions, StateSignal, PathOptions } from '@sprillow-connor/electron-holochain'
 import {MAIN_APP_ID, COMMUNITY_PROXY_URL} from './constants'
 
 // these messages get seen on the splash page
@@ -62,8 +62,8 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
 /**
  *
  */
-function createHolochainOptions(uid: string, storagePath: string): HolochainRunnerOptions {
-  const options: HolochainRunnerOptions = {
+function createHolochainOptions(uid: string, storagePath: string):  ElectronHolochainOptions {
+  const options:  ElectronHolochainOptions = {
     happPath: whereDnaPath,
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
     appId: MAIN_APP_ID + '-' + uid,
@@ -73,6 +73,7 @@ function createHolochainOptions(uid: string, storagePath: string): HolochainRunn
     keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
     //proxyUrl: COMMUNITY_PROXY_URL,
     //bootstrapUrl: "",
+    passphrase: "",
     uid,
   }
   return options;

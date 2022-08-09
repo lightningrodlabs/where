@@ -3,6 +3,7 @@
   "version": "0.0.9",
   "scripts": {
     "build": "tsc",
+    "rollup": "rm -rf out-tsc && mkdir ./out-tsc && rollup -c",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
     "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "package": "rm -rf ludotheque-ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd ./dist && bestzip ../ludotheque-ui.zip *"

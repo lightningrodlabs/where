@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "out-tsc",
     "rootDir": "./src",
+    "allowJs": true,
     "declaration": false
   },
   "include": ["src/**/*.ts"]

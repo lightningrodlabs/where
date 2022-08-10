@@ -70,10 +70,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
   // @state() _currentSessionEh: null | EntryHashB64 = null;
 
-  @contextProvided({ context: whereContext })
+  @contextProvided({ context: whereContext, subscribe: true })
   _store!: WhereStore;
 
-  @contextProvided({ context: profilesStoreContext })
+  @contextProvided({ context: profilesStoreContext, subscribe: true })
   _profiles!: ProfilesStore;
 
   _myProfile?: Profile;
@@ -127,7 +127,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   /** */
   updated(changedProperties: any) {
     //console.log("*** updated() called!");
-    if (!this.currentSpaceEh) {
+    if (!this.currentSpaceEh || !this._plays.value) {
       return;
     }
     // - Tab bar bug workaround ; dont use scrollIndexIntoView() since its broken
@@ -769,10 +769,36 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    // console.log(" - where-space render() - " + this.currentSpaceEh)
-    if (!this.currentSpaceEh || !this._plays.value[this.currentSpaceEh]) {
-      return;
+    //console.log(" - where-space render() - " + this.currentSpaceEh)
+
+    /** Determine max size */
+    const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
+    const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
+    //console.log("max-width: ", maxW);
+    //console.log("max-height: ", maxH);
+
+    /** Render fabs */
+    const zoomValue = this.currentSpaceEh && this._zooms.value? this._zooms.value[this.currentSpaceEh] * 100 : 100;
+    const fabs = html`
+      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
+      <mwc-slider min="10" max="300" style="position:absolute;left:20px;top:-5px;width:120px;"
+                  @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${zoomValue}">
+      </mwc-slider>
+      <mwc-fab mini id="plus-fab" icon="add" style="left:120px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
+      <mwc-fab mini id="reset-fab" icon="wrong_location" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
+      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
+    `;
+
+    /** Default render if no plays */
+    if (!this.currentSpaceEh || !this._plays.value || !this._plays.value[this.currentSpaceEh]) {
+      return html`
+      <div class="surface" style="min-width:200px; min-height:200px;max-width:${maxW}px; max-height:${maxH}px;">
+        No space found
+        ${fabs}
+      </div>
+    `;
     }
+
     /** Get current play and zoom level */
     const play: Play = this._plays.value[this.currentSpaceEh];
     const z = this._zooms.value[this.currentSpaceEh];
@@ -829,23 +855,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     /** Set viewed width and height and render Surface accordingly */
     const w = play.space.surface.size.x * z;
     const h = play.space.surface.size.y * z;
-    /** Set max size */
-    const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
-    const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
-    //console.log("max-width: ", maxW);
-    //console.log("max-height: ", maxH);
+
     /** render Surface */
     const surfaceItem = this.renderActiveSurface(play.space.surface, w, h)
-    /** Render fabs */
-    const fabs = html`
-      <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
-      <mwc-slider min="10" max="300" style="position:absolute;left:20px;top:-5px;width:120px;"
-                  @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${this._zooms.value[this.currentSpaceEh] * 100}">
-      </mwc-slider>
-      <mwc-fab mini id="plus-fab" icon="add" style="left:120px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="wrong_location" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
-      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
-    `;
     /** Build LocationDialog if required */
     const maybeLocationDialog =  this.renderLocationDialog(play);
     /** Render layout - 1.01 because of scroll bars */

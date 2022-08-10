@@ -20,7 +20,7 @@ import {StoreSubscriber} from "lit-svelte-stores";
 export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
-  @contextProvided({ context: whereContext })
+  @contextProvided({ context: whereContext, subscribe: true })
   _store!: WhereStore;
 
   open() {
@@ -30,7 +30,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Private properties */
-  _plays = new StoreSubscriber(this, () => this._store?.plays);
+  _plays? = new StoreSubscriber(this, () => this._store?.plays);
 
   @query('#space-list')
   _spaceList!: List;
@@ -38,13 +38,14 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
   /** Methods */
 
+  /** */
   private async handleOk(e: any) {
-    // - Check for changes in visible status for each play
+    /** Check for changes in visible status for each play */
     let changed = [];
     for (const item of this._spaceList.items) {
       const spaceEh = item.value;
       const visible = !item.selected;
-      if (this._plays.value[spaceEh].visible != visible) {
+      if (this._plays!.value[spaceEh].visible != visible) {
         changed.push(spaceEh)
         if (visible) {
           await this._store.unhidePlay(spaceEh)
@@ -53,23 +54,25 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
         }
       }
     }
-    // - Close Dialog
+    /** Close Dialog */
     this.dispatchEvent(new CustomEvent('archive-update', { detail: changed, bubbles: true, composed: true }));
     const dialog = this.shadowRoot!.getElementById("archive-dialog") as Dialog;
     dialog.close()
   }
 
 
+  /** */
   private handleDialogOpened(e: any) {
     this.requestUpdate();
   }
 
 
+  /** */
   render() {
     return html`
 <mwc-dialog id="archive-dialog" heading="Archived Spaces" @opened=${this.handleDialogOpened}>
 <mwc-list id="space-list" multi>
-  ${Object.entries(this._plays.value).map(
+  ${this._plays?.value? Object.entries(this._plays.value).map(
     ([key, play]) => html`
       <mwc-check-list-item
         left
@@ -78,7 +81,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
             ${play.space.name}
       </mwc-check-list-item>
     `
-  )}
+  ) : html``}
 </mwc-list>
 <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
 <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
@@ -87,6 +90,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "mwc-dialog": Dialog,

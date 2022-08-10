@@ -13,5 +13,9 @@ coordinator:
   zomes:
     - name: where_playset
       bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
+      dependencies:
+        - name: where_playset_integrity
     - name: where_ludotheque
       bundled: ../../../target/wasm32-unknown-unknown/release/where_ludotheque.wasm
+      dependencies:
+        - name: where_ludotheque_integrity

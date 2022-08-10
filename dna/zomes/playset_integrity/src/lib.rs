@@ -27,7 +27,6 @@ pub enum PlaysetEntry {
 
 /// List of all link kinds handled by this Zome
 #[hdk_link_types]
-#[derive(Serialize, Deserialize)]
 pub enum PlaysetLinkType {
     All,
     SvgMarkers,

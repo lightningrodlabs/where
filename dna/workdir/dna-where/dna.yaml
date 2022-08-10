@@ -15,7 +15,13 @@ coordinator:
   zomes:
     - name: where_playset
       bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
+      dependencies:
+        - name: where_playset_integrity
     - name: where
       bundled: ../../../target/wasm32-unknown-unknown/release/where.wasm
+      dependencies:
+        - name: where_integrity
     - name: profiles
       bundled: ../../../target/wasm32-unknown-unknown/release/profiles.wasm
+      dependencies:
+        - name: profiles_integrity

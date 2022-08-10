@@ -11,10 +11,10 @@ import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {
-  SlButton,
+  //SlButton,
   SlCard,
-  SlIcon,
-  SlIconButton,
+  //SlIcon,
+  //SlIconButton,
   SlRating,
   SlTab,
   SlTabGroup,
@@ -69,7 +69,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: ludothequeContext })
+  @contextProvided({ context: ludothequeContext, subscribe: true })
   _store!: LudothequeStore;
 
 
@@ -863,9 +863,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       "mwc-icon-button": IconButton,
       "mwc-button": Button,
       "sl-card": SlCard,
-      "sl-icon": SlIcon,
-      "sl-icon-button": SlIconButton,
-      "sl-button": SlButton,
+      //"sl-icon": SlIcon,
+      //"sl-icon-button": SlIconButton,
+      //"sl-button": SlButton,
       "sl-rating": SlRating,
       'sl-tab-group': SlTabGroup,
       'sl-tab': SlTab,

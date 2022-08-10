@@ -19,7 +19,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Dependencies */
-  @contextProvided({ context: ludothequeContext })
+  @contextProvided({ context: ludothequeContext, subscribe:true })
   _store!: LudothequeStore;
 
   open(playsetEh?: EntryHashB64) {

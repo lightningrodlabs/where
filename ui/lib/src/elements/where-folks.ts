@@ -41,9 +41,9 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: whereContext })
+  @contextProvided({ context: whereContext, subscribe: true })
   _store!: WhereStore;
-  @contextProvided({ context: profilesStoreContext })
+  @contextProvided({ context: profilesStoreContext, subscribe: true })
   _profiles!: ProfilesStore;
 
   //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);

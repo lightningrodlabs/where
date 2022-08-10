@@ -52,7 +52,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   @property({ type: Object}) currentProfile: Profile | undefined = undefined;
 
   /** Dependencies */
-  @contextProvided({ context: whereContext })
+  @contextProvided({ context: whereContext, subscribe:true })
   _store!: WhereStore;
 
   _templates = new StoreSubscriber(this, () => this._store?.templates);

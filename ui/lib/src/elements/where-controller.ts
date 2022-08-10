@@ -6,12 +6,6 @@ import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
-import {Dictionary, PieceType, Play, whereContext} from "../types";
-import {WhereStore} from "../where.store";
-import {WhereSpace} from "./where-space";
-import {WherePlayDialog} from "../dialogs/where-play-dialog";
-import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
-import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
@@ -21,13 +15,22 @@ import {
   Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
+
 import {Profile, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
-import {prefix_canvas} from "../templates";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
-import {delay, renderSurface} from "../sharedRender";
-import {WhereFolks} from "./where-folks";
 import {CellId} from "@holochain/client";
 import {serializeHash} from "@holochain-open-dev/utils";
+
+import {Dictionary, PieceType, Play, whereContext} from "../types";
+import {delay, renderSurface} from "../sharedRender";
+import {prefix_canvas} from "../templates";
+import {WhereFolks} from "./where-folks";
+import {WhereStore} from "../where.store";
+import {WhereSpace} from "./where-space";
+import {WherePlayDialog} from "../dialogs/where-play-dialog";
+import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
+import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
+
 
 /**
  * @element where-controller
@@ -48,13 +51,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   @contextProvided({context: profilesStoreContext, subscribe: true})
   @property({ type: Object })
-  _profiles!: ProfilesStore;
+  _profileStore!: ProfilesStore;
 
-  @contextProvided({ context: whereContext })
-  _store!: WhereStore;
+  @contextProvided({ context: whereContext, subscribe: true })
+  _whereStore!: WhereStore;
 
-  _plays = new StoreSubscriber(this, () => this._store?.plays);
-  _templates = new StoreSubscriber(this, () => this._store?.templates);
+  _plays = new StoreSubscriber(this, () => this._whereStore?.plays);
+  _templates = new StoreSubscriber(this, () => this._whereStore?.templates);
   _myProfile?: Profile; // new StoreSubscriber(this, async () => await this._profiles?.fetchMyProfile());
   //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.fetchAllProfiles);
 
@@ -145,7 +148,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       const fields: Dictionary<string> = {};
       fields['color'] = color;
       fields['avatar'] = avatar;
-      await this._profiles.createProfile({
+      await this._profileStore.createProfile({
         nickname,
         fields,
       });
@@ -159,33 +162,33 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** Launch init when myProfile has been set */
   private async subscribeProfile() {
-    const myProfileStore = await this._profiles.fetchMyProfile();
+    const myProfileStore = await this._profileStore.fetchMyProfile();
     myProfileStore.subscribe(async (profile) => {
       console.log({profile})
       if (profile) {
-        if (!this._initialized && !this._initializing) {
-          await this.init();
-        }
+        // if (!this._initialized && !this._initializing) {
+        //   await this.init();
+        // }
         this._myProfile = profile;
       }
     });
   }
 
   /** Launch init when myProfile has been set */
-  private subscribePlay() {
-    this._store.plays.subscribe(async (plays) => {
-      if (!this._currentSpaceEh) {
-        /** Select first play */
-        const firstSpaceEh = this.getFirstVisiblePlay(plays);
-        if (firstSpaceEh) {
-          await this.selectPlay(firstSpaceEh);
-          console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-          console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
-          //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
-        }
-      }
-    });
-  }
+  // private subscribePlay() {
+  //   this._whereStore.plays.subscribe(async (plays) => {
+  //     if (!this._currentSpaceEh) {
+  //       /** Select first play  if none is set */
+  //       const firstSpaceEh = this.getFirstVisiblePlay(plays);
+  //       if (firstSpaceEh) {
+  //         await this.selectPlay(firstSpaceEh);
+  //         console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
+  //         console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
+  //         //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
+  //       }
+  //     }
+  //   });
+  // }
 
   /** After first render only */
   async firstUpdated() {
@@ -193,13 +196,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
-    await this.subscribeProfile();
-    this.subscribePlay();
+    await this.init();
+    //await this.subscribeProfile();
+    //this.subscribePlay();
   }
 
   /** After each render */
   async updated(changedProperties: any) {
     if (this._canPostInit) {
+      await this.subscribeProfile();
       this.postInit();
     }
     // look for canvas in plays and render them
@@ -250,7 +255,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this._initializing = true
     console.log("where-controller.init() - START");
     /** Get latest public entries from DHT */
-    await this._store.pullDht();
+    await this._whereStore.pullDht();
     const plays = this._plays.value;
     const templates = this._templates.value;
     console.log({plays})
@@ -263,6 +268,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("where-controller.init() - DONE");
   }
 
+
+  /** */
   private postInit() {
     /** Menu */
     const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
@@ -281,6 +288,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   private async selectPlay(spaceEh: EntryHashB64): Promise<void> {
     console.log("Requested Play: " + spaceEh);
     let play = null;
@@ -309,13 +317,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         })
       //console.log("hasToday: " + hasToday + " | " + play.space.name + " | " + today)
       if (!hasToday) {
-        await this._store.createNextSession(spaceEh, today /*"dummy-test-name"*/)
+        await this._whereStore.createNextSession(spaceEh, today /*"dummy-test-name"*/)
       }
     }
 
     // - This will trigger a render()
     this._currentSpaceEh = spaceEh;
     this._currentTemplateEh = play.space.origin;
+
+    this.requestUpdate();
 
     //console.log(" - selected template: " + this._currentTemplateEh);
 
@@ -327,12 +337,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-
-  /**
-   * Hide Current play and select first available one
-   */
+  /** Hide Current play and select first available one */
   async archiveSpace() {
-    await this._store.hidePlay(this._currentSpaceEh!)
+    await this._whereStore.hidePlay(this._currentSpaceEh!)
     /** Select first play */
     const spaces = this._plays.value;
     const firstSpaceEh = this.getFirstVisiblePlay(spaces)
@@ -342,18 +349,20 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async pingOthers() {
     if (this._currentSpaceEh) {
       // console.log("Pinging All")
-      await this._store.pingOthers(this._currentSpaceEh, serializeHash(this._profiles.myAgentPubKey))
+      await this._whereStore.pingOthers(this._currentSpaceEh, serializeHash(this._profileStore.myAgentPubKey))
     }
   }
 
 
+  /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._store.pullDht()
-    await this._profiles.fetchAllProfiles()
+    await this._whereStore.pullDht()
+    await this._profileStore.fetchAllProfiles()
     await this.pingOthers()
     this.requestUpdate();
   }
@@ -376,6 +385,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   private async handlePlaySelected(e: any): Promise<void> {
     const index = e.detail.index;
     if (index < 0) {
@@ -385,6 +396,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this.selectPlay(value);
   }
 
+
+  /** */
   private async handleArchiveDialogClosing(e: any) {
     const spaces = this._plays.value;
     /** Check if current play has been archived */
@@ -410,6 +423,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   handleMenuSelect(e: any) {
     const menu = e.currentTarget as Menu;
     // console.log("handleMenuSelect: " + menu)
@@ -427,14 +441,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         break;
       case "export_template":
         if (this._currentTemplateEh && this.ludoCellId) {
-          this._store.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
+          this._whereStore.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
         } else {
           console.warn("No template or ludotheque cell to export to");
         }
         break;
       case "export_space":
         if (this._currentSpaceEh && this.ludoCellId) {
-          this._store.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
+          this._whereStore.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
         } else {
           console.warn("No space or ludotheque cell to export to");
         }
@@ -469,17 +483,27 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   render() {
     console.log("where-controller render() - " + this._currentSpaceEh);
     if (!this._initialized) {
       return html`<span>Loading...</span>`;
     }
-
     //var userLang = navigator.language
     //console.log({userLang})
+
+
+    if (!this._currentSpaceEh) {
+      /** Select first play  if none is set */
+      const firstSpaceEh = this.getFirstVisiblePlay(this._plays.value);
+      if (firstSpaceEh) {
+        this.selectPlay(firstSpaceEh);
+        //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
+        //console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
+        //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
+      }
+    }
+
 
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
@@ -494,7 +518,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         if (key == this._currentSpaceEh) {
           spaceName = play.space.name;
         }
-        const template = this._store.template(play.space.origin);
+        const template = this._whereStore.template(play.space.origin);
         return html`
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${play.space.name}</span>
@@ -515,7 +539,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
-      <span slot="secondary">${this._profiles.myAgentPubKey}</span>
+      <span slot="secondary">${serializeHash(this._profileStore.myAgentPubKey)}</span>
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
         value=${this._myProfile.fields['color']}></sl-color-picker>
@@ -568,7 +592,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._store}" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-template-dialog id="template-dialog" .store="${this._whereStore}" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile ? html`` : html`
       <where-play-dialog id="space-dialog"
                           .currentProfile=${this._myProfile}

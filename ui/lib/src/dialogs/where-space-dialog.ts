@@ -51,7 +51,7 @@ import {LudothequeStore} from "../ludotheque.store";
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
-  @contextProvided({ context: ludothequeContext })
+  @contextProvided({ context: ludothequeContext, subscribe: true })
   _store!: LudothequeStore;
 
   _templates = new StoreSubscriber(this, () => this._store?.templates);

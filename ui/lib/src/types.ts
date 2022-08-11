@@ -225,6 +225,9 @@ export type Signal =
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "DeleteHere", content: [EntryHashB64, ActionHashB64]}
   }
   | {
+  maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSession", content: [EntryHashB64, PlacementSessionEntry]}
+}
+  | {
   maybeSpaceHash: EntryHashB64 | null, from: AgentPubKeyB64, message: {type: "NewSpace", content: EntryHashB64}
 }
   | {

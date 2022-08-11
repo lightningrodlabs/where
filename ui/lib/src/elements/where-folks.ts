@@ -102,10 +102,11 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
         >`;
 
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
-    const filterStr = filterField ? filterField.value : "";
+    const filterStr = filterField && filterField.value? filterField.value : "";
 
-    const visibleProfiles = profiles.entries().filter(([key, profile]) =>
-      filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase()));
+    const visibleProfiles = profiles.entries().filter(([key, profile]) => {
+      filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase())
+    });
 
     //console.log({visibleProfiles})
 

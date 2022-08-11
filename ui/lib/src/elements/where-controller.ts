@@ -164,7 +164,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   private async subscribeProfile() {
     const myProfileStore = await this._profileStore.fetchMyProfile();
     myProfileStore.subscribe(async (profile) => {
-      console.log({profile})
+      //console.log({profile})
       if (profile) {
         // if (!this._initialized && !this._initializing) {
         //   await this.init();

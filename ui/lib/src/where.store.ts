@@ -24,6 +24,8 @@ import {
 } from "@holochain-open-dev/profiles";
 import {CellId} from "@holochain/client";
 import {InstalledAppInfo} from "@holochain/client";
+import {HoloHashMap, serializeHash} from "@holochain-open-dev/utils";
+import {Profile} from "@holochain-open-dev/profiles/dist/types";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);
@@ -177,7 +179,8 @@ export class WhereStore {
   }
 
   private async others(): Promise<Array<AgentPubKeyB64>> {
-    return Object.keys(get(await this.profiles.fetchAllProfiles())).filter((key)=> key != this.myAgentPubKey)
+    const profiles = get(await this.profiles.fetchAllProfiles());
+    return profiles.keys().map(key => serializeHash(key)).filter((key)=> key != this.myAgentPubKey)
   }
 
   private updatePresence(from: AgentPubKeyB64) {
@@ -502,8 +505,10 @@ export class WhereStore {
       return spaces
     })
     const entry = this.service.hereFromLocation(locInfo.location)
-    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}}, await this.others());
-    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, linkHh: newLinkHh, author: this.myAgentPubKey}}}, await this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereHh]}},
+      await this.others());
+    await this.service.notify({maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: "NewHere", content: {entry, linkHh: newLinkHh, author: this.myAgentPubKey}}},
+      await this.others());
   }
 
   /** Get locIdx of first location from agent with given name */

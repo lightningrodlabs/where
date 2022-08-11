@@ -53,8 +53,8 @@ fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
 #[derive(Serialize, Deserialize, SerializedBytes, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct NotifyInput {
-    pub folks: Vec<AgentPubKeyB64>,
     pub signal: SignalPayload,
+    pub folks: Vec<AgentPubKeyB64>,
 }
 
 ///

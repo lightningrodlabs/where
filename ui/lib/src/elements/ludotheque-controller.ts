@@ -69,7 +69,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: ludothequeContext, subscribe: true })
+  @contextProvided({ context: ludothequeContext/*, subscribe: true*/ })
   _store!: LudothequeStore;
 
 

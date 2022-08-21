@@ -15,3 +15,7 @@ dna/workdir/happ*/*.happ
 workdir/*.webhapp
 *.tsbuildinfo
 .running
+electron/web/*.js
+electron/web/*.map
+electron/web/index.html
+ui/apps/ludotheque/*.zip

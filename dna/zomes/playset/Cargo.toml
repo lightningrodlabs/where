@@ -9,8 +9,8 @@ crate-type = ["cdylib", "rlib"]
 name = "where_playset"
 
 [dependencies]
+chrono = { version = "0.4.22", default-features = false, features = ["clock", "std", "oldtime", "serde"], optional = true }
 serde = "1.0"
-hdk = { version = "0.0.142", default-features = false }
-holo_hash = {version = "0.0.30", features = ["encoding"]}
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "142" }
+hdk = { version = "=0.0.147", features = ["encoding"] }
+zome_utils = { git = "https://github.com/zippy/zome-utils", branch = "147" }
 playset_integrity = { package = "where_playset_integrity", path = "../playset_integrity" }

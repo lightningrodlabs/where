@@ -22,7 +22,7 @@ import {
 import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
-import {HoloHashMap, serializeHash} from "@holochain-open-dev/utils";
+import {AgentPubKeyMap, serializeHash} from "@holochain-open-dev/utils";
 
 
 /**
@@ -92,7 +92,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  renderList(profiles: HoloHashMap<Profile>) {
+  renderList(profiles: AgentPubKeyMap<Profile>) {
 
     if (profiles.keys().length === 0)
       return html`

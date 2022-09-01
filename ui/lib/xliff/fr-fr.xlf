@@ -22,6 +22,54 @@
   <source>Import</source>
   <target>Importer</target>
 </trans-unit>
+<trans-unit id="sb59d68ed12d46377">
+  <source>Loading</source>
+  <target>Chargement</target>
+</trans-unit>
+<trans-unit id="s2fafd127851dfaaf">
+  <source>New Playset</source>
+  <target>Nouvelle Collection</target>
+</trans-unit>
+<trans-unit id="s63d894b1ddb06289">
+  <source>Description</source>
+  <target>Description</target>
+</trans-unit>
+<trans-unit id="s47e83eaa4b387e3b">
+  <source>cancel</source>
+  <target>annuler</target>
+</trans-unit>
+<trans-unit id="sf74e5feadea773fd">
+  <source>create</source>
+  <target>créer</target>
+</trans-unit>
+<trans-unit id="sc0672135930a14f0">
+  <source>Library</source>
+  <target>Bibliothéque</target>
+</trans-unit>
+<trans-unit id="s01f530772ab50bbe">
+  <source>Add Playset</source>
+  <target>Ajouter Collection</target>
+</trans-unit>
+<trans-unit id="s7b89cd09f1c9a922">
+  <source>Add Space</source>
+  <target>Ajouter Espace</target>
+</trans-unit>
+<trans-unit id="s76bf5e18b4cc26a6">
+  <source>Add Template</source>
+  <target>Ajouter Gabarit</target>
+</trans-unit>
+<trans-unit id="s24d63f32f15348b8">
+  <source>Add SvgMarker</source>
+  <target>Ajouter Marqueur SVG</target>
+</trans-unit>
+<trans-unit id="sd346499edc6216fd">
+  <source>Add EmojiGroup</source>
+  <target>Ajouter Groupe d'Emoji</target>
+</trans-unit>
+<trans-unit id="s3f454a85a10b1df6">
+  <source>Playsets</source>
+  <target>Collections</target>
+</trans-unit>
 </body>
 </file>
 </xliff>

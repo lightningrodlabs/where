@@ -692,7 +692,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this.pullWhereInventory();
 
     if (!this._initialized) {
-      return html`<span>Loading...</span>`;
+      return html`<span>${msg('Loading')}...</span>`;
     }
 
     // let playsetItems = [html``];
@@ -734,7 +734,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   <div>
     <mwc-list>
       <mwc-list-item twoline hasMeta>
-        <bold>New Playset</bold>
+        <bold>${msg('New Playset')}</bold>
         <span slot="secondary">${this._currentPlayset?.name}</span>
         <!--<span slot="secondary">${this._currentPlayset?.description}</span>
         <span slot="meta">${this._currentPlayset?.spaces.length}</span>-->
@@ -751,7 +751,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     <mwc-list id="playset-list">
       playsetItems
     </mwc-list>-->
-    <h4 style="margin-top:0px;margin-left:10px;">Description</h4>
+    <h4 style="margin-top:0px;margin-left:10px;">${msg('Description')}</h4>
     <div style="margin-left:20px;">
           <!--<div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
       <div>   Templates: ${this._currentPlayset?.templates.length}</div>
@@ -761,8 +761,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         ${this._currentPlayset?.description}
     </div>
     <div id="drawer-button-bar">
-      <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>cancel</mwc-button>
-      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>create</mwc-button>
+      <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>${msg('cancel')}</mwc-button>
+      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>${msg('create')}</mwc-button>
     </div>
   </div>
   <!-- END DRAWER -->
@@ -771,15 +771,15 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense style="position: relative;">
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">Library</div>
+      <div slot="title">${msg('Library')}</div>
 
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
       <mwc-menu id="add-menu" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
-        <mwc-list-item value="add_playset"><span>Add Playset</span></mwc-list-item>
-        <mwc-list-item value="add_space"><span>Add Space</span></mwc-list-item>
-        <mwc-list-item value="add_template"><span>Add Template</span></mwc-list-item>
-        <mwc-list-item value="add_svgMarker"><span>Add SvgMarker</span></mwc-list-item>
-        <mwc-list-item value="add_emojiGroup"><span>Add EmojiGroup</span></mwc-list-item>
+        <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
+        <mwc-list-item value="add_space"><span>${msg('Add Space')}</span></mwc-list-item>
+        <mwc-list-item value="add_template"><span>${msg('Add Template')}</span></mwc-list-item>
+        <mwc-list-item value="add_svgMarker"><span>${msg('Add SvgMarker')}</span></mwc-list-item>
+        <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
       </mwc-menu>
 
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
@@ -789,11 +789,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     <!-- APP BODY -->
     <div class="appBody">
       <sl-tab-group id="body-tab-group">
-        ${this._canCreatePlayset? html`` : html`<sl-tab id="playsets-tab" slot="nav" panel="playsets">Playsets</sl-tab>`}
-        <sl-tab id="spaces-tab" slot="nav" panel="spaces">Spaces</sl-tab>
-        <sl-tab id="templates-tab" slot="nav" panel="templates">Templates</sl-tab>
-        <sl-tab id="svg-markers-tab" slot="nav" panel="svg-markers">Svg Markers</sl-tab>
-        <sl-tab id="emoji-groups-tab" slot="nav" panel="emoji-groups">Emoji Groups</sl-tab>
+        ${this._canCreatePlayset? html`` : html`<sl-tab id="playsets-tab" slot="nav" panel="playsets">${msg('Playsets')}</sl-tab>`}
+        <sl-tab id="spaces-tab" slot="nav" panel="spaces">${msg('Spaces')}</sl-tab>
+        <sl-tab id="templates-tab" slot="nav" panel="templates">${msg('Templates')}</sl-tab>
+        <sl-tab id="svg-markers-tab" slot="nav" panel="svg-markers">${msg('SVG Markers')}</sl-tab>
+        <sl-tab id="emoji-groups-tab" slot="nav" panel="emoji-groups">${msg('Emoji Groups')}</sl-tab>
         <!-- LISTs -->
         <sl-tab-panel name="playsets">
           ${this.renderPlaysets()}

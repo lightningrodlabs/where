@@ -2,6 +2,10 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
 <file target-language="fr-fr" source-language="en" original="lit-localize-inputs" datatype="plaintext">
 <body>
+<trans-unit id="s2fafd127851dfaaf">
+  <source>New Playset</source>
+  <target>Nouvelle Collection</target>
+</trans-unit>
 <trans-unit id="sc26c8ac0ca631dc2">
   <source>Spaces</source>
   <target>Espaces</target>
@@ -25,10 +29,6 @@
 <trans-unit id="sb59d68ed12d46377">
   <source>Loading</source>
   <target>Chargement</target>
-</trans-unit>
-<trans-unit id="s2fafd127851dfaaf">
-  <source>New Playset</source>
-  <target>Nouvelle Collection</target>
 </trans-unit>
 <trans-unit id="s63d894b1ddb06289">
   <source>Description</source>

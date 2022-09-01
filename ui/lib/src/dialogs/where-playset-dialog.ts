@@ -8,11 +8,10 @@ import {Coord, ludothequeContext, PlaysetEntry} from "../types";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {LudothequeStore} from "../ludotheque.store";
+import { localized, msg } from '@lit/localize';
 
-
-/**
- * @element where-playset-dialog
- */
+/** @element where-playset-dialog */
+@localized()
 export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
   @state() size : Coord = {x:0,y:0};
@@ -100,7 +99,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-<mwc-dialog id="playset-inner-dialog" heading="New Playset" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="playset-inner-dialog" heading="${msg('New Playset')}" @opened=${this.handleDialogOpened}>
   <mwc-textfield dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
                  id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>

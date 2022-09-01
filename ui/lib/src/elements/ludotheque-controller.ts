@@ -49,9 +49,8 @@ import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 
 
-/**
- * @element ludotheque-controller
- */
+/** @element ludotheque-controller */
+@localized()
 export class LudothequeController extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();

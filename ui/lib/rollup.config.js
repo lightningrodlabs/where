@@ -4,6 +4,7 @@ import postcssLit from "rollup-plugin-postcss-lit";
 import resolve from "@rollup/plugin-node-resolve";
 import commonjs from "@rollup/plugin-commonjs";
 import babel from "@rollup/plugin-babel";
+import copy from 'rollup-plugin-copy';
 
 import postcssCQFill from "cqfill/postcss";
 
@@ -22,8 +23,7 @@ export default {
     babel({
       exclude: /node_modules/,
       plugins: [
-        require.resolve("babel-plugin-transform-class-properties"),
-        'transform-class-properties'
+        require.resolve("babel-plugin-transform-class-properties")
       ],
     }),
     postcss({
@@ -37,5 +37,9 @@ export default {
       browser: true
     }),
     commonjs(),
+    copy({
+      targets: [
+        { src: 'src/generated/*', dest: 'dist/generated' },
+    ]}),
   ],
 };

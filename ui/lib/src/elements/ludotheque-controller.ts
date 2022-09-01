@@ -46,6 +46,7 @@ import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId} from "@holochain/client";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
+import { localized, msg } from '@lit/localize';
 
 
 /**
@@ -512,14 +513,14 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         </div>
           <div style="margin-left:10px;">
             ${playset.description}
-            <div style="margin-top:10px;">Spaces: ${playset.spaces.length}</div>
-            <div>   Templates: ${playset.templates.length}</div>
-            <div> SVG Markers: ${playset.svgMarkers.length}</div>
-            <div>Emoji Groups: ${playset.emojiGroups.length}</div>
+            <div style="margin-top:10px;">${msg('Spaces')}: ${playset.spaces.length}</div>
+            <div>   ${msg('Templates')}: ${playset.templates.length}</div>
+            <div> ${msg('SVG Markers')}: ${playset.svgMarkers.length}</div>
+            <div>${msg('Emoji Groups')}: ${playset.emojiGroups.length}</div>
           </h4>
           <div slot="footer">
             <sl-rating></sl-rating>
-            <mwc-button id="primary-action-button" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>Import</mwc-button>
+            <mwc-button id="primary-action-button" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>${msg('Import')}</mwc-button>
           </div>
         </sl-card>
         `

@@ -6,13 +6,19 @@ import {
   ludothequeContext,
   LudothequeController,
   LudothequeStore,
+  setLocale,
 } from "@where/elements";
 
 import { HolochainClient } from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
-import {AppWebsocket, InstalledCell} from "@holochain/client";
+import { AppWebsocket, InstalledCell } from "@holochain/client";
 
+/** Localization */
+
+setLocale('fr-fr');
+
+/** ------- */
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;

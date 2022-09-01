@@ -7,7 +7,9 @@
   "scripts": {
     "build": "rm -rf dist && rollup -c",
     "build:watch": "run-singleton \"rollup -c -w\"",
-    "analyze": "lit-analyzer src --failFast"
+    "analyze": "lit-analyzer src --failFast",
+    "localize:extract": "lit-localize extract",
+    "localize:build": "lit-localize build"
   },
   "type": "module",
   "devDependencies": {
@@ -18,6 +20,7 @@
     "@types/lodash-es": "^4.17.4",
     "babel-plugin-transform-class-properties": "^6.24.1",
     "lit-analyzer": "^1.2.1",
+    "@lit/localize-tools": "^0.6.3",
     "rollup": "^2.56.3",
     "rollup-plugin-postcss": "^4.0.1",
     "rollup-plugin-postcss-lit": "^1.1.1",
@@ -37,6 +40,7 @@
     "emoji-picker-element": "^1.8.2",
     "lit": "^2.1.1",
     "lit-svelte-stores": "^0.2.0",
+    "@lit/localize": "^0.11.2",
     "lodash-es": "^4.17.21",
     "fast-xml-parser": "^3.20.0",
     "@types/randomcolor": "^0.5.6",

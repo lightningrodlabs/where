@@ -49,6 +49,7 @@
     "cross-env": "^7.0.3",
     "json-parse-better-errors": "^1.0.2",
     "new-port-cli": "^1.0.0",
+    "rollup-plugin-copy": "^3.4.0",
     "run-singleton-cli": "^0.0.5"
   }
 }

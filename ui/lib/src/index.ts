@@ -12,3 +12,5 @@ export * from './stringStore';
 
 export * from './elements/ludotheque-controller';
 export * from './ludotheque.store';
+
+export * from './localization';

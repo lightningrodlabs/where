@@ -733,7 +733,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(null)}></mwc-icon-button>
           <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openEmojiGroupDialog(marker_eh)}></mwc-icon-button>
-          <mwc-select id="emoji-group-field" required style="" label="Subset" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
+          <mwc-select id="emoji-group-field" required style="" label="${msg('Subset')}" @closing=${(e:any)=>{e.stopPropagation(); this.handleEmojiGroupSelect(e)}}>
             ${groups}
           </mwc-select>
           <!-- Display Unicode List / Grid -->
@@ -804,7 +804,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
                    id="name-field" minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
     <!-- Template/Surface -->
       <!-- <h4 style="margin-bottom: 15px;">Surface</h4> -->
-    <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
+    <mwc-select fixedMenuPosition required id="template-field" label="${msg('Template')}" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
         ${Object.entries(this._templates.value).map(
           ([key, template]) => html`
           <mwc-list-item

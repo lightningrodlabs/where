@@ -938,11 +938,11 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   <sl-tab-panel name="iterations">
     <h4 style="margin-top:15px;margin-bottom:5px;">${msg('Iterations')}</h4>
     <!-- None -->
-    <mwc-formfield label="None">
+    <mwc-formfield label="${msg('None')}">
       <mwc-radio id="no-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
     </mwc-formfield>
     <!-- Predefined Iterations -->
-    <mwc-formfield label="Predefined">
+    <mwc-formfield label="${msg('Predefined')}">
       <mwc-radio id="fixed-stop-radio" name="a" value="fixed" @change=${this.handleIterationTypeChange}></mwc-radio>
     </mwc-formfield>
     <div id="fixed-stops-div" style="margin-left:30px;margin-top:5px;">

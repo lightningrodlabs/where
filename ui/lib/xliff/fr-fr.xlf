@@ -2,13 +2,13 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
 <file target-language="fr-fr" source-language="en" original="lit-localize-inputs" datatype="plaintext">
 <body>
-<trans-unit id="s2bc6e8102c0faa7c">
-  <source>New Emoji Group</source>
-  <target>Nouveau Groupe d'Emoji</target>
+<trans-unit id="se3ed881a961f14bd">
+  <source>Emoji</source>
+  <target>Emoji</target>
 </trans-unit>
-<trans-unit id="sef49aec68fd1dc66">
-  <source>Name</source>
-  <target>Nom</target>
+<trans-unit id="s6ce0cb19e201b153">
+  <source>Tag</source>
+  <target>Étiquette</target>
 </trans-unit>
 <trans-unit id="s08b05d07b5566bef">
   <source>ok</source>
@@ -18,6 +18,18 @@
   <source>cancel</source>
   <target>annuler</target>
 </trans-unit>
+<trans-unit id="s52c3fa17d96e857c">
+  <source>No space found</source>
+  <target>Aucun espace trouvé</target>
+</trans-unit>
+<trans-unit id="s2bc6e8102c0faa7c">
+  <source>New Emoji Group</source>
+  <target>Nouveau Groupe d'Emoji</target>
+</trans-unit>
+<trans-unit id="sef49aec68fd1dc66">
+  <source>Name</source>
+  <target>Nom</target>
+</trans-unit>
 <trans-unit id="s0f136ff2c086b760">
   <source>reset</source>
   <target>reset</target>
@@ -25,10 +37,6 @@
 <trans-unit id="sb46648e5902fe236">
   <source>Pick Emoji</source>
   <target>Choississez l'Emoji</target>
-</trans-unit>
-<trans-unit id="se3ed881a961f14bd">
-  <source>Emoji</source>
-  <target>Emoji</target>
 </trans-unit>
 <trans-unit id="s8b76771993f6d8cf">
   <source>New SVG Marker</source>
@@ -106,10 +114,6 @@
   <source>Any Emoji</source>
   <target>Un Emoji</target>
 </trans-unit>
-<trans-unit id="s6ce0cb19e201b153">
-  <source>Tag</source>
-  <target>Étiquette</target>
-</trans-unit>
 <trans-unit id="s1d47a5c85ae57075">
   <source>Allow multiple markers per user</source>
   <target>Permettre plusieurs marquers par utilisateur</target>
@@ -133,6 +137,14 @@
 <trans-unit id="s3082c9e9fd08366d">
   <source>Iterations</source>
   <target>Itérations</target>
+</trans-unit>
+<trans-unit id="s669b18c6d2d9c95b">
+  <source>None</source>
+  <target>Aucun</target>
+</trans-unit>
+<trans-unit id="s13659bad4eed5467">
+  <source>Predefined</source>
+  <target>Prédefini</target>
 </trans-unit>
 <trans-unit id="sbbb97b1c63507dc0">
   <source>Number</source>
@@ -186,13 +198,29 @@
   <source>Archived Spaces</source>
   <target>Espaces archivés</target>
 </trans-unit>
+<trans-unit id="s032cd9f1245d3645">
+  <source>Space</source>
+  <target>Espace</target>
+</trans-unit>
+<trans-unit id="se47baf2fd16b9d2b">
+  <source>Template</source>
+  <target>Gabarit</target>
+</trans-unit>
+<trans-unit id="s6d7a41a35df1a54f">
+  <source>View Archives</source>
+  <target>Voir Archives</target>
+</trans-unit>
+<trans-unit id="s18ed119d4617c5f3">
+  <source>Subset</source>
+  <target>Sous-ensemble</target>
+</trans-unit>
 <trans-unit id="sa157aa5d7785ad4f">
   <source>NEW SPACE</source>
   <target>NOUVELLE ESPACE</target>
 </trans-unit>
 <trans-unit id="s9e275796a0d9a90b">
   <source>general</source>
-  <target>générale</target>
+  <target>général</target>
 </trans-unit>
 <trans-unit id="s86c910f0aa9f8e2f">
   <source>locations</source>

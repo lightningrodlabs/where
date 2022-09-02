@@ -30,11 +30,10 @@ import {WhereSpace} from "./where-space";
 import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
+import { localized, msg } from '@lit/localize';
 
-
-/**
- * @element where-controller
- */
+/** @element where-controller */
+@localized()
 export class WhereController extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
@@ -547,9 +546,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </mwc-list-item>
     <li divider role="separator"></li>
     </mwc-list>
-    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
-    <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>
+    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>${msg('Space')}</mwc-button>
+    <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>${msg('Template')}</mwc-button>
+    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>${msg('View Archives')}</mwc-button>
     <!-- <mwc-formfield label="View Archived">
       <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
     </mwc-formfield> -->
@@ -584,7 +583,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <div class="appBody">
       ${this._currentSpaceEh ?
         html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
-      : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">No space found</div>`}
+      : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">${msg('No space found')}</div>`}
       ${this._canShowFolks ?
       html`<where-folks id="where-folks" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-folks>`
     : html``}

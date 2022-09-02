@@ -23,11 +23,10 @@ import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
 import {HoloHashMap, serializeHash} from "@holochain-open-dev/utils";
+import { localized, msg } from '@lit/localize';
 
-
-/**
- * @element where-folks
- */
+/** @element where-folks */
+@localized()
 export class WhereFolks extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
@@ -57,9 +56,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
   );
 
 
-
   /** Methods */
-
 
   /** */
   determineAgentStatus(key: AgentPubKeyB64) {

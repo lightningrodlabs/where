@@ -27,7 +27,7 @@ import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
-
+import { localized, msg } from '@lit/localize';
 
 // // Canvas Animation experiment
 // function draw() {
@@ -51,9 +51,8 @@ import {prefix_canvas} from "../templates";
 // }
 
 
-/**
- * @element where-space
- */
+/** @element where-space */
+@localized()
 export class WhereSpace extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
@@ -660,7 +659,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (play!.space.meta.markerType == MarkerType.AnyEmoji || play!.space.meta.markerType == MarkerType.EmojiGroup) {
       maybeEmojiPreview = html`
         <div id="edit-location-emoji-preview">
-          <span style="margin:10px;">Emoji</span>
+          <span style="margin:10px;">${msg('Emoji')}</span>
           <div id="edit-location-emoji-marker"></div>
         </div>`
     }
@@ -694,7 +693,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (usePredefinedTags) {
       maybeTagPreview = html`
         <div id="edit-location-tag-preview">
-          <span style="margin:10px;">Tag </span>
+          <span style="margin:10px;">${msg('Tag')} </span>
           <div id="edit-location-predefined-tag" style="margin-top:9px;font-size:24px"></div>
         </div>`
     }
@@ -711,7 +710,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         </div>`
       } else {
         tagForm = html`
-          <mwc-textfield id="edit-location-tag" label="Tag" dialogInitialFocus
+          <mwc-textfield id="edit-location-tag" label="${msg('Tag')}" dialogInitialFocus
                          minlength="1" type="text"></mwc-textfield>`
       }
     }
@@ -723,8 +722,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           ${tagForm}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
-          <mwc-button slot="primaryAction" @click="${this.handleLocationClick}">ok</mwc-button>
-          <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+          <mwc-button slot="primaryAction" @click="${this.handleLocationClick}">${msg('ok')}</mwc-button>
+          <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
         </mwc-dialog>
     `;
   }
@@ -793,7 +792,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.currentSpaceEh || !this._plays.value || !this._plays.value[this.currentSpaceEh]) {
       return html`
       <div class="surface" style="min-width:200px; min-height:200px;max-width:${maxW}px; max-height:${maxH}px;">
-        No space found
+        ${msg('No space found')}
         ${fabs}
       </div>
     `;

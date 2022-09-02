@@ -6,6 +6,10 @@
   <source>New Emoji Group</source>
   <target>Nouveau Groupe d'Emoji</target>
 </trans-unit>
+<trans-unit id="sef49aec68fd1dc66">
+  <source>Name</source>
+  <target>Nom</target>
+</trans-unit>
 <trans-unit id="s08b05d07b5566bef">
   <source>ok</source>
   <target>ok</target>
@@ -62,9 +66,21 @@
   <source>ADVANCED</source>
   <target>AVANCÉ</target>
 </trans-unit>
+<trans-unit id="sf21fb4f4b9e8911f">
+  <source>Width</source>
+  <target>Largeur</target>
+</trans-unit>
+<trans-unit id="sffdadf0a576fd802">
+  <source>Height</source>
+  <target>Hauteur</target>
+</trans-unit>
 <trans-unit id="sd6458a3eef83d457">
   <source>Marker</source>
   <target>Marquer</target>
+</trans-unit>
+<trans-unit id="sd2223afb7d6b100d">
+  <source>Type</source>
+  <target>Type</target>
 </trans-unit>
 <trans-unit id="s1967faf9ed8d3504">
   <source>Avatar</source>

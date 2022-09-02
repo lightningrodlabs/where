@@ -17,10 +17,11 @@ import {StoreSubscriber} from "lit-svelte-stores";
 import {Picker} from "emoji-picker-element";
 import {property} from "lit/decorators.js";
 import {LudothequeStore} from "../ludotheque.store";
+import { localized, msg } from '@lit/localize';
 
-/**
- * @element where-emoji-group
- */
+
+/** @element where-emoji-group */
+@localized()
 export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
   @state() _currentUnicodes: string[] = [];
@@ -165,12 +166,12 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     )
     /** Render */
     return html`
-<mwc-dialog id="emoji-group-dialog" heading="New Emoji Group" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="emoji-group-dialog" heading="${msg('New Emoji Group')}" @opened=${this.handleDialogOpened}>
   <!-- Name -->
   <mwc-textfield id="name-field" dialogInitialFocus type="text"
                  style="display: block;"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+                 minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
   <!-- Display Unicode List / Grid -->
   <div style="margin:10px 0px 10px 0px;">
     <div class="unicodes-container">
@@ -180,9 +181,9 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   <!-- Emoji Picker -->
   <emoji-picker id="emoji-picker" class="light"></emoji-picker>
   <!-- Dialog buttons -->
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-  <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
-  <mwc-button slot="secondaryAction" @click=${this.handleResetGroup}>reset</mwc-button>
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+  <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
+  <mwc-button slot="secondaryAction" @click=${this.handleResetGroup}>${msg('reset')}</mwc-button>
 </mwc-dialog>
 `
   }

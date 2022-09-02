@@ -10,6 +10,7 @@ import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {LudothequeStore} from "../ludotheque.store";
 import { localized, msg } from '@lit/localize';
 
+
 /** @element where-playset-dialog */
 @localized()
 export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
@@ -102,12 +103,12 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 <mwc-dialog id="playset-inner-dialog" heading="${msg('New Playset')}" @opened=${this.handleDialogOpened}>
   <mwc-textfield dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+                 id="name-field" minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("description-field") as TextArea).reportValidity()}
-                id="description-field" placeholder="<description>" rows="10" cols="60" required></mwc-textarea>
+                id="description-field" placeholder="<${msg('description')}>" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>next</mwc-button>
-  <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('next')}</mwc-button>
+  <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
 </mwc-dialog>
 `
   }

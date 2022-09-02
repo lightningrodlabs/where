@@ -17,10 +17,13 @@ import {StoreSubscriber} from "lit-svelte-stores";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
 import {property} from "lit/decorators.js";
 import {LudothequeStore} from "../ludotheque.store";
+import { localized, msg } from '@lit/localize';
+
 
 /**
  * @element where-svg-marker-dialog
  */
+@localized()
 export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
   @state() _currentSvg: string = "";
@@ -139,22 +142,22 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-<mwc-dialog id="svg-marker-dialog" heading="New SVG Marker 64x64" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="svg-marker-dialog" heading="${msg('New SVG Marker')} 64x64" @opened=${this.handleDialogOpened}>
   <!-- Name field -->
   <mwc-textfield id="name-field" dialogInitialFocus type="text"
                  style="min-width: 250px;margin-bottom:5px;"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+                 minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
   <!-- Display Preview-->
   <div id="svg-marker-thumbnail">${this.previewSvgMarker()}</div>
   <!-- SVG field -->
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("svg-field") as TextArea).reportValidity()}
-                id="svg-field" placeholder="SVG here..." helper="No <svg> tag is required. Use %%color%% to use profile color" rows="10" cols="60" required></mwc-textarea>
+                id="svg-field" placeholder="${msg('SVG here')}..." helper="${msg('No <svg> tag is required')}. ${msg('Use %%color%% to use profile color')}" rows="10" cols="60" required></mwc-textarea>
   <!-- Dialog buttons -->
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-  <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
-    <!-- <mwc-button slot="secondaryAction" @click=${this.handleResetMarker}>reset</mwc-button> -->
-  <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+  <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
+    <!-- <mwc-button slot="secondaryAction" @click=${this.handleResetMarker}>${msg('reset')}</mwc-button> -->
+  <mwc-button slot="secondaryAction" @click=${this.handlePreview}>${msg('preview')}</mwc-button>
 </mwc-dialog>
 `
   }

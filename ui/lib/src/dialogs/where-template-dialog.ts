@@ -13,7 +13,10 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {LudothequeStore} from "../ludotheque.store";
 import {property} from "lit/decorators.js";
+import { localized, msg } from '@lit/localize';
 
+
+/** */
 function isValidXml(input: string) {
   if (input === undefined || input === null) {
     return false;
@@ -36,9 +39,8 @@ function isValidXml(input: string) {
 }
 
 
-/**
- * @element where-template
- */
+/** @element where-template */
+@localized()
 export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   @state() size : Coord = {x:0,y:0};
@@ -265,27 +267,27 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   render() {
     return html`
-<mwc-dialog id="template-dialog" heading="New template" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="template-dialog" heading="${msg('New template')}" @opened=${this.handleDialogOpened}>
   <mwc-textfield dialogInitialFocus type="text"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
-  <mwc-select required id="type-field" label="Type" @select=${this.handleTypeSelect}>
+                 id="name-field" minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
+  <mwc-select required id="type-field" label="${msg('Type')}" @select=${this.handleTypeSelect}>
     <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Html)} selected value="html">HTML</mwc-list-item>
     <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Svg)} value="svg">SVG</mwc-list-item>
     <mwc-list-item @request-selected=${() => this.handleTypeSelect(TemplateType.Canvas)} value="canvas">Canvas</mwc-list-item>
   </mwc-select>
 
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextArea).reportValidity()}
-                id="surface-field" placeholder="HTML/SVG/JS here..." helper="No <svg> / <html> tag is required" rows="10" cols="60" required></mwc-textarea>
+                id="surface-field" placeholder="HTML/SVG/JS ${msg('here')}..." helper="${msg('No <svg> / <html> tag is required')}" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}
-                 id="width-field" minlength="1" maxlength="4" label="Width" autoValidate=true></mwc-textfield>
+                 id="width-field" minlength="1" maxlength="4" label="${msg('Width')}" autoValidate=true></mwc-textfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("height-field") as TextField).reportValidity()}
-                 id="height-field" minlength="1" maxlength="4" label="Height" autoValidate=true></mwc-textfield>
+                 id="height-field" minlength="1" maxlength="4" label="${msg('Height')}" autoValidate=true></mwc-textfield>
   <div id="thumbnail">${this.previewTemplate()}</div>
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-  <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
-  <mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+  <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
+  <mwc-button slot="secondaryAction" @click=${this.handlePreview}>${msg('preview')}</mwc-button>
 </mwc-dialog>
 `
   }

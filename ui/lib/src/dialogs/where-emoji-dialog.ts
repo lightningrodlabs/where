@@ -11,10 +11,12 @@ import {
 } from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {EMOJI_WIDTH} from "../sharedRender";
+import { localized, msg } from '@lit/localize';
 
 /**
  * @element where-emoji-dialog
  */
+@localized()
 export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
 
   @state() _currentEmoji: string = '';
@@ -92,17 +94,17 @@ export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
    */
   render() {
     return html`
-<mwc-dialog id="emoji-dialog" heading="Pick Emoji" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="emoji-dialog" heading="${msg('Pick Emoji')}" @opened=${this.handleDialogOpened}>
   <!-- Emoji -->
   <div id="emoji-preview-field">
-    <span style="margin:10px;">Emoji</span>
+    <span style="margin:10px;">${msg('Emoji')}</span>
     <div id="emoji-preview"></div>
   </div>
   <!-- Emoji Picker -->
   <emoji-picker id="emoji-picker" class="light"></emoji-picker>
   <!-- Dialog buttons -->
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-  <mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+  <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
 </mwc-dialog>
 `
   }

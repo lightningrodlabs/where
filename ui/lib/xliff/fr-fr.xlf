@@ -2,9 +2,201 @@
 <xliff version="1.2" xmlns="urn:oasis:names:tc:xliff:document:1.2">
 <file target-language="fr-fr" source-language="en" original="lit-localize-inputs" datatype="plaintext">
 <body>
+<trans-unit id="s2bc6e8102c0faa7c">
+  <source>New Emoji Group</source>
+  <target>Nouveau Groupe d'Emoji</target>
+</trans-unit>
+<trans-unit id="s08b05d07b5566bef">
+  <source>ok</source>
+  <target>ok</target>
+</trans-unit>
+<trans-unit id="s47e83eaa4b387e3b">
+  <source>cancel</source>
+  <target>annuler</target>
+</trans-unit>
+<trans-unit id="s0f136ff2c086b760">
+  <source>reset</source>
+  <target>reset</target>
+</trans-unit>
+<trans-unit id="sb46648e5902fe236">
+  <source>Pick Emoji</source>
+  <target>Choississez l'Emoji</target>
+</trans-unit>
+<trans-unit id="se3ed881a961f14bd">
+  <source>Emoji</source>
+  <target>Emoji</target>
+</trans-unit>
+<trans-unit id="s8b76771993f6d8cf">
+  <source>New SVG Marker</source>
+  <target>New Marquer SVG</target>
+</trans-unit>
+<trans-unit id="sdfc29799f6c192ad">
+  <source>SVG here</source>
+  <target>SVG ici</target>
+</trans-unit>
+<trans-unit id="s04c41306fa197927">
+  <source>No &lt;svg&gt; tag is required</source>
+  <target>Aucun marquer &lt;svg&gt; n'est nécessaire</target>
+</trans-unit>
+<trans-unit id="s434b4ba34d5dfa9d">
+  <source>Use %%color%% to use profile color</source>
+  <target>Utilisez %%color%% pour utiliser la couleur du profil</target>
+</trans-unit>
+<trans-unit id="sc8d8c5da55fabab7">
+  <source>preview</source>
+  <target>aperçu</target>
+</trans-unit>
+<trans-unit id="s013daf22f920072b">
+  <source>GENERAL</source>
+  <target>GÉNÉRAL</target>
+</trans-unit>
+<trans-unit id="sc7dbb3c01dd3f0cf">
+  <source>LOCATIONS</source>
+  <target>EMPLACEMENTS</target>
+</trans-unit>
+<trans-unit id="sbc2500ea7cd2a9cd">
+  <source>ITERATIONS</source>
+  <target>ITERATIONS</target>
+</trans-unit>
+<trans-unit id="s46ceb51f8dbe337b">
+  <source>ADVANCED</source>
+  <target>AVANCÉ</target>
+</trans-unit>
+<trans-unit id="sd6458a3eef83d457">
+  <source>Marker</source>
+  <target>Marquer</target>
+</trans-unit>
+<trans-unit id="s1967faf9ed8d3504">
+  <source>Avatar</source>
+  <target>Avatar</target>
+</trans-unit>
+<trans-unit id="sa7a5119e0d1803f0">
+  <source>Initials</source>
+  <target>Initiales</target>
+</trans-unit>
+<trans-unit id="s37159fbcb11cb0d7">
+  <source>Colored SVG</source>
+  <target>SVG à couleur</target>
+</trans-unit>
+<trans-unit id="s6c522333a4d0d93d">
+  <source>Predefined Emoji</source>
+  <target>Emoji prédéfini</target>
+</trans-unit>
+<trans-unit id="s3c893b67262fcdb9">
+  <source>Emoji subset</source>
+  <target>Sous-ensemble d'emojis</target>
+</trans-unit>
+<trans-unit id="s754112b22c4fde2b">
+  <source>Any Emoji</source>
+  <target>Un Emoji</target>
+</trans-unit>
+<trans-unit id="s6ce0cb19e201b153">
+  <source>Tag</source>
+  <target>Étiquette</target>
+</trans-unit>
+<trans-unit id="s1d47a5c85ae57075">
+  <source>Allow multiple markers per user</source>
+  <target>Permettre plusieurs marquers par utilisateur</target>
+</trans-unit>
+<trans-unit id="sb9ebb122aa7050dc">
+  <source>Tagging</source>
+  <target>Taggage</target>
+</trans-unit>
+<trans-unit id="sf0c207cf6ee6113b">
+  <source>Enable marker tagging</source>
+  <target>Permettre le taggage de marquer</target>
+</trans-unit>
+<trans-unit id="sa14fffc6b354a39d">
+  <source>Display tag on surface</source>
+  <target>Afficher l'étiquette sur la surface</target>
+</trans-unit>
+<trans-unit id="s958f13b02172bf3a">
+  <source>comma separated text</source>
+  <target>texte separé par des virgules</target>
+</trans-unit>
+<trans-unit id="s3082c9e9fd08366d">
+  <source>Iterations</source>
+  <target>Itérations</target>
+</trans-unit>
+<trans-unit id="sbbb97b1c63507dc0">
+  <source>Number</source>
+  <target>Nombre</target>
+</trans-unit>
+<trans-unit id="s4bc513f856980a8a">
+  <source>labels</source>
+  <target>étiquettes</target>
+</trans-unit>
+<trans-unit id="s488bc66d62aa005d">
+  <source>comma separated text, leave empty for just numbers</source>
+  <target>texte separé par des virgules, laissez vide pour des nombres</target>
+</trans-unit>
+<trans-unit id="sebcb1d006da02c1e">
+  <source>One per day</source>
+  <target>Un par jour</target>
+</trans-unit>
+<trans-unit id="s6b39ed45ec08993b">
+  <source>Allow modification of past iterations</source>
+  <target>Permettre la modification des itérations passées</target>
+</trans-unit>
+<trans-unit id="s1d5d03e59c2b25fb">
+  <source>advanced</source>
+  <target>avancé</target>
+</trans-unit>
+<trans-unit id="s830479557323c68a">
+  <source>Extra UI elements</source>
+  <target>Éléments visuels supplémentaires</target>
+</trans-unit>
+<trans-unit id="s8d5fc9a40d24331c">
+  <source>Array of 'Box' objects</source>
+  <target>Série de 'Box'</target>
+</trans-unit>
+<trans-unit id="s6de3d6e9660857a1">
+  <source>Example</source>
+  <target>Exemple</target>
+</trans-unit>
+<trans-unit id="s25dc985631db5871">
+  <source>New template</source>
+  <target>Nouveau gabarit</target>
+</trans-unit>
+<trans-unit id="s0a4e01cc5f62582b">
+  <source>here</source>
+  <target>ici</target>
+</trans-unit>
+<trans-unit id="s50bb8359fb0bc281">
+  <source>No &lt;svg&gt; / &lt;html&gt; tag is required</source>
+  <target>Aucun marquer &lt;svg&gt; / &lt;html&gt; n'est requis</target>
+</trans-unit>
+<trans-unit id="s6ddfc20d9bb50bde">
+  <source>Archived Spaces</source>
+  <target>Espaces archivés</target>
+</trans-unit>
+<trans-unit id="sa157aa5d7785ad4f">
+  <source>NEW SPACE</source>
+  <target>NOUVELLE ESPACE</target>
+</trans-unit>
+<trans-unit id="s9e275796a0d9a90b">
+  <source>general</source>
+  <target>générale</target>
+</trans-unit>
+<trans-unit id="s86c910f0aa9f8e2f">
+  <source>locations</source>
+  <target>emplacements</target>
+</trans-unit>
+<trans-unit id="sc9a9c22ce1376f00">
+  <source>Predefined tags</source>
+  <target>Étiquettes prédifinies</target>
+</trans-unit>
 <trans-unit id="s2fafd127851dfaaf">
   <source>New Playset</source>
   <target>Nouvelle Collection</target>
+</trans-unit>
+<trans-unit id="s0cc44970c8397929">
+  <source>description</source>
+  <target>déscription</target>
+</trans-unit>
+<trans-unit id="se5316cbaa025f028">
+  <source>next</source>
+  <target>suivant</target>
 </trans-unit>
 <trans-unit id="sc26c8ac0ca631dc2">
   <source>Spaces</source>
@@ -34,10 +226,6 @@
   <source>Description</source>
   <target>Description</target>
 </trans-unit>
-<trans-unit id="s47e83eaa4b387e3b">
-  <source>cancel</source>
-  <target>annuler</target>
-</trans-unit>
 <trans-unit id="sf74e5feadea773fd">
   <source>create</source>
   <target>créer</target>
@@ -60,7 +248,7 @@
 </trans-unit>
 <trans-unit id="s24d63f32f15348b8">
   <source>Add SvgMarker</source>
-  <target>Ajouter Marqueur SVG</target>
+  <target>Ajouter Marquer SVG</target>
 </trans-unit>
 <trans-unit id="sd346499edc6216fd">
   <source>Add EmojiGroup</source>

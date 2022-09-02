@@ -12,11 +12,11 @@ import {
   List,
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
+import { localized, msg } from '@lit/localize';
 
 
-/**
- * @element where-archive-dialog
- */
+/** @element where-archive-dialog */
+@localized()
 export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
@@ -70,7 +70,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
   /** */
   render() {
     return html`
-<mwc-dialog id="archive-dialog" heading="Archived Spaces" @opened=${this.handleDialogOpened}>
+<mwc-dialog id="archive-dialog" heading="${msg('Archived Spaces')}" @opened=${this.handleDialogOpened}>
 <mwc-list id="space-list" multi>
   ${this._plays?.value? Object.entries(this._plays.value).map(
     ([key, play]) => html`
@@ -83,8 +83,8 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
     `
   ) : html``}
 </mwc-list>
-<mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-<mwc-button slot="secondaryAction" dialogAction="cancel">cancel</mwc-button>
+<mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+<mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
 </mwc-dialog>
 `
   }

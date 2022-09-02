@@ -43,13 +43,14 @@ import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import {LudothequeStore} from "../ludotheque.store";
+import { localized, msg } from '@lit/localize';
 
 
 /**
  * @element where-space-dialog
  */
+@localized()
 export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
-
   /** Dependencies */
   @contextProvided({ context: ludothequeContext, subscribe: true })
   _store!: LudothequeStore;
@@ -674,6 +675,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   render() {
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
@@ -769,7 +772,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         maybeMarkerTypeItems = html`
           <mwc-icon-button icon="add_circle" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(null)}></mwc-icon-button>
           <mwc-icon-button icon="edit" style="margin-top:10px;" @click=${() => this.openSvgMarkerDialog(marker_eh)}></mwc-icon-button>
-          <mwc-select id="svg-marker-field" required style="display:inline-flex;width:230px;" label="Name" @closing=${(e:any)=>{e.stopPropagation(); this.handleSvgMarkerSelect(e)}}>
+          <mwc-select id="svg-marker-field" required style="display:inline-flex;width:230px;" label="${msg('Name')}" @closing=${(e:any)=>{e.stopPropagation(); this.handleSvgMarkerSelect(e)}}>
             ${markers}
           </mwc-select>
           <div id="svg-marker-container">${selectedMarker}</div>
@@ -782,23 +785,23 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     /** Main Render */
     return html`
-<mwc-dialog id="space-dialog" heading="NEW SPACE" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
+<mwc-dialog id="space-dialog" heading="${msg('NEW SPACE')}" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   <sl-tab-group id="space-tab-group">
-    <sl-tab id="general-tab" slot="nav" panel="general">GENERAL</sl-tab>
-    <sl-tab id="locations-tab" slot="nav" panel="locations">LOCATIONS</sl-tab>
-    <sl-tab id="advanced-tab" slot="nav" panel="advanced">ADVANCED</sl-tab>
+    <sl-tab id="general-tab" slot="nav" panel="general">${msg('GENERAL')}</sl-tab>
+    <sl-tab id="locations-tab" slot="nav" panel="locations">${msg('LOCATIONS')}</sl-tab>
+    <sl-tab id="advanced-tab" slot="nav" panel="advanced">${msg('ADVANCED')}</sl-tab>
 
   <!-- Name & Surface -->
-  <sl-tab-panel name="general">
+  <sl-tab-panel name="${msg('general')}">
     <div id="thumbnail">
       ${this.renderSurfacePreview()}
-      <mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>preview</mwc-button>
-      <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Width" autoValidate=true required></mwc-textfield>
-      <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="Height" autoValidate=true required></mwc-textfield>
+      <mwc-button dense unelevated style="display:block;margin-left:45px;margin-bottom:20px;" @click=${this.handlePreview}>${msg('preview')}</mwc-button>
+      <mwc-textfield id="width-field"  class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="${msg('Width')}" autoValidate=true required></mwc-textfield>
+      <mwc-textfield id="height-field" class="rounded" outlined pattern="[0-9]+" minlength="3" maxlength="4" label="${msg('Height')}" autoValidate=true required></mwc-textfield>
     </div>
     <mwc-textfield outlined dialogInitialFocus type="text"
                    @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                   id="name-field" minlength="3" maxlength="64" label="Name" autoValidate=true required></mwc-textfield>
+                   id="name-field" minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
     <!-- Template/Surface -->
       <!-- <h4 style="margin-bottom: 15px;">Surface</h4> -->
     <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
@@ -817,49 +820,49 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     </div>
   </sl-tab-panel>
   <!--  Marker -->
-  <sl-tab-panel name="locations">
-    <h4 style="margin-top:15px;margin-bottom:10px;">Marker</h4>
-    <mwc-select label="Type" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
-      <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">Avatar ${this.renderMarkerTypePreview(MarkerType.Avatar)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.Initials]}">Initials ${this.renderMarkerTypePreview(MarkerType.Initials)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">Colored SVG ${this.renderMarkerTypePreview(MarkerType.SvgMarker)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">Predefined Emoji ${this.renderMarkerTypePreview(MarkerType.SingleEmoji)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">Emoji subset ${this.renderMarkerTypePreview(MarkerType.EmojiGroup)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">Any Emoji ${this.renderMarkerTypePreview(MarkerType.AnyEmoji)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.Tag]}">Tag ${this.renderMarkerTypePreview(MarkerType.Tag)}</mwc-list-item>
+  <sl-tab-panel name="${msg('locations')}">
+    <h4 style="margin-top:15px;margin-bottom:10px;">${msg('Marker')}</h4>
+    <mwc-select label="${msg('Type')}" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
+      <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">${msg('Avatar')} ${this.renderMarkerTypePreview(MarkerType.Avatar)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.Initials]}">${msg('Initials')} ${this.renderMarkerTypePreview(MarkerType.Initials)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">${msg('Colored SVG')} ${this.renderMarkerTypePreview(MarkerType.SvgMarker)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">${msg('Predefined Emoji')} ${this.renderMarkerTypePreview(MarkerType.SingleEmoji)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">${msg('Emoji subset')} ${this.renderMarkerTypePreview(MarkerType.EmojiGroup)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">${msg('Any Emoji')} ${this.renderMarkerTypePreview(MarkerType.AnyEmoji)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.Tag]}">${msg('Tag')} ${this.renderMarkerTypePreview(MarkerType.Tag)}</mwc-list-item>
     </mwc-select>
     ${maybeMarkerTypeItems}
-    <mwc-formfield label="Allow multiple markers per user" style="margin-top:10px">
+    <mwc-formfield label="${msg('Allow multiple markers per user')}" style="margin-top:10px">
       <mwc-checkbox id="multi-chk"></mwc-checkbox>
     </mwc-formfield>
     <!-- Tags -->
     <h4 style="margin-top:25px;margin-bottom:10px;">Tagging</h4>
-    <mwc-formfield label="Enable marker tagging">
+    <mwc-formfield label="${msg('Enable marker tagging')}">
       <mwc-checkbox id="tag-chk" @click=${this.handleCanTagClick}></mwc-checkbox>
     </mwc-formfield>
-    <mwc-formfield id="tag-chk-lbl" label="Display tag on surface" style="margin-left:10px">
+    <mwc-formfield id="tag-chk-lbl" label="${msg('Display tag on surface')}" style="margin-left:10px">
       <mwc-checkbox id="tag-visible-chk" @click=${this.handleCanTagBeVisibleClick}></mwc-checkbox>
     </mwc-formfield>
     </mwc-formfield>
     <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
-                   id="predefined-tags-field" label="Predefined tags"  helper="comma separated text" autoValidate=true>
+                   id="predefined-tags-field" label="${msg('Predefined tags')}"  helper="${msg('comma separated text')}" autoValidate=true>
     </mwc-textfield>
   </sl-tab-panel>
   <!-- UI BOX -->
   <sl-tab-panel name="advanced">
       <!-- <details style="margin-top:10px;"> -->
-      <h4 style="margin-top:15px">Extra UI elements</h4>
+      <h4 style="margin-top:15px">${msg('Extra UI elements')}</h4>
       <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("ui-field") as TextArea).reportValidity()}
-                    id="ui-field" value="[]" helper="Array of 'Box' objects. Example: ${boxExample}" rows="15" cols="60">
+                    id="ui-field" value="[]" helper="${msg('Array of \'Box\' objects')}. ${msg('Example')}: ${boxExample}" rows="15" cols="60">
       </mwc-textarea>
     <!-- </details> -->
   </sl-tab-panel>
   </sl-tab-group>
 
   <!-- Dialog buttons -->
-  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>ok</mwc-button>
-  <mwc-button slot="secondaryAction"  dialogAction="cancel">cancel</mwc-button>
-    <!--<mwc-button slot="secondaryAction" @click=${this.handlePreview}>preview</mwc-button>-->
+  <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+  <mwc-button slot="secondaryAction"  dialogAction="cancel">${msg('cancel')}</mwc-button>
+    <!--<mwc-button slot="secondaryAction" @click=${this.handlePreview}>${msg('preview')}</mwc-button>-->
   <!-- Inner dialogs -->
   <where-emoji-dialog id="emoji-dialog" @emoji-selected=${(e:any) => this.handleEmojiSelected(e.detail)}></where-emoji-dialog>
   <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>

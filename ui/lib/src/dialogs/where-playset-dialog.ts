@@ -41,7 +41,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   /** preload fields with current template values */
   loadPreset(playsetEh: EntryHashB64) {
     const playsetToPreload = this._store.playset(playsetEh);
-    this._nameField.value = 'Fork of ' + playsetToPreload.name;
+    this._nameField.value = msg('Fork of') + ' ' + playsetToPreload.name;
     this._descriptionField.value = playsetToPreload.description;
   }
 

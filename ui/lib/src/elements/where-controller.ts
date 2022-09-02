@@ -572,11 +572,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
-        <mwc-list-item graphic="icon" value="fork_template"><span>Fork Template</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_template"><span>Share Template</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="fork_space"><span>Fork Space</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_space"><span>Share Space</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="archive_space"><span>Archive Space</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_template"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_space"><span>${msg('Fork Space')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_space"><span>${msg('Share Space')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="archive_space"><span>${msg('Archive Space')}</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
       </mwc-menu>
     </mwc-top-app-bar>
     <!-- APP BODY -->

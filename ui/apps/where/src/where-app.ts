@@ -6,7 +6,7 @@ import {
   WhereController,
   WhereStore,
   whereContext, LudothequeController, ludothequeContext, LudothequeStore,
-  Inventory,
+  Inventory, setLocale,
 } from "@where/elements";
 import {
   Profile,
@@ -19,6 +19,12 @@ import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {Dialog} from "@scoped-elements/material-web";
 import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
+
+/** Localization */
+import { msg } from '@lit/localize';
+setLocale('fr-fr');
+
+/** ------- */
 
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
@@ -181,7 +187,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
             </profile-prompt>
             <!--<where-controller id="controller" dummy></where-controller>-->
 
-        <mwc-dialog id="importing-dialog"  heading="Importing Playset" scrimClickAction="" escapeKeyAction="">
+        <mwc-dialog id="importing-dialog"  heading="${msg('Importing Playset')}" scrimClickAction="" escapeKeyAction="">
             <div>Playset ${this._currentPlaysetEh}...</div>
             <!--<mwc-button
                     slot="secondaryAction"

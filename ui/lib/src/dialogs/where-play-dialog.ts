@@ -158,7 +158,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
     this._currentMarker = originalPlay.space.maybeMarkerPiece;
 
-    this._nameField.value = 'Fork of ' + originalPlay.space.name;
+    this._nameField.value = msg('Fork of') + ' ' + originalPlay.space.name;
     this._templateField.value = originalPlay.space.origin;
     this._widthField.value = originalPlay.space.surface.size.x;
     this._heightField.value = originalPlay.space.surface.size.y;
@@ -168,7 +168,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     this._multiChk.checked = originalPlay.space.meta.multi;
     // - Tags
     this._tagChk.checked = originalPlay.space.meta.canTag;
-    this.tagChkLabel.label = "Display tag on surface"
+    this.tagChkLabel.label = msg('Display tag on surface')
     this._tagVisibleChk.disabled = !originalPlay.space.meta.canTag;
     this._tagVisibleChk.checked = originalPlay.space.meta.tagVisible;
     this._predefinedTagsField.disabled = !originalPlay.space.meta.canTag;
@@ -176,7 +176,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     if (originalPlay.space.meta.markerType == MarkerType.Tag) {
       this._tagChk.disabled = true;
       this._tagVisibleChk.disabled = true;
-      this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
+      this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
     }
     // - Iterations
     this.noStopRadioElem.checked = originalPlay.space.meta.sessionCount == 0 || originalPlay.space.meta.sessionCount == 1;
@@ -400,7 +400,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     this._multiChk.checked = false;
     // - Tags
     this._tagChk.checked = false;
-    this.tagChkLabel.label = "Display tag on surface";
+    this.tagChkLabel.label = msg('Display tag on surface');
     this._tagChk.disabled = false;
     this._tagVisibleChk.checked = false;
     this._predefinedTagsField.value = ''
@@ -642,7 +642,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     //console.log({e})
     this._tagChk.disabled = false;
     this._tagVisibleChk.disabled = !this._currentMeta.canTag;
-    this.tagChkLabel.label = "Display tag on surface"
+    this.tagChkLabel.label = msg('Display tag on surface')
 
     switch(this._markerTypeField.value) {
       case MarkerType[MarkerType.Tag]:
@@ -652,7 +652,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         this._tagChk.disabled = true;
         this._tagVisibleChk.checked = true;
         this._tagVisibleChk.disabled = true;
-        this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
+        this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
         break;
       case MarkerType[MarkerType.SvgMarker]:
         if (Object.keys(this._svgMarkers.value)[0]) {
@@ -870,7 +870,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
     /** Main Render */
     return html`
-<mwc-dialog id="space-dialog" heading="NEW SPACE" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
+<mwc-dialog id="space-dialog" heading="${msg('NEW SPACE')}" @closing=${this.handleDialogClosing} @opened=${this.handleDialogOpened}>
   <sl-tab-group id="space-tab-group">
     <sl-tab id="general-tab" slot="nav" panel="general">${msg('GENERAL')}</sl-tab>
     <sl-tab id="locations-tab" slot="nav" panel="locations">${msg('LOCATIONS')}</sl-tab>
@@ -931,7 +931,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     </mwc-formfield>
     </mwc-formfield>
     <mwc-textfield outlined style="margin-left:25px" type="text" .disabled="${!this._currentMeta.canTag}"
-                   id="predefined-tags-field" label="Predefined tags"  helper="${msg('comma separated text')}" autoValidate=true>
+                   id="predefined-tags-field" label="${msg('Predefined tags')}"  helper="${msg('comma separated text')}" autoValidate=true>
     </mwc-textfield>
   </sl-tab-panel>
   <!-- Iterations -->

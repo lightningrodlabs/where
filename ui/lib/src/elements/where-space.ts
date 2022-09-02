@@ -716,7 +716,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
     /** Render */
     return html`
-        <mwc-dialog id="edit-location-dialog" heading="Location"
+        <mwc-dialog id="edit-location-dialog" heading="${msg('Location')}"
                     scrimClickAction="" @wheel=${(e: any) => e.stopPropagation()}>
           ${maybeTagPreview}
           ${tagForm}

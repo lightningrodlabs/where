@@ -142,7 +142,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     this._currentMarker = originalSpace.maybeMarkerPiece;
 
-    this._nameField.value = 'Fork of ' + originalSpace.name;
+    this._nameField.value = msg('Fork of') + ' ' + originalSpace.name;
     this._templateField.value = originalSpace.origin;
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
@@ -152,7 +152,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._multiChk.checked = originalSpace.meta.multi;
     // - Tags
     this._tagChk.checked = originalSpace.meta.canTag;
-    this.tagChkLabel.label = "Display tag on surface"
+    this.tagChkLabel.label = msg('Display tag on surface')
     this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
     this._tagVisibleChk.checked = originalSpace.meta.tagVisible;
     this._predefinedTagsField.disabled = !originalSpace.meta.canTag;
@@ -160,7 +160,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (originalSpace.meta.markerType == MarkerType.Tag) {
       this._tagChk.disabled = true;
       this._tagVisibleChk.disabled = true;
-      this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
+      this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
     }
     /** Templated fields */
     for (let [key, value] of originalSpace.meta.subMap!) {
@@ -324,7 +324,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._multiChk.checked = false;
     // - Tags
     this._tagChk.checked = false;
-    this.tagChkLabel.label = "Display tag on surface";
+    this.tagChkLabel.label = msg('Display tag on surface');
     this._tagChk.disabled = false;
     this._tagVisibleChk.checked = false;
     this._predefinedTagsField.value = ''
@@ -560,7 +560,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //console.log({e})
     this._tagChk.disabled = false;
     this._tagVisibleChk.disabled = !this._currentMeta.canTag;
-    this.tagChkLabel.label = "Display tag on surface"
+    this.tagChkLabel.label = msg('Display tag on surface')
 
     switch(this._markerTypeField.value) {
       case MarkerType[MarkerType.Tag]:
@@ -570,7 +570,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         this._tagChk.disabled = true;
         this._tagVisibleChk.checked = true;
         this._tagVisibleChk.disabled = true;
-        this.tagChkLabel.label = "Display tag on surface (Tag Marker type selected)"
+        this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
         break;
       case MarkerType[MarkerType.SvgMarker]:
         if (Object.keys(this._svgMarkers.value)[0]) {

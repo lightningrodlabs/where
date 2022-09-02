@@ -70,7 +70,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
   /** preload fields with current emojiGroup values */
   async loadPreset(emojiGroup: EmojiGroupEntry) {
-    this._nameField.value = 'Fork of ' + emojiGroup.name;
+    this._nameField.value = msg('Fork of') + ' ' + emojiGroup.name;
     this._currentUnicodes = emojiGroup.unicodes
     this._currentGroup = emojiGroup
   }

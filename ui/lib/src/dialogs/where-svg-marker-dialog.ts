@@ -58,7 +58,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
   /** preload fields with current emojiGroup values */
   async loadPreset(marker: SvgMarkerEntry) {
-    this._nameField.value = 'Fork of ' + marker.name;
+    this._nameField.value = msg('Fork of') + ' ' + marker.name;
     this._svgField.value = marker.value;
     this._currentSvg = marker.value;
     this._currentMarker = marker;
@@ -152,7 +152,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
   <div id="svg-marker-thumbnail">${this.previewSvgMarker()}</div>
   <!-- SVG field -->
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("svg-field") as TextArea).reportValidity()}
-                id="svg-field" placeholder="${msg('SVG here')}..." helper="${msg('No <svg> tag is required')}. ${msg('Use %%color%% to use profile color')}" rows="10" cols="60" required></mwc-textarea>
+                id="svg-field" placeholder="${msg('SVG here')}..." helper="${msg('No svg top level tag is required')}. ${msg('Use %%color%% to use profile color')}" rows="10" cols="60" required></mwc-textarea>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
   <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>

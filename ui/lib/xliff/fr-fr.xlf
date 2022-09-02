@@ -10,6 +10,10 @@
   <source>Tag</source>
   <target>Étiquette</target>
 </trans-unit>
+<trans-unit id="see2fcaedf9743ec6">
+  <source>Location</source>
+  <target>Emplacement</target>
+</trans-unit>
 <trans-unit id="s08b05d07b5566bef">
   <source>ok</source>
   <target>ok</target>
@@ -21,6 +25,10 @@
 <trans-unit id="s52c3fa17d96e857c">
   <source>No space found</source>
   <target>Aucun espace trouvé</target>
+</trans-unit>
+<trans-unit id="s51696636c2ab0936">
+  <source>Fork of</source>
+  <target>Copie de</target>
 </trans-unit>
 <trans-unit id="s2bc6e8102c0faa7c">
   <source>New Emoji Group</source>
@@ -40,23 +48,35 @@
 </trans-unit>
 <trans-unit id="s8b76771993f6d8cf">
   <source>New SVG Marker</source>
-  <target>New Marquer SVG</target>
+  <target>Nouveau Marquer SVG</target>
 </trans-unit>
 <trans-unit id="sdfc29799f6c192ad">
   <source>SVG here</source>
   <target>SVG ici</target>
 </trans-unit>
-<trans-unit id="s04c41306fa197927">
-  <source>No &lt;svg&gt; tag is required</source>
-  <target>Aucun marquer &lt;svg&gt; n'est nécessaire</target>
+<trans-unit id="scd0999be15a6b74c">
+  <source>No svg top level tag is required</source>
+  <target>La balise svg n'est pas requis</target>
 </trans-unit>
 <trans-unit id="s434b4ba34d5dfa9d">
   <source>Use %%color%% to use profile color</source>
-  <target>Utilisez %%color%% pour utiliser la couleur du profil</target>
+  <target>Écrivez %%color%% pour utiliser la couleur du profile</target>
 </trans-unit>
 <trans-unit id="sc8d8c5da55fabab7">
   <source>preview</source>
   <target>aperçu</target>
+</trans-unit>
+<trans-unit id="sa14fffc6b354a39d">
+  <source>Display tag on surface</source>
+  <target>Afficher l'étiquette sur la surface</target>
+</trans-unit>
+<trans-unit id="s32eed292ec7b83c1">
+  <source>Display tag on surface (Tag Marker type selected)</source>
+  <target>Afficher l'étiquette sur la surface (Marquer de type Étiquette sélectionné)</target>
+</trans-unit>
+<trans-unit id="sa157aa5d7785ad4f">
+  <source>NEW SPACE</source>
+  <target>NOUVELLE ESPACE</target>
 </trans-unit>
 <trans-unit id="s013daf22f920072b">
   <source>GENERAL</source>
@@ -100,7 +120,7 @@
 </trans-unit>
 <trans-unit id="s37159fbcb11cb0d7">
   <source>Colored SVG</source>
-  <target>SVG à couleur</target>
+  <target>SVG</target>
 </trans-unit>
 <trans-unit id="s6c522333a4d0d93d">
   <source>Predefined Emoji</source>
@@ -112,7 +132,7 @@
 </trans-unit>
 <trans-unit id="s754112b22c4fde2b">
   <source>Any Emoji</source>
-  <target>Un Emoji</target>
+  <target>Emoji</target>
 </trans-unit>
 <trans-unit id="s1d47a5c85ae57075">
   <source>Allow multiple markers per user</source>
@@ -126,9 +146,9 @@
   <source>Enable marker tagging</source>
   <target>Permettre le taggage de marquer</target>
 </trans-unit>
-<trans-unit id="sa14fffc6b354a39d">
-  <source>Display tag on surface</source>
-  <target>Afficher l'étiquette sur la surface</target>
+<trans-unit id="sc9a9c22ce1376f00">
+  <source>Predefined tags</source>
+  <target>Étiquettes prédifinies</target>
 </trans-unit>
 <trans-unit id="s958f13b02172bf3a">
   <source>comma separated text</source>
@@ -190,9 +210,9 @@
   <source>here</source>
   <target>ici</target>
 </trans-unit>
-<trans-unit id="s50bb8359fb0bc281">
-  <source>No &lt;svg&gt; / &lt;html&gt; tag is required</source>
-  <target>Aucun marquer &lt;svg&gt; / &lt;html&gt; n'est requis</target>
+<trans-unit id="s2626c005871e41b6">
+  <source>No svg / html top level tag is required</source>
+  <target>La balise svg / html n'est pas requise</target>
 </trans-unit>
 <trans-unit id="s6ddfc20d9bb50bde">
   <source>Archived Spaces</source>
@@ -210,13 +230,29 @@
   <source>View Archives</source>
   <target>Voir Archives</target>
 </trans-unit>
+<trans-unit id="s358f6f77b722a7e1">
+  <source>Fork Template</source>
+  <target>Dupliquer Gabarit</target>
+</trans-unit>
+<trans-unit id="s4cd8f160c8d795f2">
+  <source>Share Template</source>
+  <target>Partager Gabarit</target>
+</trans-unit>
+<trans-unit id="s91eecf33e20f9bdf">
+  <source>Fork Space</source>
+  <target>Dupliquer Espace</target>
+</trans-unit>
+<trans-unit id="s6ec6b87b13795e2e">
+  <source>Share Space</source>
+  <target>Partager Espace</target>
+</trans-unit>
+<trans-unit id="secc24b676b5f972b">
+  <source>Archive Space</source>
+  <target>Archiver Espace</target>
+</trans-unit>
 <trans-unit id="s18ed119d4617c5f3">
   <source>Subset</source>
   <target>Sous-ensemble</target>
-</trans-unit>
-<trans-unit id="sa157aa5d7785ad4f">
-  <source>NEW SPACE</source>
-  <target>NOUVELLE ESPACE</target>
 </trans-unit>
 <trans-unit id="s9e275796a0d9a90b">
   <source>general</source>
@@ -225,10 +261,6 @@
 <trans-unit id="s86c910f0aa9f8e2f">
   <source>locations</source>
   <target>emplacements</target>
-</trans-unit>
-<trans-unit id="sc9a9c22ce1376f00">
-  <source>Predefined tags</source>
-  <target>Étiquettes prédifinies</target>
 </trans-unit>
 <trans-unit id="s2fafd127851dfaaf">
   <source>New Playset</source>

@@ -94,7 +94,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     const templateToPreload = this.store.template(templateEh);
     const surface = JSON.parse(templateToPreload.surface)
 
-    this._nameField.value = 'Fork of ' + templateToPreload.name;
+    this._nameField.value = msg('Fork of') + ' ' + templateToPreload.name;
 
     if (surface.html) {
       this._typeField.value = TemplateType.Html;
@@ -278,7 +278,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   </mwc-select>
 
   <mwc-textarea type="text" @input=${() => (this.shadowRoot!.getElementById("surface-field") as TextArea).reportValidity()}
-                id="surface-field" placeholder="HTML/SVG/JS ${msg('here')}..." helper="${msg('No <svg> / <html> tag is required')}" rows="10" cols="60" required></mwc-textarea>
+                id="surface-field" placeholder="HTML/SVG/JS ${msg('here')}..." helper="${msg('No svg / html top level tag is required')}" rows="10" cols="60" required></mwc-textarea>
   </mwc-formfield>
   <mwc-textfield class="rounded" pattern="[0-9]+" defaultValue="500" outlined @input=${() => (this.shadowRoot!.getElementById("width-field") as TextField).reportValidity()}
                  id="width-field" minlength="1" maxlength="4" label="${msg('Width')}" autoValidate=true></mwc-textfield>

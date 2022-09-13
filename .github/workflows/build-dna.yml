@@ -42,10 +42,10 @@ jobs:
       - name: Build happ
         run: |
           npm run build:ui
-      # Build web-happ
-      - name: Build web-happ
+      # Package web-happ
+      - name: Package web-happ
         run: |
-          npm run build:webapp
+          npm run package:webhapp
       # "upload" web-happ as build artifact
       - uses: actions/upload-artifact@master
         with:

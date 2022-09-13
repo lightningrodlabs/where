@@ -218,12 +218,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       console.error("No ludoStore or whereCell in where-app")
       return;
     }
-    const startTime = Date.now();
+    //const startTime = Date.now();
     this.importingDialogElem.open = true;
     await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
-    while(Date.now() - startTime < 500 * 1000) {
-      await delay(20);
-    }
+    // while(Date.now() - startTime < 500 * 1000) {
+    //   await delay(20);
+    // }
     this.importingDialogElem.open = false;
   }
 

@@ -8,13 +8,13 @@
   },
   "main": "dist/index.js",
   "scripts": {
-    "start": "tsc && electron .",
-    "build": "tsc && npm run dist",
     "tsc": "tsc",
+    "lint": "eslint --ext .ts .",
+    "build": "tsc && npm run dist",
+    "start": "tsc && electron .",
     "dist": "cp ../dna/workdir/happ-where/where.happ ./bin && electron-builder build",
     "dist-tar": "cp ../dna/workdir/happ-where/where.happ ./bin && electron-builder --linux tar.gz",
     "dist-linux": "cp ../dna/workdir/happ-where/where.happ ./bin && electron-builder --linux AppImage",
-    "lint": "eslint --ext .ts .",
     "clean": "rm -rf node_modules && rm -rf package-lock.json"
   },
   "keywords": [

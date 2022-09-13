@@ -11,7 +11,7 @@ import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
 import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
-import pkg from "where-ui/package.json";
+import pkg from "where/package.json";
 
 const HC_PORT = process.env.HC_PORT || 8888;
 const DIST_FOLDER = "dist"

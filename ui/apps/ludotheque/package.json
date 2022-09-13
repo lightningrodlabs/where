@@ -1,5 +1,5 @@
 {
-  "name": "ludotheque-ui",
+  "name": "ludotheque",
   "version": "0.0.9",
   "scripts": {
     "build": "tsc",

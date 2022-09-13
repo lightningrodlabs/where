@@ -12,6 +12,6 @@ dist/
 .hc*
 dna/workdir/dna*/*.dna
 dna/workdir/happ*/*.happ
-webhapp.workdir/*.webhapp
+webapp/webhapp.workdir/*.webhapp
 *.tsbuildinfo
 .running

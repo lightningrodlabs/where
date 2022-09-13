@@ -1,6 +1,6 @@
 import * as path from 'path'
 import { app } from 'electron'
-import { ElectronHolochainOptions, StateSignal, PathOptions } from '@sprillow-connor/electron-holochain'
+import { ElectronHolochainOptions, StateSignal, PathOptions } from '@lightningrodlabs/electron-holochain'
 import {MAIN_APP_ID, COMMUNITY_PROXY_URL} from './constants'
 
 // these messages get seen on the splash page
@@ -74,7 +74,7 @@ function createHolochainOptions(uid: string, storagePath: string):  ElectronHolo
     //proxyUrl: COMMUNITY_PROXY_URL,
     //bootstrapUrl: "",
     passphrase: "",
-    uid,
+    //uid,
   }
   return options;
 }

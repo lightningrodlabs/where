@@ -38,10 +38,10 @@ jobs:
       - name: Install nodejs dependencies
         run: |
           npm install where --ignore-scripts
-      # Build happ
-      - name: Build happ
+      # Build webapp
+      - name: Build webapp
         run: |
-          npm run build:ui
+          npm run build:webapp
       # Package web-happ
       - name: Package web-happ
         run: |
@@ -50,4 +50,4 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: where-webapp-artifact
-          path: webhapp.workdir/where.webhapp
+          path: webapp/webhapp.workdir/where.webhapp

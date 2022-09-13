@@ -39,7 +39,7 @@ npm run test
 
 ## UI
 
-To test out the UI:
+To try out the web-app:
 
 ``` bash
 npm run start
@@ -56,13 +56,14 @@ npm run network 3
 Replace the "3" for the number of agents you want to bootstrap.
 ## Package
 
-To package the web happ:
+To package the web-happ:
 
 ``` bash
 npm run package
 ```
 
 You'll have the `where.webhapp` in `workdir`, and it's component `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
+
 
 ## Project structure
 

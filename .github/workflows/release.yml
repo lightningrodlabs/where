@@ -51,7 +51,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-webapp-artifact
-          path: webhapp.workdir
+          path: webapp/webhapp.workdir
       - uses: actions/download-artifact@master
         with:
           name: where-hash-artifact
@@ -60,15 +60,15 @@ jobs:
       - name: list webhapp
         continue-on-error: true
         run: ls -R
-        working-directory: webhapp.workdir
+        working-directory: webapp/webhapp.workdir
       # Setup npm
       - name: Install nodejs dependencies
         run: |
           npm install
-      # Build happ
-      - name: Build happ
+      # Build webapp
+      - name: Build webapp
         run: |
-          npm run build
+          npm run package
       # Setup sign & notarize
       #- name: Setup sign and notarize (macos only)
       #  continue-on-error: true
@@ -78,7 +78,7 @@ jobs:
       #    p12-file-base64: ${{ secrets.HBE_APPLE_CERTIFICATE_BASE64 }}
       #    p12-password: ${{ secrets.HBE_APPLE_CERTIFICATE_PASS }}
       # Build installers and binaries
-      - name: Build binaries
+      - name: Build electron app
         shell: bash
         env:
           #WIN_CSC_LINK: ${{ steps.write_file.outputs.filePath }}
@@ -89,7 +89,7 @@ jobs:
           DEBUG: electron-osx-sign*,electron-notarize*
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run dist
+          npm run dist:electron
       # upload installers and binaries
       - name: list builds
         continue-on-error: true
@@ -103,7 +103,7 @@ jobs:
         run: |
           gh release upload "${GITHUB_REF#refs/tags/}"  "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ-where/where.happ" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}"  "webhapp.workdir/where.webhapp" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}"  "webapp/webhapp.workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

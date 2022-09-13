@@ -38,7 +38,7 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-webapp-artifact
-          path: webhapp.workdir
+          path: webapp/webhapp.workdir
       - uses: actions/download-artifact@master
         with:
           name: where-hash-artifact
@@ -47,17 +47,17 @@ jobs:
       - name: Install nodejs dependencies
         run: |
           npm install
-      # Build happ
-      - name: Build happ
+      # Build webapp
+      - name: Build webapp
         run: |
-          npm run build
-      # Build installers and binaries
-      - name: Build binaries
+          npm run package
+      # Build electron app
+      - name: Build electron app
         shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run dist
+          npm run dist:electron
 #      # Build tar.gz
 #      - name: Build tar.gz
 #        if: ${{ runner.os == 'Linux' }}
@@ -88,7 +88,7 @@ jobs:
         run: |
           gh release upload "manual-release" "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
           gh release upload "manual-release"  "dna/workdir/happ-where/where.happ" --clobber
-          gh release upload "manual-release"  "webhapp.workdir/where.webhapp" --clobber
+          gh release upload "manual-release"  "webapp/webhapp.workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

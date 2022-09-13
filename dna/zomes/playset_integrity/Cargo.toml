@@ -10,5 +10,4 @@ name = "where_playset_integrity"
 
 [dependencies]
 serde = "1.0"
-hdi = { version = "0.0.14", default-features = false }
-holo_hash = {version = "0.0.30", features = ["encoding"]}
+hdi = { version = "0.0.19", default-features = false }

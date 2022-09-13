@@ -2,7 +2,6 @@ use hdi::prelude::*;
 use holo_hash::EntryHashB64;
 
 
-/// Entry definition
 #[hdk_entry_helper]
 #[derive(Clone)]
 #[serde(rename_all = "camelCase")]

@@ -13,7 +13,7 @@ pub enum MarkerKind {
   Tag,
 }
 
-/// Space entry definition
+
 #[hdk_entry_helper]
 #[derive(Clone)]
 pub struct Playfield {

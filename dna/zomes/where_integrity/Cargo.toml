@@ -14,13 +14,4 @@ crate-type = ["cdylib", "rlib"]
 serde = "1.0"
 tracing = { version = "0.1", default-features = false }
 
-hdi = { version = "0.0.14", default-features = false }
-holo_hash = {version = "0.0.30", features = ["encoding"]}
-
-
-[dev-dependencies]
-futures = "0.3.1"
-nanoid = "0.3"
-observability = "0.1.2"
-stream-cancel = "0.8.0"
-tokio = {version = "1.3", features = ["full"]}
+hdi = { version = "0.0.19", default-features = false }

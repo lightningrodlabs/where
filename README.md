@@ -5,11 +5,11 @@ Tooling for group self-awareness on holochain
 ##  Background
 
 Groups, especially remote colaborative groups, often lack contextual information about collaborators that makes working together harder.  Co-locating oneself across a number of spaces in the context of a group (or groups) provides an important avenue for improving both sense-making and working together.  **Where** provides a generalized pattern for creating shared maps for groups to see the emergent "whereness" of each other across self-evolved sets of maps.
-![screencast](where.gif)
+![screencast](spec/where.gif)
 
 ## Design
 
-For more details read the [design documents](DESIGN.md).
+For more details read the [design documents](spec/DESIGN.md).
 
 ## Installation
 
@@ -63,6 +63,21 @@ npm run package
 ```
 
 You'll have the `where.webhapp` in `workdir`, and it's component `where.happ` in `dna/workdir/happ`, and `ui.zip` in `ui/apps/where`.
+
+## Project structure
+
+| Directory                                  | Description                                                                                                                 |
+|:-------------------------------------------| :-------------------------------------------------------------------------------------------------------------------------- |
+| `/dna/`                                    | DNA source code
+| `/electron/`                               | Electron app directory
+| &nbsp;&nbsp;&nbsp;&nbsp;`bin/`             | All the binaries we are dependent on and must ship with the app
+| &nbsp;&nbsp;&nbsp;&nbsp;`src/`             | The electron app source code
+| &nbsp;&nbsp;&nbsp;&nbsp;`web/`             | Final artifacts for the electron app (includes output from `webapp`)
+| `/webapp/`                                 | The Where webapp source code
+| &nbsp;&nbsp;&nbsp;&nbsp;`webhapp.workdir/` | webhapp work directory
+| `/webapp.ludotheque/`                      | The Ludotheque standalone webapp source code
+| `/webcomponents/`                          | The web components source code
+| `/we-applet/`                              | The applet for We integration
 
 ## License
 [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blue.svg)](https://github.com/holochain/cryptographic-autonomy-license)

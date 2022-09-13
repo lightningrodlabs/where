@@ -2,10 +2,10 @@
   "name": "where-dev",
   "private": true,
   "workspaces": [
-    "ui/apps/*",
-    "ui/lib",
+    "dna/tests",
     "electron",
-    "tests"
+    "ui/apps/*",
+    "ui/lib"
   ],
   "scripts": {
     "start"                 : "npm run build:happ && npm run start:agent",
@@ -27,7 +27,7 @@
     "package"               : "npm run build:happ && npm run build:ui && bash scripts/copy-binaries.sh && npm run build:webapp",
     "build"                 : "bash scripts/build.sh",
     "build:ui"              : "npm run build -w @where/elements && npm run package -w where && npm run package -w ludotheque",
-    "build:webapp"          : "hc web-app pack workdir",
+    "build:webapp"          : "hc web-app pack webhapp.workdir",
     "build:happ"            : "npm run build:dna && hc app pack dna/workdir/happ-where && npm run hash-zome",
     "build:dna"             : "npm run build:zome && hc dna pack dna/workdir/dna-where && hc dna pack dna/workdir/dna-ludotheque",
     "build:zome"            : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown",

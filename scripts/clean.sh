@@ -2,8 +2,8 @@
 
 rm -rf .hc*
 
-rm -rf electron/binaries/lair*
-rm -rf electron/binaries/holochain*
+rm -rf electron/bin/lair*
+rm -rf electron/bin/holochain*
 rm -rf electron/node_modules
 rm -rf electron/node_modules
 rm -rf electron/dist

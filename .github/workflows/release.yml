@@ -51,16 +51,16 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: where-webapp-artifact
-          path: workdir
+          path: webhapp.workdir
       - uses: actions/download-artifact@master
         with:
           name: where-hash-artifact
-          path: electron/binaries
+          path: electron/bin
       # Check if exist
       - name: list webhapp
         continue-on-error: true
         run: ls -R
-        working-directory: workdir
+        working-directory: webhapp.workdir
       # Setup npm
       - name: Install nodejs dependencies
         run: |
@@ -103,7 +103,7 @@ jobs:
         run: |
           gh release upload "${GITHUB_REF#refs/tags/}"  "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ-where/where.happ" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}"  "workdir/where.webhapp" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}"  "webhapp.workdir/where.webhapp" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

@@ -26,6 +26,9 @@ setLocale('fr-fr');
 
 /** ------- */
 
+const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
+
+
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
 let NETWORK_ID: any = null
@@ -215,8 +218,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       console.error("No ludoStore or whereCell in where-app")
       return;
     }
+    const startTime = Date.now();
     this.importingDialogElem.open = true;
     await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
+    while(Date.now() - startTime < 500 * 1000) {
+      await delay(20);
+    }
     this.importingDialogElem.open = false;
   }
 

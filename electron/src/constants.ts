@@ -13,7 +13,7 @@ export const COMMUNITY_PROXY_URL =
 
 /** App consts */
 export const DNA_VERSION_FILENAME = "dna_version.txt";
-export const RUNNING_ZOME_HASH_FILEPATH = 'binaries/where_zome_hash.txt';
+export const RUNNING_ZOME_HASH_FILEPATH = 'bin/where_zome_hash.txt';
 export const MAIN_APP_ID = 'main-app'
 export const APP_DATA_PATH = IS_DEBUG
   ? path.join(__dirname, '../../.dev-app-data')

@@ -32,7 +32,7 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: where-hash-artifact
-          path: electron/binaries/where_zome_hash.txt
+          path: electron/bin/where_zome_hash.txt
       ## Upload webhapp
       # Setup npm
       - name: Install nodejs dependencies
@@ -50,4 +50,4 @@ jobs:
       - uses: actions/upload-artifact@master
         with:
           name: where-webapp-artifact
-          path: workdir/where.webhapp
+          path: webhapp.workdir/where.webhapp

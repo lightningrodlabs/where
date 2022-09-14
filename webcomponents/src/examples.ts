@@ -231,7 +231,7 @@ export async function addExamplePieces(store: LudothequeStore) {
   spaceList.push({hash: canvasSpaceEh, content: store.spaceIntoEntry(canvas)})
 
   /** Playset */
-  const playsetEh = await store.newPlayset("Demo Example", spaceList);
+  const playsetEh = await store.newPlayset("Demo Playset", spaceList);
 
   console.log("examples - DONE | " + playsetEh)
 }

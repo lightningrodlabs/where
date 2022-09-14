@@ -19,10 +19,8 @@ import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {Dialog} from "@scoped-elements/material-web";
 import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
-
-/** Localization */
 import { msg } from '@lit/localize';
-setLocale('fr-fr');
+
 
 /** ------- */
 
@@ -63,8 +61,22 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   _whereCellId: CellId | null = null;
   _ludoCellId: CellId | null = null;
 
+  _lang?: string
+
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
+  }
+
+  get langDialogElem() : Dialog {
+    return this.shadowRoot!.getElementById("lang-dialog") as Dialog;
+  }
+
+
+  /** */
+  async updated() {
+    if (!APP_DEV && this.loaded && !this._lang) {
+      this.langDialogElem.open = true;
+    }
   }
 
 
@@ -123,8 +135,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     /** ProfilesStore */
     const profilesService = new ProfilesService(whereClient);
     const profilesStore = new ProfilesStore(profilesService, {
-      //additionalFields: ['color'],
-      //avatarMode: "avatar-required"
+      //additionalFields: ['color', 'lang'],
       avatarMode: APP_DEV? "avatar-optional" : "avatar-required"
     })
     console.log({profilesStore})
@@ -166,11 +177,29 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     console.log("where-app render() || " + this.hasProfile)
     console.log("_canLudotheque: " + this._canLudotheque)
 
+    const lang = html`        
+        <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
+        <mwc-button
+                slot="primaryAction"
+                dialogAction="primaryAction"
+                @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
+            FR
+        </mwc-button>
+        <mwc-button
+                slot="primaryAction"
+                dialogAction="primaryAction"
+                @click="${() => {setLocale('en'); this._lang = 'en'}}" >
+            EN
+        </mwc-button>
+    </mwc-dialog>
+    `;
+
     if (!this.loaded) {
       console.log("where-app render() => Loading...");
       return html`<span>Loading...</span>`;
     }
     return html`
+        ${lang}
         <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
             @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
         

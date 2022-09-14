@@ -15,3 +15,4 @@ dna/workdir/happ*/*.happ
 webapp/webhapp.workdir/*.webhapp
 *.tsbuildinfo
 .running
+dna/*.txt

@@ -8,9 +8,10 @@ rm package-lock.json
 rm -rf electron/bin/lair*
 rm -rf electron/bin/holochain*
 rm -rf electron/node_modules
-rm -rf electron/node_modules
 rm -rf electron/dist
 rm -rf electron/out
+rm electron/web/*.js
+rm electron/web/*.map
 rm electron/package-lock.json
 # DNA
 rm -rf dna/tests/node_modules

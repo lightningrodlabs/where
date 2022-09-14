@@ -21,9 +21,6 @@
     "babel-plugin-template-html-minifier": "^4.1.0",
     "bestzip": "^2.2.0",
     "concurrently": "^5.3.0",
-    "deepmerge": "^4.2.2",
-    "exits": "^2.0.1",
-    "path-exists-cli": "^2.0.0",
     "rollup": "^2.56.2",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
@@ -34,11 +31,12 @@
     "typescript": "4.3.5"
   },
   "dependencies": {
-    "@holochain-open-dev/cell-client": "^0.6.1",
-    "@holochain/client": "^0.6.0",
-    "@holochain-open-dev/utils": "0.2.4",
-    "@holochain-open-dev/context": "^0.0.3",
-    "@where/elements": "file:../../lib",
-    "lit": "^2.1.1"
+    "@holochain-open-dev/cell-client": "^0.7.3",
+    "@holochain/client": "^0.8.0",
+    "@holochain-open-dev/utils": "0.3.3",
+    "@open-wc/scoped-elements": "^2.0.1",
+    "@where/elements": "file:../webcomponents",
+    "lit": "^2.1.1",
+    "@lit-labs/context": "^0.1.2"
   }
 }

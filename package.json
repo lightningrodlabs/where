@@ -50,13 +50,9 @@
     "dist:electron-linux"   : "cd electron && npm run tsc && npm run dist-linux"
   },
   "devDependencies": {
-    "@holochain-playground/cli": "^0.0.8",
     "concurrently": "^6.2.1",
     "concurrently-repeat": "^0.0.1",
     "cross-env": "^7.0.3",
-    "json-parse-better-errors": "^1.0.2",
-    "new-port-cli": "^1.0.0",
-    "rollup-plugin-copy": "^3.4.0",
     "run-singleton-cli": "^0.0.5"
   }
 }

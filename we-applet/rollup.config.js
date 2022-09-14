@@ -8,9 +8,8 @@ import babel from "@rollup/plugin-babel";
 import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
 
-import pkg from "where/package.json";
-
-const DIST_FOLDER = "dist"
+//import pkg from "where/package.json";
+//const DIST_FOLDER = "dist"
 
 export default {
   input: "out-tsc/index.js",
@@ -22,7 +21,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-  external: [...Object.keys(pkg.dependencies), /lodash-es/],
+  //external: [...Object.keys(pkg.dependencies), /lodash-es/],
   plugins: [
     copy({
       targets: [{ src: "icon.png", dest: "dist" }],

@@ -16,7 +16,7 @@
     "outDir": "out-tsc",
     "rootDir": "./src",
     "declaration": true,
-    "skipLibCheck": true
+    "skipLibCheck": false
   },
   "include": ["src/**/*.ts"]
 }

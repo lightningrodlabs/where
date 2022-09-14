@@ -94,7 +94,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       : APP_ID + '-' + NETWORK_ID;
     console.log({installed_app_id})
     const appInfo = await hcClient.appWebsocket.appInfo({installed_app_id});
-    /** Get Cells by role by hand */
+
+    /** Get Cells by role 'manually' */
     let where_cell: InstalledCell | undefined = undefined;
     let ludo_cell: InstalledCell | undefined = undefined;
     for (const cell_data of appInfo.cell_data) {
@@ -105,27 +106,26 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
         ludo_cell = cell_data;
       }
     }
-    if (where_cell == undefined) {
-      alert("Where Cell not found in happ");
-      return;
-    }
-    if (!ludo_cell) {
-      alert("Ludotheque Cell not found in happ")
+    if (!where_cell) {
+      alert(msg("Error: Where app not installed"));
       return;
     }
 
+    /** Setup Ludotheque client & store */
+    if (ludo_cell) {
+      this._ludoCellId = ludo_cell.cell_id;
+      this._ludoStore = new LudothequeStore(hcClient, appInfo, ludo_cell.cell_id)
+      new ContextProvider(this, ludothequeContext, this._ludoStore);
+    } else {
+      alert(msg("No Ludotheques DNA were found. Ludotheque features will be disabled."))
+    }
 
-    /** Where */
+    /** Setup Where client */
     this._whereCellId = where_cell.cell_id;
     const whereClient = new CellClient(hcClient, where_cell)
     console.log({whereClient})
 
-
-    /**  Ludotheque */
-    this._ludoCellId = ludo_cell.cell_id;
-
-
-    /** Send dnaHash to electron */
+    /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
       const ipc = window.require('electron').ipcRenderer;
       const whereDnaHashB64 = serializeHash(where_cell.cell_id[0])
@@ -147,22 +147,16 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     }
     new ContextProvider(this, profilesStoreContext, profilesStore);
 
-    /** LudothequeStore */
-    this._ludoStore = new LudothequeStore(hcClient, appInfo, ludo_cell.cell_id)
-    new ContextProvider(this, ludothequeContext, this._ludoStore);
-
-
     /** WhereStore */
     this._whereStore = new WhereStore(hcClient, profilesStore, appInfo, where_cell.cell_id);
     new ContextProvider(this, whereContext, this._whereStore);
 
+    /** */
     this.loaded = true;
   }
 
 
-  /**
-   *
-   */
+  /** */
   onNewProfile(profile: Profile) {
     console.log({profile})
     this.hasProfile = true;
@@ -170,9 +164,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   render() {
     console.log("where-app render() || " + this.hasProfile)
     console.log("_canLudotheque: " + this._canLudotheque)
@@ -235,6 +227,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   private async handleImportRequest(e: any) {
     console.log("handleImportRequest() : " + JSON.stringify(e.detail))
     this._currentPlaysetEh = e.detail;
@@ -257,6 +250,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "profile-prompt": ProfilePrompt,

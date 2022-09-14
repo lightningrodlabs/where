@@ -428,6 +428,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     // console.log("handleMenuSelect: " + menu)
     const selected = menu.selected as ListItem;
     //console.log({selected})
+    if (!selected) {
+      return;
+    }
     switch (selected.value) {
       case "fork_template":
         this.openTemplateDialog(this._currentTemplateEh)
@@ -568,14 +571,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button-toggle>
         <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button> -->
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque}></mwc-icon-button>
+      <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_template"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_template" .disabled="${this.ludoCellId == null}"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="fork_space"><span>${msg('Fork Space')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_space"><span>${msg('Share Space')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_space" .disabled="${this.ludoCellId == null}"><span>${msg('Share Space')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>${msg('Archive Space')}</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
       </mwc-menu>
     </mwc-top-app-bar>

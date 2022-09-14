@@ -1,25 +1,26 @@
 import {ContextProvider} from "@lit-labs/context";
+import { LitElement, html } from "lit";
+import { state } from "lit/decorators.js";
+import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
 import {serializeHash} from '@holochain-open-dev/utils';
-import { state } from "lit/decorators.js";
-import {
-  WhereController,
-  WhereStore,
-  whereContext, LudothequeController, ludothequeContext, LudothequeStore,
-  Inventory, setLocale,
-} from "@where/elements";
+import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
+import { ScopedElementsMixin } from "@open-wc/scoped-elements";
+import {Dialog} from "@scoped-elements/material-web";
+import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
 import {
   Profile,
   ProfilePrompt, ProfilesService,
   ProfilesStore,
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
-import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { LitElement, html } from "lit";
-import {Dialog} from "@scoped-elements/material-web";
-import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
-import { msg } from '@lit/localize';
+import {
+  WhereController,
+  WhereStore,
+  whereContext, LudothequeController, ludothequeContext, LudothequeStore,
+  Inventory, setLocale,
+} from "@where/elements";
+
 
 
 /** ------- */

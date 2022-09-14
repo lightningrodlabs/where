@@ -1,4 +1,5 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
+//import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import copy from "rollup-plugin-copy";
@@ -6,6 +7,10 @@ import copy from "rollup-plugin-copy";
 import babel from "@rollup/plugin-babel";
 import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
+
+import pkg from "where/package.json";
+
+const DIST_FOLDER = "dist"
 
 export default {
   input: "out-tsc/index.js",
@@ -17,7 +22,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-  external: [],
+  external: [...Object.keys(pkg.dependencies), /lodash-es/],
   plugins: [
     copy({
       targets: [{ src: "icon.png", dest: "dist" }],
@@ -28,9 +33,11 @@ export default {
       preferBuiltins: false,
     }),
     replace({
+      "preventAssignment": true,
       "process.env.NODE_ENV": '"production"',
+      "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
     }),
-    commonjs({}),
+    //typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */
@@ -75,5 +82,6 @@ export default {
         ],
       ],
     }),
+    commonjs({}),
   ],
 };

@@ -1,6 +1,7 @@
 {
   "name": "we-applet",
   "version": "0.0.1",
+  "private": true,
   "scripts": {
     "devtest": "npm run package && cross-env HC_PORT=$(port) ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run start:happ\" \"npm run start:ui\"",
     "start:ui": "concurrently -k --names tsc,dev-server \"npm run build:watch\" \"wds --config ./web-dev-server.config.mjs\"",
@@ -11,13 +12,13 @@
     "build": "rm -rf dist && tsc && rollup --config rollup.config.js"
   },
   "dependencies": {
-    "@holochain-open-dev/profiles": "^0.5.2",
+    "@holochain-open-dev/profiles": "^0.4.3",
     "@holochain/client": "^0.6.0",
     "@lightningrodlabs/we-applet": "^0.1.1",
-    "@lit-labs/context": "^0.1.2",
     "@open-wc/scoped-elements": "^2.0.1",
     "@scoped-elements/material-web": "^0.0.19",
-    "lit": "^2.2.0"
+    "@lit-labs/context": "^0.1.2",
+    "lit": "^2.1.1"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
@@ -38,7 +39,6 @@
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-workbox": "^6.2.0",
     "tslib": "^2.3.1",
-    "typescript": "^4.5.0"
-  },
-  "private": true
+    "typescript": "^4.3.5"
+  }
 }

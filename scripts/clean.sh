@@ -14,6 +14,12 @@ rm -rf electron/out
 rm electron/package-lock.json
 # DNA
 rm -rf dna/tests/node_modules
+# WE-APPLET
+rm -rf we-applet/node_modules/
+rm -rf we-applet/out-tsc/
+rm -rf we-applet/dist/
+rm we-applet/.hc*
+rm we-applet/tsconfig.tsbuildinfo
 # WEBAPP
 rm -rf webapp/node_modules/
 rm -rf webapp/dist/

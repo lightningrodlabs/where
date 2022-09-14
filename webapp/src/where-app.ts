@@ -28,7 +28,7 @@ setLocale('fr-fr');
 
 const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 
-
+const APP_DEV = process.env.APP_DEV? process.env.APP_DEV : false;
 let APP_ID = 'where'
 let HC_PORT:any = process.env.HC_PORT;
 let NETWORK_ID: any = null
@@ -67,23 +67,21 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
   }
 
-  /**
-   *
-   */
-  async firstUpdated() {
-    const wsUrl = `ws://localhost:${HC_PORT}`
-    const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
-      ? APP_ID
-      : APP_ID + '-' + NETWORK_ID;
-    console.log({installed_app_id})
 
+  /** */
+  async firstUpdated() {
+    /** Connect appWebsocket */
+    const wsUrl = `ws://localhost:${HC_PORT}`
     const appWebsocket = await AppWebsocket.connect(wsUrl);
     console.log({appWebsocket})
     const hcClient = new HolochainClient(appWebsocket)
     console.log({hcClient})
-
+    /** Get appInfo */
+    const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
+      ? APP_ID
+      : APP_ID + '-' + NETWORK_ID;
+    console.log({installed_app_id})
     const appInfo = await hcClient.appWebsocket.appInfo({installed_app_id});
-
     /** Get Cells by role by hand */
     let where_cell: InstalledCell | undefined = undefined;
     let ludo_cell: InstalledCell | undefined = undefined;
@@ -126,7 +124,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const profilesService = new ProfilesService(whereClient);
     const profilesStore = new ProfilesStore(profilesService, {
       //additionalFields: ['color'],
-      avatarMode: "avatar-required"
+      //avatarMode: "avatar-required"
+      avatarMode: APP_DEV? "avatar-optional" : "avatar-required"
     })
     console.log({profilesStore})
     await profilesStore.fetchAllProfiles()
@@ -218,12 +217,13 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       console.error("No ludoStore or whereCell in where-app")
       return;
     }
-    //const startTime = Date.now();
+    const startTime = Date.now();
     this.importingDialogElem.open = true;
     await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
-    // while(Date.now() - startTime < 500 * 1000) {
-    //   await delay(20);
-    // }
+    while(Date.now() - startTime < 500) {
+      console.log(Date.now() - startTime)
+       await delay(20);
+    }
     this.importingDialogElem.open = false;
   }
 

@@ -33,6 +33,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
     replace({
       'process.env.NODE_ENV': `"production"`,
       'process.env.ENV': JSON.stringify(process.env.ENV),
+      'process.env.APP_DEV': JSON.stringify(process.env.APP_DEV),
       'process.env.HC_PORT': JSON.stringify(process.env.HC_PORT || 8888),
       '  COMB =': 'window.COMB =',
       delimiters: ['', ''],

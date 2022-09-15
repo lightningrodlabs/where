@@ -1,30 +1,33 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
-//import typescript from "@rollup/plugin-typescript";
+import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import copy from "rollup-plugin-copy";
-
+import builtins from "rollup-plugin-node-builtins";
+import globals from "rollup-plugin-node-globals";
 import babel from "@rollup/plugin-babel";
 import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
 
-//import pkg from "where/package.json";
-//const DIST_FOLDER = "dist"
+//const pkg = require("./package.json");
+
+import pkg from "./package.json";
+const DIST_FOLDER = "dist"
 
 export default {
   input: "out-tsc/index.js",
   output: {
     format: "es",
     dir: "dist",
-    sourcemap: false,
+    sourcemap: true,
   },
   watch: {
     clearScreen: false,
   },
-  //external: [...Object.keys(pkg.dependencies), /lodash-es/],
+  external: [...Object.keys(pkg.dependencies), /lodash-es/],
   plugins: [
     copy({
-      targets: [{ src: "icon.png", dest: "dist" }],
+      targets: [{ src: "icon.png", dest: DIST_FOLDER }],
     }),
     /** Resolve bare module imports */
     nodeResolve({
@@ -36,7 +39,9 @@ export default {
       "process.env.NODE_ENV": '"production"',
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
     }),
-    //typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    builtins(),
+    globals(),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */
@@ -81,6 +86,6 @@ export default {
         ],
       ],
     }),
-    commonjs({}),
+    commonjs(),
   ],
 };

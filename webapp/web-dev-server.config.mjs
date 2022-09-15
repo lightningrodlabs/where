@@ -31,6 +31,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
 
   plugins: [
     replace({
+      "preventAssignment": true,
       'process.env.NODE_ENV': `"production"`,
       'process.env.ENV': JSON.stringify(process.env.ENV),
       'process.env.APP_DEV': JSON.stringify(process.env.APP_DEV),

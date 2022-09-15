@@ -53,6 +53,8 @@
     "concurrently": "^6.2.1",
     "concurrently-repeat": "^0.0.1",
     "cross-env": "^7.0.3",
-    "run-singleton-cli": "^0.0.5"
+    "json-parse-better-errors": "^1.0.2",
+    "new-port-cli": "^1.0.0",
+    "run-singleton-cli": "^0.0.7"
   }
 }

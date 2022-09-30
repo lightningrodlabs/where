@@ -1,6 +1,6 @@
-import {ContextProvider} from "@lit-labs/context";
 import {LitElement, html, css} from "lit";
 import { state, property } from "lit/decorators.js";
+import {ContextProvider} from "@lit-labs/context";
 import { msg } from '@lit/localize';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Dialog} from "@scoped-elements/material-web";
@@ -55,6 +55,7 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
   _ludoCellId: CellId | null = null;
 
   _lang?: string
+
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;

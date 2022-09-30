@@ -5,8 +5,8 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && rollup -c",
-    "build:watch": "run-singleton \"rollup -c -w\"",
+    "build": "tsc",
+    "build:watch": "tsc --watch --preserveWatchOutput",
     "analyze": "lit-analyzer src --failFast",
     "localize:extract": "lit-localize extract",
     "localize:build": "lit-localize build"

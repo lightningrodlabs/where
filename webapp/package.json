@@ -2,10 +2,12 @@
   "name": "where",
   "version": "0.0.9",
   "scripts": {
-    "build": "tsc",
+    "tsc": "tsc",
+    "build": "rm -rf dist && tsc && rollup -c && cd dist && cp * ../../electron/web",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
     "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "package": "rm -rf where-ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd dist && cp * ../../electron/web && bestzip ../where-ui.zip *"
+    "package": "rm -rf ui-where.zip && cd dist && bestzip ../ui-where.zip *",
+    "dist:webhapp": " hc web-app pack ./webhapp.workdir"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

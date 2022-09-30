@@ -4,7 +4,6 @@
     "outDir": "dist",
     "declarationDir": "dist",
     "rootDir": "./src",
-    "allowJs": true,
     "declaration": true
   },
 

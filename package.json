@@ -2,7 +2,6 @@
   "name": "where-dev",
   "private": true,
   "workspaces": [
-    "dna/tests",
     "electron",
     "webapp",
     "webapp.ludotheque",

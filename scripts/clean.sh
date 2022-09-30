@@ -9,6 +9,7 @@ rm -rf dna/tests/node_modules
 # WEBCOMPONENTS
 rm -rf webcomponents/dist
 rm -rf webcomponents/node_modules
+rm -rf webcomponents/src/generated
 rm webcomponents/package-lock.json
 rm webcomponents/tsconfig.tsbuildinfo
 # WE-APPLET

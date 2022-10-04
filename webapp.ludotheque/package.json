@@ -35,8 +35,8 @@
   },
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.7.3",
-    "@holochain/client": "^0.8.0",
-    "@holochain-open-dev/utils": "0.3.3",
+    "@holochain/client": "^0.9.2",
+    "@holochain-open-dev/utils": "0.4.0",
     "@open-wc/scoped-elements": "^2.0.1",
     "@where/elements": "file:../webcomponents",
     "lit": "^2.1.1",

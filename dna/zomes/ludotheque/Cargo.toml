@@ -10,8 +10,8 @@ name = "where_ludotheque"
 
 [dependencies]
 serde = "1.0"
-hdk = { version = "0.0.147", default-features = false }
+hdk = { version = "0.0.154", default-features = false }
 
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "147" }
+zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "154" }
 
 ludotheque_integrity = { package = "where_ludotheque_integrity", path = "../ludotheque_integrity" }

@@ -1,12 +1,8 @@
 import { html, css, LitElement } from "lit";
 import { property } from "lit/decorators.js";
-
 import { contextProvided } from '@lit-labs/context';
+import { localized, msg } from '@lit/localize';
 import {StoreSubscriber, TaskSubscriber} from "lit-svelte-stores";
-
-import { sharedStyles } from "../sharedStyles";
-import {whereContext} from "../types";
-import { WhereStore } from "../where.store";
 import {SlAvatar, SlBadge, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
@@ -15,15 +11,19 @@ import {
   IconButton,
   Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle,
 } from "@scoped-elements/material-web";
+
 import {
   profilesStoreContext,
   ProfilesStore, Profile,
 } from "@holochain-open-dev/profiles";
 import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
+import {AgentPubKeyMap, serializeHash} from "@holochain-open-dev/utils";
+
+import { sharedStyles } from "../sharedStyles";
+import {whereContext} from "../types";
+import { WhereStore } from "../where.store";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
-import {AgentPubKeyMap, HoloHashMap, serializeHash} from "@holochain-open-dev/utils";
-import { localized, msg } from '@lit/localize';
 
 /** @element where-folks */
 @localized()
@@ -89,7 +89,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  renderList(profiles: AgentPubKeyMap<Profile>) {
+  renderList(profiles: any /*AgentPubKeyMap<Profile>*/) {
 
     if (profiles.keys().length === 0)
       return html`
@@ -101,7 +101,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField && filterField.value? filterField.value : "";
 
-    const visibleProfiles = profiles.entries().filter(([key, profile]) => {
+    const visibleProfiles = profiles.entries().filter(([key, profile]: any /* FIXME*/) => {
       return filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase())
     });
 
@@ -123,7 +123,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     // })
 
     /** Build avatar agent list */
-    const folks = visibleProfiles.map(([key, profile]) => {
+    const folks = visibleProfiles.map(([key, profile]: any /* FIXME*/) => {
       let keyB64 = serializeHash(key)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
@@ -141,7 +141,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     })
 
     /** Build names agent list */
-    const list_folks = visibleProfiles.map(([key, profile]) => {
+    const list_folks = visibleProfiles.map(([key, profile]: any /* FIXME*/) => {
       let keyB64 = serializeHash(key)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {

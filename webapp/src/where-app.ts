@@ -15,9 +15,9 @@ import {
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
 import {
-  WhereController,
-  WhereStore,
-  whereContext, LudothequeController, ludothequeContext, LudothequeStore,
+  WhereController, LudothequeController,
+  WhereStore, LudothequeStore,
+  whereContext, ludothequeContext,
   Inventory, setLocale,
 } from "@where/elements";
 

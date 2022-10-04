@@ -14,13 +14,12 @@ import {
 import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
-  getRunnerVersion, getLairVersion,
+  getRunnerVersion,
   StateSignal,
   STATUS_EVENT,
   APP_PORT_EVENT,
   ERROR_EVENT,
   HOLOCHAIN_RUNNER_QUIT,
-  LAIR_KEYSTORE_QUIT,
 } from "@lightningrodlabs/electron-holochain"
 
 import {
@@ -72,7 +71,7 @@ let g_uidList = [];
 let g_appPort = '';
 let g_mainWindow: BrowserWindow | null = null;
 let g_runner_version = 'holochain runner version (unknown)'
-let g_lair_version = 'lair version (unknown)'
+//let g_lair_version = 'lair version (unknown)'
 let g_dnaHash = '(unknown)'
 
 
@@ -276,7 +275,7 @@ app.on('ready', async () => {
   log('debug', "g_sessionDataPath: " + g_sessionDataPath);
   /** Get Versions */
   g_runner_version = getRunnerVersion(BINARY_PATHS?.holochainRunnerBinaryPath)
-  g_lair_version = getLairVersion(BINARY_PATHS?.lairKeystoreBinaryPath)
+  //g_lair_version = getLairVersion(BINARY_PATHS?.lairKeystoreBinaryPath)
 
   /** Create sys tray */
   create_tray();
@@ -360,18 +359,18 @@ async function startMainWindow(splashWindow: BrowserWindow) {
     }
     //app.quit()
   })
-  statusEmitter.on(LAIR_KEYSTORE_QUIT, (e) => {
-    let msg = "LAIR_KEYSTORE_QUIT event received"
-    log('warn', msg)
-    if (g_mainWindow) {
-      promptHolochainError(g_mainWindow, msg)
-    } else {
-      if (splashWindow) {
-        splashWindow.webContents.send('status', msg)
-      }
-    }
-    //app.quit()
-  })
+  // statusEmitter.on(LAIR_KEYSTORE_QUIT, (e) => {
+  //   let msg = "LAIR_KEYSTORE_QUIT event received"
+  //   log('warn', msg)
+  //   if (g_mainWindow) {
+  //     promptHolochainError(g_mainWindow, msg)
+  //   } else {
+  //     if (splashWindow) {
+  //       splashWindow.webContents.send('status', msg)
+  //     }
+  //   }
+  //   //app.quit()
+  // })
 }
 
 
@@ -532,7 +531,8 @@ async function showAbout() {
       // + `Zome hash:\n${DNA_HASH}\n\n`
       + `DNA hash of "${g_uid}":\n${g_dnaHash}\n\n`
       + '' + g_runner_version + ''
-      + '' + g_lair_version + `\n`,
+      //+ '' + g_lair_version
+      + `\n`,
     buttons: ['OK'],
     type: "info",
     //iconIndex: 0,

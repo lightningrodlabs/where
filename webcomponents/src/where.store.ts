@@ -24,7 +24,7 @@ import {
 } from "@holochain-open-dev/profiles";
 import {CellId} from "@holochain/client";
 import {InstalledAppInfo} from "@holochain/client";
-import {HoloHashMap, serializeHash} from "@holochain-open-dev/utils";
+import {serializeHash} from "@holochain-open-dev/utils";
 
 const areEqual = (first: Uint8Array, second: Uint8Array) =>
       first.length === second.length && first.every((value, index) => value === second[index]);

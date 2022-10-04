@@ -50,10 +50,10 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
         __dirname,
         `../../app/bin/holochain-runner${fileExt}`
       ),
-      lairKeystoreBinaryPath: path.join(
-        __dirname,
-        `../../app/bin/lair-keystore${fileExt}`,
-      ),
+      // lairKeystoreBinaryPath: path.join(
+      //   __dirname,
+      //   `../../app/bin/lair-keystore${fileExt}`,
+      // ),
     }
   : undefined
 
@@ -66,15 +66,15 @@ function createHolochainOptions(uid: string, storagePath: string):  ElectronHolo
   const options:  ElectronHolochainOptions = {
     happPath: whereDnaPath,
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
+    keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
     appId: MAIN_APP_ID + '-' + uid,
     //appId: MAIN_APP_ID,
     appWsPort: 0,
     adminWsPort: 1235,
-    keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
     //proxyUrl: COMMUNITY_PROXY_URL,
     //bootstrapUrl: "",
-    passphrase: "",
     //uid,
+    passphrase: "test-passphrase",
   }
   return options;
 }

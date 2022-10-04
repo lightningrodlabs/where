@@ -13,7 +13,7 @@
   },
   "type": "module",
   "devDependencies": {
-    "@holochain/client": "^0.8.0",
+    "@holochain/client": "^0.9.2",
     "@lit/localize-tools": "^0.6.3",
     "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-commonjs": "^20.0.0",
@@ -36,8 +36,8 @@
   "dependencies": {
     "@holochain-open-dev/cell-client": "^0.7.3",
     "@holochain-open-dev/core-types": "^0.5.0",
-    "@holochain-open-dev/profiles": "^0.5.2",
-    "@holochain-open-dev/utils": "0.3.3",
+    "@holochain-open-dev/profiles": "^0.5.3",
+    "@holochain-open-dev/utils": "0.4.0",
     "@lit-labs/context": "^0.1.2",
     "@lit/localize": "^0.11.2",
     "@open-wc/scoped-elements": "^2.1.1",

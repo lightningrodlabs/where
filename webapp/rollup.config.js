@@ -3,7 +3,7 @@ import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import builtins from "rollup-plugin-node-builtins";
-import globals from "rollup-plugin-node-globals";
+//import globals from "rollup-plugin-node-globals";
 
 import babel from "@rollup/plugin-babel";
 import html from "@web/rollup-plugin-html";
@@ -49,9 +49,10 @@ export default {
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
       "preventAssignment": true,
     }),
-    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     builtins(),
-    globals(),
+    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    commonjs(),
+    //globals(),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */
@@ -110,6 +111,5 @@ export default {
       clientsClaim: true,
       runtimeCaching: [{ urlPattern: "polyfills/*.js", handler: "CacheFirst" }],
     }),
-    commonjs(),
   ],
 };

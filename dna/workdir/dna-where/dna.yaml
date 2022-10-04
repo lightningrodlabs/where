@@ -4,6 +4,7 @@ name: where
 uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
 integrity:
+  origin_time: 2022-09-25T13:55:49.200Z
   zomes:
     - name: where_playset_integrity
       bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity.wasm

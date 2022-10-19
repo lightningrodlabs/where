@@ -48,6 +48,20 @@ import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 
+/** Styles for top-app-bar */
+const tmpl = document.createElement('template');
+tmpl.innerHTML = `
+<style>
+  :host header {
+      position: relative;
+  }
+  :host div.mdc-top-app-bar--dense-fixed-adjust {
+  padding-top: 0px;
+  }
+</style>
+`;
+
+/** ----- */
 
 /** @element ludotheque-controller */
 @localized()
@@ -198,6 +212,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   /** After first render only */
   async firstUpdated() {
     await this.subscribePlayset();
+
+    /** add custom styles to TopAppBar */
+    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
   }
 
 
@@ -245,6 +263,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     /** Menu */
     const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
     const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
+    // console.log("Ludo: Anchoring Menu to top button", menu, button)
     if (menu && button) {
       menu.anchor = button
     }
@@ -767,7 +786,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   <!-- END DRAWER -->
   <div slot="appContent">
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense style="position: relative;">
+    <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
       <div slot="title">${msg('Library')}</div>
@@ -887,7 +906,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       sharedStyles,
       css`
         :host {
-          margin: 10px;
+          /*margin: 10px;*/
         }
 
         sl-tab-panel {
@@ -957,7 +976,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         }
 
         #playset-drawer {
-          margin-top: -20px;
+          /*margin-top: -20px;*/
         }
 
         #drawer-button-bar {

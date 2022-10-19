@@ -25,7 +25,7 @@ const whereApplet: WeApplet = {
         registry.define("where-applet", WhereApplet);
         element.innerHTML = `
             <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-            <where-applet></where-applet>
+            <where-applet style="flex: 1; display: flex;"></where-applet>
         `;
         const appletElement = element.querySelector("where-applet") as any;
         appletElement.appWebsocket =  appWebsocket;
@@ -51,7 +51,7 @@ const ludoApplet: WeApplet = {
         registry.define("ludotheque-applet", LudothequeApplet);
         element.innerHTML = `
             <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-            <ludotheque-applet></ludotheque-applet>
+            <ludotheque-applet style="flex: 1; display: flex;"></ludotheque-applet>
         `;
         const appletElement = element.querySelector("ludotheque-applet") as any;
 

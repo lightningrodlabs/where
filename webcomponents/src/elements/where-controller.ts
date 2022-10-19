@@ -33,6 +33,24 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {get} from 'svelte/store';
 
+
+
+/** Styles for top-app-bar */
+const tmpl = document.createElement('template');
+tmpl.innerHTML = `
+<style>
+  :host header {
+      position: relative;
+  }
+  :host div.mdc-top-app-bar--dense-fixed-adjust {
+  padding-top: 0px;
+  }
+</style>
+`;
+
+/** ----- */
+
+
 /** @element where-controller */
 @localized()
 export class WhereController extends ScopedElementsMixin(LitElement) {
@@ -198,6 +216,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       await this.createDummyProfile();
     }
     await this.init();
+
+    /** add custom styles to TopAppBar */
+    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
+
     //await this.subscribeProfile();
     //this.subscribePlay();
   }
@@ -208,6 +231,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       await this.subscribeProfile();
       this.postInit();
     }
+    //this.anchorMenu();
+
     // look for canvas in plays and render them
     for (let spaceEh in this._plays.value) {
       let play: Play = this._plays.value[spaceEh];
@@ -278,19 +303,25 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("where-controller.init() - DONE");
   }
 
+  private anchorMenu() {
+    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
+    console.log("Anchoring Menu to top button", menu, button)
+    if (menu && button) {
+      menu.anchor = button
+    }
+  }
 
   /** */
   private postInit() {
     /** Menu */
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("menu-button") as IconButton;
-    menu.anchor = button
+    this.anchorMenu()
     /** Drawer */
     const container = this.drawerElem.parentNode!;
     container.addEventListener('MDCTopAppBar:nav', () => {
       this.drawerElem.open = !this.drawerElem.open;
       const margin = this.drawerElem.open? '256px' : '0px';
-      const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
+      const menuButton = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
       menuButton.style.marginRight = margin;
       this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
     });
@@ -546,7 +577,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
     return html`
 <!--  DRAWER -->
-<mwc-drawer type="dismissible" id="my-drawer">
+<mwc-drawer type="dismissible" id="my-drawer" style="width: 100%">
   <div>
     <mwc-list>
     <mwc-list-item twoline graphic="avatar" hasMeta>
@@ -574,16 +605,16 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   </div>
   <!-- END DRAWER -->
-  <div slot="appContent">
+  <div slot="appContent" style="flex: 1;">
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense style="position: relative;">
+    <mwc-top-app-bar id="app-bar" dense>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${spaceName}</div>
       <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button-toggle>
         <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button> -->
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
-      <mwc-icon-button id="menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
+      <mwc-icon-button id="where-menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
                        .disabled=${!this._currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
@@ -650,7 +681,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       sharedStyles,
       css`
         :host {
-          margin: 10px;
+          /*margin: 10px;*/
         }
 
         .mdc-drawer__header {
@@ -667,7 +698,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         }
 
         #my-drawer {
-          margin-top: -20px;
+          /*margin-top: -20px;*/
         }
 
         .zoom {

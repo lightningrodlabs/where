@@ -169,17 +169,18 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
     }
     return html`
         ${lang}
-        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
-            @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
-        
+        <profile-prompt @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
             ${this._canLudotheque? html`
-                  <ludotheque-controller id="ludo-controller" examples
+                  <ludotheque-controller id="ludo-controller" 
+                                         style="flex: 1;"
+                                         examples
                                          .whereCellId=${this._whereCellId}
                                          @import-playset="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-controller>`
               : html`<where-controller                                       
                 .ludoCellId=${this._ludoCellId}
+                style="flex: 1; display: flex;"
                 @show-ludotheque="${() => this._canLudotheque = true}"
                     ></where-controller>`
             }

@@ -104,6 +104,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   private _initialized: boolean = false;
   private _initializing: boolean = false;
+  private _canPostInit: boolean = false;
   private _canCreatePlayset: boolean = false;
 
   private _whereInventory: Inventory | null = null;
@@ -253,6 +254,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     }
     /** Done */
     this._initialized = true
+    this._canPostInit = true;
     this._initializing = false
     this.requestUpdate();
     console.log("ludotheque-controller.init() - DONE");
@@ -260,12 +262,17 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
 
   updated(changedProperties: any) {
-    /** Menu */
-    const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
-    // console.log("Ludo: Anchoring Menu to top button", menu, button)
-    if (menu && button) {
-      menu.anchor = button
+    if (this._canPostInit) {
+      /** Menu */
+      const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
+      const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
+      console.log("Ludo: Anchoring Menu to top button", menu, button)
+      if (menu && button) {
+        menu.anchor = button
+        console.log({menu})
+        this._canPostInit = false;
+        this.requestUpdate()
+      }
     }
   }
 
@@ -786,20 +793,19 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   <!-- END DRAWER -->
   <div slot="appContent">
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense>
+    <mwc-top-app-bar id="app-bar" dense style="position: relative; /* required for menu anchor*/">
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
       <div slot="title">${msg('Library')}</div>
 
-      <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
-      <mwc-menu id="add-menu" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
-        <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
-        <mwc-list-item value="add_space"><span>${msg('Add Space')}</span></mwc-list-item>
-        <mwc-list-item value="add_template"><span>${msg('Add Template')}</span></mwc-list-item>
-        <mwc-list-item value="add_svgMarker"><span>${msg('Add SvgMarker')}</span></mwc-list-item>
-        <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
-      </mwc-menu>
-
+        <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
+        <mwc-menu id="add-menu" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
+          <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
+          <mwc-list-item value="add_space"><span>${msg('Add Space')}</span></mwc-list-item>
+          <mwc-list-item value="add_template"><span>${msg('Add Template')}</span></mwc-list-item>
+          <mwc-list-item value="add_svgMarker"><span>${msg('Add SvgMarker')}</span></mwc-list-item>
+          <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
+        </mwc-menu>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
       ></mwc-icon-button>

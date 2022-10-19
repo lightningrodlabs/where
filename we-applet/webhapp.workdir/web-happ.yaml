@@ -2,6 +2,6 @@
 manifest_version: "1"
 name: where-applet
 ui:
-  bundled: "../applet-ui.zip"
+  bundled: "../ui-where-applet.zip"
 happ_manifest:
   bundled: "../../dna/workdir/happ-where/where.happ"

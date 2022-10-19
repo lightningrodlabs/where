@@ -29,7 +29,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-  external: [...Object.keys(pkg.dependencies), /lodash-es/],
+  external: [],
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({

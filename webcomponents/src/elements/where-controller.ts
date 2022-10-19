@@ -320,9 +320,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     const container = this.drawerElem.parentNode!;
     container.addEventListener('MDCTopAppBar:nav', () => {
       this.drawerElem.open = !this.drawerElem.open;
-      const margin = this.drawerElem.open? '256px' : '0px';
-      const menuButton = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
-      menuButton.style.marginRight = margin;
+      // const margin = this.drawerElem.open? '256px' : '0px';
+      // const menuButton = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
+      // menuButton.style.marginRight = margin;
       this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
     });
     this._canPostInit = false;

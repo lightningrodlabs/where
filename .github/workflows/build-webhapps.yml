@@ -31,7 +31,7 @@ jobs:
       # Build webapp
       - name: Build webapp
         run: |
-          npm run prepare-test
+          npm run build:webui
       # Package web-happ
       - name: Package web-happ
         run: |

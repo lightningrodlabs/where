@@ -793,19 +793,19 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   <!-- END DRAWER -->
   <div slot="appContent">
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense style="position: relative; /* required for menu anchor*/">
+    <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
       <div slot="title">${msg('Library')}</div>
 
-        <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
-        <mwc-menu id="add-menu" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
-          <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
-          <mwc-list-item value="add_space"><span>${msg('Add Space')}</span></mwc-list-item>
-          <mwc-list-item value="add_template"><span>${msg('Add Template')}</span></mwc-list-item>
-          <mwc-list-item value="add_svgMarker"><span>${msg('Add SvgMarker')}</span></mwc-list-item>
-          <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
-        </mwc-menu>
+      <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
+      <mwc-menu id="add-menu" absolute x="0" y="0" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
+        <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
+        <mwc-list-item value="add_space"><span>${msg('Add Space')}</span></mwc-list-item>
+        <mwc-list-item value="add_template"><span>${msg('Add Template')}</span></mwc-list-item>
+        <mwc-list-item value="add_svgMarker"><span>${msg('Add SvgMarker')}</span></mwc-list-item>
+        <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
+      </mwc-menu>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
       ></mwc-icon-button>

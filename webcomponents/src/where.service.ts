@@ -240,19 +240,24 @@ export class WhereService {
   /** Misc */
 
   async notify(signal: Signal, folks: Array<AgentPubKeyB64>): Promise<void> {
-    //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
-    //  console.debug(`NOTIFY ${signal.message.type}`, signal)
-    //}
+    if (signal.message.type != "Ping" && signal.message.type != "Pong") {
+     console.debug(`NOTIFY ${signal.message.type}`, signal, folks)
+    }
+    /* Skip if no recipients or sending to self only */
+    if (!folks || folks.length == 1 && folks[0] === this.myAgentPubKey) {
+      console.log("notify() aborted: No recipients for notification")
+      return;
+    }
     return this.callWhereZome('notify', {signal, folks});
   }
 
 
   private callWhereZome(fn_name: string, payload: any): Promise<any> {
-    //console.debug("callZome: " + fn_name)
-    //console.debug({payload})
+    console.debug("callZome: " + fn_name)
+    console.debug({payload})
     const result = this.client.callZome(this.mainCellId, "where", fn_name, payload, 10 * 1000);
-    //console.debug("callZome: " + fn_name + "() result")
-    //console.debug({result})
+    console.debug("callZome: " + fn_name + "() result")
+    console.debug({result})
     return result;
   }
 

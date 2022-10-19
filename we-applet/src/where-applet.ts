@@ -2,6 +2,7 @@ import {LitElement, html, css} from "lit";
 import { state, property } from "lit/decorators.js";
 import {ContextProvider} from "@lit-labs/context";
 import { msg } from '@lit/localize';
+import { writable, Writable, derived, Readable, get } from 'svelte/store';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Dialog} from "@scoped-elements/material-web";
 import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
@@ -114,8 +115,9 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
 
 
     /** ProfilesStore */
-    await this.profilesStore.fetchAllProfiles()
-    const me = await this.profilesStore.fetchAgentProfile(this.profilesStore.myAgentPubKey);
+    const profiles = get(await this.profilesStore.fetchAllProfiles());
+    console.log({profiles})
+    const me = get(await this.profilesStore.fetchAgentProfile(this.profilesStore.myAgentPubKey));
     console.log({me})
     if (me) {
       this.hasProfile = true;
@@ -218,8 +220,8 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
     this.importingDialogElem.open = true;
     await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
     while(Date.now() - startTime < 500) {
-      console.log(Date.now() - startTime)
-       await delay(20);
+      //console.log(Date.now() - startTime)
+      await delay(20);
     }
     this.importingDialogElem.open = false;
   }

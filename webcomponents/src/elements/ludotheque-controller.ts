@@ -813,7 +813,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._store}" @template-added=${(e:any) => console.log(e.detail)}
+    <where-template-dialog id="template-dialog" .store="${this._store}" @template-created=${(e:any) => console.log(e.detail)}
     ></where-template-dialog>
     <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
     <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._store}" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>

@@ -3,16 +3,18 @@ import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import copy from "rollup-plugin-copy";
-import builtins from "rollup-plugin-node-builtins";
-import globals from "rollup-plugin-node-globals";
+
+//import builtins from "rollup-plugin-node-builtins";
+//import globals from "rollup-plugin-node-globals";
+
 import babel from "@rollup/plugin-babel";
 import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
 
-//const pkg = require("./package.json");
+//import pkg from "./package.json";
 
-import pkg from "./package.json";
 const DIST_FOLDER = "dist"
+
 
 export default {
   input: "out-tsc/index.js",
@@ -24,7 +26,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-  external: [...Object.keys(pkg.dependencies), /lodash-es/],
+  external: [],
   plugins: [
     copy({
       targets: [{ src: "icon.png", dest: DIST_FOLDER }],
@@ -40,8 +42,9 @@ export default {
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
     }),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
-    builtins(),
-    globals(),
+    commonjs(),
+    //builtins(),
+    //globals(),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */
@@ -86,6 +89,5 @@ export default {
         ],
       ],
     }),
-    commonjs(),
   ],
 };

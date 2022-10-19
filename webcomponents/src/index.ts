@@ -1,5 +1,7 @@
-// Import the container media queries mixin
+/* Import the container media queries mixin */
 import 'cqfill';
+
+import './global-styles'
 
 // TODO: change exports to be available for consumer packages
 

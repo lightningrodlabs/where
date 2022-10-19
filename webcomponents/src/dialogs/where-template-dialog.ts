@@ -18,6 +18,7 @@ import { localized, msg } from '@lit/localize';
 
 /** */
 function isValidXml(input: string) {
+  console.log("isValidXml()", input)
   if (input === undefined || input === null) {
     return false;
   }
@@ -236,10 +237,10 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     const template = this.createTemplate()
     const newTemplateEh = await this.store.addTemplate(template);
     console.log("newTemplateEh: " + newTemplateEh)
-    this.dispatchEvent(new CustomEvent('template-added', { detail: newTemplateEh, bubbles: true, composed: true }));
-    // - Clear all fields
+    this.dispatchEvent(new CustomEvent('template-created', { detail: newTemplateEh, bubbles: true, composed: true }));
+    /* Clear all fields */
     this.clearAllFields();
-    // - Close Dialog
+    /* Close Dialog */
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog;
     dialog.close()
   }

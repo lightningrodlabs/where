@@ -31,6 +31,7 @@ import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
+import {get} from 'svelte/store';
 
 /** @element where-controller */
 @localized()
@@ -50,7 +51,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   @contextProvided({context: profilesStoreContext, subscribe: true})
   @property({ type: Object })
-  _profileStore!: ProfilesStore;
+  profileStore!: ProfilesStore;
 
   @contextProvided({ context: whereContext, subscribe: true })
   _whereStore!: WhereStore;
@@ -143,11 +144,12 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** */
   async updateProfile(nickname: string, avatar: string, color: string) {
+    console.log("updateProfile() called:", nickname)
     try {
       const fields: Dictionary<string> = {};
       fields['color'] = color;
       fields['avatar'] = avatar;
-      await this._profileStore.createProfile({
+      await this.profileStore.createProfile({
         nickname,
         fields,
       });
@@ -161,9 +163,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** Launch init when myProfile has been set */
   private async subscribeProfile() {
-    const myProfileStore = await this._profileStore.fetchMyProfile();
+    const myProfileStore = await this.profileStore.fetchMyProfile();
     myProfileStore.subscribe(async (profile) => {
-      //console.log({profile})
+      console.log("myProfileStore received entry:", profile)
       if (profile) {
         // if (!this._initialized && !this._initializing) {
         //   await this.init();
@@ -263,6 +265,15 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     this._initialized = true
     this._initializing = false
     this._canPostInit = true;
+
+
+
+    const profiles = get(await this.profileStore.fetchAllProfiles());
+    console.log({profiles})
+    const me = get(await this.profileStore.fetchAgentProfile(this.profileStore.myAgentPubKey));
+    console.log({me})
+
+
     this.requestUpdate();
     console.log("where-controller.init() - DONE");
   }
@@ -352,7 +363,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async pingOthers() {
     if (this._currentSpaceEh) {
       // console.log("Pinging All")
-      await this._whereStore.pingOthers(this._currentSpaceEh, serializeHash(this._profileStore.myAgentPubKey))
+      await this._whereStore.pingOthers(this._currentSpaceEh, serializeHash(this.profileStore.myAgentPubKey))
     }
   }
 
@@ -361,7 +372,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
     await this._whereStore.pullDht()
-    await this._profileStore.fetchAllProfiles()
+    await this.profileStore.fetchAllProfiles()
     await this.pingOthers()
     this.requestUpdate();
   }
@@ -541,7 +552,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
-      <span slot="secondary">${serializeHash(this._profileStore.myAgentPubKey)}</span>
+      <span slot="secondary">${serializeHash(this.profileStore.myAgentPubKey)}</span>
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
         value=${this._myProfile.fields['color']}></sl-color-picker>
@@ -594,7 +605,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._whereStore}" @template-added=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-template-dialog id="template-dialog" .store="${this._whereStore}" @template-created=${(e:any) => console.log(e.detail)}></where-template-dialog>
     ${!this._myProfile ? html`` : html`
       <where-play-dialog id="space-dialog"
                           .currentProfile=${this._myProfile}

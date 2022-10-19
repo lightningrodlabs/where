@@ -179,7 +179,12 @@ export class WhereStore {
 
   private async others(): Promise<Array<AgentPubKeyB64>> {
     const profiles = get(await this.profiles.fetchAllProfiles());
-    return profiles.keys().map(key => serializeHash(key)).filter((key)=> key != this.myAgentPubKey)
+    console.log({profiles})
+    const keysB64 = profiles.keys()
+      .map(key => serializeHash(key))
+      .filter((key)=> key != this.myAgentPubKey)
+    console.log({keysB64})
+    return keysB64
   }
 
   private updatePresence(from: AgentPubKeyB64) {

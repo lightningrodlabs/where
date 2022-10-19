@@ -244,8 +244,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     this.importingDialogElem.open = true;
     await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
     while(Date.now() - startTime < 500) {
-      console.log(Date.now() - startTime)
-       await delay(20);
+      //console.log(Date.now() - startTime)
+      await delay(20);
     }
     this.importingDialogElem.open = false;
   }

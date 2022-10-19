@@ -1,0 +1,75 @@
+name: build-webhapps
+
+on:
+  workflow_call:
+
+jobs:
+  build-webhapps:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # install hc tool
+      - name: Install hc tool and wasm target
+        shell: bash # important because this runs shell scripts
+        run: |
+          npm run ci:hc-install
+      # Hash Zome
+      - name: Hash Zome Install
+        run: |
+          npm run install:hash-zome
+      # build dna
+      - name: Build DNA
+        run: |
+          npm run build:happ
+      - name: Hash Zome
+        run: |
+          npm run hash-zome
+      # Setup npm
+      - name: Install nodejs dependencies
+        run: |
+          npm install
+      # Build webapp
+      - name: Build webapp
+        run: |
+          npm run prepare-test
+      # Package web-happ
+      - name: Package web-happ
+        run: |
+          npm run package -w webapp
+          npm run dist:webhapp -w webapp
+      # build we-applet
+      - name: build we-applet
+        shell: bash
+        run: |
+          npm run build -w we-applet
+      # Package we-applet
+      - name: Package we-applet
+        shell: bash
+        run: |
+          npm run package -w we-applet
+      # Regroup artifacts
+      - name: Regroup artifacts
+        run: |
+          mkdir artifacts
+          cp electron/bin/where_zome_hash.txt ./artifacts
+          cp electron/bin/ludotheque_zome_hash.txt ./artifacts           
+          cp target/wasm32-unknown-unknown/release/where_playset_integrity.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_playset.wasm ./artifacts      
+          cp target/wasm32-unknown-unknown/release/where_ludotheque_integrity.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_ludotheque.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_integrity.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where.wasm ./artifacts        
+          cp dna/workdir/dna-where/where.dna ./artifacts
+          cp dna/workdir/dna-ludotheque/ludotheque.dna ./artifacts          
+          cp dna/workdir/happ-where/where.happ ./artifacts            
+          cp webapp/webhapp.workdir/where.webhapp ./artifacts
+          cp we-applet/webhapp.workdir/where-applet.webhapp ./artifacts
+      # List uploaded files
+      - name: List uploaded files
+        run: ls -R
+        working-directory: ./artifacts
+      # "upload" artifacts
+      - uses: actions/upload-artifact@master
+        with:
+          name: all-happ-artifact
+          path: artifacts/

@@ -14,13 +14,16 @@
     "postinstall"           : "bash scripts/copy-binaries.sh && npm run localize:build -w @where/elements",
     "ci:hc-install"         : "bash scripts/install-hc-tools.sh",
     "install:hash-zome"     : "bash scripts/download-hash-zome.sh",
+
     "hash-zome"             : "bash scripts/write-zome-hash.sh",
-    "build:zome"            : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown",
+    "build:zome"            : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown && npm run hash-zome",
     "build:dna"             : "npm run build:zome && hc dna pack dna/workdir/dna-where && hc dna pack dna/workdir/dna-ludotheque",
-    "build:happ"            : "npm run build:dna && hc app pack dna/workdir/happ-where && hc app pack dna/workdir/happ-where-standalone && hc app pack dna/workdir/happ-ludotheque && npm run hash-zome",
+    "build:happ"            : "npm run build:dna && hc app pack dna/workdir/happ-where && hc app pack dna/workdir/happ-where-standalone && hc app pack dna/workdir/happ-ludotheque && npm run copy:happ",
+    "copy:happ"             : "cp dna/workdir/happ-where/where.happ electron/bin && cp dna/workdir/happ-ludotheque/ludotheque.happ electron/bin",
+
     "build:webcomponents"   : "npm run build -w @where/elements",
-    "build:webapp"          : "npm run build -w where",
-    "build:ludo"            : "npm run build -w @where/elements && npm run package -w ludotheque",
+    "build:webapp"          : "npm run build:webcomponents && npm run build -w webapp",
+    "build:ludo"            : "npm run build:webcomponents && npm run package -w ludotheque",
 
     "dev:components"        : "npm run build:watch -w @where/elements",
     "prepare-test"          : "npm run clean:hc & npm run build:webcomponents && npm run build:webapp",
@@ -28,7 +31,7 @@
     "devtest"               : "npm run prepare-test && npm run start:agent",
     "devtest:standalone"    : "npm run prepare-test && npm run start:standalone",
     "devtest:we"            : "npm run prepare-test && npm run devtest -w we-applet",
-    "devtest:electron"      : "npm run prepare-test && npm run start -w electron",
+    "devtest:electron"      : "npm run prepare-test && npm run devtest -w electron",
 
     "start:ludo"            : "npm run build:happ && npm run start:agent-ludo",
     "start"                 : "npm run build:happ && npm run start:agent",
@@ -48,11 +51,7 @@
     "start:happ-proxied"    : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$ADMIN_PORT generate dna/workdir/happ-where/where.happ --run=$HC_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
 
     "playground"            : "run-singleton \"holochain-playground\"",
-    "package:webhapp"       : "hc web-app pack webapp/webhapp.workdir",
-    "package"               : "npm run build:happ && npm run build:webapp && npm run package:webhapp && cp dna/workdir/happ-where/where.happ electron/bin/where.happ && bash scripts/copy-binaries.sh",
-    "electron"              : "npm run package && npm run start -w where-app",
-    "dist:electron"         : "cd electron && npm run tsc && npm run dist",
-    "dist:electron-linux"   : "cd electron && npm run tsc && npm run dist-linux",
+
     "clean"                 : "npm run clean:npm && bash scripts/clean.sh",
     "clean:npm"             : "bash scripts/clean-npm.sh",
     "clean:hc"              : "rm -rf .hc* && rm -rf we-applet/.hc*"

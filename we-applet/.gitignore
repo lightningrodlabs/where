@@ -6,3 +6,5 @@ node_modules
 *.dna
 *.zip
 target
+
+*.webhapp

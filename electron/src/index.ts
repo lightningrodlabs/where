@@ -455,15 +455,14 @@ async function promptUid(canExitOnCancel: boolean, parentBrowserWindow: BrowserW
     alwaysOnTop: true,
     label: 'Network Access Key:',
     value: g_uid,
-    parentBrowserWindow,
     inputAttrs: {
       minlength: "2",
-      required: true,
+      required: 'true',
       pattern: "[a-zA-Z0-9\-_.]+",
       type: 'string'
     },
     type: 'input'
-  });
+  }, parentBrowserWindow);
   if(r === null) {
     log('debug','user cancelled. Can exit: ' + canExitOnCancel);
     if (canExitOnCancel) {

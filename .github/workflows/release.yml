@@ -21,12 +21,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # Build the dna & happ
-  call-build-dna:
-    uses: ./.github/workflows/build-dna.yml
+  call-build-webhapps:
+    uses: ./.github/workflows/build-webhapps.yml
 
   # upload the app package for each target os
   build-binaries:
-    needs: call-build-dna
+    needs: call-build-webhapps
     strategy:
       #fail-fast: false
       matrix:

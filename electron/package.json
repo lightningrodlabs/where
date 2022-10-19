@@ -6,15 +6,14 @@
     "type": "git",
     "url": "https://github.com/lightningrodlabs/where.git"
   },
-  "main": "dist/index.js",
+  "main": "out-tsc/index.js",
   "scripts": {
     "lint": "eslint --ext .ts .",
     "build": "tsc",
-    "start": "tsc && electron .",
-    "dist": "cp ../dna/workdir/happ-where/where.happ ./bin && electron-builder build",
-    "dist-tar": "cp ../dna/workdir/happ-where/where.happ ./bin && electron-builder --linux tar.gz",
-    "dist-linux": "cp ../dna/workdir/happ-where/where.happ ./bin && electron-builder --linux AppImage",
-    "clean": "rm -rf node_modules && rm -rf package-lock.json"
+    "devtest": "tsc && electron .",
+    "dist:build": "electron-builder build",
+    "dist:linux": "electron-builder --linux tar.gz",
+    "dist:linux-app": "electron-builder --linux AppImage"
   },
   "keywords": [
     "Electron",
@@ -29,7 +28,7 @@
     "copyright": "© 2021-2022 Harris-Braun Enterprises, LLC",
     "asar": false,
     "files": [
-      "dist/**/*",
+      "out-tsc/**/*",
       "web/**/*",
       "bin/**/*",
       "node_modules/**/*",
@@ -42,16 +41,21 @@
     },
     "directories": {
       "buildResources": "web/logo",
-      "output": "out"
+      "output": "out-builder"
     },
     "publish": {
       "provider": "github"
     }
   },
   "devDependencies": {
-    "electron": "17.1.1",
+    "@types/auto-launch": "^5.0.2",
+    "@types/electron-prompt": "^1.6.1",
+    "@typescript-eslint/eslint-plugin": "^5.39.0",
+    "@typescript-eslint/parser": "^5.39.0",
+    "electron": "19.0.0",
     "electron-builder": "22.14.13",
-    "eslint": "^7.25.0",
+    "electron-notarize": "^1.0.0",
+    "eslint": "^8.24.0",
     "typescript": "^4.5.5"
   },
   "dependencies": {

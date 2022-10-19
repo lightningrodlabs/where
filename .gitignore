@@ -16,3 +16,9 @@ webapp/webhapp.workdir/*.webhapp
 *.tsbuildinfo
 .running
 dna/*.txt
+
+
+# Specific files
+Cargo.lock
+hash_zome*
+package-lock.json

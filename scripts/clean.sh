@@ -2,6 +2,7 @@
 
 # TOP LEVEL
 rm -rf .hc*
+rm -rf target
 # WEBCOMPONENTS
 rm -rf webcomponents/dist
 rm -rf webcomponents/src/generated

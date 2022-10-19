@@ -26,7 +26,7 @@
     "build:webapp"          : "npm run build:webcomponents && npm run build -w webapp",
     "build:ludo"            : "npm run build:webcomponents && npm run package -w ludotheque",
 
-    "build:webui"           : "npm run build:localize && mpm run build:webapp",
+    "build:webui"           : "npm run build:localize && npm run build:webapp",
 
     "dev:components"        : "npm run build:watch -w @where/elements",
     "prepare-test"          : "npm run clean:hc & npm run build:webcomponents && npm run build:webapp",

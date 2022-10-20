@@ -97,17 +97,17 @@ jobs:
           gh release upload "${GITHUB_REF#refs/tags/}" "where-web-ui.zip" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "where-we_applet-ui.zip" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "where.webhapp" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where-applet.webhapp" --clobber          
+          gh release upload "${GITHUB_REF#refs/tags/}" "where-we_applet.webhapp" --clobber          
           gh release upload "${GITHUB_REF#refs/tags/}" "where.happ" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "where.dna" --clobber
           gh release upload "${GITHUB_REF#refs/tags/}" "ludotheque.dna" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where.wasm" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where_integrity.wasm" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque.wasm" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque_integrity.wasm" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque.wasm" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}" "where_playset_integrity.wasm" --clobber          
-          gh release upload "${GITHUB_REF#refs/tags/}" "where_playset.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_zome.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_integrity_zome.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque_zome.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque_integrity_zome.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque_zome.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_playset_integrity_zome.wasm" --clobber          
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_playset_zome.wasm" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

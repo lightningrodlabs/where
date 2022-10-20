@@ -83,17 +83,17 @@ jobs:
           gh release upload "manual-release" "where-web-ui.zip" --clobber
           gh release upload "manual-release" "where-we_applet-ui.zip" --clobber
           gh release upload "manual-release" "where.webhapp" --clobber
-          gh release upload "manual-release" "where-applet.webhapp" --clobber          
+          gh release upload "manual-release" "where-we_applet.webhapp" --clobber          
           gh release upload "manual-release" "where.happ" --clobber
           gh release upload "manual-release" "where.dna" --clobber
           gh release upload "manual-release" "ludotheque.dna" --clobber
-          gh release upload "manual-release" "where.wasm" --clobber
-          gh release upload "manual-release" "where_integrity.wasm" --clobber
-          gh release upload "manual-release" "where_ludotheque.wasm" --clobber
-          gh release upload "manual-release" "where_ludotheque_integrity.wasm" --clobber
-          gh release upload "manual-release" "where_ludotheque.wasm" --clobber
-          gh release upload "manual-release" "where_playset_integrity.wasm" --clobber          
-          gh release upload "manual-release" "where_playset.wasm" --clobber
+          gh release upload "manual-release" "where_zome.wasm" --clobber
+          gh release upload "manual-release" "where_integrity_zome.wasm" --clobber
+          gh release upload "manual-release" "where_ludotheque_zome.wasm" --clobber
+          gh release upload "manual-release" "where_ludotheque_integrity_zome.wasm" --clobber
+          gh release upload "manual-release" "where_ludotheque_zome.wasm" --clobber
+          gh release upload "manual-release" "where_playset_integrity_zome.wasm" --clobber          
+          gh release upload "manual-release" "where_playset_zome.wasm" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

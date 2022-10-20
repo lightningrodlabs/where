@@ -54,19 +54,19 @@ jobs:
           mkdir artifacts
           cp electron/bin/where_zome_hash.txt ./artifacts
           cp electron/bin/ludotheque_zome_hash.txt ./artifacts           
-          cp target/wasm32-unknown-unknown/release/where_playset_integrity.wasm ./artifacts
-          cp target/wasm32-unknown-unknown/release/where_playset.wasm ./artifacts      
-          cp target/wasm32-unknown-unknown/release/where_ludotheque_integrity.wasm ./artifacts
-          cp target/wasm32-unknown-unknown/release/where_ludotheque.wasm ./artifacts
-          cp target/wasm32-unknown-unknown/release/where_integrity.wasm ./artifacts
-          cp target/wasm32-unknown-unknown/release/where.wasm ./artifacts        
+          cp target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_playset_zome.wasm ./artifacts      
+          cp target/wasm32-unknown-unknown/release/where_ludotheque_integrity_zome.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_ludotheque_zome.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_integrity_zome.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_zome.wasm ./artifacts        
           cp dna/workdir/dna-where/where.dna ./artifacts
           cp dna/workdir/dna-ludotheque/ludotheque.dna ./artifacts          
           cp dna/workdir/happ-where/where.happ ./artifacts 
           cp we-applet/where-we_applet-ui.zip ./artifacts
           cp webapp/where-web-ui.zip ./artifacts           
           cp webapp/webhapp.workdir/where.webhapp ./artifacts
-          cp we-applet/webhapp.workdir/where-applet.webhapp ./artifacts
+          cp we-applet/webhapp.workdir/where-we_applet.webhapp ./artifacts
       # List uploaded files
       - name: List uploaded files
         run: ls -R

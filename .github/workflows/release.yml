@@ -6,7 +6,7 @@ on:
       - v[0-9]+.*
 
 env:
-  WHERE_VERSION: 0.0.9
+  WHERE_VERSION: 0.1.0
   USE_HARD_LINKS: false
 
 jobs:

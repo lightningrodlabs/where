@@ -1,6 +1,6 @@
 {
   "name": "where",
-  "version": "0.0.9",
+  "version": "0.1.0",
   "scripts": {
     "tsc": "tsc",
     "build": "rm -rf dist && tsc && rollup -c && cd dist && cp * ../../electron/web",

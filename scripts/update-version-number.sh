@@ -45,7 +45,7 @@ echo "./.github/workflows/test.yml '$OLD_VER' -> '$1'"
 sed -i "s/$OLD_VER/$1/" ./.github/workflows/test.yml
 
 
-## Change electron/web/splashscreen.html
-#LINE=`echo version $1`
-#echo $LINE
-#sed -i "17s/.*/            ${LINE}/" electron/web/splashscreen.html
+# Change electron/web/splashscreen.html
+LINE=`echo version $1`
+echo $LINE
+sed -i "17s/.*/            ${LINE}/" electron/web/splashscreen.html

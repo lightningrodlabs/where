@@ -3,7 +3,7 @@ name: test-workflow x64
 on: workflow_dispatch
 
 env:
-  WHERE_VERSION: 0.0.9
+  WHERE_VERSION: 0.1.0
   USE_HARD_LINKS: false
 
 jobs:

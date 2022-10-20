@@ -45,8 +45,8 @@ jobs:
         run: |
           npm install
           npm install electron-builder
-      # Build webapp
-      - name: Build webapp
+      # Build web-ui
+      - name: Build web-ui
         run: |
           npm run build:webui
       # Build electron app

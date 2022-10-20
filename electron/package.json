@@ -52,6 +52,7 @@
     "@types/electron-prompt": "^1.6.1",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
+    "cross-env": "^7.0.3",    
     "electron": "19.0.0",
     "electron-builder": "22.14.13",
     "electron-notarize": "^1.0.0",
@@ -60,8 +61,10 @@
   },
   "dependencies": {
     "@lightningrodlabs/electron-holochain": "0.3.0",
+    "command-exists": "^1.2.8",
     "electron-prompt": "^1.7.0",
     "electron-log": "^4.4.6",
-    "electron-notarize": "^1.1.1"
+    "electron-notarize": "^1.1.1",
+    "tslib": "^2.3.1"
   }
 }

@@ -28,10 +28,10 @@ jobs:
       - name: Install nodejs dependencies
         run: |
           npm install
-      # Build webapp
-      - name: Build webapp
+      # Build web-ui
+      - name: Build web-ui
         run: |
-          npm run build:devtest
+          npm run build:webui
       # Package web-happ
       - name: Package web-happ
         run: |

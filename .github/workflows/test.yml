@@ -80,8 +80,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "manual-release" "electron/out-builder/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "manual-release" "webapp/ui-where.zip" --clobber
-          gh release upload "manual-release" "we-applet/ui-where-applet.zip" --clobber
+          gh release upload "manual-release" "ui-where.zip" --clobber
+          gh release upload "manual-release" "ui-where-applet.zip" --clobber
           gh release upload "manual-release" "where.webhapp" --clobber
           gh release upload "manual-release" "where-applet.webhapp" --clobber          
           gh release upload "manual-release" "where.happ" --clobber

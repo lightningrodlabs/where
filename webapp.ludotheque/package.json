@@ -2,11 +2,11 @@
   "name": "ludotheque",
   "version": "0.0.9",
   "scripts": {
-    "build": "tsc",
-    "rollup": "rm -rf out-tsc && mkdir ./out-tsc && rollup -c",
+    "tsc": "tsc",
+    "build": "rm -rf out-tsc && mkdir ./out-tsc && rollup -c",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
-    "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "package": "rm -rf ludotheque-ui.zip && rm -rf dist && tsc && rollup --config rollup.config.js && cd ./dist && bestzip ../ludotheque-ui.zip *"
+    "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
+    "zip": "rm -rf ludotheque-web-ui.zip &&  cd ./dist && bestzip ../ludotheque-web-ui.zip *"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

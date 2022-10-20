@@ -31,12 +31,12 @@ jobs:
       # Build webapp
       - name: Build webapp
         run: |
-          npm run build:webui
+          npm run build:devtest
       # Package web-happ
       - name: Package web-happ
         run: |
+          npm run zip -w webapp
           npm run package -w webapp
-          npm run dist:webhapp -w webapp
       # build we-applet
       - name: build we-applet
         shell: bash
@@ -46,6 +46,7 @@ jobs:
       - name: Package we-applet
         shell: bash
         run: |
+          npm run zip -w we-applet          
           npm run package -w we-applet
       # Regroup artifacts
       - name: Regroup artifacts
@@ -62,8 +63,8 @@ jobs:
           cp dna/workdir/dna-where/where.dna ./artifacts
           cp dna/workdir/dna-ludotheque/ludotheque.dna ./artifacts          
           cp dna/workdir/happ-where/where.happ ./artifacts 
-          cp we-applet/ui-where-applet.zip ./artifacts
-          cp webapp/ui-where.zip ./artifacts           
+          cp we-applet/where-we_applet-ui.zip ./artifacts
+          cp webapp/where-web-ui.zip ./artifacts           
           cp webapp/webhapp.workdir/where.webhapp ./artifacts
           cp we-applet/webhapp.workdir/where-applet.webhapp ./artifacts
       # List uploaded files

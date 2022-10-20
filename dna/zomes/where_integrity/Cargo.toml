@@ -1,12 +1,12 @@
 [package]
 authors = ["eric@harris-braun.com"]
 edition = "2018"
-name = "where_integrity"
-version = "0.0.1-alpha1"
+name = "where_integrity_zome"
+version = "0.0.1"
 
 
 [lib]
-name = "where_integrity"
+name = "where_integrity_zome"
 crate-type = ["cdylib", "rlib"]
 
 

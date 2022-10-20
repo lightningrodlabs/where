@@ -1,12 +1,12 @@
 [package]
 authors = ["eric@harris-braun.com"]
 edition = "2018"
-name = "where_ludotheque_integrity"
+name = "where_ludotheque_integrity_zome"
 version = "0.0.1"
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "where_ludotheque_integrity"
+name = "where_ludotheque_integrity_zome"
 
 [dependencies]
 serde = "1.0"

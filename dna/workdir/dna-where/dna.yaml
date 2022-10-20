@@ -7,22 +7,22 @@ integrity:
   origin_time: 2022-09-25T13:55:49.200Z
   zomes:
     - name: where_playset_integrity
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity.wasm
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm
     - name: where_integrity
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_integrity.wasm
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_integrity_zome.wasm
     - name: profiles_integrity
-      bundled: ../../../target/wasm32-unknown-unknown/release/profiles_integrity.wasm
+      bundled: ../../../target/wasm32-unknown-unknown/release/profiles_integrity_zome.wasm
 coordinator:
   zomes:
     - name: where_playset
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset.wasm
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_zome.wasm
       dependencies:
         - name: where_playset_integrity
     - name: where
-      bundled: ../../../target/wasm32-unknown-unknown/release/where.wasm
+      bundled: ../../../target/wasm32-unknown-unknown/release/where_zome.wasm
       dependencies:
         - name: where_integrity
     - name: profiles
-      bundled: ../../../target/wasm32-unknown-unknown/release/profiles.wasm
+      bundled: ../../../target/wasm32-unknown-unknown/release/profiles_zome.wasm
       dependencies:
         - name: profiles_integrity

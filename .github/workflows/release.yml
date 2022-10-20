@@ -38,46 +38,26 @@ jobs:
     steps:
       # Checkout repo
       - uses: actions/checkout@v2
-      # rm the dna files from repository
-      - name: clearing precompiled dna files
-        continue-on-error: true
-        run: |
-          rm dna/workdir/happ-where/where.happ
       # Download previously uploaded artifacts
       - uses: actions/download-artifact@master
         with:
-          name: where-happ-artifact
-          path: dna/workdir/happ-where
-      - uses: actions/download-artifact@master
-        with:
-          name: where-webapp-artifact
-          path: webapp/webhapp.workdir
-      - uses: actions/download-artifact@master
-        with:
-          name: where-hash-artifact
-          path: electron/bin
-      # Check if exist
-      - name: list webhapp
-        continue-on-error: true
-        run: ls -R
-        working-directory: webapp/webhapp.workdir
+          name: all-happ-artifact
+      # Dispatch artifacts
+      - name: Dispatch artifacts
+        run: |
+          cp ./where.happ ./electron/bin
+          cp ./where_zome_hash.txt ./electron/bin
+          cp ./ludotheque_zome_hash.txt ./electron/bin
       # Setup npm
       - name: Install nodejs dependencies
         run: |
           npm install
+          npm install electron-builder
       # Build webapp
       - name: Build webapp
         run: |
-          npm run package
-      # Setup sign & notarize
-      #- name: Setup sign and notarize (macos only)
-      #  continue-on-error: true
-      #  if: ${{ runner.os == 'macOs' }}
-      #  uses:  figleafteam/import-codesign-certs@v2
-      #  with:
-      #    p12-file-base64: ${{ secrets.HBE_APPLE_CERTIFICATE_BASE64 }}
-      #    p12-password: ${{ secrets.HBE_APPLE_CERTIFICATE_PASS }}
-      # Build installers and binaries
+          npm run build:webui
+      # Build electron app
       - name: Build electron app
         shell: bash
         env:
@@ -89,21 +69,45 @@ jobs:
           DEBUG: electron-osx-sign*,electron-notarize*
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npm run dist:electron
-      # upload installers and binaries
-      - name: list builds
+          npm run build -w electron
+      # Dist Electron
+      - name: Dist Electron
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npm run dist:build -w electron
+      # List out-builder folder
+      - name: list out-builder folder
+        continue-on-error: true
+        run: ls -R
+        working-directory: electron/out-builder
+      # list bin folder
+      - name: list bin folder
         continue-on-error: true
         run: ls
-        working-directory: electron/out
+        working-directory: electron/bin
       # upload binary for each platform
       - name: upload binary (ubuntu only)
         if: ${{ runner.os == 'Linux' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release upload "${GITHUB_REF#refs/tags/}"  "electron/out/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}"  "dna/workdir/happ-where/where.happ" --clobber
-          gh release upload "${GITHUB_REF#refs/tags/}"  "webapp/webhapp.workdir/where.webhapp" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "electron/out-builder/Where-$WHERE_VERSION.AppImage" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where-web-ui.zip" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where-we_applet-ui.zip" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where.webhapp" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where-applet.webhapp" --clobber          
+          gh release upload "${GITHUB_REF#refs/tags/}" "where.happ" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where.dna" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "ludotheque.dna" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_integrity.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque_integrity.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_ludotheque.wasm" --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_playset_integrity.wasm" --clobber          
+          gh release upload "${GITHUB_REF#refs/tags/}" "where_playset.wasm" --clobber
       - name: upload binary (macos only)
         if: ${{ runner.os == 'macOs' }}
         env:

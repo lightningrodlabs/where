@@ -5,9 +5,9 @@
     "tsc": "tsc",
     "build": "rm -rf dist && tsc && rollup -c && cd dist && cp * ../../electron/web",
     "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
-    "start": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "package": "rm -rf ui-where.zip && cd dist && bestzip ../ui-where.zip *",
-    "dist:webhapp": " hc web-app pack ./webhapp.workdir"
+    "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
+    "zip": "rm -rf where-web-ui.zip && cd dist && bestzip ../where-web-ui.zip *",
+    "package": "npm run zip && hc web-app pack ./webhapp.workdir"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

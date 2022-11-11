@@ -521,6 +521,11 @@ export class WhereStore {
     return get(this.playStore)[spaceEh].sessions[sessionEh].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.authorName == agent)
   }
 
+
+  getEntryDefs(zomeName: string) {
+    this.service.getEntryDefs(zomeName)
+  }
+
   template(templateEh64: EntryHashB64): TemplateEntry {
       return get(this.templateStore)[templateEh64];
   }

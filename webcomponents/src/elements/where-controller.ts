@@ -405,6 +405,10 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     await this._whereStore.pullDht()
     await this.profileStore.fetchAllProfiles()
     await this.pingOthers()
+    await this._whereStore.getEntryDefs("where")
+    await this._whereStore.getEntryDefs("where_ludotheque")
+    await this._whereStore.getEntryDefs("where_playset")
+    await this._whereStore.getEntryDefs("where_integrity")
     this.requestUpdate();
   }
 

@@ -22,7 +22,7 @@ pub const PLAYSET_ZOME_NAME: &'static str = "where_playset";
 
 
 #[hdk_entry_defs]
-#[unit_enum(UnitEntryTypes)]
+#[unit_enum(WhereEntryTypes)]
 pub enum WhereEntry {
     #[entry_def(required_validations = 2, visibility = "public")]
     Here(Here),

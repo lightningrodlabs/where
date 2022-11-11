@@ -12,7 +12,7 @@ pub use playset::*;
 use hdi::prelude::*;
 
 #[hdk_entry_defs]
-#[unit_enum(UnitEntryTypes)]
+#[unit_enum(LudothequeEntryTypes)]
 pub enum LudothequeEntry {
     #[entry_def(required_validations = 2, visibility = "public")]
     Playset(Playset),

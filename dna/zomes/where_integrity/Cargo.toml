@@ -1,17 +1,15 @@
 [package]
-authors = ["eric@harris-braun.com"]
-edition = "2018"
 name = "where_integrity_zome"
-version = "0.0.1"
+authors = ["eric@harris-braun.com"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
 
 
 [lib]
-name = "where_integrity_zome"
 crate-type = ["cdylib", "rlib"]
 
 
 [dependencies]
-serde = "1.0"
-tracing = { version = "0.1", default-features = false }
-
-hdi = { version = "0.1.3", default-features = false }
+serde.workspace = true
+hdi.workspace = true

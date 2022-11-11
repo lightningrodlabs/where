@@ -8,33 +8,33 @@ use ludotheque_integrity::*;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ExportPlaysetInput {
-  pub cell_id: CellId,
+  pub destination_cell_id: CellId,
   pub playset_eh: EntryHashB64,
 }
 
 #[hdk_extern]
-fn export_playset(input: ExportPlaysetInput) -> ExternResult<()> {
+fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPlaysetInput) -> ExternResult<()> {
   /* Get Playset */
-  let playset: Playset = get_typed_from_eh(input.playset_eh.into())?;
+  let playset: Playset = get_typed_from_eh(playset_eh.into())?;
   /* Export each template */
   for eh in playset.templates {
     let entry = get_entry_from_eh(eh.into())?;
-    export_piece_inner("template", entry, input.cell_id.clone())?;
+    export_piece_inner("template", entry, destination_cell_id.clone())?;
   }
   /* Export each svg marker */
   for eh in playset.svg_markers {
     let entry = get_entry_from_eh(eh.into())?;
-    export_piece_inner("SvgMarker", entry, input.cell_id.clone())?;
+    export_piece_inner("SvgMarker", entry, destination_cell_id.clone())?;
   }
   /* Export each svg marker */
   for eh in playset.emoji_groups {
     let entry = get_entry_from_eh(eh.into())?;
-    export_piece_inner("EmojiGroup", entry, input.cell_id.clone())?;
+    export_piece_inner("EmojiGroup", entry, destination_cell_id.clone())?;
   }
   /* Export each space */
   for spaceEh in playset.spaces {
     let space_entry = get_entry_from_eh(spaceEh.into())?;
-    export_piece_inner("space", space_entry, input.cell_id.clone())?;
+    export_piece_inner("space", space_entry, destination_cell_id.clone())?;
   }
   /* Done */
   Ok(())

@@ -1,6 +1,5 @@
 use hdk::prelude::*;
 use std::convert::Infallible;
-//use hc_utils::UtilsError;
 
 pub fn error<T>(reason: &str) -> ExternResult<T> {
     Err(WasmError::Guest(String::from(reason)))
@@ -20,8 +19,6 @@ pub enum WhereError {
     Wasm(#[from] WasmError),
     #[error(transparent)]
     Timestamp(#[from] TimestampError),
-    //#[error(transparent)]
-    //UtilsError(#[from] UtilsError),
 }
 
 pub type WhereResult<T> = Result<T, WhereError>;

@@ -12,7 +12,7 @@ pub use pieces::*;
 use hdi::prelude::*;
 
 #[hdk_entry_defs]
-#[unit_enum(UnitEntryTypes)]
+#[unit_enum(PlaysetTypes)]
 pub enum PlaysetEntry {
     #[entry_def(required_validations = 2, visibility = "public")]
     SvgMarker(SvgMarker),

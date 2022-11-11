@@ -1,17 +1,16 @@
 [package]
-authors = ["eric@harris-braun.com"]
-edition = "2018"
 name = "where_ludotheque_zome"
-version = "0.0.1"
+authors = ["eric@harris-braun.com"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "where_ludotheque_zome"
 
 [dependencies]
-serde = "1.0"
-hdk = { version = "0.0.154", default-features = false }
-
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "154" }
+serde.workspace = true
+hdk.workspace = true
+zome_utils.workspace = true
 
 ludotheque_integrity = { package = "where_ludotheque_integrity_zome", path = "../ludotheque_integrity" }

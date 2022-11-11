@@ -252,12 +252,21 @@ export class WhereService {
   }
 
 
-  private callWhereZome(fn_name: string, payload: any): Promise<any> {
-    console.debug("callZome: " + fn_name)
-    console.debug({payload})
-    const result = this.client.callZome(this.mainCellId, "where", fn_name, payload, 10 * 1000);
-    console.debug("callZome: " + fn_name + "() result")
+  getEntryDefs(zomeName: string) {
+    console.debug("getEntryDefs() for " + zomeName + " ...")
+    const result = this.client.callZome(this.mainCellId, zomeName, "zome_info", null, 10 * 1000);
+    //const result = this.client.callZome(this.mainCellId, zomeName, "entry_defs", null, 10 * 1000);
+    console.debug("getEntryDefs() for " + zomeName + "() result:")
     console.debug({result})
+  }
+
+
+  private callWhereZome(fn_name: string, payload: any): Promise<any> {
+    //console.debug("callZome: " + fn_name)
+    //console.debug({payload})
+    const result = this.client.callZome(this.mainCellId, "where", fn_name, payload, 10 * 1000);
+    //console.debug("callZome: " + fn_name + "() result")
+    //console.debug({result})
     return result;
   }
 

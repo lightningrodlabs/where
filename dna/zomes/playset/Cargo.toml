@@ -1,17 +1,17 @@
 [package]
-authors = ["eric@harris-braun.com"]
-edition = "2018"
 name = "where_playset_zome"
-version = "0.0.1"
+authors = ["eric@harris-braun.com"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "where_playset_zome"
+
 
 [dependencies]
-serde = "1.0"
-hdk = { version = "0.0.154", default-features = false }
-
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "154" }
+serde.workspace = true
+hdk.workspace = true
+zome_utils.workspace = true
 
 playset_integrity = { package = "where_playset_integrity_zome", path = "../playset_integrity" }

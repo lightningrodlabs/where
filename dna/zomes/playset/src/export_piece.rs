@@ -11,7 +11,7 @@ use crate::import_piece::ImportPieceInput;
 pub struct ExportPieceInput {
   pub cell_id: CellId,
   pub piece_eh: EntryHashB64,
-  pub piece_type_name: String,
+  pub piece_type_name: String, // FIXME use UnitEntryTypes and AppEntryTypeName
 }
 
 #[hdk_extern]

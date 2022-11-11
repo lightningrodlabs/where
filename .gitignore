@@ -18,6 +18,8 @@ webapp/webhapp.workdir/*.webhapp
 dna/*.txt
 
 
+release/
+
 # Specific files
 Cargo.lock
 hash_zome*

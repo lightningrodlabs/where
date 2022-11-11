@@ -1,14 +1,14 @@
 [package]
-authors = ["eric@harris-braun.com"]
-edition = "2018"
 name = "profiles_zome"
-version = "0.0.1"
+authors = ["eric@harris-braun.com"]
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
 
 [lib]
 crate-type = ["cdylib", "rlib"]
-name = "profiles_zome"
 
 [dependencies]
+hdk.workspace = true
 hc_zome_profiles_coordinator = {git = "https://github.com/holochain-open-dev/profiles", package = "hc_zome_profiles_coordinator"}
 
-hdk = { version = "0.0.154", default-features = false }

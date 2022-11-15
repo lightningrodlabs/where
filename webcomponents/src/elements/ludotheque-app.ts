@@ -5,7 +5,6 @@ import {contextProvided} from "@lit-labs/context";
 import {StoreSubscriber} from "lit-svelte-stores";
 
 import {sharedStyles} from "../sharedStyles";
-import {count_inventory, Inventory, ludothequeContext, PieceType, PlaysetEntry} from "../types";
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
@@ -41,12 +40,17 @@ import {
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
 import {addExamplePieces} from "../examples";
-import {LudothequeStore} from "../ludotheque.store";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId} from "@holochain/client";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
+import {LudothequePerspective, LudothequeViewModel} from "../viewModels/ludotheque.zvm";
+import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
+import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
+import {countInventory} from "../viewModels/playset.vm";
+import {PlaysetViewModel} from "../viewModels/playset.zvm";
+import {PieceType} from "../viewModels/playset.bindings";
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -65,7 +69,7 @@ tmpl.innerHTML = `
 
 /** @element ludotheque-controller */
 @localized()
-export class LudothequeController extends ScopedElementsMixin(LitElement) {
+export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
   }
@@ -83,15 +87,15 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: ludothequeContext/*, subscribe: true*/ })
-  _store!: LudothequeStore;
+  @contextProvided({ context: LudothequeViewModel.context })
+  _ludothequeViewModel!: LudothequeViewModel;
+  @contextProvided({ context: PlaysetViewModel.context })
+  _playsetViewModel!: PlaysetViewModel;
 
-
-  _playsets = new StoreSubscriber(this, () => this._store?.playsets);
-  _spaces = new StoreSubscriber(this, () => this._store?.spaces);
-  _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
-  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  ludothequePerspective!: LudothequePerspective;
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  playsetPerspective!: PlaysetPerspective;
 
 
   /** Private properties */
@@ -154,10 +158,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   /** -- methods -- */
 
-  private pullWhereInventory() {
-    this._store.getWhereInventory().then(inventory => {
-      const nextCount = count_inventory(inventory);
-      if (!this._whereInventory || nextCount > count_inventory(this._whereInventory)) {
+  private probeInventory() {
+    this._playsetViewModel.probeInventory().then(inventory => {
+      const nextCount = countInventory(inventory);
+      if (!this._whereInventory || nextCount > countInventory(this._whereInventory)) {
         this._whereInventory = inventory;
         this.requestUpdate();
       }
@@ -193,31 +197,16 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** Launch init when myProfile has been set */
-  private async subscribePlayset() {
-    this._store.playsets.subscribe(async (playsets) => {
-      if (!this._currentPlaysetEh) {
-        // /** Select first play */
-        // const firstEh = this.getFirstVisiblePlayset(playsets);
-        // if (firstEh) {
-        //   await this.selectPlayset(firstEh);
-        //   //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-        //   console.log("    starting Playset: ", playsets[firstEh].name, this._currentPlaysetEh);
-        //   //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentPlaysetEh);
-        // }
-      }
-    });
-    await this.init();
-  }
-
   /** After first render only */
   async firstUpdated() {
-    await this.subscribePlayset();
-
+    this._ludothequeViewModel.subscribe(this, 'ludothequePerspective');
+    this._playsetViewModel.subscribe(this, 'playsetPerspective');
+    await this.init();
     /** add custom styles to TopAppBar */
     const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
     topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
   }
+
 
 
   private async init() {
@@ -227,7 +216,8 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this._initializing = true
     console.log("ludotheque-controller.init() - START");
     /** Get latest public entries from DHT */
-    await this._store.pullDht();
+    await this._ludothequeViewModel.probeDht();
+    await this._playsetViewModel.probeDht();
     const playsets = this._playsets.value;
     //const templates = this._templates.value;
     console.log({playsets})
@@ -235,7 +225,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
     /** load initial plays & templates if there are none */
     if (this.canLoadExamples && Object.keys(playsets).length == 0) {
-      await addExamplePieces(this._store);
+      await addExamplePieces(this._ludothequeViewModel);
       console.log("addExamplePieces() - DONE");
     }
     // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
@@ -325,7 +315,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._store.pullDht()
+    await this._ludothequeViewModel.pullDht()
     this.requestUpdate();
   }
 
@@ -478,7 +468,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       return;
     }
     // Commit
-    await this._store.addPlaysetWithCheck(this._currentPlayset!);
+    await this._ludothequeViewModel.addPlaysetWithCheck(this._currentPlayset!);
     // Reset
     this.resetCurrentPlayset();
     this._canCreatePlayset = false;
@@ -567,7 +557,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this._store.exportPiece(key, type, this.whereCellId!)}
+                               @click=${() => this._ludothequeViewModel.exportPiece(key, type, this.whereCellId!)}
         ></mwc-icon-button>
       `;
   }
@@ -579,7 +569,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
         const surface = JSON.parse(space.surface);
-        const template = this._store.template(space.origin);
+        const template = this._ludothequeViewModel.template(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
@@ -711,10 +701,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
    */
   render() {
     console.log("ludotheque-controller render() - " + this._initialized)
-    const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
+    const playset = this._currentPlaysetEh? this._ludothequeViewModel.playset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
-    this.pullWhereInventory();
+    this.probeInventory();
 
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
@@ -838,10 +828,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._store}" @template-created=${(e:any) => console.log(e.detail)}
+    <where-template-dialog id="template-dialog" .store="${this._ludothequeViewModel}" @template-created=${(e:any) => console.log(e.detail)}
     ></where-template-dialog>
-    <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
-    <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._store}" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
+    <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._ludothequeViewModel}" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
+    <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._ludothequeViewModel}" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
     <where-space-dialog id="space-dialog" @space-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
   </div>
 </mwc-drawer>

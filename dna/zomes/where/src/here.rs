@@ -22,7 +22,7 @@ pub struct AddHereInput {
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateHereInput {
-    old_here_hh: ActionHashB64,
+    old_here_ah: ActionHashB64,
     new_here: AddHereInput,
 }
 
@@ -45,13 +45,13 @@ fn add_here(input: AddHereInput) -> ExternResult<ActionHashB64> {
 
 #[hdk_extern]
 fn update_here(input: UpdateHereInput) -> ExternResult<ActionHashB64> {
-    delete_here(input.old_here_hh)?;
+    delete_here(input.old_here_ah)?;
     add_here(input.new_here)
 }
 
 #[hdk_extern]
-fn delete_here(link_hh: ActionHashB64) -> ExternResult<()> {
-    delete_link(link_hh.into())?;
+fn delete_here(link_ah: ActionHashB64) -> ExternResult<()> {
+    delete_link(link_ah.into())?;
     Ok(())
 }
 
@@ -60,7 +60,7 @@ fn delete_here(link_hh: ActionHashB64) -> ExternResult<()> {
 #[serde(rename_all = "camelCase")]
 pub struct HereOutput {
     pub entry: Here,
-    pub link_hh: ActionHashB64,
+    pub link_ah: ActionHashB64,
     pub author: AgentPubKeyB64,
 }
 
@@ -110,7 +110,7 @@ fn get_heres_inner(base: EntryHash) -> ExternResult<Vec<HereOutput>> {
                 // Create the output for the UI
                 HereOutput {
                     entry,
-                    link_hh: link.create_link_hash.into(),
+                    link_ah: link.create_link_hash.into(),
                     author: signed_action.action().author().clone().into()
                 }
             }

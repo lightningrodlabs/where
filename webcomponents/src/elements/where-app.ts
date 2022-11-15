@@ -53,7 +53,7 @@ tmpl.innerHTML = `
 
 /** @element where-controller */
 @localized()
-export class WhereController extends ScopedElementsMixin(LitElement) {
+export class WhereApp extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
   }

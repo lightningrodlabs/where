@@ -15,6 +15,8 @@ import {SpaceEntry} from "./playset.bindings";
 import {ReactiveElement} from "lit";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
+import {WhereSignal} from "./where.signals";
+import {createContext} from "@lit-labs/context";
 
 
 // /** */
@@ -50,6 +52,10 @@ export class WhereDvm extends DnaViewModel {
     dnaClient.addSignalHandler(this.handleSignal)
     // this.profiles = profilesStore;
   }
+
+  /** */
+  static context = createContext<WhereDvm>('dvm/where');
+  getContext(): any {return WhereDvm.context}
 
   /** Private */
   //private profiles: ProfilesStore
@@ -266,7 +272,7 @@ export class WhereDvm extends DnaViewModel {
       return;
     }
     /* Construct Play and add it to store */
-    const play: Play = await this.constructPlay(spaceEh)
+    const play: Play = await this.constructPlay(spaceEh);
     this._plays[spaceEh] = play
     /* Set starting zoom for new Play */
     if (!get(this._zooms)[spaceEh]) {

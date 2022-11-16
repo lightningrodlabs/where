@@ -1,41 +1,15 @@
 import {css, html, LitElement} from "lit";
 import {property, state} from "lit/decorators.js";
-
-import {contextProvided} from "@lit-labs/context";
-import {StoreSubscriber} from "lit-svelte-stores";
-
 import {sharedStyles} from "../sharedStyles";
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
-import {
-  //SlButton,
-  SlCard,
-  //SlIcon,
-  //SlIconButton,
-  SlRating,
-  SlTab,
-  SlTabGroup,
-  SlTabPanel,
-  SlTooltip
-} from '@scoped-elements/shoelace';
+import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
-  Button,
-  CheckListItem,
-  Drawer,
-  Formfield,
-  Icon,
-  IconButton,
-  List,
-  ListItem,
-  Menu,
-  Select,
-  Slider,
-  Switch,
-  TextField,
-  TopAppBar,
+  Button, CheckListItem, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
+  Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
@@ -52,6 +26,7 @@ import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 
+
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
 tmpl.innerHTML = `
@@ -65,14 +40,17 @@ tmpl.innerHTML = `
 </style>
 `;
 
-/** ----- */
 
-/** @element ludotheque-controller */
+/**
+ * @element ludotheque-controller
+ */
 @localized()
 export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
   }
+
+  /** -- Properties */
 
   @property()
   whereCellId: CellId | null = null;

@@ -63,7 +63,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
-  get whereZvm(): WhereZvm { return this.getZomeViewModel("wheree") as WhereZvm}
+  get whereZvm(): WhereZvm { return this.getZomeViewModel("where") as WhereZvm}
 
 
   /** -- Feilds -- */
@@ -252,15 +252,6 @@ export class WhereDvm extends DnaViewModel {
   /** Space */
 
 
-  async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
-    console.log("createSpaceWithSessions(): " + sessionNames);
-    console.log({space})
-    let spaceEh = await this.whereZvm.publishSpace(space);
-    console.log("createSpaceWithSessions(): " + spaceEh);
-    await this.callWhereZome('create_sessions', {sessionNames, spaceEh});
-    return spaceEh;
-  }
-
 
   /** Space·s */
 
@@ -368,33 +359,13 @@ export class WhereDvm extends DnaViewModel {
   /** Misc */
 
 
-
-  getEntryDefs(zomeName: string) {
-    console.debug("getEntryDefs() for " + zomeName + " ...")
-    const result = this.client.callZome(this.mainCellId, zomeName, "zome_info", null, 10 * 1000);
-    //const result = this.client.callZome(this.mainCellId, zomeName, "entry_defs", null, 10 * 1000);
-    console.debug("getEntryDefs() for " + zomeName + "() result:")
-    console.debug({result})
-  }
-
-
-  private callWhereZome(fn_name: string, payload: any): Promise<any> {
-    //console.debug("callZome: " + fn_name)
-    //console.debug({payload})
-    const result = this.client.callZome(this.mainCellId, "where", fn_name, payload, 10 * 1000);
-    //console.debug("callZome: " + fn_name + "() result")
-    //console.debug({result})
-    return result;
-  }
-
-  private callPlaysetZome(fn_name: string, payload: any): Promise<any> {
-    //console.debug("callZome: " + fn_name)
-    //console.debug({payload})
-    const result = this.client.callZome(this.mainCellId,"where_playset", fn_name, payload, 10 * 1000);
-    //console.debug("callZome: " + fn_name + "() result")
-    //console.debug({result})
-    return result;
-  }
+  // getEntryDefs(zomeName: string) {
+  //   console.debug("getEntryDefs() for " + zomeName + " ...")
+  //   const result = this.client.callZome(this.mainCellId, zomeName, "zome_info", null, 10 * 1000);
+  //   //const result = this.client.callZome(this.mainCellId, zomeName, "entry_defs", null, 10 * 1000);
+  //   console.debug("getEntryDefs() for " + zomeName + "() result:")
+  //   console.debug({result})
+  // }
 
 
   /**
@@ -402,7 +373,7 @@ export class WhereDvm extends DnaViewModel {
    */
   async newSpace(space: Space): Promise<EntryHashB64> {
     // - Create and commit SpaceEntry
-    const entry = this.spaceIntoEntry(space);
+    const entry = spaceIntoEntry(space);
     const spaceEh: EntryHashB64 = await this._playsetVm.publishSpace(entry)
     // - Notify others
     // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
@@ -462,13 +433,6 @@ export class WhereDvm extends DnaViewModel {
   }
 
 
-  // async createSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
-  //   console.log("createSpaceWithSessions(): " + sessionNames);
-  //   let spaceEh = await this._playset.createSpace(space);
-  //   console.log("createSpaceWithSessions(): " + spaceEh);
-  //   await this._where.CreateSessions({sessionNames, spaceEh});
-  //   return spaceEh;
-  // }
 
 
   /**
@@ -482,7 +446,7 @@ export class WhereDvm extends DnaViewModel {
     }
     // - Create and commit SpaceEntry
     const entry = spaceIntoEntry(space);
-    const spaceEh: EntryHashB64 = await this.bridge.createSpaceWithSessions(entry, sessionNames)
+    const spaceEh: EntryHashB64 = await this.createSpaceWithSessions(entry, sessionNames)
     // - Notify others
     const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
     this.sendSignal(newSpace, await this.others());
@@ -490,6 +454,18 @@ export class WhereDvm extends DnaViewModel {
     console.log("newPlay(): " + space.name + " | " + spaceEh)
     this.addPlay(spaceEh);
     // Done
+    return spaceEh;
+  }
+
+
+
+  /** */
+  async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
+    console.log("createSpaceWithSessions(): " + sessionNames);
+    console.log({space})
+    let spaceEh = await this.playsetZvm.publishSpace(space);
+    console.log("createSpaceWithSessions(): " + spaceEh);
+    await this.whereZvm.createSessions(spaceEh, sessionNames);
     return spaceEh;
   }
 

@@ -1,34 +1,11 @@
 import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
-
 import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import {
-  defaultLocationMeta,
-  defaultPlayMeta, EmojiGroupVariant,
-  LocationMeta, MarkerPiece,
-  MarkerType,
-  PlayMeta, SvgMarkerVariant,
-  TemplateEntry,
-  UiItem,
-  whereContext
-} from "../types";
 import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  Formfield,
-  IconButton,
-  ListItem,
-  Radio,
-  Select,
-  Tab,
-  TabBar,
-  TextArea,
-  TextField
+import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
+  TextArea, TextField
 } from "@scoped-elements/material-web";
 import {StoreSubscriber} from "lit-svelte-stores";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
@@ -42,6 +19,16 @@ import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import { localized, msg } from '@lit/localize';
+import {MarkerPiece, TemplateEntry} from "../viewModels/playset.bindings";
+import {
+  defaultLocationMeta,
+  defaultPlayMeta, LocationMeta,
+  PlayMeta,
+  UiItem,
+  WherePerspective
+} from "../viewModels/where.perspective";
+import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective";
+import {WhereDvm} from "../viewModels/where.dvm";
 
 
 /**
@@ -50,34 +37,35 @@ import { localized, msg } from '@lit/localize';
 @localized()
 export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
-  /** Public properties */
+  /** Properties */
   @property({ type: Object}) currentProfile: Profile | undefined = undefined;
 
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  wherePerspective!: WherePerspective;
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  playsetPerspective!: PlaysetPerspective;
+
   /** Dependencies */
-  @contextProvided({ context: whereContext, subscribe:true })
-  _store!: WhereStore;
+  @contextProvided({ context: WhereDvm.context, subscribe:true })
+  _whereDvm!: WhereDvm;
 
-  _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
 
-  /** Private properties */
-  @state() _currentTemplate: null | TemplateEntry = null;
+  /** State */
+  @state() private _currentTemplate: null | TemplateEntry = null;
+  @state() private _currentPlaceHolders: Array<string> = [];
+  @state() private _currentMeta: PlayMeta = defaultPlayMeta();
+  @state() private _currentMarker?: MarkerPiece;
 
-  @state() _currentPlaceHolders: Array<string> = [];
+  private _spaceToPreload?: EntryHashB64;
+  private _useTemplateSize: boolean = true; // have size fields set to default only when changing template
+  private _canvas: string = "";
 
-  @state() _currentMeta: PlayMeta = defaultPlayMeta();
 
-  @state() _currentMarker?: MarkerPiece;
-
-  _spaceToPreload?: EntryHashB64;
-  _useTemplateSize: boolean = true; // have size fields set to default only when changing template
-  _canvas: string = "";
-
+  /** -- Getters -- */
 
   @query('#name-field')
   _nameField!: TextField;
-  // - Surface
+  /* - Surface */
   @query('#template-field')
   _templateField!: Select;
   @query('#width-field')
@@ -86,19 +74,19 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   _heightField!: TextField;
   @query('#ui-field')
   _uiField!: TextArea;
-  // - Marker
+  /* - Marker */
   @query('#marker-select')
   _markerTypeField!: Select;
   @query('#multi-chk')
   _multiChk!: Checkbox;
-  // - Tag
+  /* - Tag */
   @query('#tag-chk')
   _tagChk!: Checkbox;
   @query('#tag-visible-chk')
   _tagVisibleChk!: Checkbox;
   @query('#predefined-tags-field')
   _predefinedTagsField!: TextField;
-  // - Iterations
+  /* - Iterations */
   @query('#stop-count-field')
   _sessionCountField!: TextField;
   @query('#can-modify-past-chk')
@@ -134,11 +122,12 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("generative-stop-radio") as Radio;
   }
 
+  /** -- Methods -- */
 
   /** */
   open(spaceToPreload?: EntryHashB64) {
     this._spaceToPreload = spaceToPreload;
-    if (this._templates.value === undefined) {
+    if (this.wherePerspective === undefined) {
       return;
     }
     this.requestUpdate();
@@ -149,7 +138,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
   /** */
   loadPreset(spaceEh: EntryHashB64) {
-    const originalPlay = this._store.play(spaceEh);
+    const originalPlay = this._whereDvm.whereZvm.getPlay(spaceEh);
     if (!originalPlay) {
       return;
     }
@@ -351,7 +340,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     }
 
     /** Create and share new Play */
-    const newSpaceEh = await this._store.newPlay({
+    const newSpaceEh = await this._whereDvm.newPlay({
         name: this._nameField.value,
         origin: this._templateField.value,
         surface,
@@ -428,7 +417,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   private handleTemplateSelect(templateName: string): void {
     this.resetAllFields(false);
     this._useTemplateSize = true;
-    this._currentTemplate = this._templates.value[templateName]
+    this._currentTemplate = this._whereDvm.playsetZvm.getTemplate(templateName)!;
   }
 
   private async handlePreview(e: any) {
@@ -638,6 +627,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+  /** */
   handleMarkerTypeSelect(e: any) {
     //console.log({e})
     this._tagChk.disabled = false;

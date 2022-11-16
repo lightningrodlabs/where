@@ -1,9 +1,18 @@
 import {EntryHashB64, ActionHashB64, AgentPubKeyB64, Dictionary} from '@holochain-open-dev/core-types';
 import { WhereBridge } from './where.bridge';
-import {Coord, Play, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo} from "./where.perspective";
+import {
+  Coord,
+  Play,
+  WhereLocation,
+  convertLocationToHere,
+  WherePerspective,
+  LocationInfo,
+  Space, spaceIntoEntry
+} from "./where.perspective";
 import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
 import {createContext} from "@lit-labs/context";
 import {WhereSignal} from "./where.signals";
+import {SpaceEntry} from "./playset.bindings";
 
 /**
  *
@@ -61,9 +70,6 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
     this._bridge.notify(signal, folks)
   }
 
-
-
-
   /** */
   setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
       this._currentSessions[spaceEh] = sessionEh;
@@ -76,20 +82,6 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
     const sessionEh = await this._bridge.createNextSession(spaceEh, name);
     this.setCurrentSession(spaceEh, sessionEh);
     return sessionEh;
-  }
-
-  /** */
-  async hidePlay(spaceEh: EntryHashB64) : Promise<void> {
-    const _ = await this._bridge.hideSpace(spaceEh);
-    this._plays[spaceEh].visible = false
-    this.notify();
-  }
-
-  /** */
-  async unhidePlay(spaceEh: EntryHashB64): Promise<void> {
-    const _ = await this._bridge.unhideSpace(spaceEh);
-    this._plays[spaceEh].visible = true
-    this.notify();
   }
 
 
@@ -112,6 +104,21 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
         }
       })
     return todaySessionEh == currentSessionEh;
+  }
+
+
+  /** */
+  async hidePlay(spaceEh: EntryHashB64) : Promise<void> {
+    const _ = await this._bridge.hideSpace(spaceEh);
+    this._plays[spaceEh].visible = false
+    this.notify();
+  }
+
+  /** */
+  async unhidePlay(spaceEh: EntryHashB64): Promise<void> {
+    const _ = await this._bridge.unhideSpace(spaceEh);
+    this._plays[spaceEh].visible = true
+    this.notify();
   }
 
 

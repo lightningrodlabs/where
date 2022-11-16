@@ -13,10 +13,18 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {localized, msg} from '@lit/localize';
-import {Coord, LocationInfo, LocOptions, PlacementSession, Play, WhereLocation} from "../viewModels/where.perspective";
+import {
+  Coord,
+  LocationInfo,
+  LocOptions,
+  PlacementSession,
+  Play,
+  WhereLocation,
+  WherePerspective
+} from "../viewModels/where.perspective";
 import {EmojiGroupEntry, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
 import {WhereDvm} from "../viewModels/where.dvm";
-import {MarkerType} from "../viewModels/playset.perspective";
+import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective";
 
 // // Canvas Animation experiment
 // function draw() {
@@ -48,14 +56,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     this.addEventListener("wheel", this._handleWheel);
   }
 
-  @query('#reset-fab') resetFab!: Fab;
-  @query('#plus-fab') plusFab!: Fab;
-  @query('#minus-fab') minusFab!: Fab;
-  @query('#hide-here-fab') hideFab!: Fab;
-  @query('#sessions-tab-bar') sessionTabBar!: TabBar;
-
-  @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
-  // @state() _currentSessionEh: null | EntryHashB64 = null;
+  /** Provided Properties */
 
   @contextProvided({ context: WhereDvm.context, subscribe: true })
   _whereDvm!: WhereDvm;
@@ -63,18 +64,37 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @contextProvided({ context: profilesStoreContext, subscribe: true })
   _profiles!: ProfilesStore;
 
-  _myProfile?: Profile;
+  /** Properties */
 
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  wherePerspective!: WherePerspective;
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  playsetPerspective!: PlaysetPerspective;
+
+
+  @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
+  // @state() _currentSessionEh: null | EntryHashB64 = null;
+  @property() neighborWidth: number = 0;
+  @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
+
+  /** State */
+
+  private _myProfile?: Profile;
 
   private _dialogCoord = { x: 0, y: 0 };
   private _dialogCanEdit = false;
   private _dialogIdx = 0;
-
   private _sessions?: any;
   private _activeIndex: number = -1;
 
-  @property({type: Number}) neighborWidth: number = 0;
-  @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
+
+  /** Getters */
+
+  @query('#reset-fab') resetFab!: Fab;
+  @query('#plus-fab') plusFab!: Fab;
+  @query('#minus-fab') minusFab!: Fab;
+  @query('#hide-here-fab') hideFab!: Fab;
+  @query('#sessions-tab-bar') sessionTabBar!: TabBar;
 
 
   getCurrentPlay(): Play | undefined {
@@ -90,6 +110,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** -- Methods -- */
 
   /** */
   async initFab(fab: Fab) {
@@ -112,6 +133,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   async firstUpdated() {
+    this._whereDvm.whereZvm.subscribe(this, 'wherePerspective');
+    this._whereDvm.playsetZvm.subscribe(this, 'playsetPerspective');
     await this.subscribeProfile();
     await this.initFab(this.resetFab);
     await this.initFab(this.plusFab);
@@ -131,7 +154,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       return;
     }
 
-    // - Tab bar bug workaround ; dont use scrollIndexIntoView() since its broken
+    // - Tab bar bug workaround ; don't use scrollIndexIntoView() since its broken
     if (this.sessionTabBar && this.sessionTabBar.activeIndex != this._activeIndex) {
       //this.sessionTabBar.scrollIndexIntoView(this._activeIndex);
       this.sessionTabBar.activeIndex = this._activeIndex

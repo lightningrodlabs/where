@@ -1,7 +1,8 @@
 import {ZomeBridge} from "@ddd-qc/dna-client";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {CellId, HoloHashed} from "@holochain/client";
+import {CellId} from "@holochain/client";
 import {EmojiGroupEntry, GetInventoryOutput, SpaceEntry, SvgMarkerEntry, TemplateEntry} from "./playset.bindings";
+import {HoloHashedB64} from "../utils";
 
 /**
  *
@@ -35,7 +36,7 @@ export class PlaysetBridge extends ZomeBridge {
     return this.call('create_svg_marker', entry);
   }
 
-  async getSvgMarkers(): Promise<Array<HoloHashed<SvgMarkerEntry>>> {
+  async getSvgMarkers(): Promise<Array<HoloHashedB64<SvgMarkerEntry>>> {
     return this.call('get_svg_markers', null);
   }
 
@@ -49,7 +50,7 @@ export class PlaysetBridge extends ZomeBridge {
     return this.call('create_emoji_group', template);
   }
 
-  async getEmojiGroups(): Promise<Array<HoloHashed<EmojiGroupEntry>>> {
+  async getEmojiGroups(): Promise<Array<HoloHashedB64<EmojiGroupEntry>>> {
     return this.call('get_all_emoji_groups', null);
   }
 
@@ -59,7 +60,7 @@ export class PlaysetBridge extends ZomeBridge {
     return this.call('get_template', templateeEh);
   }
 
-  async getTemplates(): Promise<Array<HoloHashed<TemplateEntry>>> {
+  async getTemplates(): Promise<Array<HoloHashedB64<TemplateEntry>>> {
     return this.call('get_templates', null);
   }
 
@@ -78,7 +79,7 @@ export class PlaysetBridge extends ZomeBridge {
   }
 
 
-  async getSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+  async getSpaces(): Promise<Array<HoloHashedB64<SpaceEntry>>> {
     return this.call('get_spaces', null);
   }
 }

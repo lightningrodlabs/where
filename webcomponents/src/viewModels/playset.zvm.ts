@@ -1,6 +1,5 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
-import {serializeHash} from "@holochain-open-dev/utils";
 import {createContext} from "@lit-labs/context";
 import {
   EmojiGroupEntry,
@@ -86,8 +85,7 @@ export class PlaysetViewModel extends ZomeViewModel<PlaysetPerspective, PlaysetB
   async probeTemplates() : Promise<Dictionary<TemplateEntry>> {
     const templates = await this._bridge.getTemplates();
     for (const t of templates) {
-        const b64 = serializeHash(t.hash)
-        this._templates[b64] = t.content
+        this._templates[t.hash] = t.content
     }
     this.notify();
     return this._templates;
@@ -96,8 +94,7 @@ export class PlaysetViewModel extends ZomeViewModel<PlaysetPerspective, PlaysetB
   async probeSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
     const markers = await this._bridge.getSvgMarkers();
     for (const e of markers) {
-      const b64 = serializeHash(e.hash)
-      this._svgMarkers[b64] = e.content
+      this._svgMarkers[e.hash] = e.content
     }
     this.notify();
     return this._svgMarkers
@@ -106,8 +103,7 @@ export class PlaysetViewModel extends ZomeViewModel<PlaysetPerspective, PlaysetB
   async probeEmojiGroups() : Promise<Dictionary<EmojiGroupEntry>> {
     const groups = await this._bridge.getEmojiGroups();
     for (const e of groups) {
-      const b64 = serializeHash(e.hash)
-      this._emojiGroups[b64] = e.content
+      this._emojiGroups[e.hash] = e.content
     }
     this.notify();
     return this._emojiGroups
@@ -116,8 +112,7 @@ export class PlaysetViewModel extends ZomeViewModel<PlaysetPerspective, PlaysetB
   async probeSpaces() : Promise<Dictionary<SpaceEntry>> {
     const spaces = await this._bridge.getSpaces();
     for (const e of spaces) {
-      const b64 = serializeHash(e.hash)
-      this._spaces[b64] = e.content
+      this._spaces[e.hash] = e.content
     }
     this.notify();
     return this._spaces

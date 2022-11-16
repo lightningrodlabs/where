@@ -19,8 +19,8 @@ import { localized, msg } from '@lit/localize';
 @localized()
 export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
 
-  @state() _currentEmoji: string = '';
-  _emojiToPreload?: string;
+  @state() private _currentEmoji: string = '';
+  private _emojiToPreload?: string;
 
   get emojiPickerElem() : Picker {
     return this.shadowRoot!.getElementById("emoji-picker") as Picker;
@@ -30,12 +30,14 @@ export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("emoji-preview") as HTMLElement;
   }
 
+  /** */
   open(emoji?: string) {
     this._emojiToPreload = emoji;
     const dialog = this.shadowRoot!.getElementById("emoji-dialog") as Dialog
     dialog.open = true
   }
 
+  /** */
   protected firstUpdated(_changedProperties: any) {
     // super.firstUpdated(_changedProperties);
     this.emojiPickerElem.addEventListener('emoji-click', (event: any) => {
@@ -49,28 +51,32 @@ export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
     });
   }
 
+  /** */
   async loadPreset(emoji: string) {
     this._currentEmoji = emoji
   }
 
+  /** */
   private isValid() {
     let isValid: boolean = true;
-    // Check emoji
+    /* Check emoji */
     if (this.emojiPreviewElem) {
       if (this.emojiPreviewElem.innerHTML == '') {
         isValid = false;
       }
     }
-    // Done
+    /** Done */
     return isValid
   }
 
 
+  /** */
   clearAllFields(e?: any) {
     this._currentEmoji = "";
   }
 
 
+  /** */
   private async handleOk(e: any) {
     if (!this.isValid()) return
     this.dispatchEvent(new CustomEvent('emoji-selected', { detail: this._currentEmoji, bubbles: true, composed: true }));
@@ -80,6 +86,8 @@ export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
     dialog.close()
   }
 
+
+  /** */
   private handleDialogOpened(e: any) {
     if (this._emojiToPreload) {
       this.loadPreset(this._emojiToPreload);
@@ -89,9 +97,7 @@ export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   render() {
     return html`
 <mwc-dialog id="emoji-dialog" heading="${msg('Pick Emoji')}" @opened=${this.handleDialogOpened}>

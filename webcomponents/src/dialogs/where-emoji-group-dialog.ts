@@ -1,10 +1,7 @@
 import {css, html, LitElement} from "lit";
-import {query, state} from "lit/decorators.js";
-
+import {query, state, property} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import { EmojiGroupEntry, whereContext} from "../types";
 import {
   Button,
   Dialog,
@@ -13,31 +10,28 @@ import {
   Select,
   TextField
 } from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
 import {Picker} from "emoji-picker-element";
-import {property} from "lit/decorators.js";
-import {LudothequeStore} from "../ludotheque.store";
 import { localized, msg } from '@lit/localize';
+import {EmojiGroupEntry} from "../viewModels/playset.bindings";
+import {contextProvided} from "@lit-labs/context";
+import {PlaysetViewModel} from "../viewModels/playset.zvm";
 
 
 /** @element where-emoji-group */
 @localized()
 export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
-  @state() _currentUnicodes: string[] = [];
+  @state() private _currentUnicodes: string[] = [];
 
   /** Dependencies */
-  //@contextProvided({ context: whereContext })
-  //_store!: WhereStore;
-  @property()
-  store: WhereStore | LudothequeStore | null = null;
-
+  @contextProvided({ context: PlaysetViewModel.context, subscribe: true })
+  _playsetZvm!: PlaysetViewModel;
 
   /** Private properties */
 
-  _groupToPreload?: EmojiGroupEntry;
+  private _groupToPreload?: EmojiGroupEntry;
 
-  _currentGroup: EmojiGroupEntry | null = null;
+  private _currentGroup: EmojiGroupEntry | null = null;
 
 
   @query('#name-field')
@@ -49,12 +43,15 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   open(emojiGroup?: EmojiGroupEntry) {
     this._groupToPreload = emojiGroup;
     const dialog = this.shadowRoot!.getElementById("emoji-group-dialog") as Dialog
     dialog.open = true
   }
 
+
+  /** */
   protected firstUpdated(_changedProperties: any) {
     // super.firstUpdated(_changedProperties);
     this.emojiPickerElem.addEventListener('emoji-click', (event: any ) => {
@@ -68,6 +65,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     });
   }
 
+
   /** preload fields with current emojiGroup values */
   async loadPreset(emojiGroup: EmojiGroupEntry) {
     this._nameField.value = msg('Fork of') + ' ' + emojiGroup.name;
@@ -75,6 +73,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     this._currentGroup = emojiGroup
   }
 
+
+  /** */
   private isValid() {
     let isValid: boolean = true;
     // Check name
@@ -91,6 +91,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   private createEmojiGroup() {
     /** Create EmojiGroupEntry */
     return {
@@ -100,24 +101,30 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   clearAllFields(e?: any) {
     this._nameField.value = "";
     this._currentUnicodes = [];
   }
 
+
+  /** */
   private async handleResetGroup(e: any) {
     this._currentUnicodes = [];
     this.requestUpdate()
   }
 
+
+  /** */
   private async handleOk(e: any) {
     if (!this.isValid()) return
-    if (!this.store) {
-      console.warn("No store available in svg-marker-dialog")
+    if (!this._playsetZvm) {
+      console.warn("No ViewModel available in svg-marker-dialog")
       return;
     }
     const emojiGroup = this.createEmojiGroup()
-    const newGroupEh = await this.store.addEmojiGroup(emojiGroup);
+    const newGroupEh = await this._playsetZvm.publishEmojiGroup(emojiGroup);
     console.log("newGroupEh: " + newGroupEh)
     this.dispatchEvent(new CustomEvent('emoji-group-added', { detail: newGroupEh, bubbles: true, composed: true }));
     // - Clear all fields
@@ -127,6 +134,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     dialog.close()
   }
 
+
+  /** */
   private handleDialogOpened(e: any) {
     if (this._groupToPreload) {
       this.loadPreset(this._groupToPreload);
@@ -135,6 +144,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
+
+  /** */
   private handleGroupSelect(groupName: string): void {
     console.log("handleGroupSelect: " /*+ emojiGroup.name*/)
     console.log(groupName)
@@ -144,6 +155,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async handleEmojiButtonClick(unicode: string) {
     console.log("handleEmojiButtonClick: " + unicode)
     // Remove first item with that unicode
@@ -154,6 +166,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   render() {
     // @request-selected=${this.handleGroupSelect(emojiGroup)}
     /** Build emoji list */
@@ -189,6 +203,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "mwc-select": Select,
@@ -203,6 +218,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
 //--font-family: "Apple SvgMarker AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto SvgMarker AnyEmoji","EmojiOne SvgMarker","Android AnyEmoji",sans-serif
 
+  /** */
   static get styles() {
     return [
       sharedStyles,

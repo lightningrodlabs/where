@@ -4,11 +4,12 @@ import {query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Coord, ludothequeContext, PlaysetEntry} from "../types";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {LudothequeStore} from "../ludotheque.store";
 import { localized, msg } from '@lit/localize';
+import {LudothequeViewModel} from "../viewModels/ludotheque.zvm";
+import {Coord} from "../viewModels/where.perspective";
+import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
 
 
 /** @element where-playset-dialog */
@@ -19,8 +20,8 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Dependencies */
-  @contextProvided({ context: ludothequeContext, subscribe:true })
-  _store!: LudothequeStore;
+  @contextProvided({ context: LudothequeViewModel.context, subscribe:true })
+  _ludothequeZvm!: LudothequeViewModel;
 
   open(playsetEh?: EntryHashB64) {
     this._playsetToPreload = playsetEh;
@@ -37,19 +38,22 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   @query('#description-field')
   _descriptionField!: TextArea;
 
+  /** -- Methods -- */
 
   /** preload fields with current template values */
   loadPreset(playsetEh: EntryHashB64) {
-    const playsetToPreload = this._store.playset(playsetEh);
-    this._nameField.value = msg('Fork of') + ' ' + playsetToPreload.name;
-    this._descriptionField.value = playsetToPreload.description;
+    const playsetToPreload = this._ludothequeZvm.getPlayset(playsetEh);
+    this._nameField.value = msg('Fork of') + ' ' + playsetToPreload!.name;
+    this._descriptionField.value = playsetToPreload!.description;
   }
 
+  /** */
   clearAllFields() {
     this._nameField.value = "";
     this._descriptionField.value = "";
   }
 
+  /** */
   private isValid() {
     let isValid: boolean = true;
     // Check name
@@ -63,8 +67,9 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     return isValid
   }
 
+
   /** Create PlaysetEntry from fields */
-  private createPlayset(): PlaysetEntry {
+  private createEmptyPlayset(): PlaysetEntry {
     return {
       name: this._nameField.value,
       description: this._descriptionField.value,
@@ -76,9 +81,10 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   private async handleOk(e: any) {
     if (!this.isValid()) return
-    const playset = this.createPlayset()
+    const playset = this.createEmptyPlayset()
     //const newPlaysetEh = await this._store.addPlayset(playset);
     console.log("playset: " + playset)
     this.dispatchEvent(new CustomEvent('playset-added', { detail: playset, bubbles: true, composed: true }));
@@ -89,6 +95,8 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     dialog.close()
   }
 
+
+  /** */
   private handleDialogOpened(e: any) {
     if (this._playsetToPreload) {
       this.loadPreset(this._playsetToPreload);
@@ -98,6 +106,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   render() {
     return html`
 <mwc-dialog id="playset-inner-dialog" heading="${msg('New Playset')}" @opened=${this.handleDialogOpened}>
@@ -114,6 +123,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "mwc-list-item": ListItem,
@@ -124,6 +134,8 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
       "mwc-formfield": Formfield,
     };
   }
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

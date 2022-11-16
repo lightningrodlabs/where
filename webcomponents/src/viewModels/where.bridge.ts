@@ -1,8 +1,7 @@
 import {EntryHashB64, ActionHashB64, Dictionary, AgentPubKeyB64} from '@holochain-open-dev/core-types';
 import {ZomeBridge} from "@ddd-qc/dna-client";
 import {AddHereInput, HereOutput, PlacementSessionEntry} from "./where.bindings";
-import {WhereSignal} from "./where.perspective";
-
+import {WhereSignal} from "./where.signals";
 
 /**
  *
@@ -56,8 +55,8 @@ export class WhereBridge extends ZomeBridge {
     return this.call('update_here', {oldHereAh, newHere});
   }
 
-  async deleteHere(hereHh: ActionHashB64): Promise<EntryHashB64> {
-    return this.call('delete_here', hereHh);
+  async deleteHere(ah: ActionHashB64): Promise<EntryHashB64> {
+    return this.call('delete_here', ah);
   }
 
   async getHeres(sessionEh: EntryHashB64): Promise<Array<HereOutput>> {

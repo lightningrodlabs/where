@@ -1,42 +1,77 @@
-import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
-import {HoloHashed} from "@holochain/client";
-import {serializeHash} from "@holochain-open-dev/utils";
-import {Location, Play, Space, WhereSignal} from "./where.perspective";
+import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
+import {
+  HereInfo,
+  WhereLocation,
+  LocationInfo, PlacementSession,
+  Play,
+  Space, spaceIntoEntry,
+  convertLocationToHere,
+} from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
-import {areCellsEqual} from "../utils";
+import {areCellsEqual, HoloHashedB64} from "../utils";
 import {ProfilesStore} from "@holochain-open-dev/profiles";
-import {DnaClient} from "@ddd-qc/dna-client";
-import {WhereBridge} from "./where.bridge";
+import {DnaClient, DnaViewModel} from "@ddd-qc/dna-client";
 import {SpaceEntry} from "./playset.bindings";
-
-/** */
-export interface WhereDnaPerspective {
-  plays: Dictionary<Play>,
-  currentSessions: Dictionary<EntryHashB64>,
-  zooms: Dictionary<number>,
-  agentPresences: Dictionary<number>,
-}
+import {ReactiveElement} from "lit";
+import {PlaysetViewModel} from "./playset.zvm";
+import {WhereViewModel} from "./where.zvm";
 
 
+// /** */
+// export interface WhereDnaPerspective {
+//   plays: Dictionary<Play>,
+//   currentSessions: Dictionary<EntryHashB64>,
+//   zooms: Dictionary<number>,
+//   agentPresences: Dictionary<number>,
+// }
+//
 
-export class WhereDnaViewModel {
-  /** Ctor */
-  constructor(protected _dnaClient: DnaClient, profilesStore: ProfilesStore) {
-    //super(new WhereBridge(_dnaClient));
-    this.profiles = profilesStore;
-    _dnaClient.addSignalHandler(this.handleSignal)
+
+/**
+ * ViewModel fo the Where DNA
+ * Holds 2 zomes:
+ *  - Playset
+ *  - Where
+ */
+export class WhereDvm extends DnaViewModel {
+
+  /** async factory */
+  static async new(host: ReactiveElement, port: number, installedAppId: string): Promise<WhereDvm> {
+    let dnaClient = await DnaClient.new(port, installedAppId);
+    return new WhereDvm(host, dnaClient);
+  }
+
+
+  /** */
+  private constructor(host: ReactiveElement, dnaClient: DnaClient) {
+    super(host, dnaClient);
+    this.addZomeViewModel(PlaysetViewModel);
+    this.addZomeViewModel(WhereViewModel);
+    dnaClient.addSignalHandler(this.handleSignal)
+    // this.profiles = profilesStore;
   }
 
   /** Private */
-  private profiles: ProfilesStore
+  //private profiles: ProfilesStore
 
 
+  /** */
+  get playsetViewModel(): PlaysetViewModel { return this.getZomeViewModel("where_playset") as PlaysetViewModel}
+  get whereViewModel(): WhereViewModel { return this.getZomeViewModel("wheree") as WhereViewModel}
+
+
+  /** -- Feilds -- */
 
   /** SpaceEh -> zoomPct */
   private _zooms: Dictionary<number> = {};
   /** agentPubKey -> timestamp */
   private _agentPresences: Dictionary<number> = {};
 
+
+  getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
+
+
+  /** -- Methods -- */
 
   /** */
   handleSignal(appSignal: AppSignal): void {
@@ -48,9 +83,9 @@ export class WhereDnaViewModel {
     //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
     //  console.debug(`SIGNAL: ${signal.message.type}`, appSignal)
     //}
-    // Update agent's presence stat
+    /* Update agent's presence stat */
     this.updatePresence(signal.from)
-    // Send pong response
+    /* Send pong response */
     if (signal.message.type != "Pong") {
       //console.log("PONGING ", payload.from)
       const pong: WhereSignal = {
@@ -60,18 +95,17 @@ export class WhereDnaViewModel {
       };
       this.sendSignal(pong, [signal.from])
     }
-    // Handle signal
+    /* Handle signal */
     switch(signal.message.type) {
       case "Ping":
       case "Pong":
         break;
       case "NewSvgMarker":
         const svgEh = signal.message.content
-        this.bridge.getSvgMarker(svgEh).then(svg => {
-          this.svgMarkerStore.update(store => {
-            store[svgEh] = svg
-            return store
-          })
+        this.playsetViewModel.getSvgMarker(svgEh).then(maybeSvg => {
+          if (maybeSvg) {
+            this.playsetViewModel.addSvgMarker(svgEh, maybeSvg)
+          }
         })
         break;
       case "NewEmojiGroup":
@@ -102,11 +136,11 @@ export class WhereDnaViewModel {
       case "NewHere":
         const hereInfo = signal.message.content;
         const newLocInfo: LocationInfo = this.bridge.locationFromHere(hereInfo)
-        const newHereLinkHh = signal.message.content.linkHh;
+        const newHereLinkAh = signal.message.content.linkAh;
         if (signal.maybeSpaceHash && get(this.plays)[signal.maybeSpaceHash]) {
           this._plays.update(plays => {
             let locations = plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
-            const idx = locations.findIndex((locationInfo) => locationInfo!.linkHh == newHereLinkHh)
+            const idx = locations.findIndex((locationInfo) => locationInfo!.linkAh == newHereLinkAh)
             if (idx > -1) {
               locations[idx] = newLocInfo
             } else {
@@ -118,11 +152,11 @@ export class WhereDnaViewModel {
         break;
       case "DeleteHere":
         const sessionEh = signal.message.content[0];
-        const hereLinkHh = signal.message.content[1];
+        const hereLinkAh = signal.message.content[1];
         if (signal.maybeSpaceHash && get(this.plays)[signal.maybeSpaceHash]) {
           this._plays.update(plays => {
             let locations = plays[signal.maybeSpaceHash].sessions[sessionEh].locations
-            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.linkHh == hereLinkHh)
+            const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.linkAh == hereLinkAh)
             if (idx > -1) {
               locations.splice(idx, 1);
             }
@@ -134,6 +168,7 @@ export class WhereDnaViewModel {
   }
 
 
+  /** */
   async sendSignal(signal: WhereSignal, folks: Array<AgentPubKeyB64>): Promise<void> {
     if (signal.message.type != "Ping" && signal.message.type != "Pong") {
       console.debug(`NOTIFY ${signal.message.type}`, signal, folks)
@@ -143,76 +178,69 @@ export class WhereDnaViewModel {
       console.log("notify() aborted: No recipients for notification")
       return;
     }
-    return this._bridge.notify(signal, folks);
+    return this.whereViewModel.sendSignal(signal, folks);
   }
 
+
+  /** */
   async pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
     const ping: WhereSignal = {maybeSpaceHash: spaceHash, from: this._dnaClient.myAgentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})
-    this.notify(ping, await this.others());
+    this.sendSignal(ping, await this.others());
   }
 
-  private async others(): Promise<Array<AgentPubKeyB64>> {
-    const profiles = get(await this.profiles.fetchAllProfiles());
-    console.log({profiles})
-    const keysB64 = profiles.keys()
-      .map(key => serializeHash(key))
-      .filter((key)=> key != this.myAgentPubKey)
-    console.log({keysB64})
+
+  /** */
+  async others(): Promise<Array<AgentPubKeyB64>> {
+    let keysB64 = new Array();
+    // const profiles = get(await this.profiles.fetchAllProfiles());
+    // console.log({profiles})
+    // keysB64 = profiles.keys()
+    //   .map(key => serializeHash(key))
+    //   .filter((key)=> key != this.myAgentPubKey)
+    // console.log({keysB64})
     return keysB64
   }
 
+
+  /** */
   private updatePresence(from: AgentPubKeyB64) {
-    const currentTimeInSeconds: number = Math.floor(Date.now() / 1000);
-    this._agentPresences.update(agentPresences => {
-      agentPresences[from] = currentTimeInSeconds;
-      return agentPresences;
-    })
-    return from;
+    // const currentTimeInSeconds: number = Math.floor(Date.now() / 1000);
+    // this._agentPresences.update(agentPresences => {
+    //   agentPresences[from] = currentTimeInSeconds;
+    //   return agentPresences;
+    // })
+    // return from;
   }
 
 
 
   /** */
-  async getInventory(roleId?: string): Promise<Inventory> {
-    if (!roleId) {
-      return this.callPlaysetZome('get_inventory', null);
-    }
-
-    let cell: InstalledCell | undefined = undefined;
-    for (const cell_data of this.appInfo.cell_data) {
-      if (cell_data.role_id == roleId) {
-        cell = cell_data;
-        break;
-      }
-    }
-    if (cell == undefined) {
-      return Promise.reject("Cell not found for role: " + roleId);
-    }
-
-    return this.client.callZome(
-      cell.cell_id,
-      "where_playset",
-      'get_inventory',
-      null,
-      15000
-    );
-
-  }
-
-  async isSpaceVisible(spaceEh: EntryHashB64): Promise<boolean> {
-    const visibles: Array<HoloHashed<SpaceEntry>> = await this.getVisibleSpaces();
-    //console.log({visibles})
-    for (const visible of visibles) {
-      if (serializeHash(visible.hash) == spaceEh) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-
-
+  // async getInventory(roleId?: string): Promise<Inventory> {
+  //   if (!roleId) {
+  //     return this.callPlaysetZome('get_inventory', null);
+  //   }
+  //
+  //   let cell: InstalledCell | undefined = undefined;
+  //   for (const cell_data of this.appInfo.cell_data) {
+  //     if (cell_data.role_id == roleId) {
+  //       cell = cell_data;
+  //       break;
+  //     }
+  //   }
+  //   if (cell == undefined) {
+  //     return Promise.reject("Cell not found for role: " + roleId);
+  //   }
+  //
+  //   return this.client.callZome(
+  //     cell.cell_id,
+  //     "where_playset",
+  //     'get_inventory',
+  //     null,
+  //     15000
+  //   );
+  //
+  // }
 
 
   /** Space */
@@ -221,7 +249,7 @@ export class WhereDnaViewModel {
   async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
-    let spaceEh = await this.createSpace(space);
+    let spaceEh = await this.whereViewModel.publishSpace(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
     await this.callWhereZome('create_sessions', {sessionNames, spaceEh});
     return spaceEh;
@@ -233,21 +261,21 @@ export class WhereDnaViewModel {
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
     /* Check if already added */
-    if (this._plays[spaceEh]) {
+    if (this.whereViewModel.getPlay(spaceEh)) {
       console.log("addPlay() aborted. Already have this space")
       return;
     }
-    // - Construct Play and add it to store
+    /* Construct Play and add it to store */
     const play: Play = await this.constructPlay(spaceEh)
     this._plays[spaceEh] = play
-    // - Set starting zoom for new Play
+    /* Set starting zoom for new Play */
     if (!get(this._zooms)[spaceEh]) {
       this._zooms.update(zooms => {
         zooms[spaceEh] = 1.0
         return zooms
       })
     }
-    // - Set currentSession for new Play
+    /* Set currentSession for new Play */
     const firstSessionEh = await this.bridge.getSessionAddress(spaceEh, 0);
     // console.log("addPlay() firstSessionEh: " + firstSessionEh)
     if (firstSessionEh) {
@@ -258,6 +286,7 @@ export class WhereDnaViewModel {
   }
 
 
+  /** */
   async probePlays() : Promise<Dictionary<Play>> {
     const spaces = await this._bridge.getSpaces();
     //const hiddens = await this.service.getHiddenSpaceList();
@@ -269,11 +298,13 @@ export class WhereDnaViewModel {
     return this._plays
   }
 
-  async getSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+  /** */
+  async getSpaces(): Promise<Array<HoloHashedB64<SpaceEntry>>> {
     return this.callPlaysetZome('get_spaces', null);
   }
 
-  async getVisibleSpaces(): Promise<Array<HoloHashed<SpaceEntry>>> {
+  /** */
+  async getVisibleSpaces(): Promise<Array<HoloHashedB64<SpaceEntry>>> {
     let alls = await this.getSpaces();
     let hiddens = await this.getHiddenSpaceList();
     let visibles = Array();
@@ -290,7 +321,7 @@ export class WhereDnaViewModel {
   }
 
   async isSpaceVisible(spaceEh: EntryHashB64): Promise<boolean> {
-    const visibles: Array<HoloHashed<SpaceEntry>> = await this.getVisibleSpaces();
+    const visibles: Array<HoloHashedB64<SpaceEntry>> = await this.getVisibleSpaces();
     //console.log({visibles})
     for (const visible of visibles) {
       if (visible.hash == spaceEh) {
@@ -304,21 +335,6 @@ export class WhereDnaViewModel {
 
   /** Location */
 
-  async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
-    const entry = this.hereFromLocation(location);
-    const input = {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}
-    return this.where.addHere(input);
-  }
-
-  async updateLocation(hereHh: ActionHashB64, location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
-    const entry = this.hereFromLocation(location);
-    const input = {oldHereHh: hereHh, newHere: {spaceEh, sessionIndex, value: entry.value, meta: entry.meta}}
-    return this.callWhereZome('update_here', input);
-  }
-
-  async deleteLocation(hereHh: ActionHashB64): Promise<EntryHashB64> {
-    return this.callWhereZome('delete_here', hereHh);
-  }
 
   async getLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
     const hereInfos =  await this.callWhereZome('get_heres', sessionEh);
@@ -328,19 +344,23 @@ export class WhereDnaViewModel {
     });
   }
 
+  /** */
+  async sessionFromEntry(sessionEh: EntryHashB64): Promise<PlacementSession> {
+    const entry = await this.getSession(sessionEh);
+    if (entry) {
+      return {
+        name: entry.name,
+        index: entry.index,
+        locations: await this.getLocations(sessionEh)
+      }
+    }
+    console.error("sessionFromEntry(): Session entry not found")
+    return Promise.reject();
+  }
+
+
   /** Misc */
 
-  async notify(signal: Signal, folks: Array<AgentPubKeyB64>): Promise<void> {
-    if (signal.message.type != "Ping" && signal.message.type != "Pong") {
-     console.debug(`NOTIFY ${signal.message.type}`, signal, folks)
-    }
-    /* Skip if no recipients or sending to self only */
-    if (!folks || folks.length == 1 && folks[0] === this.myAgentPubKey) {
-      console.log("notify() aborted: No recipients for notification")
-      return;
-    }
-    return this.callWhereZome('notify', {signal, folks});
-  }
 
 
   getEntryDefs(zomeName: string) {
@@ -455,11 +475,11 @@ export class WhereDnaViewModel {
       sessionNames = sessionNamesArray
     }
     // - Create and commit SpaceEntry
-    const entry = this.bridge.spaceIntoEntry(space);
+    const entry = spaceIntoEntry(space);
     const spaceEh: EntryHashB64 = await this.bridge.createSpaceWithSessions(entry, sessionNames)
     // - Notify others
     const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    this.bridge.notify(newSpace, await this.others());
+    this.sendSignal(newSpace, await this.others());
     // - Add play to store
     console.log("newPlay(): " + space.name + " | " + spaceEh)
     this.addPlay(spaceEh);
@@ -469,106 +489,31 @@ export class WhereDnaViewModel {
 
 
   /** */
-  async addLocation(spaceEh: EntryHashB64, location: Location) : Promise<void> {
-    const session = await this.bridge.getSession(location.sessionEh);
-    const linkHh = await this.bridge.addLocation(location, spaceEh, session!.index)
-    const locInfo: LocationInfo = { location, linkHh, authorPubKey: this.myAgentPubKey }
-    this._plays.update(spaces => {
-      spaces[spaceEh].sessions[location.sessionEh].locations.push(locInfo)
-      return spaces
-    })
-    // Notify peers
-    const entry = this.bridge.hereFromLocation(location)
+  async deleteLocation(spaceEh: EntryHashB64, idx: number) {
+    const locInfo = await this.whereViewModel.deleteLocation(spaceEh, idx);
+    await this.sendSignal({
+        maybeSpaceHash: spaceEh,
+        from: this._dnaClient.myAgentPubKey,
+        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkAh]
+        }},
+      await this.others());
+  }
+
+
+  /** */
+  async publishLocation(spaceEh: EntryHashB64, location: WhereLocation): Promise<void> {
+    const linkAh = await this.whereViewModel.publishLocation(spaceEh, location);
+    /* Notify peers */
+    const entry = convertLocationToHere(location)
     this.sendSignal({
         maybeSpaceHash: spaceEh,
-        from: this.myAgentPubKey,
+        from: this._dnaClient.myAgentPubKey,
         message: {
           type: "NewHere",
-          content: {entry, linkHh, author: this.myAgentPubKey}
-        }}
+          content: {entry, linkAh, author: this._dnaClient.myAgentPubKey}
+        }
+      }
       , await this.others());
   }
-
-
-  /** -- Conversions -- */
-
-  async sessionFromEntry(sessionEh: EntryHashB64): Promise<PlacementSession> {
-    const entry = await this.getSession(sessionEh);
-    if (entry) {
-      return {
-        name: entry.name,
-        index: entry.index,
-        locations: await this.getLocations(sessionEh)
-      }
-    }
-    console.error("sessionFromEntry(): Session entry not found")
-    return Promise.reject();
-  }
-
-  spaceFromEntry(entry: SpaceEntry): Space {
-    return {
-      name: entry.name,
-      origin: entry.origin,
-      surface: JSON.parse(entry.surface),
-      maybeMarkerPiece: entry.maybeMarkerPiece,
-      meta: entry.meta ? this.metaFromEntry(entry.meta) : defaultPlayMeta(),
-    }
-  }
-
-  spaceIntoEntry(space: Space): SpaceEntry {
-    return {
-      name: space.name,
-      origin: space.origin,
-      surface: JSON.stringify(space.surface),
-      maybeMarkerPiece: space.maybeMarkerPiece,
-      meta: this.metaIntoEntry(space.meta)
-    }
-  }
-
-  metaFromEntry(meta: Dictionary<string>): PlayMeta {
-    let spaceMeta: any = {};
-    try {
-      for (const [key, value] of Object.entries(meta)) {
-        Object.assign(spaceMeta, {[key]: JSON.parse(value, this.reviver)})
-      }
-    } catch (e) {
-      console.error("Failed parsing meta filed into PlayMeta")
-      console.error(e)
-    }
-    //console.log({spaceMeta})
-    return spaceMeta as PlayMeta;
-  }
-
-  metaIntoEntry(playMeta: PlayMeta): Dictionary<string> {
-    let dic: Dictionary<string> = {};
-    for (const [key, value] of Object.entries(playMeta)) {
-      dic[key] = JSON.stringify(value, this.replacer)
-    }
-    //console.log({dic})
-    return dic
-  }
-
-
-  locationFromHere(info: HereInfo) : LocationInfo {
-    let locationMeta:any = {};
-    try {
-      for (const [key, value] of Object.entries(info.entry.meta)) {
-        Object.assign(locationMeta, {[key]: JSON.parse(value, this.reviver)})
-      }
-    } catch (e) {
-      console.error("Failed parsing meta filed into LocationMeta")
-      console.error(e)
-    }
-    //
-    return {
-      location: {
-        coord: JSON.parse(info.entry.value),
-        sessionEh: info.entry.sessionEh,
-        meta: locationMeta,
-      },
-      linkHh: info.linkHh,
-      authorPubKey: info.author,
-    }
-  }
-
 }
+

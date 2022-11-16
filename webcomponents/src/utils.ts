@@ -1,5 +1,11 @@
 /** */
-import {CellId} from "@holochain/client";
+import {CellId, HoloHashB64} from "@holochain/client";
+
+export interface HoloHashedB64<T> {
+  hash: HoloHashB64;
+  content: T;
+}
+
 
 export function areArraysEqual(first: Uint8Array, second: Uint8Array) {
   return first.length === second.length && first.every((value, index) => value === second[index])

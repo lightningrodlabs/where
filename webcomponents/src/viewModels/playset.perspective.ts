@@ -39,3 +39,6 @@ export enum TemplateType {
   Svg = 'svg',
   Canvas = 'canvas',
 }
+
+
+

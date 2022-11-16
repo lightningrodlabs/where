@@ -39,18 +39,18 @@ import {
 } from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
-import {addExamplePieces} from "../examples";
+import {publishExamplePlayset} from "../examples";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId} from "@holochain/client";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
-import {LudothequePerspective, LudothequeViewModel} from "../viewModels/ludotheque.zvm";
+import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
 import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
 import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
-import {countInventory} from "../viewModels/playset.vm";
-import {PlaysetViewModel} from "../viewModels/playset.zvm";
+import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
+import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -87,10 +87,13 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: LudothequeViewModel.context })
-  _ludothequeViewModel!: LudothequeViewModel;
-  @contextProvided({ context: PlaysetViewModel.context })
-  _playsetViewModel!: PlaysetViewModel;
+  // @contextProvided({ context: LudothequeViewModel.context })
+  // _ludothequeViewModel!: LudothequeViewModel;
+  // @contextProvided({ context: PlaysetViewModel.context })
+  // _playsetViewModel!: PlaysetViewModel;
+
+  _ludothequeDvm!: LudothequeDvm; // Set at init()
+
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   ludothequePerspective!: LudothequePerspective;
@@ -111,7 +114,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   private _canPostInit: boolean = false;
   private _canCreatePlayset: boolean = false;
 
-  private _whereInventory: Inventory | null = null;
+  private _inventory: Inventory | null = null;
 
 
   get emojiGroupDialogElem() : WhereEmojiGroupDialog {
@@ -158,36 +161,36 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** -- methods -- */
 
+  /** */
   private probeInventory() {
-    this._playsetViewModel.probeInventory().then(inventory => {
+    this._ludothequeDvm.playsetViewModel.probeInventory().then(inventory => {
       const nextCount = countInventory(inventory);
-      if (!this._whereInventory || nextCount > countInventory(this._whereInventory)) {
-        this._whereInventory = inventory;
+      if (!this._inventory || nextCount > countInventory(this._inventory)) {
+        this._inventory = inventory;
         this.requestUpdate();
       }
     });
   }
 
-  /**
-   *
-   */
+
+  /** */
   hasPiece(eh: EntryHashB64, type: PieceType): boolean {
-    if (!this._whereInventory) {
+    if (!this._inventory) {
       console.warn("No localInventory found")
       return false;
     }
     switch(type) {
       case PieceType.Template:
-        return this._whereInventory!.templates.includes(eh);
+        return this._inventory!.templates.includes(eh);
         break;
       case PieceType.SvgMarker:
-        return this._whereInventory!.svgMarkers.includes(eh);
+        return this._inventory!.svgMarkers.includes(eh);
         break;
       case PieceType.EmojiGroup:
-        return this._whereInventory!.emojiGroups.includes(eh);
+        return this._inventory!.emojiGroups.includes(eh);
         break;
       case PieceType.Space:
-        return this._whereInventory!.spaces.includes(eh);
+        return this._inventory!.spaces.includes(eh);
         break;
       default:
         console.warn("Unknown piece type: " + type)
@@ -199,8 +202,8 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
-    this._ludothequeViewModel.subscribe(this, 'ludothequePerspective');
-    this._playsetViewModel.subscribe(this, 'playsetPerspective');
+    this._ludothequeDvm.ludothequeViewModel.subscribe(this, 'ludothequePerspective');
+    this._ludothequeDvm.playsetViewModel.subscribe(this, 'playsetPerspective');
     await this.init();
     /** add custom styles to TopAppBar */
     const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
@@ -216,16 +219,15 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     this._initializing = true
     console.log("ludotheque-controller.init() - START");
     /** Get latest public entries from DHT */
-    await this._ludothequeViewModel.probeDht();
-    await this._playsetViewModel.probeDht();
-    const playsets = this._playsets.value;
+    await this._ludothequeDvm.probeAll();
+    const playsets = this._ludothequeDvm.ludothequeViewModel.perspective.playsets
     //const templates = this._templates.value;
     console.log({playsets})
     //console.log({templates})
 
     /** load initial plays & templates if there are none */
     if (this.canLoadExamples && Object.keys(playsets).length == 0) {
-      await addExamplePieces(this._ludothequeViewModel);
+      await publishExamplePlayset(this._ludothequeDvm);
       console.log("addExamplePieces() - DONE");
     }
     // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
@@ -251,9 +253,10 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   updated(changedProperties: any) {
     if (this._canPostInit) {
-      /** Menu */
+      /** Anchor Menu */
       const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
       const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
       console.log("Ludo: Anchoring Menu to top button", menu, button)
@@ -274,7 +277,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!playset && time < 2000) {
-      playset = this._playsets.value[playsetEh];
+      playset = this._ludothequeDvm.ludothequeViewModel.getPlayset(playsetEh);
       await delay(100);
       time += 100;
     }
@@ -299,9 +302,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
 
 
-  /**
-   * Hide Current play and select first available one
-   */
+  /** Hide Current play and select first available one */
   async archiveSpace() {
     // await this._store.hidePlay(this._currentPlaysetEh!)
     // /** Select first play */
@@ -313,22 +314,26 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._ludothequeViewModel.pullDht()
-    this.requestUpdate();
+    await this._ludothequeDvm.probeAll();
   }
 
-
+  /** */
   async openTemplateDialog(templateEh?: any) {
     this.templateDialogElem.clearAllFields();
     this.templateDialogElem.open(templateEh);
   }
 
+
+  /** */
   async openArchiveDialog() {
    //this.archiveDialogElem.open();
   }
 
+
+  /** */
   async openSpaceDialog(spaceEh?: EntryHashB64) {
     this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(spaceEh);
@@ -338,15 +343,18 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   openAddMenu() {
     const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
     menu.open = true;
   }
 
+
+  /** */
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._emojiGroups.value[groupEh]
+      group = this._ludothequeDvm.playsetViewModel.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -356,10 +364,12 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._svgMarkers.value[eh]
+      svgMarker = this._ludothequeDvm.playsetViewModel.getSvgMarker(eh)
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
@@ -370,6 +380,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   handleAddMenuSelect(e: any) {
     const menu = e.currentTarget as Menu;
     // console.log("handleMenuSelect: " + menu)
@@ -397,11 +408,9 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   private async handlePlaysetDialogClosing(e: any) {
-    console.log("handlePlaysetDialogClosing() : " + JSON.stringify(e.detail))
+    console.log("handlePlaysetDialogClosing()", e.detail)
     //const playset = e.detail;
     this.tabElem.show("spaces");
     this._currentPlayset = e.detail;
@@ -411,15 +420,13 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
-  private async commitPlayset() {
-    console.log("commitPlayset() : " + JSON.stringify(this._currentPlayset))
+  /** */
+  private async publishCurrentPlayset() {
+    console.log("commitPlayset()", this._currentPlayset)
     if (!this._currentPlayset) {
       return;
     }
-    // Spaces
+    /* Spaces */
     const spaceList = this.shadowRoot!.getElementById("space-list") as List;
     let selectedSpaces = new Array();
     for (const item of spaceList.items) {
@@ -429,7 +436,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.spaces = selectedSpaces;
-    // Templates
+    /* Templates */
     const templateList = this.shadowRoot!.getElementById("template-list") as List;
     let selectedTemplates = new Array();
     for (const item of templateList.items) {
@@ -439,7 +446,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.templates = selectedTemplates;
-    // SvgMarkers
+    /* SvgMarkers */
     const svgList = this.shadowRoot!.getElementById("svg-marker-list") as List;
     let selectedSvg = new Array();
     for (const item of svgList.items) {
@@ -449,7 +456,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.svgMarkers = selectedSvg;
-    // EmojiGroups
+    /* EmojiGroups */
     const emojiGroupList = this.shadowRoot!.getElementById("emoji-group-list") as List;
     let selectedGroups = new Array();
     for (const item of emojiGroupList.items) {
@@ -459,7 +466,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.emojiGroups = selectedGroups;
-    // Check
+    /* Check */
     if (this._currentPlayset.spaces.length == 0
     && this._currentPlayset.templates.length == 0
     && this._currentPlayset.svgMarkers.length == 0
@@ -467,9 +474,9 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       console.warn("No piece added to playset")
       return;
     }
-    // Commit
-    await this._ludothequeViewModel.addPlaysetWithCheck(this._currentPlayset!);
-    // Reset
+    /* Commit */
+    await this._ludothequeDvm.ludothequeViewModel.publishPlayset(this._currentPlayset!);
+    /* Reset */
     this.resetCurrentPlayset();
     this._canCreatePlayset = false;
     this.drawerElem.open = false;
@@ -477,9 +484,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   private resetCurrentPlayset() {
     this._currentPlayset = null;
     this._canCreatePlayset = false;
@@ -488,9 +493,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   private async handleArchiveDialogClosing(e: any) {
     // const spaces = this._plays.value;
     // /** Check if current play has been archived */
@@ -502,7 +505,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     // }
   }
 
-
+  /** */
   handleViewArchiveSwitch(e: any) {
     // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
     // this.canViewArchive = e.originalTarget.checked;
@@ -510,9 +513,9 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-
+  /** */
   private renderPlaysets() {
-    const items = Object.entries(this._playsets.value).map(
+    const items = Object.entries(this._ludothequeDvm.ludothequeViewModel.perspective.playsets).map(
       ([key, playset]) => {
         // return html`
         //   <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
@@ -557,7 +560,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this._ludothequeViewModel.exportPiece(key, type, this.whereCellId!)}
+                               @click=${() => this._ludothequeDvm.playsetViewModel.exportPiece(key, type, this.whereCellId!)}
         ></mwc-icon-button>
       `;
   }
@@ -565,11 +568,11 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   private renderSpaces() {
-    const items = Object.entries(this._spaces.value).map(
+    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
         const surface = JSON.parse(space.surface);
-        const template = this._ludothequeViewModel.template(space.origin);
+        const template = this._ludothequeDvm.playsetViewModel.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
@@ -599,7 +602,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   /** */
   private renderTemplates() {
     /* Render items */
-    const items = Object.entries(this._templates.value).map(
+    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
         const surface = JSON.parse(template.surface);
@@ -635,7 +638,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   /** */
   private renderSvgMarkers() {
     /* Render items */
-    const items = Object.entries(this._svgMarkers.value).map(
+    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.svgMarkers).map(
       ([key, svgMarker]) => {
         const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
@@ -667,7 +670,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /* Render  */
   private renderEmojiGroups() {
-    const items = Object.entries(this._emojiGroups.value).map(
+    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.emojiGroups).map(
       ([key, emojiGroup]) => {
         const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
         const itemContent = html`
@@ -701,7 +704,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
    */
   render() {
     console.log("ludotheque-controller render() - " + this._initialized)
-    const playset = this._currentPlaysetEh? this._ludothequeViewModel.playset(this._currentPlaysetEh) : null;
+    const playset = this._currentPlaysetEh? this._ludothequeDvm.ludothequeViewModel.getPlayset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
     this.probeInventory();
@@ -777,7 +780,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     </div>
     <div id="drawer-button-bar">
       <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>${msg('cancel')}</mwc-button>
-      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>${msg('create')}</mwc-button>
+      <mwc-button id="commit-playset-button" raised @click=${this.publishCurrentPlayset}>${msg('create')}</mwc-button>
     </div>
   </div>
   <!-- END DRAWER -->
@@ -828,10 +831,10 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._ludothequeViewModel}" @template-created=${(e:any) => console.log(e.detail)}
+    <where-template-dialog id="template-dialog" @template-created=${(e:any) => console.log(e.detail)}
     ></where-template-dialog>
-    <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._ludothequeViewModel}" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
-    <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._ludothequeViewModel}" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
+    <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
+    <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
     <where-space-dialog id="space-dialog" @space-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
   </div>
 </mwc-drawer>

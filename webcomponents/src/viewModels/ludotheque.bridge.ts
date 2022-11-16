@@ -1,7 +1,8 @@
 import {ZomeBridge} from "@ddd-qc/dna-client";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {PlaysetEntry} from "./ludotheque.bindings";
-import {CellId, HoloHashed} from "@holochain/client";
+import {CellId} from "@holochain/client";
+import {HoloHashedB64} from "../utils";
 
 
 /**
@@ -18,7 +19,7 @@ export class LudothequeBridge extends ZomeBridge {
     return this.call('create_playset', entry);
   }
 
-  async getAllPlaysets(): Promise<Array<HoloHashed<PlaysetEntry>>> {
+  async getAllPlaysets(): Promise<Array<HoloHashedB64<PlaysetEntry>>> {
     return this.call('get_all_playsets', null);
   }
 

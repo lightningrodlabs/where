@@ -1,23 +1,8 @@
 import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
-
 import {contextProvided} from "@lit-labs/context";
-import {StoreSubscriber} from "lit-svelte-stores";
-
 import {sharedStyles} from "../sharedStyles";
-import {
-  Coord,
-  Location,
-  LocationInfo,
-  Play,
-  whereContext,
-  LocOptions,
-  MarkerType,
-  EmojiGroupEntry,
-  UiItem, PlacementSession, SvgMarkerVariant, EmojiGroupVariant
-} from "../types";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
-import {WhereStore} from "../where.store";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Profile, ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
 import {Button, Dialog, TextField, Fab, Slider, Radio, Tab, TabBar} from "@scoped-elements/material-web";
@@ -27,7 +12,11 @@ import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
-import { localized, msg } from '@lit/localize';
+import {localized, msg} from '@lit/localize';
+import {Coord, LocationInfo, LocOptions, PlacementSession, Play, WhereLocation} from "../viewModels/where.perspective";
+import {EmojiGroupEntry, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
+import {WhereDvm} from "../viewModels/where.dvm";
+import {MarkerType} from "../viewModels/playset.perspective";
 
 // // Canvas Animation experiment
 // function draw() {
@@ -63,35 +52,43 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   @query('#plus-fab') plusFab!: Fab;
   @query('#minus-fab') minusFab!: Fab;
   @query('#hide-here-fab') hideFab!: Fab;
-
   @query('#sessions-tab-bar') sessionTabBar!: TabBar;
 
   @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
   // @state() _currentSessionEh: null | EntryHashB64 = null;
 
-  @contextProvided({ context: whereContext, subscribe: true })
-  _store!: WhereStore;
+  @contextProvided({ context: WhereDvm.context, subscribe: true })
+  _whereDvm!: WhereDvm;
 
   @contextProvided({ context: profilesStoreContext, subscribe: true })
   _profiles!: ProfilesStore;
 
   _myProfile?: Profile;
-  //_myProfile = new StoreSubscriber(this, () => this._profiles?.myProfile);
-  _plays = new StoreSubscriber(this, () => this._store?.plays);
-  _zooms = new StoreSubscriber(this, () => this._store?.zooms);
-  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
-  _currentSessions = new StoreSubscriber(this, () => this._store?.currentSessions);
 
-  private dialogCoord = { x: 0, y: 0 };
-  private dialogCanEdit = false;
-  private dialogIdx = 0;
+
+  private _dialogCoord = { x: 0, y: 0 };
+  private _dialogCanEdit = false;
+  private _dialogIdx = 0;
 
   private _sessions?: any;
   private _activeIndex: number = -1;
 
   @property({type: Number}) neighborWidth: number = 0;
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
+
+
+  getCurrentPlay(): Play | undefined {
+    return this.currentSpaceEh? this._whereDvm.whereViewModel.getPlay(this.currentSpaceEh) : undefined
+  }
+
+  getCurrentSession(): EntryHashB64 | undefined {
+    return this.currentSpaceEh? this._whereDvm.whereViewModel.getCurrentSession(this.currentSpaceEh) : undefined
+  }
+
+  getCurrentZoom(): number | undefined {
+    return this.currentSpaceEh? this._whereDvm.getZoom(this.currentSpaceEh) : undefined
+  }
+
 
 
   /** */
@@ -126,9 +123,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   /** */
   updated(changedProperties: any) {
     //console.log("*** updated() called!");
-    if (!this.currentSpaceEh || !this._plays.value) {
+    if (!this.currentSpaceEh /*|| !this._plays.value*/) {
       return;
     }
+    const play = this.getCurrentPlay();
+    if (!play) {
+      return;
+    }
+
     // - Tab bar bug workaround ; dont use scrollIndexIntoView() since its broken
     if (this.sessionTabBar && this.sessionTabBar.activeIndex != this._activeIndex) {
       //this.sessionTabBar.scrollIndexIntoView(this._activeIndex);
@@ -136,7 +138,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       this.requestUpdate();
     }
     // - Canvas
-    const play: Play = this._plays.value[this.currentSpaceEh];
+
     if (play.space.surface.canvas) {
       //console.log(" - has canvas");
       const canvas_code = prefix_canvas('space-canvas') + play.space.surface.canvas;
@@ -175,14 +177,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private _handleWheel = (e: WheelEvent) => {
     if (e.target && this.currentSpaceEh) {
       e.preventDefault();
-      this._store.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
+      this._whereDvm.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
    }
   };
 
 
   /** */
   updateZoom(delta: number): void {
-    this._store.updateZoom(this.currentSpaceEh!, delta);
+    this._whereDvm.updateZoom(this.currentSpaceEh!, delta);
   }
 
 
@@ -195,29 +197,30 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   /** */
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.currentTarget.getBoundingClientRect();
-    const z = this._zooms.value[this.currentSpaceEh!];
-    const x = (event.clientX - rect.left) / z; //x position within the element.
-    const y = (event.clientY - rect.top) / z; //y position within the element.
+    const z = this._whereDvm.getZoom(this.currentSpaceEh!);
+    const x = (event.clientX - rect.left) / z!; //x position within the element.
+    const y = (event.clientY - rect.top) / z!; //y position within the element.
     return { x, y };
   }
 
 
   /**
-   * Can create a Location if :
+   * Can create a Location if:
    *  - session is allowed
    *  - multi location per agent are allowed or if this agent does not already have a Location
    */
   private canCreateLocation(): boolean {
-    const play = this._store.play(this.currentSpaceEh!);
-    // - Session allowed
-    if (!this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
+    const currentPlay = this.getCurrentPlay();
+    if (!currentPlay) return false;
+    /* Session allowed */
+    if (!this._whereDvm.whereViewModel.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
-    // - Marker allowed
-    if (play.space.meta!.multi) {
+    /* Marker allowed */
+    if (currentPlay.space.meta!.multi) {
       return true;
     }
-    const myLocIdx = this._store.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
+    const myLocIdx = this._whereDvm.whereViewModel.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
     const hasNoLocation = myLocIdx == -1
     return hasNoLocation;
   }
@@ -225,11 +228,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   private canUpdateLocation(idx: number): boolean {
-    if (!this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
+    const currentPlay = this.getCurrentPlay();
+    if (!currentPlay) return false;
+    if (!this._whereDvm.whereViewModel.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
-    const sessionEh = this._store.currentSession(this.currentSpaceEh!);
-    const locInfo = this._store.play(this.currentSpaceEh!).sessions[sessionEh].locations[idx]!;
+    const sessionEh = this.getCurrentSession();
+    const locInfo = currentPlay.sessions[sessionEh!].locations[idx]!;
     // TODO: should check agent key instead
     return locInfo.location.meta.authorName == this.myNickName;
   }
@@ -240,16 +245,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.currentSpaceEh || event == null || !this.canCreateLocation()) {
       return;
     }
-    const play: Play = this._plays.value[this.currentSpaceEh];
+    const currentPlay = this.getCurrentPlay();
+    if (!currentPlay) return;
     //console.log("handleClick: " + play.name)
     //console.log(play.meta?.singleEmoji)
     const coord = this.getCoordsFromEvent(event);
-    if (this.canEditLocation(play)) {
-      this.dialogCoord = coord;
+    if (this.canEditLocation(currentPlay)) {
+      this._dialogCoord = coord;
       //TODO fixme with a better way to know dialog type
-      this.dialogCanEdit = false;
+      this._dialogCanEdit = false;
       const options: LocOptions = {
-        tag: play.space.meta?.canTag ? "" : null,
+        tag: currentPlay.space.meta?.canTag ? "" : null,
         emoji: "",
         name: this.myNickName,
         img: this._myProfile!.fields.avatar,
@@ -258,24 +264,24 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       this.openLocationDialog(options);
     } else {
       let svgMarker = ""
-      if (play.space.maybeMarkerPiece && "svg" in play.space.maybeMarkerPiece) {
-        let eh = (play.space.maybeMarkerPiece as SvgMarkerVariant).svg;
-        svgMarker = this._svgMarkers.value[eh].value;
+      if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
+        let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
+        svgMarker = this._whereDvm.playsetViewModel.getSvgMarker(eh)!.value;
       }
-      const location: Location = {
+      const location: WhereLocation = {
         coord,
-        sessionEh: this._currentSessions.value[this.currentSpaceEh!],
+        sessionEh: this.getCurrentSession()!,
         meta: {
-          markerType: play.space.meta.markerType,
+          markerType: currentPlay.space.meta.markerType,
           tag: "",
           img: this._myProfile!.fields.avatar,
           color: this._myProfile!.fields.color? this._myProfile!.fields.color : "#000000",
           authorName: this.myNickName,
-          emoji: play.space.meta?.singleEmoji,
+          emoji: currentPlay.space.meta?.singleEmoji,
           svgMarker,
         },
       };
-      this._store.addLocation(this.currentSpaceEh, location);
+      this._whereDvm.publishLocation(this.currentSpaceEh, location);
     }
   }
 
@@ -298,7 +304,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
 
     if (options.canEdit) {
-      this.dialogCanEdit = options.canEdit;
+      this._dialogCanEdit = options.canEdit;
       if (options.tag) {
         const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
         if (tagElem) {
@@ -310,10 +316,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           }
         }
       }
-      if (coord) this.dialogCoord = coord;
-      if (idx) this.dialogIdx = idx;
+      if (coord) this._dialogCoord = coord;
+      if (idx) this._dialogIdx = idx;
     } else {
-      this.dialogCanEdit = false;
+      this._dialogCanEdit = false;
     }
     this.locationDialogElem.open = true;
   }
@@ -352,22 +358,23 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let svgMarker = ""
     let emojiValue = ""
     let markerType = MarkerType.Initials
-    if(this.currentSpaceEh) {
-      const currentPlay = this._plays.value[this.currentSpaceEh]
+
+    const currentPlay = this.getCurrentPlay();
+    if(currentPlay) {
       markerType = currentPlay.space.meta!.markerType;
       emojiValue = currentPlay.space.meta!.singleEmoji;
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
         let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
-        svgMarker = this._svgMarkers.value[eh].value
+        svgMarker = this._whereDvm.playsetViewModel.getSvgMarker(eh)!.value;
       }
     }
     if (emojiMarkerElem) {
       emojiValue = emojiMarkerElem.innerHTML
     }
 
-    const location: Location = {
-      coord: this.dialogCoord,
-      sessionEh: this._currentSessions.value[this.currentSpaceEh!],
+    const location: WhereLocation = {
+      coord: this._dialogCoord,
+      sessionEh: this.getCurrentSession()!,
       meta: {
         authorName: this._myProfile!.nickname,
         markerType,
@@ -378,16 +385,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         svgMarker,
       },
     };
-    if (this.dialogCanEdit) {
-      this._store.updateLocation(
+    if (this._dialogCanEdit) {
+      this._whereDvm.whereViewModel.updateLocation(
         this.currentSpaceEh!,
-        this.dialogIdx,
-        this.dialogCoord,
+        this._dialogIdx,
+        this._dialogCoord,
+        await this._whereDvm.others(),
         tagValue,
         emojiValue
       );
     } else {
-      this._store.addLocation(this.currentSpaceEh!, location);
+      this._whereDvm.publishLocation(this.currentSpaceEh!, location);
     }
   }
 
@@ -450,7 +458,9 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let coord = this.getCoordsFromEvent(ev);
     coord.x = coord.x + offsetX;
     coord.y = coord.y + offsetY;
-    this._store.updateLocation(this.currentSpaceEh!, idx, coord);
+    this._whereDvm.others().then((others) => {
+      this._whereDvm.whereViewModel.updateLocation(this.currentSpaceEh!, idx, coord, others)
+    });
   }
 
 
@@ -475,9 +485,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (!this.canUpdateLocation(idx)) {
       return;
     }
-    const sessionEh = this._store.currentSession(this.currentSpaceEh!);
-    const play = this._store.play(this.currentSpaceEh!);
-    const locInfo = play.sessions[sessionEh].locations[idx]!;
+    const currentSessionEh = this.getCurrentSession();
+    const currentPlay = this.getCurrentPlay();
+    if (!currentPlay || !currentSessionEh) return;
+    const locInfo = currentPlay.sessions[currentSessionEh].locations[idx]!;
     this.openLocationDialog(
       {
         name: locInfo.location.meta.authorName,
@@ -533,20 +544,19 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  handleDeleteClick(ev: any) {
+  handleDeleteClick(ev: any): void {
     const idx = this.getIdx(ev.target)!;
-    this._store.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
+    this._whereDvm.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
   }
 
 
   /** */
-  canEditLocation(play?: Play) {
-    if (!play && this.currentSpaceEh) {
-      play = this._plays.value[this.currentSpaceEh!];
-    }
-    const canPickEmoji = play!.space.meta.markerType == MarkerType.AnyEmoji
-                      || play!.space.meta.markerType == MarkerType.EmojiGroup;
-    return play!.space.meta.canTag || canPickEmoji;
+  canEditLocation(play?: Play): boolean {
+    if (!play) play = this.getCurrentPlay();
+    if (!play) return false;
+    const canPickEmoji = play.space.meta.markerType == MarkerType.AnyEmoji
+                      || play.space.meta.markerType == MarkerType.EmojiGroup;
+    return play.space.meta.canTag || canPickEmoji;
   }
 
 
@@ -570,7 +580,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (isMe) {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
-      if (this._store.isCurrentSessionToday(this.currentSpaceEh!)) {
+      if (this._whereDvm.whereViewModel.isCurrentSessionToday(this.currentSpaceEh!)) {
         maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
         if (this.canEditLocation(play)) {
           maybeEditBtn = html`<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
@@ -606,7 +616,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   async resetMyLocations() {
-    await this._store.deleteAllMyLocations(this.currentSpaceEh!);
+    await this._whereDvm.whereViewModel.deleteAllMyLocations(this.currentSpaceEh!);
   }
 
 
@@ -625,7 +635,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private handleZoomSlider(input: number): void {
     /** update zoom from absolute value */
     const zoom = Math.min(input, 999);
-    const cur: number = (this._zooms.value[this.currentSpaceEh!] * 100);
+    const cur: number = (this.getCurrentZoom()! * 100);
     const delta = (zoom - cur) / 100;
     this.updateZoom(delta);
   }
@@ -650,7 +660,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  renderLocationDialog(play: Play | undefined) {
+  renderLocationDialog(play?: Play) {
     if (!this.canEditLocation(play)) {
       return html``;
     }
@@ -671,7 +681,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroupEntry = this._emojiGroups.value[(play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup];
+      const emojiGroup: EmojiGroupEntry = this._whereDvm.playsetViewModel.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`
@@ -736,16 +746,18 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private async handleTabSelected(e: any) {
     //console.log("handleTabSelected: " + e.detail.index)
     const selectedSessionEh = this._sessions[e.detail.index];
-    this._store.updateCurrentSession(this.currentSpaceEh!, selectedSessionEh);
+    this._whereDvm.whereViewModel.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
     this.requestUpdate();
   }
 
+
+  /** */
   private async handleLocationClick(e: any) {
     /** Check validity */
-    const play = this._store.play(this.currentSpaceEh!)
+    const currentPlay = this.getCurrentPlay()!;
     // tag-field
     const tagField = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    if (tagField && play.space.meta.tagAsMarker) {
+    if (tagField && currentPlay.space.meta.tagAsMarker) {
       let isValid = tagField.value !== "";
       if (!isValid) {
         tagField.setCustomValidity("Must not be empty")
@@ -777,7 +789,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     //console.log("max-height: ", maxH);
 
     /** Render fabs */
-    const zoomValue = this.currentSpaceEh && this._zooms.value? this._zooms.value[this.currentSpaceEh] * 100 : 100;
+    const zoomValue = this.getCurrentZoom()? this.getCurrentZoom()! * 100 : 100;
     const fabs = html`
       <mwc-fab mini id="minus-fab" icon="remove" style="left:0px;top:0px;" @click=${() => this.updateZoom(-0.05)}></mwc-fab>
       <mwc-slider min="10" max="300" style="position:absolute;left:20px;top:-5px;width:120px;"
@@ -788,8 +800,8 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
 
-    /** Default render if no plays */
-    if (!this.currentSpaceEh || !this._plays.value || !this._plays.value[this.currentSpaceEh]) {
+    /** Default render if no plays found */
+    if (!this.getCurrentPlay()) {
       return html`
       <div class="surface" style="min-width:200px; min-height:200px;max-width:${maxW}px; max-height:${maxH}px;">
         ${msg('No space found')}
@@ -799,17 +811,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     }
 
     /** Get current play and zoom level */
-    const play: Play = this._plays.value[this.currentSpaceEh];
-    const z = this._zooms.value[this.currentSpaceEh];
+    const currentPlay = this.getCurrentPlay()!;
+    const z = this.getCurrentZoom()!;
     /** Render locations if we have a current session */
-    const sessionEh = this._store.currentSession(this.currentSpaceEh);
+    const currentSessionEh = this.getCurrentSession();
     let session: null | PlacementSession = null;
     let locationItems = undefined;
-    if (sessionEh) {
-      session = play.sessions[sessionEh];
+    if (currentSessionEh) {
+      session = currentPlay.sessions[currentSessionEh];
       if (!session) {
-        console.error(" ** Session not found in Play '" + play.space.name + "' | " + sessionEh)
-        console.error({play})
+        console.error(" ** Session not found in Play '" + currentPlay.space.name + "' | " + currentSessionEh)
+        console.error({play: currentPlay})
       } else {
         /** Render Play's session's locations */
         if (this.hideFab && this.hideFab.icon === 'visibility') {
@@ -819,21 +831,21 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
                 return;
               }
             }
-            return this.renderLocation(locationInfo, z, play, i)
+            return this.renderLocation(locationInfo, z, currentPlay, i)
           });
         }
       }
     } else {
-      console.warn("CurrentSession not found for play " + play.space.name)
+      console.warn("CurrentSession not found for play " + currentPlay.space.name)
     }
 
     /** Session Tab bar */
     this._sessions = {};
     this._activeIndex = -1
-    const sessionTabs = Object.entries(play.sessions).map(([key, curSession])=> {
+    const sessionTabs = Object.entries(currentPlay.sessions).map(([key, curSession])=> {
       //return html `<span>${session.name} </span>`
       this._sessions[curSession.index] = key;
-      if (session && sessionEh == key) {
+      if (session && currentSessionEh == key) {
         this._activeIndex = curSession.index
       }
       return html `<mwc-tab label="${curSession.name}"></mwc-tab>`
@@ -848,17 +860,17 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
     /** Parse UI elements in surface meta */
     let uiItems = html ``
-    if (play.space.meta && play.space.meta.ui) {
-      uiItems = renderUiItems(play.space.meta.ui, z, z)
+    if (currentPlay.space.meta && currentPlay.space.meta.ui) {
+      uiItems = renderUiItems(currentPlay.space.meta.ui, z, z)
     }
     /** Set viewed width and height and render Surface accordingly */
-    const w = play.space.surface.size.x * z;
-    const h = play.space.surface.size.y * z;
+    const w = currentPlay.space.surface.size.x * z;
+    const h = currentPlay.space.surface.size.y * z;
 
     /** render Surface */
-    const surfaceItem = this.renderActiveSurface(play.space.surface, w, h)
+    const surfaceItem = this.renderActiveSurface(currentPlay.space.surface, w, h)
     /** Build LocationDialog if required */
-    const maybeLocationDialog =  this.renderLocationDialog(play);
+    const maybeLocationDialog =  this.renderLocationDialog(currentPlay);
     /** Render layout - 1.01 because of scroll bars */
     return html`
       <!-- <h2>${session? session.name : "not found"}</h2> -->

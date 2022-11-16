@@ -1,22 +1,9 @@
 import {EntryHashB64, ActionHashB64, AgentPubKeyB64, Dictionary} from '@holochain-open-dev/core-types';
 import { WhereBridge } from './where.bridge';
-import {HoloHashed} from "@holochain/client";
-import {EmojiGroupVariant, MarkerPiece, PieceType, SpaceEntry, SvgMarkerVariant} from "./playset.bindings";
-import {PlaysetEntry} from "./ludotheque.bindings";
-import {Coord, Play, Space, WhereSignal, Location} from "./where.perspective";
+import {Coord, Play, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo} from "./where.perspective";
 import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
 import {createContext} from "@lit-labs/context";
-import {MarkerType} from "./playset.perspective";
-import {HereEntry} from "./where.bindings";
-
-
-/** */
-export interface WherePerspective {
-  plays: Dictionary<Play>,
-  sessions: Dictionary<EntryHashB64[]>,
-  currentSessions: Dictionary<EntryHashB64>,
-}
-
+import {WhereSignal} from "./where.signals";
 
 /**
  *
@@ -68,6 +55,14 @@ export class WhereViewModel extends ZomeViewModel<WherePerspective, WhereBridge>
 
 
   /** -- Methods -- */
+
+  /** */
+  sendSignal(signal: WhereSignal, folks: Array<AgentPubKeyB64>) {
+    this._bridge.notify(signal, folks)
+  }
+
+
+
 
   /** */
   setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
@@ -138,35 +133,41 @@ export class WhereViewModel extends ZomeViewModel<WherePerspective, WhereBridge>
 
 
   /** */
-  async deleteLocation(spaceEh: EntryHashB64, idx: number) {
+  async deleteLocation(spaceEh: EntryHashB64, idx: number): Promise<LocationInfo> {
     const space = this.getPlay(spaceEh);
     const sessionEh = this.getCurrentSession(spaceEh);
     if (!space || !sessionEh) {
       console.warn("deleteLocation() failed: Space or session not found", spaceEh);
-      return;
+      return Promise.reject("Space or session not found");
     }
     const locInfo = space.sessions[sessionEh].locations[idx]!
     await this._bridge.deleteHere(locInfo.linkAh)
     this._plays[spaceEh].sessions[sessionEh].locations[idx] = null
     this.notify();
-    await this._bridge.notify({
-        maybeSpaceHash: spaceEh,
-        from: this._dnaClient.myAgentPubKey,
-        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkHh]
-        }},
-      await this.others());
+    return locInfo;
   }
 
 
   /** */
-  async addLocation(location: Location, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
-    const entry = this.convertLocationToHere(location);
+  async publishLocation(spaceEh: EntryHashB64, location: WhereLocation) : Promise<ActionHashB64> {
+    const session = await this._bridge.getSession(location.sessionEh);
+    const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
+    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this._dnaClient.myAgentPubKey }
+    this._plays[spaceEh].sessions[location.sessionEh].locations.push(locInfo)
+    this.notify();
+    return linkAh;
+  }
+
+
+  /** */
+  private async publishLocationWithSessionIndex(location: WhereLocation, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
+    const entry = convertLocationToHere(location);
     return this._bridge.addHere(spaceEh, sessionIndex, entry.value, entry.meta);
   }
 
 
   /** */
-  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c: Coord, tag?: string, emoji?: string) {
+  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c: Coord, others: Array<AgentPubKeyB64>, tag?: string, emoji?: string) {
     const space = this.getPlay(spaceEh);
     const sessionEh = this.getCurrentSession(spaceEh);
     if (!space || !sessionEh) {
@@ -182,18 +183,18 @@ export class WhereViewModel extends ZomeViewModel<WherePerspective, WhereBridge>
       locInfo.location.meta.emoji = emoji
     }
     const session = await this._bridge.getSession(sessionEh);
-    const newLinkHh: ActionHashB64 = await this.addLocation(locInfo.location, spaceEh, session!.index)
+    const newLinkAh: ActionHashB64 = await this.publishLocationWithSessionIndex(locInfo.location, spaceEh, session!.index)
     await this._bridge.deleteHere(locInfo.linkAh)
     const oldHereAh = locInfo.linkAh;
-    locInfo.linkAh = newLinkHh;
+    locInfo.linkAh = newLinkAh;
     const oldSessionEh = locInfo.location.sessionEh;
     this._plays[spaceEh].sessions[sessionEh].locations[locIdx] = locInfo;
     this.notify();
-    const entry = this.convertLocationToHere(locInfo.location)
-    await this._bridge.notify({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereAh]}},
-      await this.others());
-    await this._bridge.notify({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "NewHere", content: {entry, linkAh: newLinkHh, author: this._dnaClient.myAgentPubKey}}},
-      await this.others());
+    const entry = convertLocationToHere(locInfo.location)
+    await this.sendSignal({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereAh]}},
+      others);
+    await this.sendSignal({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "NewHere", content: {entry, linkAh: newLinkAh, author: this._dnaClient.myAgentPubKey}}},
+      others);
   }
 
 
@@ -202,20 +203,6 @@ export class WhereViewModel extends ZomeViewModel<WherePerspective, WhereBridge>
     const sessionEh = this.getCurrentSession(spaceEh);
     const play = this.getPlay(spaceEh);
     return play!.sessions[sessionEh!].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.authorName == agent)
-  }
-
-
-  /** */
-  convertLocationToHere(location: Location) : HereEntry {
-    let meta: Dictionary<string> = {};
-    for (const [key, value] of Object.entries(location.meta)) {
-      meta[key] = JSON.stringify(value, this.replacer)
-    }
-    return {
-      value: JSON.stringify(location.coord),
-      sessionEh: location.sessionEh,
-      meta,
-    } as HereEntry
   }
 
 }

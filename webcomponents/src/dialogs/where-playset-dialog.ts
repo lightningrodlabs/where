@@ -7,7 +7,7 @@ import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import { localized, msg } from '@lit/localize';
-import {LudothequeViewModel} from "../viewModels/ludotheque.zvm";
+import {LudothequeZvm} from "../viewModels/ludotheque.zvm";
 import {Coord} from "../viewModels/where.perspective";
 import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
 
@@ -20,8 +20,8 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Dependencies */
-  @contextProvided({ context: LudothequeViewModel.context, subscribe:true })
-  _ludothequeZvm!: LudothequeViewModel;
+  @contextProvided({ context: LudothequeZvm.context, subscribe:true })
+  _ludothequeZvm!: LudothequeZvm;
 
   open(playsetEh?: EntryHashB64) {
     this._playsetToPreload = playsetEh;

@@ -10,7 +10,7 @@ import {
   List,
 } from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
-import {WhereViewModel} from "../viewModels/where.zvm";
+import {WhereZvm} from "../viewModels/where.zvm";
 
 
 /** @element where-archive-dialog */
@@ -18,8 +18,8 @@ import {WhereViewModel} from "../viewModels/where.zvm";
 export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
-  @contextProvided({ context: WhereViewModel.context, subscribe: true })
-  _whereZvm!: WhereViewModel;
+  @contextProvided({ context: WhereZvm.context, subscribe: true })
+  _whereZvm!: WhereZvm;
 
   @query('#space-list')
   _spaceList!: List;

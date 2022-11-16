@@ -5,7 +5,7 @@ import {
   triangle_template_svg,
   tvstatic_template_canvas
 } from "./templates";
-import {PlaysetViewModel} from "./viewModels/playset.zvm";
+import {PlaysetZvm} from "./viewModels/playset.zvm";
 import {SpaceEntry} from "./viewModels/playset.bindings";
 import {MarkerType} from "./viewModels/playset.perspective";
 import {createPlayset, Space, spaceIntoEntry} from "./viewModels/where.perspective";
@@ -14,7 +14,7 @@ import {LudothequeDvm} from "./viewModels/ludotheque.dvm";
 
 
 export async function publishExamplePlayset(dvm: LudothequeDvm) {
-  const playsetZvm = dvm.playsetViewModel;
+  const playsetZvm = dvm.playsetZvm;
 
   /** Templates */
   console.log("Templates...")
@@ -81,7 +81,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
   });
 
 
-  const publishSpace = async (zvm: PlaysetViewModel, space: Space) => {
+  const publishSpace = async (zvm: PlaysetZvm, space: Space) => {
     const content = spaceIntoEntry(space);
     const hash = await zvm.publishSpace(content);
     spaceList.push({hash, content})
@@ -228,6 +228,6 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
 
   /** Playset */
   const playsetEntry = await createPlayset("Demo Playset", spaceList);
-  const playsetEh = dvm.ludothequeViewModel.publishPlayset(playsetEntry);
+  const playsetEh = dvm.ludothequeZvm.publishPlayset(playsetEntry);
   console.log("examples - DONE | " + playsetEh)
 }

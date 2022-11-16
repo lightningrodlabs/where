@@ -8,15 +8,15 @@ import {WhereSignal} from "./where.signals";
 /**
  *
  */
-export class WhereViewModel extends ZomeViewModel<WherePerspective, WhereBridge> {
+export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
 
   /** Ctor */
   constructor(protected _dnaClient: DnaClient) {
     super(new WhereBridge(_dnaClient));
   }
 
-  static context = createContext<WhereViewModel>('zome_view_model/where');
-  getContext(): any {return WhereViewModel.context}
+  static context = createContext<WhereZvm>('zome_view_model/where');
+  getContext(): any {return WhereZvm.context}
 
   /* */
   protected hasChanged(): boolean {

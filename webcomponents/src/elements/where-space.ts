@@ -78,11 +78,11 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   getCurrentPlay(): Play | undefined {
-    return this.currentSpaceEh? this._whereDvm.whereViewModel.getPlay(this.currentSpaceEh) : undefined
+    return this.currentSpaceEh? this._whereDvm.whereZvm.getPlay(this.currentSpaceEh) : undefined
   }
 
   getCurrentSession(): EntryHashB64 | undefined {
-    return this.currentSpaceEh? this._whereDvm.whereViewModel.getCurrentSession(this.currentSpaceEh) : undefined
+    return this.currentSpaceEh? this._whereDvm.whereZvm.getCurrentSession(this.currentSpaceEh) : undefined
   }
 
   getCurrentZoom(): number | undefined {
@@ -213,14 +213,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay) return false;
     /* Session allowed */
-    if (!this._whereDvm.whereViewModel.isCurrentSessionToday(this.currentSpaceEh!)) {
+    if (!this._whereDvm.whereZvm.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
     /* Marker allowed */
     if (currentPlay.space.meta!.multi) {
       return true;
     }
-    const myLocIdx = this._whereDvm.whereViewModel.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
+    const myLocIdx = this._whereDvm.whereZvm.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
     const hasNoLocation = myLocIdx == -1
     return hasNoLocation;
   }
@@ -230,7 +230,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private canUpdateLocation(idx: number): boolean {
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay) return false;
-    if (!this._whereDvm.whereViewModel.isCurrentSessionToday(this.currentSpaceEh!)) {
+    if (!this._whereDvm.whereZvm.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
     const sessionEh = this.getCurrentSession();
@@ -266,7 +266,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       let svgMarker = ""
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
         let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
-        svgMarker = this._whereDvm.playsetViewModel.getSvgMarker(eh)!.value;
+        svgMarker = this._whereDvm.playsetZvm.getSvgMarker(eh)!.value;
       }
       const location: WhereLocation = {
         coord,
@@ -365,7 +365,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       emojiValue = currentPlay.space.meta!.singleEmoji;
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
         let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
-        svgMarker = this._whereDvm.playsetViewModel.getSvgMarker(eh)!.value;
+        svgMarker = this._whereDvm.playsetZvm.getSvgMarker(eh)!.value;
       }
     }
     if (emojiMarkerElem) {
@@ -386,7 +386,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       },
     };
     if (this._dialogCanEdit) {
-      this._whereDvm.whereViewModel.updateLocation(
+      this._whereDvm.whereZvm.updateLocation(
         this.currentSpaceEh!,
         this._dialogIdx,
         this._dialogCoord,
@@ -459,7 +459,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     coord.x = coord.x + offsetX;
     coord.y = coord.y + offsetY;
     this._whereDvm.others().then((others) => {
-      this._whereDvm.whereViewModel.updateLocation(this.currentSpaceEh!, idx, coord, others)
+      this._whereDvm.whereZvm.updateLocation(this.currentSpaceEh!, idx, coord, others)
     });
   }
 
@@ -580,7 +580,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (isMe) {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
-      if (this._whereDvm.whereViewModel.isCurrentSessionToday(this.currentSpaceEh!)) {
+      if (this._whereDvm.whereZvm.isCurrentSessionToday(this.currentSpaceEh!)) {
         maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
         if (this.canEditLocation(play)) {
           maybeEditBtn = html`<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
@@ -616,7 +616,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   async resetMyLocations() {
-    await this._whereDvm.whereViewModel.deleteAllMyLocations(this.currentSpaceEh!);
+    await this._whereDvm.whereZvm.deleteAllMyLocations(this.currentSpaceEh!);
   }
 
 
@@ -681,7 +681,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroupEntry = this._whereDvm.playsetViewModel.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
+      const emojiGroup: EmojiGroupEntry = this._whereDvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`
@@ -746,7 +746,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private async handleTabSelected(e: any) {
     //console.log("handleTabSelected: " + e.detail.index)
     const selectedSessionEh = this._sessions[e.detail.index];
-    this._whereDvm.whereViewModel.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
+    this._whereDvm.whereZvm.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
     this.requestUpdate();
   }
 

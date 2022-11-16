@@ -4,8 +4,8 @@ import {MarkerType} from "./playset.perspective";
 import {EmojiGroupVariant, SvgMarkerVariant} from "./playset.bindings";
 import {DnaClient, DnaViewModel} from "@ddd-qc/dna-client";
 import {ReactiveElement} from "lit";
-import {PlaysetViewModel} from "./playset.zvm";
-import {LudothequeViewModel} from "./ludotheque.zvm";
+import {PlaysetZvm} from "./playset.zvm";
+import {LudothequeZvm} from "./ludotheque.zvm";
 import {spaceFromEntry} from "./where.perspective";
 
 
@@ -26,14 +26,14 @@ export class LudothequeDvm extends DnaViewModel {
   /** */
   private constructor(host: ReactiveElement, dnaClient: DnaClient) {
     super(host, dnaClient);
-    this.addZomeViewModel(PlaysetViewModel);
-    this.addZomeViewModel(LudothequeViewModel);
+    this.addZomeViewModel(PlaysetZvm);
+    this.addZomeViewModel(LudothequeZvm);
   }
 
 
   /** */
-  get playsetViewModel(): PlaysetViewModel { return this.getZomeViewModel("where_playset") as PlaysetViewModel}
-  get ludothequeViewModel(): LudothequeViewModel { return this.getZomeViewModel("where_ludotheque") as LudothequeViewModel}
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
+  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel("where_ludotheque") as LudothequeZvm}
 
 
   /** -- Methods -- */
@@ -42,7 +42,7 @@ export class LudothequeDvm extends DnaViewModel {
   async checkAndPublishPlayset(playset: PlaysetEntry): Promise<EntryHashB64> {
     console.log("addPlaysetWithCheck() before: ", playset)
     for (const spaceEh of playset.spaces) {
-      const spaceEntry = this.playsetViewModel.getSpace(spaceEh);
+      const spaceEntry = this.playsetZvm.getSpace(spaceEh);
       console.log({space_entry: spaceEntry})
       let space = spaceFromEntry(spaceEntry!);
       console.log({space})
@@ -70,7 +70,7 @@ export class LudothequeDvm extends DnaViewModel {
     console.log("checkAndPublishPlayset() after:", playset)
 
     /* Commit PlaysetEntry */
-    const playsetEh = await this.ludothequeViewModel.publishPlayset(playset);
+    const playsetEh = await this.ludothequeZvm.publishPlayset(playset);
     // - Notify others
     // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
     // this.service.notify(newSpace, this.others());

@@ -13,8 +13,8 @@ import {ProfilesStore} from "@holochain-open-dev/profiles";
 import {DnaClient, DnaViewModel} from "@ddd-qc/dna-client";
 import {SpaceEntry} from "./playset.bindings";
 import {ReactiveElement} from "lit";
-import {PlaysetViewModel} from "./playset.zvm";
-import {WhereViewModel} from "./where.zvm";
+import {PlaysetZvm} from "./playset.zvm";
+import {WhereZvm} from "./where.zvm";
 
 
 // /** */
@@ -45,8 +45,8 @@ export class WhereDvm extends DnaViewModel {
   /** */
   private constructor(host: ReactiveElement, dnaClient: DnaClient) {
     super(host, dnaClient);
-    this.addZomeViewModel(PlaysetViewModel);
-    this.addZomeViewModel(WhereViewModel);
+    this.addZomeViewModel(PlaysetZvm);
+    this.addZomeViewModel(WhereZvm);
     dnaClient.addSignalHandler(this.handleSignal)
     // this.profiles = profilesStore;
   }
@@ -56,8 +56,8 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** */
-  get playsetViewModel(): PlaysetViewModel { return this.getZomeViewModel("where_playset") as PlaysetViewModel}
-  get whereViewModel(): WhereViewModel { return this.getZomeViewModel("wheree") as WhereViewModel}
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
+  get whereZvm(): WhereZvm { return this.getZomeViewModel("wheree") as WhereZvm}
 
 
   /** -- Feilds -- */
@@ -102,9 +102,9 @@ export class WhereDvm extends DnaViewModel {
         break;
       case "NewSvgMarker":
         const svgEh = signal.message.content
-        this.playsetViewModel.getSvgMarker(svgEh).then(maybeSvg => {
+        this.playsetZvm.getSvgMarker(svgEh).then(maybeSvg => {
           if (maybeSvg) {
-            this.playsetViewModel.addSvgMarker(svgEh, maybeSvg)
+            this.playsetZvm.addSvgMarker(svgEh, maybeSvg)
           }
         })
         break;
@@ -178,7 +178,7 @@ export class WhereDvm extends DnaViewModel {
       console.log("notify() aborted: No recipients for notification")
       return;
     }
-    return this.whereViewModel.sendSignal(signal, folks);
+    return this.whereZvm.sendSignal(signal, folks);
   }
 
 
@@ -249,7 +249,7 @@ export class WhereDvm extends DnaViewModel {
   async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
-    let spaceEh = await this.whereViewModel.publishSpace(space);
+    let spaceEh = await this.whereZvm.publishSpace(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
     await this.callWhereZome('create_sessions', {sessionNames, spaceEh});
     return spaceEh;
@@ -261,7 +261,7 @@ export class WhereDvm extends DnaViewModel {
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
     /* Check if already added */
-    if (this.whereViewModel.getPlay(spaceEh)) {
+    if (this.whereZvm.getPlay(spaceEh)) {
       console.log("addPlay() aborted. Already have this space")
       return;
     }
@@ -490,7 +490,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async deleteLocation(spaceEh: EntryHashB64, idx: number) {
-    const locInfo = await this.whereViewModel.deleteLocation(spaceEh, idx);
+    const locInfo = await this.whereZvm.deleteLocation(spaceEh, idx);
     await this.sendSignal({
         maybeSpaceHash: spaceEh,
         from: this._dnaClient.myAgentPubKey,
@@ -502,7 +502,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async publishLocation(spaceEh: EntryHashB64, location: WhereLocation): Promise<void> {
-    const linkAh = await this.whereViewModel.publishLocation(spaceEh, location);
+    const linkAh = await this.whereZvm.publishLocation(spaceEh, location);
     /* Notify peers */
     const entry = convertLocationToHere(location)
     this.sendSignal({

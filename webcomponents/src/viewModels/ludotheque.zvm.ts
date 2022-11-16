@@ -14,7 +14,7 @@ export interface LudothequePerspective {
 /**
  *
  */
-export class LudothequeViewModel extends ZomeViewModel<LudothequePerspective, LudothequeBridge> {
+export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, LudothequeBridge> {
 
   /** Ctor */
   constructor(protected dnaClient: DnaClient) {
@@ -23,8 +23,8 @@ export class LudothequeViewModel extends ZomeViewModel<LudothequePerspective, Lu
 
   /** -- ZomeViewModel -- */
 
-  static context = createContext<LudothequeViewModel>('zome_view_model/where_ludotheque');
-  getContext(): any {return LudothequeViewModel.context}
+  static context = createContext<LudothequeZvm>('zome_view_model/where_ludotheque');
+  getContext(): any {return LudothequeZvm.context}
 
   /* */
   protected hasChanged(): boolean {

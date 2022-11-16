@@ -163,7 +163,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   private probeInventory() {
-    this._ludothequeDvm.playsetViewModel.probeInventory().then(inventory => {
+    this._ludothequeDvm.playsetZvm.probeInventory().then(inventory => {
       const nextCount = countInventory(inventory);
       if (!this._inventory || nextCount > countInventory(this._inventory)) {
         this._inventory = inventory;
@@ -202,8 +202,8 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
-    this._ludothequeDvm.ludothequeViewModel.subscribe(this, 'ludothequePerspective');
-    this._ludothequeDvm.playsetViewModel.subscribe(this, 'playsetPerspective');
+    this._ludothequeDvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
+    this._ludothequeDvm.playsetZvm.subscribe(this, 'playsetPerspective');
     await this.init();
     /** add custom styles to TopAppBar */
     const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
@@ -220,7 +220,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     console.log("ludotheque-controller.init() - START");
     /** Get latest public entries from DHT */
     await this._ludothequeDvm.probeAll();
-    const playsets = this._ludothequeDvm.ludothequeViewModel.perspective.playsets
+    const playsets = this._ludothequeDvm.ludothequeZvm.perspective.playsets
     //const templates = this._templates.value;
     console.log({playsets})
     //console.log({templates})
@@ -277,7 +277,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!playset && time < 2000) {
-      playset = this._ludothequeDvm.ludothequeViewModel.getPlayset(playsetEh);
+      playset = this._ludothequeDvm.ludothequeZvm.getPlayset(playsetEh);
       await delay(100);
       time += 100;
     }
@@ -354,7 +354,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._ludothequeDvm.playsetViewModel.getEmojiGroup(groupEh)
+      group = this._ludothequeDvm.playsetZvm.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -369,7 +369,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._ludothequeDvm.playsetViewModel.getSvgMarker(eh)
+      svgMarker = this._ludothequeDvm.playsetZvm.getSvgMarker(eh)
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
@@ -475,7 +475,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       return;
     }
     /* Commit */
-    await this._ludothequeDvm.ludothequeViewModel.publishPlayset(this._currentPlayset!);
+    await this._ludothequeDvm.ludothequeZvm.publishPlayset(this._currentPlayset!);
     /* Reset */
     this.resetCurrentPlayset();
     this._canCreatePlayset = false;
@@ -515,7 +515,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   private renderPlaysets() {
-    const items = Object.entries(this._ludothequeDvm.ludothequeViewModel.perspective.playsets).map(
+    const items = Object.entries(this._ludothequeDvm.ludothequeZvm.perspective.playsets).map(
       ([key, playset]) => {
         // return html`
         //   <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
@@ -560,7 +560,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this._ludothequeDvm.playsetViewModel.exportPiece(key, type, this.whereCellId!)}
+                               @click=${() => this._ludothequeDvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
         ></mwc-icon-button>
       `;
   }
@@ -568,11 +568,11 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   private renderSpaces() {
-    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.spaces).map(
+    const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
         const surface = JSON.parse(space.surface);
-        const template = this._ludothequeDvm.playsetViewModel.getTemplate(space.origin);
+        const template = this._ludothequeDvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
@@ -602,7 +602,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   /** */
   private renderTemplates() {
     /* Render items */
-    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.templates).map(
+    const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
         const surface = JSON.parse(template.surface);
@@ -638,7 +638,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   /** */
   private renderSvgMarkers() {
     /* Render items */
-    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.svgMarkers).map(
+    const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.svgMarkers).map(
       ([key, svgMarker]) => {
         const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
@@ -670,7 +670,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
   /* Render  */
   private renderEmojiGroups() {
-    const items = Object.entries(this._ludothequeDvm.playsetViewModel.perspective.emojiGroups).map(
+    const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.emojiGroups).map(
       ([key, emojiGroup]) => {
         const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
         const itemContent = html`
@@ -704,7 +704,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
    */
   render() {
     console.log("ludotheque-controller render() - " + this._initialized)
-    const playset = this._currentPlaysetEh? this._ludothequeDvm.ludothequeViewModel.getPlayset(this._currentPlaysetEh) : null;
+    const playset = this._currentPlaysetEh? this._ludothequeDvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
     this.probeInventory();

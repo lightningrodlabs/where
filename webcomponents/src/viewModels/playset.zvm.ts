@@ -26,7 +26,7 @@ export function countInventory(inventory: Inventory): number {
 /**
  *
  */
-export class PlaysetViewModel extends ZomeViewModel<PlaysetPerspective, PlaysetBridge> {
+export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge> {
   /** Ctor */
   constructor(protected dnaClient: DnaClient) {
     super(new PlaysetBridge(dnaClient));
@@ -34,8 +34,8 @@ export class PlaysetViewModel extends ZomeViewModel<PlaysetPerspective, PlaysetB
 
   /** -- ZomeViewModel -- */
 
-  static context = createContext<PlaysetViewModel>('zome_view_model/where_playset');
-  getContext(): any {return PlaysetViewModel.context}
+  static context = createContext<PlaysetZvm>('zome_view_model/where_playset');
+  getContext(): any {return PlaysetZvm.context}
 
   /* */
   protected hasChanged(): boolean {

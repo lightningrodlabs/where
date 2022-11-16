@@ -14,7 +14,7 @@ import {Picker} from "emoji-picker-element";
 import { localized, msg } from '@lit/localize';
 import {EmojiGroupEntry} from "../viewModels/playset.bindings";
 import {contextProvided} from "@lit-labs/context";
-import {PlaysetViewModel} from "../viewModels/playset.zvm";
+import {PlaysetZvm} from "../viewModels/playset.zvm";
 
 
 /** @element where-emoji-group */
@@ -24,8 +24,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   @state() private _currentUnicodes: string[] = [];
 
   /** Dependencies */
-  @contextProvided({ context: PlaysetViewModel.context, subscribe: true })
-  _playsetZvm!: PlaysetViewModel;
+  @contextProvided({ context: PlaysetZvm.context, subscribe: true })
+  _playsetZvm!: PlaysetZvm;
 
   /** Private properties */
 

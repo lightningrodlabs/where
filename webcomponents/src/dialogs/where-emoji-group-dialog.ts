@@ -2,16 +2,9 @@ import {css, html, LitElement} from "lit";
 import {query, state, property} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {
-  Button,
-  Dialog,
-  IconButton,
-  ListItem,
-  Select,
-  TextField
-} from "@scoped-elements/material-web";
+import {Button, Dialog, IconButton, ListItem, Select, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
-import { localized, msg } from '@lit/localize';
+import {localized, msg} from '@lit/localize';
 import {EmojiGroupEntry} from "../viewModels/playset.bindings";
 import {contextProvided} from "@lit-labs/context";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
@@ -54,7 +47,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   /** */
   protected firstUpdated(_changedProperties: any) {
     // super.firstUpdated(_changedProperties);
-    this.emojiPickerElem.addEventListener('emoji-click', (event: any ) => {
+    this.emojiPickerElem.addEventListener('emoji-click', (event: any) => {
       const unicode = event?.detail?.unicode
       //console.log("emoji-click: " + unicode)
       const index = this._currentUnicodes.indexOf(unicode);
@@ -77,7 +70,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   /** */
   private isValid() {
     let isValid: boolean = true;
-    // Check name
+    /* Check name */
     if (this._nameField) {
       if (!this._nameField.validity.valid) {
         isValid = false;
@@ -92,8 +85,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  private createEmojiGroup() {
-    /** Create EmojiGroupEntry */
+  private createEmojiGroup(): EmojiGroupEntry {
     return {
       name: this._nameField.value,
       description: "",
@@ -112,24 +104,24 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   /** */
   private async handleResetGroup(e: any) {
     this._currentUnicodes = [];
-    this.requestUpdate()
+    //this.requestUpdate()
   }
 
 
   /** */
   private async handleOk(e: any) {
     if (!this.isValid()) return
-    if (!this._playsetZvm) {
-      console.warn("No ViewModel available in svg-marker-dialog")
-      return;
-    }
+    // if (!this._playsetZvm) {
+    //   console.warn("No ViewModel available in svg-marker-dialog")
+    //   return;
+    // }
     const emojiGroup = this.createEmojiGroup()
-    const newGroupEh = await this._playsetZvm.publishEmojiGroup(emojiGroup);
+    const newGroupEh = await this._playsetZvm.publishEmojiGroupEntry(emojiGroup);
     console.log("newGroupEh: " + newGroupEh)
     this.dispatchEvent(new CustomEvent('emoji-group-added', { detail: newGroupEh, bubbles: true, composed: true }));
-    // - Clear all fields
+    /* - Clear all fields */
     this.clearAllFields();
-    // - Close Dialog
+    /* - Close Dialog */
     const dialog = this.shadowRoot!.getElementById("emoji-group-dialog") as Dialog;
     dialog.close()
   }

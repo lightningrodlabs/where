@@ -25,6 +25,7 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
+import {Space} from "../viewModels/where.perspective";
 
 
 /** Styles for top-app-bar */
@@ -316,7 +317,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(spaceEh);
     if (spaceEh) {
-      this.spaceDialogElem.loadPreset(spaceEh);
+      this.spaceDialogElem.loadPreset();
     }
   }
 
@@ -353,7 +354,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     dialog.clearAllFields();
     dialog.open(svgMarker);
     if (svgMarker) {
-      dialog.loadPreset(svgMarker);
+      dialog.loadPreset();
     }
   }
 
@@ -383,6 +384,14 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       default:
         break;
     }
+  }
+
+
+  /** */
+  private async handleSpaceDialogClosing(e: any) {
+    console.log("handleSpaceDialogClosing()", e.detail)
+    const space = e.detail as Space;
+    this._ludothequeDvm.playsetZvm.publishSpace(e.detail)
   }
 
 
@@ -813,7 +822,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     ></where-template-dialog>
     <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
     <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
-    <where-space-dialog id="space-dialog" @space-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
+    <where-space-dialog id="space-dialog" @space-created=${this.handleSpaceDialogClosing}></where-space-dialog>
   </div>
 </mwc-drawer>
 `;

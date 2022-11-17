@@ -12,6 +12,7 @@ import {
 import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
 import {PlaysetBridge} from "./playset.bridge";
 import {Inventory, PlaysetPerspective} from "./playset.perspective";
+import {convertSpaceToEntry, Space} from "./where.perspective";
 
 
 /** */
@@ -121,28 +122,28 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
 
   /** Publish */
 
-  async publishTemplate(template: TemplateEntry) : Promise<EntryHashB64> {
+  async publishTemplateEntry(template: TemplateEntry) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this._bridge.createTemplate(template)
     this._templates[eh] = template
     this.notify();
     return eh
   }
 
-  async publishEmojiGroup(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
+  async publishEmojiGroupEntry(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this._bridge.createEmojiGroup(emojiGroup)
     this._emojiGroups[eh] = emojiGroup
     this.notify();
     return eh
   }
 
-  async publishSvgMarker(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
+  async publishSvgMarkerEntry(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this._bridge.createSvgMarker(svgMarker)
     this._svgMarkers[eh] = svgMarker
     this.notify();
     return eh
   }
 
-  async publishSpace(space: SpaceEntry) : Promise<EntryHashB64> {
+  async publishSpaceEntry(space: SpaceEntry) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this._bridge.createSpace(space)
     this._spaces[eh] = space
     this.notify();
@@ -157,5 +158,20 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
     }
     return this._bridge.exportPiece(pieceEh, pieceType, cellId);
   }
+
+
+  /** Create new empty space */
+  async publishSpace(space: Space): Promise<EntryHashB64> {
+    /* Create and commit SpaceEntry */
+    const entry = convertSpaceToEntry(space);
+    const spaceEh: EntryHashB64 = await this.publishSpaceEntry(entry)
+    /* Notify others */
+    // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    //this.sendSignal(newSpace, this.others());
+    console.log("newSpace(): " + space.name + " | " + spaceEh)
+    /* Done */
+    return spaceEh;
+  }
+
 
 }

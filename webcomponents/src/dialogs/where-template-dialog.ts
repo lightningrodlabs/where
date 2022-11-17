@@ -1,19 +1,16 @@
 import {css, html, LitElement} from "lit";
-import {query, state} from "lit/decorators.js";
+import {query, state, property} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import {Coord, TemplateEntry, TemplateType} from "../types";
 import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import parser from "fast-xml-parser";
-import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {LudothequeStore} from "../ludotheque.store";
-import {property} from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
+import {TemplateType} from "../viewModels/playset.perspective";
+import {TemplateEntry} from "../viewModels/playset.bindings";
 
 
 /** */
@@ -40,32 +37,16 @@ function isValidXml(input: string) {
 }
 
 
-/** @element where-template */
+/** @element where-template-dialog */
 @localized()
 export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
-  @state() size : Coord = {x:0,y:0};
+  /** -- Fields -- */
 
+  private _currentType: TemplateType = TemplateType.Html;
+  private _canvas: string = "";
 
-  /** Dependencies */
-  //@contextProvided({ context: whereContext })
-  //_store: WhereStore;
-
-  @property()
-  store: WhereStore | LudothequeStore | null = null;
-
-  open(templateEh?: EntryHashB64) {
-    this._templateToPreload = templateEh;
-    const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog
-    dialog.open = true
-  }
-
-  /** Private properties */
-
-  _currentType: TemplateType = TemplateType.Html;
-  _canvas: string = "";
-
-  _templateToPreload?: EntryHashB64;
+  private _templateToPreload?: TemplateEntry;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -74,6 +55,18 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   @query('#type-field')
   _typeField!: Select;
 
+
+  /** -- Methods -- */
+
+  /** */
+  open(template: TemplateEntry) {
+    this._templateToPreload = template;
+    const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog
+    dialog.open = true
+  }
+
+
+  /** */
   updated(changedProperties: any) {
     if (this._canvas) {
       let canvas_code = prefix_canvas('template-canvas') + this._canvas;
@@ -87,15 +80,10 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   }
 
   /** preload fields with current template values */
-  loadPreset(templateEh: EntryHashB64) {
-    if (!this.store) {
-      console.warn("No store available in template-dialog")
-      return;
-    }
-    const templateToPreload = this.store.template(templateEh);
-    const surface = JSON.parse(templateToPreload.surface)
+  private loadPreset() {
+    const surface = JSON.parse(this._templateToPreload!.surface)
 
-    this._nameField.value = msg('Fork of') + ' ' + templateToPreload.name;
+    this._nameField.value = msg('Fork of') + ' ' + this._templateToPreload!.name;
 
     if (surface.html) {
       this._typeField.value = TemplateType.Html;
@@ -122,6 +110,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  /** */
   private isValid() {
     let isValid: boolean = true;
     // Check name
@@ -144,7 +133,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  private createTemplate() {
+  private createTemplate(): TemplateEntry {
     /** Create Surface */
     let surface: any = {}
     /** Size */
@@ -175,6 +164,8 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   private previewTemplate() {
     if (!this._currentType || !this._nameField || !this._surfaceField) return html``
     const template = this.createTemplate()
@@ -228,16 +219,13 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+
+  /** */
   private async handleOk(e: any) {
     if (!this.isValid()) return
-    if (!this.store) {
-      console.warn("No store available in template-dialog")
-      return;
-    }
     const template = this.createTemplate()
-    const newTemplateEh = await this.store.addTemplate(template);
-    console.log("newTemplateEh: " + newTemplateEh)
-    this.dispatchEvent(new CustomEvent('template-created', { detail: newTemplateEh, bubbles: true, composed: true }));
+    console.log("newTemplate: ", + template)
+    this.dispatchEvent(new CustomEvent('template-created', { detail: template, bubbles: true, composed: true }));
     /* Clear all fields */
     this.clearAllFields();
     /* Close Dialog */
@@ -247,7 +235,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
 
   private handleDialogOpened(e: any) {
     if (this._templateToPreload) {
-      this.loadPreset(this._templateToPreload);
+      this.loadPreset();
       this._templateToPreload = undefined;
     }
     this.requestUpdate();

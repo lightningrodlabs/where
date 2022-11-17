@@ -44,9 +44,10 @@ export class WhereBridge extends ZomeBridge {
     return this.call('create_next_session', {name, spaceEh});
   }
 
-  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<null> {
+  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<void> {
     return this.call('create_sessions', {spaceEh, sessionNames});
   }
+
   /** Location */
 
   async addHere(spaceEh: EntryHashB64, sessionIndex: number, value: string, meta: Dictionary<string>): Promise<ActionHashB64> {

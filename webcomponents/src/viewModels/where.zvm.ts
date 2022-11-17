@@ -7,7 +7,7 @@ import {
   convertLocationToHere,
   WherePerspective,
   LocationInfo,
-  Space, spaceIntoEntry
+  Space, convertSpaceToEntry
 } from "./where.perspective";
 import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
 import {createContext} from "@lit-labs/context";
@@ -76,6 +76,11 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
       this.notify();
   }
 
+  /** */
+  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<void> {
+    await this._bridge.createSessions(spaceEh, sessionNames);
+    this.notify();
+  }
 
   /** */
   async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {

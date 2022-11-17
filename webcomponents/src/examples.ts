@@ -8,7 +8,7 @@ import {
 import {PlaysetZvm} from "./viewModels/playset.zvm";
 import {SpaceEntry} from "./viewModels/playset.bindings";
 import {MarkerType} from "./viewModels/playset.perspective";
-import {createPlayset, Space, spaceIntoEntry} from "./viewModels/where.perspective";
+import {createPlayset, Space, convertSpaceToEntry} from "./viewModels/where.perspective";
 import {HoloHashedB64} from "./utils";
 import {LudothequeDvm} from "./viewModels/ludotheque.dvm";
 
@@ -18,34 +18,34 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
 
   /** Templates */
   console.log("Templates...")
-  const mapEh = await playsetZvm.publishTemplate({
+  const mapEh = await playsetZvm.publishTemplateEntry({
     name: "Map2D",
     surface: JSON.stringify({
       html: map2D_template_html
     }),
   })
-  const canvasEh = await playsetZvm.publishTemplate({
+  const canvasEh = await playsetZvm.publishTemplateEntry({
     name: "TV Static",
     surface: JSON.stringify({
       canvas: tvstatic_template_canvas,
       size: {x: 500, y: 500},
     }),
   })
-  const quadEh = await playsetZvm.publishTemplate({
+  const quadEh = await playsetZvm.publishTemplateEntry({
     name: "Quadrant",
     surface: JSON.stringify({
       svg: quadrant_template_svg,
       size: {x: 600, y: 600},
     }),
   })
-  const boxEh = await playsetZvm.publishTemplate({
+  const boxEh = await playsetZvm.publishTemplateEntry({
     name: "Box",
     surface: JSON.stringify({
       html: box_template_html,
       size: {x: 1000, y: 700},
     }),
   })
-  const triangleEh = await playsetZvm.publishTemplate({
+  const triangleEh = await playsetZvm.publishTemplateEntry({
     name: "Iron Triangle",
     surface: JSON.stringify({
       svg: triangle_template_svg,
@@ -56,12 +56,12 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
 
   /** Emoji Groups */
   console.log("Emojis...")
-  const heartsEh = await playsetZvm.publishEmojiGroup({
+  const heartsEh = await playsetZvm.publishEmojiGroupEntry({
     name: "hearts",
     description: "",
     unicodes: ["❤️", "🧡", "💛", "💚", "💙", "💜", "🤎", "🖤"]
   });
-  const zodiacSignsEh = await playsetZvm.publishEmojiGroup({
+  const zodiacSignsEh = await playsetZvm.publishEmojiGroupEntry({
     name: "zodiac signs",
     description: "",
     unicodes: ["♈️", "♉️", "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"]
@@ -70,20 +70,20 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
 
   /** SVG Markers */
   console.log("SVG Markers...")
-  const pinEh = await playsetZvm.publishSvgMarker({
+  const pinEh = await playsetZvm.publishSvgMarkerEntry({
     name: "Pin",
     value: '<path data-name="layer1" d="M32 2a20 20 0 0 0-20 20c0 18 20 40 20 40s20-22 20-40A20 20 0 0 0 32 2zm0 28a8 8 0 1 1 8-8 8 8 0 0 1-8 8z" fill="%%color%%"></path>',
   });
 
-  const otherEh = await playsetZvm.publishSvgMarker({
+  const otherEh = await playsetZvm.publishSvgMarkerEntry({
     name: "Cross",
     value: '<path d="m62.974825,55.511659l-7.426527,7.412329c-1.355295,1.369037 -3.568037,1.369037 -4.937175,0l-18.559378,-18.544683l-18.545536,18.544683c-1.369138,1.369037 -3.595723,1.369037 -4.951018,0l-7.426492,-7.412329c-1.369138,-1.369073 -1.369138,-3.581708 0,-4.950781l18.545536,-18.55849l-18.545536,-18.544647c-1.355331,-1.382915 -1.355331,-3.609357 0,-4.950781l7.426492,-7.426136c1.355295,-1.369073 3.58188,-1.369073 4.951018,0l18.545536,18.558454l18.559378,-18.558454c1.369138,-1.369073 3.595687,-1.369073 4.937175,0l7.426527,7.412329c1.369103,1.369037 1.369103,3.595515 0.013808,4.964588l-18.559378,18.544647l18.545571,18.55849c1.369103,1.369073 1.369103,3.581708 0,4.950781z" fill="%%color%%"/>',
   });
 
 
   const publishSpace = async (zvm: PlaysetZvm, space: Space) => {
-    const content = spaceIntoEntry(space);
-    const hash = await zvm.publishSpace(content);
+    const content = convertSpaceToEntry(space);
+    const hash = await zvm.publishSpaceEntry(content);
     spaceList.push({hash, content})
   }
 

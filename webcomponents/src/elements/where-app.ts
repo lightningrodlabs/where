@@ -31,9 +31,10 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {get} from 'svelte/store';
 import {WhereDvm} from "../viewModels/where.dvm";
-import {Play, WherePerspective} from "../viewModels/where.perspective";
+import {Play, Space, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
-import {PieceType} from "../viewModels/playset.bindings";
+import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
+import {WhereSignal} from "../viewModels/where.signals";
 
 
 
@@ -123,8 +124,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-folks") as WhereFolks;
   }
 
-  get spaceDialogElem() : WherePlayDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WherePlayDialog;
+  get playDialogElem() : WherePlayDialog {
+    return this.shadowRoot!.getElementById("play-dialog") as WherePlayDialog;
   }
 
   get myNickName(): string {
@@ -431,10 +432,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   async openSpaceDialog(spaceEh?: EntryHashB64) {
-    this.spaceDialogElem.resetAllFields();
-    this.spaceDialogElem.open(spaceEh);
-    if (spaceEh) {
-      this.spaceDialogElem.loadPreset(spaceEh);
+    const maybePlay = spaceEh? this._whereDvm.whereZvm.getPlay(spaceEh) : undefined;
+    this.playDialogElem.resetAllFields();
+    this.playDialogElem.open(maybePlay);
+    if (maybePlay) {
+      this.playDialogElem.loadPreset();
     }
   }
 
@@ -448,6 +450,30 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const value = this.playListElem.items[index].value;
     this.selectPlay(value);
   }
+
+
+  /** */
+  private async onTempleCreated(e: any) {
+    const template = e.detail as TemplateEntry;
+    const eh = await this._whereDvm.playsetZvm.publishTemplateEntry(template);
+    this._whereDvm.sendSignal(
+      {maybeSpaceHash: null, from: this._whereDvm.myAgentPubKey, message: {type:"NewTemplate", content: eh}},
+      await this.others(),
+    )
+  }
+
+  /** */
+  private async onPlayCreated(e: any) {
+    console.log("onPlayCreated()", e.detail)
+    const newPlayInput = e.detail;
+    const spaceEh = await this._whereDvm.newPlay(newPlayInput.space, newPlayInput.sessionNames)
+    /* - Notify others */
+    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._whereDvm.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    this._whereDvm.sendSignal(newSpace, await this.others());
+    /* */
+    await this.selectPlay(spaceEh);
+  }
+
 
 
   /** */
@@ -648,17 +674,19 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" @template-created=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-template-dialog id="template-dialog" @template-created=${this.onTemplateCreated}></where-template-dialog>
     ${!this._myProfile ? html`` : html`
-      <where-play-dialog id="space-dialog"
+      <where-play-dialog id="play-dialog"
                           .currentProfile=${this._myProfile}
-                          @play-added=${(e:any) => this.selectPlay(e.detail)}>
+                          @play-created=${this.onPlayCreated}>
       </where-play-dialog>
     `}
   </div>
 </mwc-drawer>
 `;
   }
+
+
 
   static get scopedElements() {
     return {

@@ -158,29 +158,29 @@ export function defaultLocationMeta(): LocationMeta {
 
 
 /** */
-export function spaceFromEntry(entry: SpaceEntry): Space {
+export function convertEntryToSpace(entry: SpaceEntry): Space {
   return {
     name: entry.name,
     origin: entry.origin,
     surface: JSON.parse(entry.surface),
     maybeMarkerPiece: entry.maybeMarkerPiece,
-    meta: entry.meta ? metaFromEntry(entry.meta) : defaultPlayMeta(),
+    meta: entry.meta ? convertEntryToPlayMeta(entry.meta) : defaultPlayMeta(),
   }
 }
 
 /** */
-export function spaceIntoEntry(space: Space): SpaceEntry {
+export function convertSpaceToEntry(space: Space): SpaceEntry {
   return {
     name: space.name,
     origin: space.origin,
     surface: JSON.stringify(space.surface),
     maybeMarkerPiece: space.maybeMarkerPiece,
-    meta: metaIntoEntry(space.meta)
+    meta: convertPlayMetaToEntryField(space.meta)
   }
 }
 
 /** */
-export function metaFromEntry(meta: Dictionary<string>): PlayMeta {
+export function convertEntryToPlayMeta(meta: Dictionary<string>): PlayMeta {
   let spaceMeta: any = {};
   try {
     for (const [key, value] of Object.entries(meta)) {
@@ -195,7 +195,7 @@ export function metaFromEntry(meta: Dictionary<string>): PlayMeta {
 }
 
 /** */
-export function metaIntoEntry(playMeta: PlayMeta): Dictionary<string> {
+export function convertPlayMetaToEntryField(playMeta: PlayMeta): Dictionary<string> {
   let dic: Dictionary<string> = {};
   for (const [key, value] of Object.entries(playMeta)) {
     dic[key] = JSON.stringify(value, mapReplacer)
@@ -257,7 +257,7 @@ export function createPlayset(name: string, spaces: HoloHashedB64<SpaceEntry>[])
   let svgMarkers = new Array();
   let emojiGroups = new Array();
   for (const entry of spaces) {
-    let space = spaceFromEntry(entry.content);
+    let space = convertEntryToSpace(entry.content);
     if (space.meta.markerType == MarkerType.SvgMarker) {
       let markerEh = (space.maybeMarkerPiece! as SvgMarkerVariant).svg;
       if (markerEh && !svgMarkers.includes(markerEh)) {

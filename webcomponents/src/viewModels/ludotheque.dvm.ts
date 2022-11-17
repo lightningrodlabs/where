@@ -6,7 +6,8 @@ import {DnaClient, DnaViewModel} from "@ddd-qc/dna-client";
 import {ReactiveElement} from "lit";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";
-import {spaceFromEntry} from "./where.perspective";
+import {convertEntryToSpace} from "./where.perspective";
+import {createContext} from "@lit-labs/context";
 
 
 /**
@@ -30,6 +31,10 @@ export class LudothequeDvm extends DnaViewModel {
     this.addZomeViewModel(LudothequeZvm);
   }
 
+  /** */
+  static context = createContext<LudothequeDvm>('dvm/ludotheque');
+  getContext(): any {return LudothequeDvm.context}
+
 
   /** */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
@@ -44,7 +49,7 @@ export class LudothequeDvm extends DnaViewModel {
     for (const spaceEh of playset.spaces) {
       const spaceEntry = this.playsetZvm.getSpace(spaceEh);
       console.log({space_entry: spaceEntry})
-      let space = spaceFromEntry(spaceEntry!);
+      let space = convertEntryToSpace(spaceEntry!);
       console.log({space})
 
       /* Get templates */

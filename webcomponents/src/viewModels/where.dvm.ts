@@ -4,7 +4,7 @@ import {
   WhereLocation,
   LocationInfo, PlacementSession,
   Play,
-  Space, spaceIntoEntry,
+  Space, convertSpaceToEntry,
   convertLocationToHere,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
@@ -368,23 +368,7 @@ export class WhereDvm extends DnaViewModel {
   // }
 
 
-  /**
-   * Create new empty space
-   */
-  async newSpace(space: Space): Promise<EntryHashB64> {
-    // - Create and commit SpaceEntry
-    const entry = spaceIntoEntry(space);
-    const spaceEh: EntryHashB64 = await this._playsetVm.publishSpace(entry)
-    // - Notify others
-    // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    //this.service.notify(newSpace, this.others());
-    // - Add play to store
-    console.log("newSpace(): " + space.name + " | " + spaceEh)
-    // Done
-    return spaceEh;
-  }
-
-
+  /** */
   updateZoom(spaceEh: EntryHashB64, delta: number) : void {
     this._zooms.update(zooms => {
       if (zooms[spaceEh] + delta < 0.1) {
@@ -444,26 +428,22 @@ export class WhereDvm extends DnaViewModel {
     if (sessionNamesArray && sessionNamesArray.length > 0 && sessionNamesArray[0] != "") {
       sessionNames = sessionNamesArray
     }
-    // - Create and commit SpaceEntry
-    const entry = spaceIntoEntry(space);
+    /* - Create and commit SpaceEntry */
+    const entry = convertSpaceToEntry(space);
     const spaceEh: EntryHashB64 = await this.createSpaceWithSessions(entry, sessionNames)
-    // - Notify others
-    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    this.sendSignal(newSpace, await this.others());
-    // - Add play to store
+    /* - Add play to store */
     console.log("newPlay(): " + space.name + " | " + spaceEh)
     this.addPlay(spaceEh);
-    // Done
+    /* Done */
     return spaceEh;
   }
-
 
 
   /** */
   async createSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
-    let spaceEh = await this.playsetZvm.publishSpace(space);
+    let spaceEh = await this.playsetZvm.publishSpaceEntry(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
     await this.whereZvm.createSessions(spaceEh, sessionNames);
     return spaceEh;

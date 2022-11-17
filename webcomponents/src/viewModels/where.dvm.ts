@@ -1,15 +1,13 @@
 import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
-  HereInfo,
   WhereLocation,
   LocationInfo, PlacementSession,
   Play,
   Space, convertSpaceToEntry,
-  convertLocationToHere,
+  convertLocationToHere, convertEntryToSpace, Coord,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
 import {areCellsEqual, HoloHashedB64} from "../utils";
-import {ProfilesStore} from "@holochain-open-dev/profiles";
 import {DnaClient, DnaViewModel} from "@ddd-qc/dna-client";
 import {SpaceEntry} from "./playset.bindings";
 import {ReactiveElement} from "lit";
@@ -60,7 +58,6 @@ export class WhereDvm extends DnaViewModel {
   /** Private */
   //private profiles: ProfilesStore
 
-
   /** */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
   get whereZvm(): WhereZvm { return this.getZomeViewModel("where") as WhereZvm}
@@ -73,8 +70,79 @@ export class WhereDvm extends DnaViewModel {
   /** agentPubKey -> timestamp */
   private _agentPresences: Dictionary<number> = {};
 
+  /** SpaceEh -> Play */
+  //private _plays: Dictionary<Play> = {};
+  /** SpaceEh -> sessionEh */
+  private _currentSessions: Dictionary<EntryHashB64> = {};
+
 
   getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
+  //getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}
+  getCurrentSession(spaceEh: EntryHashB64): EntryHashB64 | undefined { return this._currentSessions[spaceEh]}
+
+
+  /** */
+  setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
+    this._currentSessions[spaceEh] = sessionEh;
+    this.notify();
+  }
+
+
+
+  /** */
+  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
+    const sessionEh = await this._bridge.createNextSession(spaceEh, name);
+    this.setCurrentSession(spaceEh, sessionEh);
+    return sessionEh;
+  }
+
+
+  /** */
+  async deleteAllMyLocations(spaceEh: EntryHashB64) {
+    if (!this.isCurrentSessionToday(spaceEh)) {
+      return;
+    }
+    const play = this.whereZvm.getPlay(spaceEh);
+    const sessionEh = this.getCurrentSession(spaceEh);
+    let idx = 0;
+    for (const locInfo of play!.sessions[sessionEh!].locations) {
+      if (locInfo && locInfo.authorPubKey === this._dnaClient.myAgentPubKey) {
+        await this.deleteLocation(spaceEh, idx);
+      }
+      idx += 1;
+    }
+  }
+
+
+  /** Get locIdx of first location from agent with given name */
+  getAgentLocIdx(spaceEh: EntryHashB64, agent: string): number {
+    const sessionEh = this.getCurrentSession(spaceEh);
+    const play = this.whereZvm.getPlay(spaceEh);
+    return play!.sessions[sessionEh!].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.authorName == agent)
+  }
+
+
+  /** */
+  isCurrentSessionToday(spaceEh: EntryHashB64): boolean {
+    const play = this.whereZvm.getPlay(spaceEh);
+    const currentSessionEh = this.getCurrentSession(spaceEh);
+    if (!play || !currentSessionEh) {
+      return false;
+    }
+    if (play.space.meta.canModifyPast) {
+      return true;
+    }
+    let todaySessionEh = null;
+    const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
+    Object.entries(play.sessions).map(
+      ([key, session]) => {
+        if (session.name == today /* "dummy-test-name" */) {
+          todaySessionEh = key;
+        }
+      })
+    return todaySessionEh == currentSessionEh;
+  }
+
 
 
   /** -- Methods -- */
@@ -258,7 +326,7 @@ export class WhereDvm extends DnaViewModel {
 
   private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
     /* Check if already added */
-    if (this.whereZvm.getPlay(spaceEh)) {
+    if (this.getPlay(spaceEh)) {
       console.log("addPlay() aborted. Already have this space")
       return;
     }
@@ -266,46 +334,40 @@ export class WhereDvm extends DnaViewModel {
     const play: Play = await this.constructPlay(spaceEh);
     this._plays[spaceEh] = play
     /* Set starting zoom for new Play */
-    if (!get(this._zooms)[spaceEh]) {
-      this._zooms.update(zooms => {
-        zooms[spaceEh] = 1.0
-        return zooms
-      })
+    if (!this._zooms[spaceEh]) {
+        this._zooms[spaceEh] = 1.0
     }
     /* Set currentSession for new Play */
-    const firstSessionEh = await this.bridge.getSessionAddress(spaceEh, 0);
+    const firstSessionEh = await this.whereZvm.getSessions(spaceEh)![0];
     // console.log("addPlay() firstSessionEh: " + firstSessionEh)
     if (firstSessionEh) {
-      this.setCurrentSession(spaceEh, firstSessionEh)
+      this._currentSessions[spaceEh] = firstSessionEh;
     } else {
       console.error("No session found for Play " + play.space.name)
     }
+    this.notify();
   }
 
 
   /** */
   async probePlays() : Promise<Dictionary<Play>> {
-    const spaces = await this._bridge.getSpaces();
+    const spaces = this.playsetZvm.perspective.spaces;
     //const hiddens = await this.service.getHiddenSpaceList();
     //console.log({hiddens})
-    for (const space of spaces.values()) {
+    for (const space of Object.values(spaces)) {
       //const visible = !hiddens.includes(space.hash)
       await this.addPlay(space.hash)
     }
     return this._plays
   }
 
-  /** */
-  async getSpaces(): Promise<Array<HoloHashedB64<SpaceEntry>>> {
-    return this.callPlaysetZome('get_spaces', null);
-  }
 
   /** */
   async getVisibleSpaces(): Promise<Array<HoloHashedB64<SpaceEntry>>> {
-    let alls = await this.getSpaces();
+    let alls = this.playsetZvm.perspective.spaces;
     let hiddens = await this.getHiddenSpaceList();
     let visibles = Array();
-    for (const space of alls) {
+    for (const space of Object.values(alls)) {
       if (!hiddens.includes(space.hash)) {
         visibles.push(space)
       }
@@ -313,10 +375,8 @@ export class WhereDvm extends DnaViewModel {
     return visibles;
   }
 
-  async getHiddenSpaceList(): Promise<Array<EntryHashB64>> {
-    return this.callWhereZome('get_hidden_spaces', null);
-  }
 
+  /** */
   async isSpaceVisible(spaceEh: EntryHashB64): Promise<boolean> {
     const visibles: Array<HoloHashedB64<SpaceEntry>> = await this.getVisibleSpaces();
     //console.log({visibles})
@@ -329,31 +389,6 @@ export class WhereDvm extends DnaViewModel {
   }
 
 
-
-  /** Location */
-
-
-  async getLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
-    const hereInfos =  await this.callWhereZome('get_heres', sessionEh);
-    //console.debug({hereInfos})
-    return hereInfos.map((info: HereInfo) => {
-      return this.locationFromHere(info)
-    });
-  }
-
-  /** */
-  async sessionFromEntry(sessionEh: EntryHashB64): Promise<PlacementSession> {
-    const entry = await this.getSession(sessionEh);
-    if (entry) {
-      return {
-        name: entry.name,
-        index: entry.index,
-        locations: await this.getLocations(sessionEh)
-      }
-    }
-    console.error("sessionFromEntry(): Session entry not found")
-    return Promise.reject();
-  }
 
 
   /** Misc */
@@ -369,15 +404,13 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** */
-  updateZoom(spaceEh: EntryHashB64, delta: number) : void {
-    this._zooms.update(zooms => {
-      if (zooms[spaceEh] + delta < 0.1) {
-        zooms[spaceEh] = 0.1
+  updateZoom(spaceEh: EntryHashB64, delta: number): void {
+      if (this._zooms[spaceEh] + delta < 0.1) {
+        this._zooms[spaceEh] = 0.1
       } else {
-        zooms[spaceEh] += delta;
+        this._zooms[spaceEh] += delta;
       }
-      return zooms
-    })
+      this.notify();
   }
 
 
@@ -385,35 +418,35 @@ export class WhereDvm extends DnaViewModel {
    * Construct Play from all related DNA entries
    */
   async constructPlay(spaceEh: EntryHashB64): Promise<Play> {
-    // - Space
-    const spaceEntry = await this.bridge.getSpace(spaceEh)
+    /* - Space */
+    const spaceEntry = await this.playsetZvm.getSpace(spaceEh)
     if (!spaceEntry) {
-      console.error("Play not found")
-      return Promise.reject("Play not found")
+      console.error("Space not found")
+      return Promise.reject("Space not found")
     }
-    // - Sessions
-    const sessionEhs = await this.bridge.getSpaceSessions(spaceEh);
+    /* - Sessions */
+    const sessionEhs = await this.whereZvm.getSessions(spaceEh)!;
     console.log("constructPlay() - session count: " + sessionEhs.length);
     if (sessionEhs.length == 0) {
-      const session_eh = await this.bridge.createNextSession(spaceEh, "global");
+      const session_eh = await this.whereZvm.createNextSession(spaceEh, "global");
       sessionEhs.push(session_eh)
     }
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of sessionEhs) {
-      const session = await this.bridge.sessionFromEntry(sessionEh);
-      // - Heres
-      const locations = await this.bridge.getLocations(sessionEh);
+      const session = await this.whereZvm.fetchSession(sessionEh);
+      /* - Heres */
+      const locations = await this.whereZvm.fetchLocations(sessionEh);
       session.locations = locations;
       Object.assign(sessions, {[sessionEh]: session})
     }
-    // - Visible
-    const visible = await this.bridge.isSpaceVisible(spaceEh);
-    // - Done
+    /* - Visible */
+    const visible = await this.isSpaceVisible(spaceEh);
+    /* - Done */
     return {
-      space: this.bridge.spaceFromEntry(spaceEntry),
+      space: convertEntryToSpace(spaceEntry),
       visible,
       sessions,
-    } as Play;
+    };
   }
 
 
@@ -450,9 +483,31 @@ export class WhereDvm extends DnaViewModel {
   }
 
 
-  /** */
+  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c: Coord, others: Array<AgentPubKeyB64>, tag?: string, emoji?: string) {
+    const play = this.whereZvm.getPlay(spaceEh);
+    const sessionEh = this.getCurrentSession(spaceEh);
+    if (!play || !sessionEh) {
+      console.warn("updateLocation() failed: Play or Session not found", spaceEh);
+      return;
+    }
+    const oldLocInfo = play.sessions[sessionEh].locations[locIdx]!
+   const newLocInfo = await this.whereZvm.updateLocation(play, sessionEh, locIdx, c, tag, emoji);
+    const entry = convertLocationToHere(newLocInfo.location)
+    await this.sendSignal({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "DeleteHere", content: [oldLocInfo.location.sessionEh, oldLocInfo.linkAh]}},
+      others);
+    await this.sendSignal({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "NewHere", content: {entry, linkAh: newLocInfo.linkAh, author: this._dnaClient.myAgentPubKey}}},
+      others);
+  }
+
+    /** */
   async deleteLocation(spaceEh: EntryHashB64, idx: number) {
-    const locInfo = await this.whereZvm.deleteLocation(spaceEh, idx);
+    const play = this.whereZvm.getPlay(spaceEh);
+    const sessionEh = this.getCurrentSession(spaceEh);
+    if (!play || !sessionEh) {
+      console.warn("deleteLocation() failed: Space or session not found", spaceEh);
+      return Promise.reject("Space or session not found");
+    }
+    const locInfo = await this.whereZvm.deleteLocation(play, sessionEh, idx);
     await this.sendSignal({
         maybeSpaceHash: spaceEh,
         from: this._dnaClient.myAgentPubKey,

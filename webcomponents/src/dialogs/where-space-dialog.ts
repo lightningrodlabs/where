@@ -28,7 +28,7 @@ import {
   defaultLocationMeta,
   defaultPlayMeta,
   LocationMeta,
-  PlayMeta,
+  SpaceMeta,
   convertEntryToSpace,
   UiItem,
 } from "../viewModels/where.perspective";
@@ -53,7 +53,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   @state() private _currentPlaceHolders: Array<string> = [];
 
-  @state() private _currentMeta: PlayMeta = defaultPlayMeta();
+  @state() private _currentMeta: SpaceMeta = defaultPlayMeta();
   @state() private _currentMarker?: MarkerPiece;
 
   private _spaceToPreloadEh?: EntryHashB64;

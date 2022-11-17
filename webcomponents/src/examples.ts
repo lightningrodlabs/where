@@ -6,11 +6,11 @@ import {
   tvstatic_template_canvas
 } from "./templates";
 import {PlaysetZvm} from "./viewModels/playset.zvm";
-import {SpaceEntry} from "./viewModels/playset.bindings";
-import {MarkerType} from "./viewModels/playset.perspective";
-import {createPlayset, Space, convertSpaceToEntry} from "./viewModels/where.perspective";
+import {MarkerType, Space} from "./viewModels/playset.perspective";
 import {HoloHashedB64} from "./utils";
 import {LudothequeDvm} from "./viewModels/ludotheque.dvm";
+import {PlaysetEntry} from "./viewModels/ludotheque.bindings";
+import {EmojiGroupVariant, SvgMarkerVariant} from "./viewModels/playset.bindings";
 
 
 export async function publishExamplePlayset(dvm: LudothequeDvm) {
@@ -81,18 +81,17 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
   });
 
 
+  /** Spaces */
+  console.log("Spaces...")
+
+  let spaceList: Array<HoloHashedB64<Space>> = new Array();
+
   const publishSpace = async (zvm: PlaysetZvm, space: Space) => {
-    const content = convertSpaceToEntry(space);
-    const hash = await zvm.publishSpaceEntry(content);
-    spaceList.push({hash, content})
+    const hash = await zvm.publishSpace(space);
+    spaceList.push({hash, content: space})
   }
 
-  /** Spaces */
 
-  let spaceList: Array<HoloHashedB64<SpaceEntry>> = new Array();
-  let spaceEntry;
-
-  console.log("Spaces...")
   await publishSpace( playsetZvm, {
     name: "Ecuador",
     origin: mapEh,
@@ -230,4 +229,52 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
   const playsetEntry = await createPlayset("Demo Playset", spaceList);
   const playsetEh = dvm.ludothequeZvm.publishPlayset(playsetEntry);
   console.log("examples - DONE | " + playsetEh)
+}
+
+
+/** */
+export function createPlayset(name: string, spaces: HoloHashedB64<Space>[]): PlaysetEntry {
+  console.log("newPlayset() called:")
+  console.log({spaces})
+  /* Get templates */
+  let templates = new Array();
+  for (const space of spaces) {
+    if (!templates.includes(space.content.origin)) {
+      templates.push(space.content.origin)
+    }
+  }
+  /* Get markers */
+  let svgMarkers = new Array();
+  let emojiGroups = new Array();
+  for (const {hash, content} of spaces) {
+    const space = content
+    if (space.meta.markerType == MarkerType.SvgMarker) {
+      let markerEh = (space.maybeMarkerPiece! as SvgMarkerVariant).svg;
+      if (markerEh && !svgMarkers.includes(markerEh)) {
+        svgMarkers.push(markerEh)
+      }
+    } else {
+      if (space.meta.markerType == MarkerType.EmojiGroup) {
+        let eh = (space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup;
+        if (eh && !svgMarkers.includes(eh)) {
+          emojiGroups.push(eh)
+        }
+      }
+    }
+
+  }
+  /* Get space hashes */
+  let spaceEhs = new Array();
+  for (const space of spaces) {
+    spaceEhs.push(space.hash)
+  }
+  /* - Create PlaysetEntry */
+  return {
+    name,
+    description: "",
+    spaces: spaceEhs,
+    templates,
+    svgMarkers,
+    emojiGroups,
+  } as PlaysetEntry;
 }

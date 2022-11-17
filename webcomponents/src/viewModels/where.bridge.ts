@@ -18,21 +18,18 @@ export class WhereBridge extends ZomeBridge {
     return this.call('unhide_space', spaceEh);
   }
 
-  /** Space·s */
-
-
-  async getHiddenSpaceList(): Promise<Array<EntryHashB64>> {
+  async getHiddenSpaces(): Promise<Array<EntryHashB64>> {
     return this.call('get_hidden_spaces', null);
   }
 
 
   /** Session */
 
-  async getSession(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
+  async getSessionFromEh(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
     return this.call('get_session_from_eh', sessionEh);
   }
 
-  async getSessionAddress(spaceEh: EntryHashB64, index: number): Promise<EntryHashB64 | null> {
+  async getSession(spaceEh: EntryHashB64, index: number): Promise<EntryHashB64 | null> {
     return this.call('get_session', {spaceEh, index});
   }
 
@@ -47,6 +44,7 @@ export class WhereBridge extends ZomeBridge {
   async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<void> {
     return this.call('create_sessions', {spaceEh, sessionNames});
   }
+
 
   /** Location */
 

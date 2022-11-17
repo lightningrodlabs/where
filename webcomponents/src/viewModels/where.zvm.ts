@@ -7,12 +7,13 @@ import {
   convertLocationToHere,
   WherePerspective,
   LocationInfo,
-  Space, convertSpaceToEntry
+  HereInfo, convertHereToLocation, PlacementSession
 } from "./where.perspective";
 import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
 import {createContext} from "@lit-labs/context";
 import {WhereSignal} from "./where.signals";
-import {SpaceEntry} from "./playset.bindings";
+import {Space} from "./playset.perspective";
+
 
 /**
  *
@@ -36,7 +37,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
 
   /** */
   async probeDht() {
-    // n/a
+     // n/a
   }
 
   /** -- Perspective -- */
@@ -45,22 +46,26 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
   get perspective(): WherePerspective {
     return {
       plays: this._plays,
-      sessions: this._sessions,
-      currentSessions: this._currentSessions,
+      //currentSessions: this._currentSessions,
+      //sessions: this._sessions,
+      //locations: this._locations,
     };
   }
 
 
   /** SpaceEh -> Play */
   private _plays: Dictionary<Play> = {};
-  /** SpaceEh -> [sessionEh] */
-  private _sessions: Dictionary<EntryHashB64[]> = {};
   /** SpaceEh -> sessionEh */
-  private _currentSessions: Dictionary<EntryHashB64> = {};
+  //private _currentSessions: Dictionary<EntryHashB64> = {};
+  /** SpaceEh -> [sessionEh] */
+  //private _sessions: Dictionary<PlacementSession[]> = {};
+  /* SessionEh -> [locations] */
+  //private _locations: Dictionary<Location[]> = {};
 
   getPlay(eh: EntryHashB64): Play | undefined {return this._plays[eh]}
-  getSessions(eh: EntryHashB64): EntryHashB64[] | undefined {return this._sessions[eh]}
-  getCurrentSession(eh: EntryHashB64): EntryHashB64 | undefined {return this._currentSessions[eh]}
+  //getCurrentSession(eh: EntryHashB64): EntryHashB64 | undefined {return this._currentSessions[eh]}
+  //getSessions(eh: EntryHashB64): PlacementSession[] | undefined {return this._sessions[eh]}
+  //getLocations(eh: EntryHashB64): Location[] | undefined {return this._locations[eh]}
 
 
   /** -- Methods -- */
@@ -70,11 +75,6 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
     this._bridge.notify(signal, folks)
   }
 
-  /** */
-  setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
-      this._currentSessions[spaceEh] = sessionEh;
-      this.notify();
-  }
 
   /** */
   async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<void> {
@@ -82,34 +82,6 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
     this.notify();
   }
 
-  /** */
-  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
-    const sessionEh = await this._bridge.createNextSession(spaceEh, name);
-    this.setCurrentSession(spaceEh, sessionEh);
-    return sessionEh;
-  }
-
-
-  /** */
-  isCurrentSessionToday(spaceEh: EntryHashB64): boolean {
-    const play = this.getPlay(spaceEh);
-    const currentSessionEh = this.getCurrentSession(spaceEh);
-    if (!play || !currentSessionEh) {
-      return false;
-    }
-    if (play.space.meta.canModifyPast) {
-      return true;
-    }
-    let todaySessionEh = null;
-    const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
-    Object.entries(play.sessions).map(
-      ([key, session]) => {
-        if (session.name == today /* "dummy-test-name" */) {
-          todaySessionEh = key;
-        }
-      })
-    return todaySessionEh == currentSessionEh;
-  }
 
 
   /** */
@@ -127,34 +99,12 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
   }
 
 
-  /** */
-  async deleteAllMyLocations(spaceEh: EntryHashB64) {
-    if (!this.isCurrentSessionToday(spaceEh)) {
-      return;
-    }
-    const play = this.getPlay(spaceEh);
-    const sessionEh = this.getCurrentSession(spaceEh);
-    let idx = 0;
-    for (const locInfo of play!.sessions[sessionEh!].locations) {
-      if (locInfo && locInfo.authorPubKey === this._dnaClient.myAgentPubKey) {
-        await this.deleteLocation(spaceEh, idx);
-      }
-      idx += 1;
-    }
-  }
-
 
   /** */
-  async deleteLocation(spaceEh: EntryHashB64, idx: number): Promise<LocationInfo> {
-    const space = this.getPlay(spaceEh);
-    const sessionEh = this.getCurrentSession(spaceEh);
-    if (!space || !sessionEh) {
-      console.warn("deleteLocation() failed: Space or session not found", spaceEh);
-      return Promise.reject("Space or session not found");
-    }
-    const locInfo = space.sessions[sessionEh].locations[idx]!
+  async deleteLocation(play: Play, sessionEh: EntryHashB64, idx: number): Promise<LocationInfo> {
+    const locInfo = play.sessions[sessionEh].locations[idx]!
     await this._bridge.deleteHere(locInfo.linkAh)
-    this._plays[spaceEh].sessions[sessionEh].locations[idx] = null
+    play.sessions[sessionEh].locations[idx] = null
     this.notify();
     return locInfo;
   }
@@ -162,7 +112,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
 
   /** */
   async publishLocation(spaceEh: EntryHashB64, location: WhereLocation) : Promise<ActionHashB64> {
-    const session = await this._bridge.getSession(location.sessionEh);
+    const session = await this._bridge.getSessionFromEh(location.sessionEh);
     const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
     const locInfo: LocationInfo = { location, linkAh, authorPubKey: this._dnaClient.myAgentPubKey }
     this._plays[spaceEh].sessions[location.sessionEh].locations.push(locInfo)
@@ -179,14 +129,8 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
 
 
   /** */
-  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c: Coord, others: Array<AgentPubKeyB64>, tag?: string, emoji?: string) {
-    const space = this.getPlay(spaceEh);
-    const sessionEh = this.getCurrentSession(spaceEh);
-    if (!space || !sessionEh) {
-      console.warn("updateLocation() failed: Space not found", spaceEh);
-      return;
-    }
-    const locInfo = space.sessions[sessionEh].locations[locIdx]!
+  async updateLocation(play: Play, sessionEh: EntryHashB64, locIdx: number, c: Coord, tag?: string, emoji?: string): LocationInfo {
+    const locInfo = play.sessions[sessionEh].locations[locIdx]!
     locInfo.location.coord = c
     if (tag != null) {
       locInfo.location.meta.tag = tag
@@ -194,27 +138,41 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereBridge> {
     if (emoji != null) {
       locInfo.location.meta.emoji = emoji
     }
-    const session = await this._bridge.getSession(sessionEh);
+    const session = await this._bridge.getSessionFromEh(sessionEh);
     const newLinkAh: ActionHashB64 = await this.publishLocationWithSessionIndex(locInfo.location, spaceEh, session!.index)
     await this._bridge.deleteHere(locInfo.linkAh)
-    const oldHereAh = locInfo.linkAh;
     locInfo.linkAh = newLinkAh;
-    const oldSessionEh = locInfo.location.sessionEh;
-    this._plays[spaceEh].sessions[sessionEh].locations[locIdx] = locInfo;
+    play.sessions[sessionEh].locations[locIdx] = locInfo;
     this.notify();
-    const entry = convertLocationToHere(locInfo.location)
-    await this.sendSignal({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "DeleteHere", content: [oldSessionEh, oldHereAh]}},
-      others);
-    await this.sendSignal({maybeSpaceHash: spaceEh, from: this._dnaClient.myAgentPubKey, message: {type: "NewHere", content: {entry, linkAh: newLinkAh, author: this._dnaClient.myAgentPubKey}}},
-      others);
+    return locInfo;
   }
 
 
-  /** Get locIdx of first location from agent with given name */
-  getAgentLocIdx(spaceEh: EntryHashB64, agent: string): number {
-    const sessionEh = this.getCurrentSession(spaceEh);
-    const play = this.getPlay(spaceEh);
-    return play!.sessions[sessionEh!].locations.findIndex((locInfo) => locInfo && locInfo.location.meta.authorName == agent)
+
+
+  /** */
+  async fetchLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
+    const hereInfos =  await this._bridge.getHeres(sessionEh);
+    //console.debug({hereInfos})
+    return hereInfos.map((info: HereInfo) => {
+      return convertHereToLocation(info)
+    });
   }
+
+
+  /** */
+  async fetchSession(sessionEh: EntryHashB64): Promise<PlacementSession> {
+    const entry = await this._bridge.getSessionFromEh(sessionEh);
+    if (entry) {
+      return {
+        name: entry.name,
+        index: entry.index,
+        locations: await this.fetchLocations(sessionEh)
+      }
+    }
+    console.error("sessionFromEntry(): Session entry not found")
+    return Promise.reject("sessionFromEntry(): Session entry not found");
+  }
+
 
 }

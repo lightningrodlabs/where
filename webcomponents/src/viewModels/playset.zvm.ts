@@ -11,8 +11,7 @@ import {
 } from "./playset.bindings";
 import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
 import {PlaysetBridge} from "./playset.bridge";
-import {Inventory, PlaysetPerspective} from "./playset.perspective";
-import {convertSpaceToEntry, Space} from "./where.perspective";
+import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, Space} from "./playset.perspective";
 
 
 /** */
@@ -67,12 +66,12 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
   private _svgMarkers: Dictionary<SvgMarkerEntry> = {};
   private _emojiGroups: Dictionary<EmojiGroupEntry> = {};
   private _templates: Dictionary<TemplateEntry> = {};
-  private _spaces: Dictionary<SpaceEntry> = {};
+  private _spaces: Dictionary<Space> = {};
 
   getSvgMarker(eh: EntryHashB64): SvgMarkerEntry | undefined {return this._svgMarkers[eh]}
   getEmojiGroup(eh: EntryHashB64): EmojiGroupEntry | undefined {return this._emojiGroups[eh]}
   getTemplate(templateEh64: EntryHashB64): TemplateEntry | undefined {return this._templates[templateEh64]}
-  getSpace(eh: EntryHashB64): SpaceEntry | undefined {return this._spaces[eh]}
+  getSpace(eh: EntryHashB64): Space | undefined {return this._spaces[eh]}
 
 
   /** -- Methods -- */
@@ -110,10 +109,10 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
     return this._emojiGroups
   }
 
-  async probeSpaces() : Promise<Dictionary<SpaceEntry>> {
+  async probeSpaces() : Promise<Dictionary<Space>> {
     const spaces = await this._bridge.getSpaces();
     for (const e of spaces) {
-      this._spaces[e.hash] = e.content
+      this._spaces[e.hash] = convertEntryToSpace(e.content)
     }
     this.notify();
     return this._spaces
@@ -143,9 +142,20 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
     return eh
   }
 
-  async publishSpaceEntry(space: SpaceEntry) : Promise<EntryHashB64> {
+
+
+  /** */
+  async publishSpace(space: Space): Promise<EntryHashB64> {
+    const entry = convertSpaceToEntry(space);
+    const spaceEh: EntryHashB64 = await this.publishSpaceEntry(entry)
+    return spaceEh;
+  }
+
+
+  /** */
+  private async publishSpaceEntry(space: SpaceEntry) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this._bridge.createSpace(space)
-    this._spaces[eh] = space
+    this._spaces[eh] = convertEntryToSpace(space)
     this.notify();
     return eh
   }
@@ -159,19 +169,6 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
     return this._bridge.exportPiece(pieceEh, pieceType, cellId);
   }
 
-
-  /** Create new empty space */
-  async publishSpace(space: Space): Promise<EntryHashB64> {
-    /* Create and commit SpaceEntry */
-    const entry = convertSpaceToEntry(space);
-    const spaceEh: EntryHashB64 = await this.publishSpaceEntry(entry)
-    /* Notify others */
-    // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    //this.sendSignal(newSpace, this.others());
-    console.log("newSpace(): " + space.name + " | " + spaceEh)
-    /* Done */
-    return spaceEh;
-  }
 
 
 }

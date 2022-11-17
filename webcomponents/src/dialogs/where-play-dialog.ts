@@ -28,7 +28,7 @@ import {
 import {
   defaultLocationMeta,
   defaultPlayMeta, LocationMeta, Play,
-  PlayMeta,
+  SpaceMeta,
   UiItem,
 } from "../viewModels/where.perspective";
 import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective";
@@ -54,7 +54,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   /** State */
   @state() private _currentTemplate: null | TemplateEntry = null;
   @state() private _currentPlaceHolders: Array<string> = [];
-  @state() private _currentMeta: PlayMeta = defaultPlayMeta();
+  @state() private _currentMeta: SpaceMeta = defaultPlayMeta();
   @state() private _currentMarker?: MarkerPiece;
 
   @property({type: Object})

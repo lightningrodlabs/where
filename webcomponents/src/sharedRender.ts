@@ -1,7 +1,8 @@
 import {html, svg} from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {LocationMeta, MarkerType, UiItem} from "./types";
+import {MarkerType, UiItem} from "./viewModels/playset.perspective";
+import {LocationMeta} from "./viewModels/where.perspective";
 
 export const MARKER_WIDTH = 40;
 export const EMOJI_WIDTH  = 32;

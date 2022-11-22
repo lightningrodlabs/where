@@ -1,8 +1,6 @@
 import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@lit-labs/context";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
 import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
   TextArea, TextField
@@ -18,43 +16,32 @@ import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import { localized, msg } from '@lit/localize';
-import {
-  EmojiGroupVariant,
-  MarkerPiece,
-  SvgMarkerEntry,
-  SvgMarkerVariant,
-  TemplateEntry
-} from "../viewModels/playset.bindings";
+import {EmojiGroupVariant, MarkerPiece, SvgMarkerEntry, SvgMarkerVariant, TemplateEntry} from "../viewModels/playset.bindings";
 import {
   defaultLocationMeta,
-  defaultPlayMeta, LocationMeta, Play,
-  SpaceMeta,
-  UiItem,
+  LocationMeta, Play,
 } from "../viewModels/where.perspective";
-import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective";
+import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
+import {ZomeElement} from "@ddd-qc/dna-client";
 
 /**
  * @element where-play-dialog
  */
 @localized()
-export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
+export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
+  constructor() {
+    super("where_playset");
+  }
 
   /** Properties */
-  @property({ type: Object}) currentProfile?: Profile = undefined;
-
-  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  playsetPerspective!: PlaysetPerspective;
-
-  /** Dependencies */
-  @contextProvided({ context: PlaysetZvm.context, subscribe:true })
-  _playsetZvm!: PlaysetZvm;
-
+  @property({ type: Object})
+  currentProfile?: Profile = undefined;
 
   /** State */
   @state() private _currentTemplate: null | TemplateEntry = null;
   @state() private _currentPlaceHolders: Array<string> = [];
-  @state() private _currentMeta: SpaceMeta = defaultPlayMeta();
+  @state() private _currentMeta: SpaceMeta = defaultSpaceMeta();
   @state() private _currentMarker?: MarkerPiece;
 
   @property({type: Object})
@@ -380,7 +367,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     tabGroup.setActiveTab(generalTab);
 
     if (canResetName === undefined || canResetName) this._nameField.value = ''
-    this._currentMeta = defaultPlayMeta()
+    this._currentMeta = defaultSpaceMeta()
     // - Surface
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
@@ -423,7 +410,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   private handleTemplateSelect(templateName: string): void {
     this.resetAllFields(false);
     this._useTemplateSize = true;
-    this._currentTemplate = this._playsetZvm.getTemplate(templateName)!;
+    this._currentTemplate = this._zvm.getTemplate(templateName)!;
   }
 
   private async handlePreview(e: any) {
@@ -651,13 +638,13 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
         break;
       case MarkerType[MarkerType.SvgMarker]:
-        if (Object.keys(this._playsetZvm.perspective.svgMarkers)[0]) {
-          this._currentMarker = {svg: Object.keys(this._playsetZvm.perspective.svgMarkers)[0]};
+        if (Object.keys(this.perspective.svgMarkers)[0]) {
+          this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};
         }
         break;
       case MarkerType[MarkerType.EmojiGroup]:
-        if (Object.keys(this._playsetZvm.perspective.emojiGroups)[0]) {
-          this._currentMarker = {svg: Object.keys(this._playsetZvm.perspective.emojiGroups)[0]};
+        if (Object.keys(this.perspective.emojiGroups)[0]) {
+          this._currentMarker = {svg: Object.keys(this.perspective.emojiGroups)[0]};
         }
         break;
       default:
@@ -682,7 +669,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     //const maybeEmojiGroupSelector = this.shadowRoot!.getElementById("emoji-group-field") as Select;
     let unicodes = ""
     // FIXME: should retrieve group by eh instead of name
-    for (const [eh, group] of Object.entries(this._playsetZvm.perspective.emojiGroups)) {
+    for (const [eh, group] of Object.entries(this.perspective.emojiGroups)) {
       if (group.name == selectedName) {
         unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
         this._currentMarker = {emojiGroup: eh};
@@ -710,7 +697,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
     /** Find svg marker and set to preview */
     // FIXME: should retrieve svgMarker by eh instead of name
-    for (const [eh, svgMarker] of Object.entries(this._playsetZvm.perspective.svgMarkers)) {
+    for (const [eh, svgMarker] of Object.entries(this.perspective.svgMarkers)) {
       if (svgMarker.name == selectedName) {
         // console.log("svg marker found: " + selectedName)
         this._currentMarker = {svg: eh};
@@ -731,7 +718,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._playsetZvm.getEmojiGroup(groupEh)
+      group = this._zvm.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -744,7 +731,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._playsetZvm.getSvgMarker(eh);
+      svgMarker = this._zvm.getSvgMarker(eh);
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
@@ -757,13 +744,15 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    const playsetPersp = this._playsetZvm.perspective;
+    if (!this._loaded) {
+      return html`<span>Loading...</span>`
+    }
 
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      const firstTemplateEh = Object.keys(playsetPersp.templates)[0];
+      const firstTemplateEh = Object.keys(this.perspective.templates)[0];
       //console.log(firstTemplate)
-      const firstTemplate = this._playsetZvm.getTemplate(firstTemplateEh)
+      const firstTemplate = this._zvm.getTemplate(firstTemplateEh)
       this._currentTemplate = firstTemplate? firstTemplate : null
       //console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
     }
@@ -795,7 +784,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         marker_eh = (this._currentMarker as EmojiGroupVariant).emojiGroup;
         /** Build group list */
         console.log("** Building emoji group field:")
-        const groups = Object.entries(this._playsetZvm.perspective.emojiGroups).map(
+        const groups = Object.entries(this.perspective.emojiGroups).map(
           ([key, emojiGroup]) => {
             console.log({emojiGroup})
             return html`
@@ -808,7 +797,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         /** Get current unicodes */
         let unicodes = ""
         if (this._currentMarker && "emojiGroup" in this._currentMarker) {
-          const currentGroup = this._playsetZvm.getEmojiGroup(this._currentMarker.emojiGroup);
+          const currentGroup = this._zvm.getEmojiGroup(this._currentMarker.emojiGroup);
           unicodes = currentGroup!.unicodes.reduce((prev, cur, idx) => prev += cur);
         }
         /** Render */
@@ -829,10 +818,10 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         marker_eh = (this._currentMarker as SvgMarkerVariant).svg;
         /** Build marker list */
         if ((!this._currentMarker ||
-          "emojiGroup" in this._currentMarker) && Object.keys(playsetPersp.svgMarkers).length > 0) {
-          this._currentMarker = {svg: Object.keys(playsetPersp.svgMarkers)[0]};
+          "emojiGroup" in this._currentMarker) && Object.keys(this.perspective.svgMarkers).length > 0) {
+          this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};
         }
-        const markers = Object.entries(playsetPersp.svgMarkers).map(
+        const markers = Object.entries(this.perspective.svgMarkers).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
             let currentMarker = renderSvgMarker(svgMarker.value, color)
@@ -847,7 +836,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         /** Get current unicodes */
         let selectedMarker = html``;
         if (this._currentMarker && "svg" in this._currentMarker) {
-          const marker = playsetPersp.svgMarkers[this._currentMarker?.svg]
+          const marker = this.perspective.svgMarkers[this._currentMarker?.svg]
           //console.log({marker})
           selectedMarker = renderSvgMarker(marker.value, color)
         }
@@ -892,11 +881,11 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     <!-- Template/Surface -->
       <!-- <h4 style="margin-bottom: 15px;">Surface</h4> -->
     <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
-        ${Object.entries(playsetPersp.templates).map(
+        ${Object.entries(this.perspective.templates).map(
           ([key, template]) => html`
           <mwc-list-item
             @request-selected=${() => this.handleTemplateSelect(key)}
-            .selected=${playsetPersp.templates[key].name === this._currentTemplate!.name}
+            .selected=${this.perspective.templates[key].name === this._currentTemplate!.name}
             value="${key}"
             >${template.name}
           </mwc-list-item>
@@ -1000,7 +989,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   /** */
   handleGroupAdded(eh: EntryHashB64) {
     this._currentMarker = {emojiGroup: eh};
-    const emojiGroup = this._playsetZvm.getEmojiGroup(eh);
+    const emojiGroup = this._zvm.getEmojiGroup(eh);
     const unicodes = emojiGroup!.unicodes.reduce((prev, cur, idx) => prev += cur);
     let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
     unicodeContainer!.innerHTML = unicodes
@@ -1013,7 +1002,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   /** */
   async onSvgMarkerCreated(e: any) {
     const newSvgMarker = e.detail as SvgMarkerEntry;
-    const eh = await this._playsetZvm.publishSvgMarkerEntry(newSvgMarker);
+    const eh = await this._zvm.publishSvgMarkerEntry(newSvgMarker);
     this._currentMarker = {svg: eh};
     //const svgMarker = this._svgMarkers.value[eh];
     //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");

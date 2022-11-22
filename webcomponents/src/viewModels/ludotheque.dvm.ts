@@ -17,7 +17,7 @@ import {createContext} from "@lit-labs/context";
 export class LudothequeDvm extends DnaViewModel<unknown> {
 
   /** */
-  private constructor(happ: HappViewModel, roleId: string) {
+  constructor(happ: HappViewModel, roleId: string) {
     super(happ, roleId, [PlaysetZvm, LudothequeZvm]);
   }
 

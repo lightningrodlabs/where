@@ -2,12 +2,9 @@ import {css, html, LitElement} from "lit";
 import {query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@lit-labs/context";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
-import {EntryHashB64} from "@holochain-open-dev/core-types";
 import { localized, msg } from '@lit/localize';
-import {LudothequeZvm} from "../viewModels/ludotheque.zvm";
 import {Coord} from "../viewModels/where.perspective";
 import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
 
@@ -19,19 +16,9 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   @state() size : Coord = {x:0,y:0};
 
 
-  /** Dependencies */
-  @contextProvided({ context: LudothequeZvm.context, subscribe:true })
-  _ludothequeZvm!: LudothequeZvm;
-
-  open(playsetEh?: EntryHashB64) {
-    this._playsetToPreload = playsetEh;
-    const dialog = this.shadowRoot!.getElementById("playset-inner-dialog") as Dialog
-    dialog.open = true
-  }
-
   /** Private properties */
 
-  _playsetToPreload?: EntryHashB64;
+  _playsetToPreload?: PlaysetEntry;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -41,11 +28,17 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   /** -- Methods -- */
 
   /** preload fields with current template values */
-  loadPreset(playsetEh: EntryHashB64) {
-    const playsetToPreload = this._ludothequeZvm.getPlayset(playsetEh);
-    this._nameField.value = msg('Fork of') + ' ' + playsetToPreload!.name;
-    this._descriptionField.value = playsetToPreload!.description;
+  loadPreset() {
+    this._nameField.value = msg('Fork of') + ' ' + this._playsetToPreload!.name;
+    this._descriptionField.value = this._playsetToPreload!.description;
   }
+
+  open(playset?: PlaysetEntry) {
+    this._playsetToPreload = playset;
+    const dialog = this.shadowRoot!.getElementById("playset-inner-dialog") as Dialog
+    dialog.open = true
+  }
+
 
   /** */
   clearAllFields() {
@@ -99,7 +92,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   /** */
   private handleDialogOpened(e: any) {
     if (this._playsetToPreload) {
-      this.loadPreset(this._playsetToPreload);
+      this.loadPreset();
       this._playsetToPreload = undefined;
     }
     this.requestUpdate();

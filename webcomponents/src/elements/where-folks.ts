@@ -20,8 +20,6 @@ import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
 import {AgentPubKeyMap, serializeHash} from "@holochain-open-dev/utils";
 
 import { sharedStyles } from "../sharedStyles";
-import {whereContext} from "../types";
-import { WhereStore } from "../where.store";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
 
@@ -40,13 +38,11 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
   /** Dependencies */
 
-  @contextProvided({ context: whereContext, subscribe: true })
-  _store!: WhereStore;
   @contextProvided({ context: profilesStoreContext, subscribe: true })
   _profiles!: ProfilesStore;
 
   //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
-  _agentPresences = new StoreSubscriber(this, () => this._store?.agentPresences);
+  // _agentPresences = new StoreSubscriber(this, () => this._store?.agentPresences);
 
 
   private _allProfilesTask = new TaskSubscriber(
@@ -64,7 +60,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     if (key == serializeHash(this._profiles.myAgentPubKey)) {
       return "success";
     }
-    const lastPingTime: number = this._agentPresences.value[key];
+    const lastPingTime: number = 0 //FIXME this._agentPresences.value[key];
     const currentTime: number = Math.floor(Date.now()/1000);
     const diff: number = currentTime - lastPingTime;
     if (diff < 30) {

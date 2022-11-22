@@ -1,24 +1,27 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {query, state, property} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, IconButton, ListItem, Select, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {localized, msg} from '@lit/localize';
 import {EmojiGroupEntry} from "../viewModels/playset.bindings";
-import {contextProvided} from "@lit-labs/context";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
+import {PlaysetPerspective} from "../viewModels/playset.perspective";
+import {ZomeElement} from "@ddd-qc/dna-client";
 
 
 /** @element where-emoji-group */
 @localized()
-export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
+export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
+  constructor() {
+    super("where_playset");
+  }
 
   @state() private _currentUnicodes: string[] = [];
 
   /** Dependencies */
-  @contextProvided({ context: PlaysetZvm.context, subscribe: true })
-  _playsetZvm!: PlaysetZvm;
+  // @contextProvided({ context: PlaysetZvm.context, subscribe: true })
+  // _playsetZvm!: PlaysetZvm;
 
   /** Private properties */
 
@@ -45,7 +48,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  protected firstUpdated(_changedProperties: any) {
+  async firstUpdated() {
+    super.firstUpdated();
     // super.firstUpdated(_changedProperties);
     this.emojiPickerElem.addEventListener('emoji-click', (event: any) => {
       const unicode = event?.detail?.unicode
@@ -116,7 +120,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     //   return;
     // }
     const emojiGroup = this.createEmojiGroup()
-    const newGroupEh = await this._playsetZvm.publishEmojiGroupEntry(emojiGroup);
+    const newGroupEh = await this._zvm.publishEmojiGroupEntry(emojiGroup);
     console.log("newGroupEh: " + newGroupEh)
     this.dispatchEvent(new CustomEvent('emoji-group-added', { detail: newGroupEh, bubbles: true, composed: true }));
     /* - Clear all fields */

@@ -1,14 +1,8 @@
 import {css, html, LitElement} from "lit";
 import {state} from "lit/decorators.js";
-
 import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {
-  Button,
-  Dialog,
-  IconButton,
-  TextField
-} from "@scoped-elements/material-web";
+import {Button, Dialog, IconButton, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {EMOJI_WIDTH} from "../sharedRender";
 import { localized, msg } from '@lit/localize';

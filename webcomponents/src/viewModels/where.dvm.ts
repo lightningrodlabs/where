@@ -35,7 +35,7 @@ export interface WhereDnaPerspective {
 export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
 
   /** */
-  private constructor(happ: HappViewModel, roleId: string) {
+  constructor(happ: HappViewModel, roleId: string) {
     super(happ, roleId, [PlaysetZvm, WhereZvm]);
     happ.conductorAppProxy.addSignalHandler(this.handleSignal)
     // this.profiles = profilesStore;
@@ -245,23 +245,10 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
 
 
   /** */
-  async pingOthers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64) {
+  async pingPeers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64, folks: Array<AgentPubKeyB64>) {
     const ping: WhereSignal = {maybeSpaceHash: spaceHash, from: this._cellProxy.agentPubKey, message: {type: 'Ping', content: myKey}};
     // console.log({signal})
-    this.notifyPeers(ping, await this.others());
-  }
-
-
-  /** */
-  async others(): Promise<Array<AgentPubKeyB64>> {
-    let keysB64 = new Array();
-    // const profiles = get(await this.profiles.fetchAllProfiles());
-    // console.log({profiles})
-    // keysB64 = profiles.keys()
-    //   .map(key => serializeHash(key))
-    //   .filter((key)=> key != this.myAgentPubKey)
-    // console.log({keysB64})
-    return keysB64
+    this.notifyPeers(ping, folks);
   }
 
 
@@ -454,29 +441,29 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
       return Promise.reject("Space or session not found");
     }
     const locInfo = await this.whereZvm.deleteLocation(sessionEh, idx);
-    await this.notifyPeers({
-        maybeSpaceHash: spaceEh,
-        from: this._cellProxy.agentPubKey,
-        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkAh]
-        }},
-      await this.others());
+    // await this.notifyPeers({
+    //     maybeSpaceHash: spaceEh,
+    //     from: this._cellProxy.agentPubKey,
+    //     message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkAh]
+    //     }},
+    //   await this.others());
   }
 
 
-  /** */
-  async publishLocation(spaceEh: EntryHashB64, location: WhereLocation): Promise<void> {
-    const linkAh = await this.whereZvm.publishLocation(location, spaceEh);
-    /* Notify peers */
-    const entry = convertLocationToHere(location)
-    this.notifyPeers({
-        maybeSpaceHash: spaceEh,
-        from: this._cellProxy.agentPubKey,
-        message: {
-          type: "NewHere",
-          content: {entry, linkAh, author: this._cellProxy.agentPubKey}
-        }
-      }
-      , await this.others());
-  }
+  // /** */
+  // async publishLocation(location: WhereLocation, spaceEh: EntryHashB64): Promise<void> {
+  //   const linkAh = await this.whereZvm.publishLocation(location, spaceEh);
+  //   /* Notify peers */
+  //   const entry = convertLocationToHere(location)
+  //   this.notifyPeers({
+  //       maybeSpaceHash: spaceEh,
+  //       from: this._cellProxy.agentPubKey,
+  //       message: {
+  //         type: "NewHere",
+  //         content: {entry, linkAh, author: this._cellProxy.agentPubKey}
+  //       }
+  //     }
+  //     , await this.others());
+  // }
 }
 

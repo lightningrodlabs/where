@@ -25,35 +25,32 @@ import {
   TemplateEntry
 } from "../viewModels/playset.bindings";
 import {
-  defaultLocationMeta,
-  defaultPlayMeta,
-  LocationMeta,
-  SpaceMeta,
   convertEntryToSpace,
-  UiItem,
-} from "../viewModels/where.perspective";
-import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective";
+  defaultSpaceMeta,
+  MarkerType,
+  PlaysetPerspective,
+  SpaceMeta, UiItem
+} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
+import {ZomeElement} from "@ddd-qc/dna-client";
+import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective";
 
 
 /**
  * @element where-space-dialog
  */
 @localized()
-export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
-  /** Dependencies */
-  @contextProvided({ context: PlaysetZvm.context, subscribe:true })
-  _playsetZvm!: PlaysetZvm;
-
-  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  perspective!: PlaysetPerspective;
+export class WhereSpaceDialog extends  ZomeElement<PlaysetPerspective, PlaysetZvm> {
+  constructor() {
+    super("where_playset");
+  }
 
   /** Private */
   @state() private _currentTemplate: null | TemplateEntry = null;
 
   @state() private _currentPlaceHolders: Array<string> = [];
 
-  @state() private _currentMeta: SpaceMeta = defaultPlayMeta();
+  @state() private _currentMeta: SpaceMeta = defaultSpaceMeta();
   @state() private _currentMarker?: MarkerPiece;
 
   private _spaceToPreloadEh?: EntryHashB64;
@@ -119,7 +116,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   /** */
   loadPreset() {
-    const originalSpace = convertEntryToSpace(this.perspective.spaces[this._spaceToPreloadEh!]);
+    const originalSpace = this.perspective.spaces[this._spaceToPreloadEh!];
     if (!originalSpace) {
       return;
     }
@@ -291,7 +288,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     tabGroup.setActiveTab(generalTab);
 
     if (canResetName === undefined || canResetName) this._nameField.value = ''
-    this._currentMeta = defaultPlayMeta()
+    this._currentMeta = defaultSpaceMeta()
     /* - Surface */
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
@@ -881,7 +878,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   /** */
   async onSvgMarkerCreated(e: any) {
     const newSvgMarker = e.detail as SvgMarkerEntry;
-    const eh = await this._playsetZvm.publishSvgMarkerEntry(newSvgMarker);
+    const eh = await this._zvm.publishSvgMarkerEntry(newSvgMarker);
     this._currentMarker = {svg: eh};
     //const svgMarker = this._svgMarkers.value[eh];
     //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");

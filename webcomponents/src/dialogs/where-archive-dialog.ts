@@ -1,25 +1,18 @@
-import { html, css, LitElement } from "lit";
+import { html, css } from "lit";
 import { state, query } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
-import { contextProvided } from '@lit-labs/context';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import {
-  Dialog,
-  Button,
-  CheckListItem,
-  List,
-} from "@scoped-elements/material-web";
+import {Dialog, Button, CheckListItem, List} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
-import {WhereZvm} from "../viewModels/where.zvm";
+import {DnaElement} from "@ddd-qc/dna-client";
+import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 
 
 /** @element where-archive-dialog */
 @localized()
-export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
-
-  /** Dependencies */
-  @contextProvided({ context: WhereZvm.context, subscribe: true })
-  _whereZvm!: WhereZvm;
+export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm> {
+  constructor() {
+    super("where");
+  }
 
   @query('#space-list')
   _spaceList!: List;
@@ -41,18 +34,18 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
     for (const item of this._spaceList.items) {
       const spaceEh = item.value;
       const visible = !item.selected;
-      const maybePlay = this._whereZvm.getManifest(spaceEh)
+      const maybePlay = this._dvm.getPlay(spaceEh)
       if (maybePlay && maybePlay.visible != visible) {
         changed.push(spaceEh)
         if (visible) {
-          await this._whereZvm.unhidePlay(spaceEh)
+          await this._dvm.whereZvm.unhidePlay(spaceEh)
         } else {
-          await this._whereZvm.hidePlay(spaceEh)
+          await this._dvm.whereZvm.hidePlay(spaceEh)
         }
       }
     }
     /** Close Dialog */
-    this.dispatchEvent(new CustomEvent('archive-update', { detail: changed, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('archive-updated', { detail: changed, bubbles: true, composed: true }));
     const dialog = this.shadowRoot!.getElementById("archive-dialog") as Dialog;
     dialog.close()
   }
@@ -66,12 +59,12 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    const plays = this._whereZvm.perspective.plays;
+    const manifests = this.perspective.plays;
 
     return html`
 <mwc-dialog id="archive-dialog" heading="${msg('Archived Spaces')}" @opened=${this.handleDialogOpened}>
 <mwc-list id="space-list" multi>
-  ${Object.entries(plays).map(
+  ${Object.entries(manifests).map(
     ([key, play]) => html`
       <mwc-check-list-item
         left

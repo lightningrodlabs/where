@@ -304,7 +304,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           svgMarker,
         },
       };
-      this._whereDvm.publishLocation(this.currentSpaceEh, location);
+      this._whereDvm.whereZvm.publishLocation(location, this.currentSpaceEh);
     }
   }
 
@@ -413,12 +413,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         this.currentSpaceEh!,
         this._dialogIdx,
         this._dialogCoord,
-        await this._whereDvm.others(),
+        [], // FIXME await this._whereDvm.others(),
         tagValue,
         emojiValue
       );
     } else {
-      this._whereDvm.publishLocation(this.currentSpaceEh!, location);
+      this._whereDvm.whereZvm.publishLocation(location, this.currentSpaceEh!);
     }
   }
 
@@ -481,9 +481,10 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     let coord = this.getCoordsFromEvent(ev);
     coord.x = coord.x + offsetX;
     coord.y = coord.y + offsetY;
-    this._whereDvm.others().then((others) => {
-      this._whereDvm.updateLocation(this.currentSpaceEh!, idx, coord, others)
-    });
+    // FIXME
+    // this._whereDvm.others().then((others) => {
+    //   this._whereDvm.updateLocation(this.currentSpaceEh!, idx, coord, others)
+    // });
   }
 
 

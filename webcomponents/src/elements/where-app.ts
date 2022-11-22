@@ -409,6 +409,19 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
+  async others(): Promise<Array<AgentPubKeyB64>> {
+    let keysB64 = new Array();
+    // const profiles = get(await this.profiles.fetchAllProfiles());
+    // console.log({profiles})
+    // keysB64 = profiles.keys()
+    //   .map(key => serializeHash(key))
+    //   .filter((key)=> key != this.myAgentPubKey)
+    // console.log({keysB64})
+    return keysB64
+  }
+
+
+  /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
     await this._whereDvm.probeAll()
@@ -676,7 +689,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     </div>
     <!-- DIALOGS -->
-    <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
+    <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" @template-created=${this.onTemplateCreated}></where-template-dialog>
     ${!this._myProfile ? html`` : html`
       <where-play-dialog id="play-dialog"

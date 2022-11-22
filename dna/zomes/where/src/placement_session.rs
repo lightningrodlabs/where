@@ -81,16 +81,18 @@ pub struct SpaceSessionsInput {
 }
 
 #[hdk_extern]
-fn create_sessions(input: SpaceSessionsInput) -> ExternResult<()> {
+fn create_sessions(input: SpaceSessionsInput) -> ExternResult<Vec<EntryHashB64>> {
   /// Make sure its a space
   let _ = is_valid_space(input.space_eh.clone().into())?;
   /// Create each session
   let mut index = 0;
+  let mut ehs = Vec::new();
   for name in input.session_names {
-    create_session(input.space_eh.clone().into(), name, index)?;
+    let eh = create_session(input.space_eh.clone().into(), name, index)?;
+    ehs.push(eh);
     index += 1;
   }
-  Ok(())
+  Ok(ehs)
 }
 
 
@@ -130,9 +132,9 @@ pub struct CreateNextSessionInput {
 }
 
 #[hdk_extern]
-fn create_next_session(input: CreateNextSessionInput) -> ExternResult<EntryHashB64> {
+fn create_next_session(input: CreateNextSessionInput) -> ExternResult<(EntryHashB64, u32)> {
   let space_eh: EntryHash = input.space_eh.into();
   let next_index = get_next_session_index(space_eh.clone())?;
-  let res = create_session(space_eh, input.name, next_index);
-  res
+  let eh = create_session(space_eh, input.name, next_index)?;
+  Ok((eh, next_index))
 }

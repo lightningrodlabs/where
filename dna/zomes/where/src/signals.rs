@@ -59,7 +59,7 @@ pub struct NotifyInput {
 
 ///
 #[hdk_extern]
-fn notify(input: NotifyInput) -> ExternResult<()> {
+fn notify_peers(input: NotifyInput) -> ExternResult<()> {
     let mut folks : Vec<AgentPubKey> = vec![];
     for a in input.folks.clone() {
         folks.push(a.into())

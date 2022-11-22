@@ -41,7 +41,7 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
     for (const item of this._spaceList.items) {
       const spaceEh = item.value;
       const visible = !item.selected;
-      const maybePlay = this._whereZvm.getPlay(spaceEh)
+      const maybePlay = this._whereZvm.getManifest(spaceEh)
       if (maybePlay && maybePlay.visible != visible) {
         changed.push(spaceEh)
         if (visible) {

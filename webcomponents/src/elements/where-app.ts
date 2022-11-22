@@ -30,8 +30,8 @@ import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {get} from 'svelte/store';
-import {WhereDvm} from "../viewModels/where.dvm";
-import {Play, Space, WherePerspective} from "../viewModels/where.perspective";
+import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
+import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
@@ -74,7 +74,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   _whereDvm!: WhereDvm;
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  wherePerspective!: WherePerspective;
+  whereDnaPerspective!: WhereDnaPerspective;
+
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // wherePerspective!: WherePerspective;
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   playsetPerspective!: PlaysetPerspective;
 
@@ -240,8 +243,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     //this.anchorMenu();
 
     /* look for canvas in plays and render them */
-    for (let spaceEh in this.wherePerspective.plays) {
-      let play: Play = this.wherePerspective.plays[spaceEh];
+    for (let spaceEh in this.whereDnaPerspective.plays) {
+      let play: Play = this.whereDnaPerspective.plays[spaceEh];
       if (play.space.surface.canvas && play.visible) {
         const id = play.space.name + '-canvas'
         const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
@@ -343,7 +346,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!play && time < 2000) {
-      play = this._whereDvm.whereZvm.getPlay(spaceEh);
+      play = this._whereDvm.getPlay(spaceEh);
       await delay(100);
       time += 100;
     }
@@ -388,7 +391,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   async archiveSpace() {
     await this._whereDvm.whereZvm.hidePlay(this._currentSpaceEh!)
     /** Select first play */
-    const firstSpaceEh = this.getFirstVisiblePlay(this.wherePerspective.plays)
+    const firstSpaceEh = this.getFirstVisiblePlay(this.whereDnaPerspective.plays)
     console.log({firstSpaceEh})
     this._currentSpaceEh = firstSpaceEh
     this.requestUpdate()
@@ -432,7 +435,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   async openSpaceDialog(spaceEh?: EntryHashB64) {
-    const maybePlay = spaceEh? this._whereDvm.whereZvm.getPlay(spaceEh) : undefined;
+    const maybePlay = spaceEh? this._whereDvm.getPlay(spaceEh) : undefined;
     this.playDialogElem.resetAllFields();
     this.playDialogElem.open(maybePlay);
     if (maybePlay) {
@@ -453,11 +456,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  private async onTempleCreated(e: any) {
+  private async onTemplateCreated(e: any) {
     const template = e.detail as TemplateEntry;
     const eh = await this._whereDvm.playsetZvm.publishTemplateEntry(template);
-    this._whereDvm.sendSignal(
-      {maybeSpaceHash: null, from: this._whereDvm.myAgentPubKey, message: {type:"NewTemplate", content: eh}},
+    this._whereDvm.notifyPeers(
+      {maybeSpaceHash: null, from: this._whereDvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
       await this.others(),
     )
   }
@@ -466,10 +469,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   private async onPlayCreated(e: any) {
     console.log("onPlayCreated()", e.detail)
     const newPlayInput = e.detail;
-    const spaceEh = await this._whereDvm.newPlay(newPlayInput.space, newPlayInput.sessionNames)
+    const spaceEh = await this._whereDvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._whereDvm.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    this._whereDvm.sendSignal(newSpace, await this.others());
+    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._whereDvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    this._whereDvm.notifyPeers(newSpace, await this.others());
     /* */
     await this.selectPlay(spaceEh);
   }
@@ -481,7 +484,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     /** Check if current play has been archived */
     if (e.detail.includes(this._currentSpaceEh)) {
       /** Select first visible play */
-      const firstSpaceEh = this.getFirstVisiblePlay(this.wherePerspective.plays);
+      const firstSpaceEh = this.getFirstVisiblePlay(this.whereDnaPerspective.plays);
       this._currentSpaceEh = firstSpaceEh;
       this.requestUpdate();
     }
@@ -577,7 +580,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     if (!this._currentSpaceEh) {
       /** Select first play  if none is set */
-      const firstSpaceEh = this.getFirstVisiblePlay(this.wherePerspective.plays);
+      const firstSpaceEh = this.getFirstVisiblePlay(this.whereDnaPerspective.plays);
       if (firstSpaceEh) {
         this.selectPlay(firstSpaceEh);
         //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
@@ -592,7 +595,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     }
     /** Build play list */
     let spaceName = "none"
-    const playItems = Object.entries(this.wherePerspective.plays).map(
+    const playItems = Object.entries(this.whereDnaPerspective.plays).map(
       ([key, play]) => {
         if (!play.visible) {
           return html ``;

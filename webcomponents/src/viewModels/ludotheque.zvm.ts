@@ -1,8 +1,8 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
 import {PlaysetEntry} from "./ludotheque.bindings";
-import {LudothequeBridge} from "./ludotheque.bridge";
-import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
+import {LudothequeProxy} from "./ludotheque.proxy";
+import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";
 import {createContext} from "@lit-labs/context";
 
 /** */
@@ -14,17 +14,19 @@ export interface LudothequePerspective {
 /**
  *
  */
-export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, LudothequeBridge> {
+export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, LudothequeProxy> {
 
   /** Ctor */
-  constructor(protected dnaClient: DnaClient) {
-    super(new LudothequeBridge(dnaClient));
+  constructor(protected _cellProxy: CellProxy) {
+    super(new LudothequeProxy(_cellProxy));
   }
 
   /** -- ZomeViewModel -- */
 
-  static context = createContext<LudothequeZvm>('zome_view_model/where_ludotheque');
-  getContext(): any {return LudothequeZvm.context}
+  // static context = createContext<LudothequeZvm>('zome_view_model/where_ludotheque');
+  // getContext(): any {return LudothequeZvm.context}
+
+  getContext(): any {return createContext<LudothequeZvm>('zvm/where_ludotheque/' + this._cellProxy.dnaHash)}
 
   /* */
   protected hasChanged(): boolean {
@@ -34,7 +36,7 @@ export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, Ludotheq
   }
 
   /** */
-  async probeDht() {
+  async probeAll() {
     await this.probePlaysets();
   }
 
@@ -60,7 +62,7 @@ export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, Ludotheq
   /** Probe */
 
   async probePlaysets(): Promise<Dictionary<PlaysetEntry>> {
-    const playsets = await this._bridge.getAllPlaysets();
+    const playsets = await this._zomeProxy.getAllPlaysets();
     for (const e of playsets) {
       this._playsets[e.hash] = e.content
     }
@@ -72,16 +74,16 @@ export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, Ludotheq
 
   /** */
   async publishPlayset(playset: PlaysetEntry) : Promise<EntryHashB64> {
-    const eh: EntryHashB64 = await this._bridge.createPlayset(playset)
+    const eh: EntryHashB64 = await this._zomeProxy.createPlayset(playset)
     this._playsets[eh] = playset;
-    this.notify();
+    this.notifySubscribers();
     return eh
   }
 
 
   /** */
   async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<void> {
-    return this._bridge.exportPlayset(playsetEh, cellId);
+    return this._zomeProxy.exportPlayset(playsetEh, cellId);
   }
 
 }

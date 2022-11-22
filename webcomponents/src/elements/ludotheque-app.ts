@@ -21,11 +21,10 @@ import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
 import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
-import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
+import {Inventory, PlaysetPerspective, Space} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {Space} from "../viewModels/where.perspective";
 
 
 /** Styles for top-app-bar */

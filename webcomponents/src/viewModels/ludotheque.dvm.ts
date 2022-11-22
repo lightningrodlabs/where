@@ -2,11 +2,9 @@ import {PlaysetEntry} from "./ludotheque.bindings";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {MarkerType} from "./playset.perspective";
 import {EmojiGroupVariant, SvgMarkerVariant} from "./playset.bindings";
-import {DnaClient, DnaViewModel} from "@ddd-qc/dna-client";
-import {ReactiveElement} from "lit";
+import {DnaViewModel, HappViewModel} from "@ddd-qc/dna-client";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";
-import {convertEntryToSpace} from "./where.perspective";
 import {createContext} from "@lit-labs/context";
 
 
@@ -16,24 +14,22 @@ import {createContext} from "@lit-labs/context";
  *  - Playset
  *  - Ludotheque
  */
-export class LudothequeDvm extends DnaViewModel {
-
-  /** async factory */
-  static async new(host: ReactiveElement, port: number, installedAppId: string): Promise<LudothequeDvm> {
-    let dnaClient = await DnaClient.new(port, installedAppId);
-    return new LudothequeDvm(host, dnaClient);
-  }
+export class LudothequeDvm extends DnaViewModel<unknown> {
 
   /** */
-  private constructor(host: ReactiveElement, dnaClient: DnaClient) {
-    super(host, dnaClient);
-    this.addZomeViewModel(PlaysetZvm);
-    this.addZomeViewModel(LudothequeZvm);
+  private constructor(happ: HappViewModel, roleId: string) {
+    super(happ, roleId, [PlaysetZvm, LudothequeZvm]);
   }
+
+  /** -- ViewModel Interface -- */
 
   /** */
   static context = createContext<LudothequeDvm>('dvm/ludotheque');
   getContext(): any {return LudothequeDvm.context}
+
+  protected hasChanged(): boolean {return true}
+
+  get perspective(): unknown {return}
 
 
   /** */
@@ -47,9 +43,7 @@ export class LudothequeDvm extends DnaViewModel {
   async checkAndPublishPlayset(playset: PlaysetEntry): Promise<EntryHashB64> {
     console.log("addPlaysetWithCheck() before: ", playset)
     for (const spaceEh of playset.spaces) {
-      const spaceEntry = this.playsetZvm.getSpace(spaceEh);
-      console.log({space_entry: spaceEntry})
-      let space = convertEntryToSpace(spaceEntry!);
+      const space = this.playsetZvm.getSpace(spaceEh)!;
       console.log({space})
 
       /* Get templates */

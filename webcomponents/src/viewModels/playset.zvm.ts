@@ -9,8 +9,8 @@ import {
   SvgMarkerEntry,
   TemplateEntry
 } from "./playset.bindings";
-import {DnaClient, ZomeViewModel} from "@ddd-qc/dna-client";
-import {PlaysetBridge} from "./playset.bridge";
+import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";
+import {PlaysetProxy} from "./playset.proxy";
 import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, Space} from "./playset.perspective";
 
 
@@ -26,16 +26,17 @@ export function countInventory(inventory: Inventory): number {
 /**
  *
  */
-export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge> {
+export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetProxy> {
   /** Ctor */
-  constructor(protected dnaClient: DnaClient) {
-    super(new PlaysetBridge(dnaClient));
+  constructor(protected _cellProxy: CellProxy) {
+    super(new PlaysetProxy(_cellProxy));
   }
 
   /** -- ZomeViewModel -- */
 
-  static context = createContext<PlaysetZvm>('zome_view_model/where_playset');
-  getContext(): any {return PlaysetZvm.context}
+  // static context = createContext<PlaysetZvm>('zome_view_model/where_playset');
+  // getContext(): any {return PlaysetZvm.context}
+  getContext(): any {return createContext<PlaysetZvm>('zvm/where_playset/' + this._cellProxy.dnaHash)}
 
   /* */
   protected hasChanged(): boolean {
@@ -44,7 +45,7 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
   }
 
   /** */
-  async probeDht() {
+  async probeAll() {
     await this.probeSvgMarkers();
     await this.probeEmojiGroups();
     await this.probeTemplates();
@@ -79,69 +80,97 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
   /** Probe */
 
   async probeInventory(): Promise<GetInventoryOutput> {
-    return this._bridge.getInventory();
+    return this._zomeProxy.getInventory();
   }
 
   async probeTemplates() : Promise<Dictionary<TemplateEntry>> {
-    const templates = await this._bridge.getTemplates();
+    const templates = await this._zomeProxy.getTemplates();
     for (const t of templates) {
         this._templates[t.hash] = t.content
     }
-    this.notify();
+    this.notifySubscribers();
     return this._templates;
   }
 
   async probeSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
-    const markers = await this._bridge.getSvgMarkers();
+    const markers = await this._zomeProxy.getSvgMarkers();
     for (const e of markers) {
       this._svgMarkers[e.hash] = e.content
     }
-    this.notify();
+    this.notifySubscribers();
     return this._svgMarkers
   }
 
   async probeEmojiGroups() : Promise<Dictionary<EmojiGroupEntry>> {
-    const groups = await this._bridge.getEmojiGroups();
+    const groups = await this._zomeProxy.getEmojiGroups();
     for (const e of groups) {
       this._emojiGroups[e.hash] = e.content
     }
-    this.notify();
+    this.notifySubscribers();
     return this._emojiGroups
   }
 
   async probeSpaces() : Promise<Dictionary<Space>> {
-    const spaces = await this._bridge.getSpaces();
+    const spaces = await this._zomeProxy.getSpaces();
     for (const e of spaces) {
       this._spaces[e.hash] = convertEntryToSpace(e.content)
     }
-    this.notify();
+    this.notifySubscribers();
     return this._spaces
   }
 
+  /** Fetch */
+
+  async fetchSvgMarker(eh: EntryHashB64): Promise<SvgMarkerEntry> {
+    const svgMarkerEntry = await this._zomeProxy.getSvgMarker(eh)
+    this._svgMarkers[eh] = svgMarkerEntry;
+    this.notifySubscribers();
+    return svgMarkerEntry;
+  }
+
+  async fetchEmojiGroup(eh: EntryHashB64): Promise<EmojiGroupEntry> {
+    const entry = await this._zomeProxy.getEmojiGroup(eh)
+    this._emojiGroups[eh] = entry;
+    this.notifySubscribers();
+    return entry;
+  }
+
+  async fetchTemplate(eh: EntryHashB64): Promise<TemplateEntry> {
+    const entry = await this._zomeProxy.getTemplate(eh)
+    this._templates[eh] = entry;
+    this.notifySubscribers();
+    return entry;
+  }
+
+  async fetchSpace(eh: EntryHashB64): Promise<SpaceEntry> {
+    const entry = await this._zomeProxy.getSpace(eh)
+    this._spaces[eh] = convertEntryToSpace(entry);
+    this.notifySubscribers();
+    return entry;
+  }
 
   /** Publish */
 
   async publishTemplateEntry(template: TemplateEntry) : Promise<EntryHashB64> {
-    const eh: EntryHashB64 = await this._bridge.createTemplate(template)
+    const eh: EntryHashB64 = await this._zomeProxy.createTemplate(template)
     this._templates[eh] = template
-    this.notify();
+    this.notifySubscribers();
     return eh
   }
 
   async publishEmojiGroupEntry(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
-    const eh: EntryHashB64 = await this._bridge.createEmojiGroup(emojiGroup)
+    const eh: EntryHashB64 = await this._zomeProxy.createEmojiGroup(emojiGroup)
     this._emojiGroups[eh] = emojiGroup
-    this.notify();
+    this.notifySubscribers();
     return eh
   }
 
   async publishSvgMarkerEntry(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
-    const eh: EntryHashB64 = await this._bridge.createSvgMarker(svgMarker)
+    const eh: EntryHashB64 = await this._zomeProxy.createSvgMarker(svgMarker)
     this._svgMarkers[eh] = svgMarker
-    this.notify();
+    this.notifySubscribers();
     return eh
   }
-
 
 
   /** */
@@ -153,10 +182,10 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
 
 
   /** */
-  private async publishSpaceEntry(space: SpaceEntry) : Promise<EntryHashB64> {
-    const eh: EntryHashB64 = await this._bridge.createSpace(space)
+  async publishSpaceEntry(space: SpaceEntry) : Promise<EntryHashB64> {
+    const eh: EntryHashB64 = await this._zomeProxy.createSpace(space)
     this._spaces[eh] = convertEntryToSpace(space)
-    this.notify();
+    this.notifySubscribers();
     return eh
   }
 
@@ -164,9 +193,9 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetBridge>
   /** */
   async exportPiece(pieceEh: EntryHashB64, pieceType: PieceType, cellId: CellId) : Promise<void> {
     if (pieceType == PieceType.Space) {
-      return this._bridge.exportSpace(pieceEh, cellId);
+      return this._zomeProxy.exportSpace(pieceEh, cellId);
     }
-    return this._bridge.exportPiece(pieceEh, pieceType, cellId);
+    return this._zomeProxy.exportPiece(pieceEh, pieceType, cellId);
   }
 
 

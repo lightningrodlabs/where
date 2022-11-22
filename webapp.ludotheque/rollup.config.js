@@ -48,9 +48,9 @@ export default {
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
       "preventAssignment": true,
     }),
-    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     builtins(),
-    globals(),
+    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    //globals(),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */

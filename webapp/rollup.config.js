@@ -50,7 +50,7 @@ export default {
     }),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     builtins(),
-    globals(),
+    //globals(),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */

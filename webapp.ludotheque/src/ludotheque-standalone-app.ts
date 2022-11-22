@@ -3,7 +3,7 @@ import {setLocale, ludothequeHappDef} from "@where/elements";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
 import {cellContext, ConductorAppProxy, HappViewModel} from "@ddd-qc/dna-client";
-import {LudothequeApp} from "where-mvvm";
+import {LudothequePage} from "where-mvvm";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
 
@@ -64,7 +64,7 @@ export class LudothequeStandaloneApp extends ScopedElementsMixin(LitElement) {
       return html`<span>${msg('Loading')}...</span>`;
     }
     return html`
-      <ludotheque-app examples @import-playset="${this.handleImportRequest}"></ludotheque-app>
+      <ludotheque-page examples @import-playset="${this.handleImportRequest}"></ludotheque-page>
     `;
   }
 
@@ -78,7 +78,7 @@ export class LudothequeStandaloneApp extends ScopedElementsMixin(LitElement) {
   /** */
   static get scopedElements() {
     return {
-      "ludotheque-app": LudothequeApp,
+      "ludotheque-page": LudothequePage,
     };
   }
 }

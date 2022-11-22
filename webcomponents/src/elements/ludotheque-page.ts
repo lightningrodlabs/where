@@ -43,10 +43,10 @@ tmpl.innerHTML = `
 
 
 /**
- * @element ludotheque-app
+ * @element ludotheque-page
  */
 @localized()
-export class LudothequeApp extends ScopedElementsMixin(LitElement) {
+export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /** -- Properties -- */
 
@@ -186,7 +186,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       return;
     }
     this._initializing = true
-    console.log("ludotheque-app.init() - START");
+    console.log("ludotheque-page.init() - START");
     /** Get latest public entries from DHT */
     await this._ludothequeDvm.probeAll();
     const playsets = this._ludothequeDvm.ludothequeZvm.perspective.playsets
@@ -218,7 +218,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     this._canPostInit = true;
     this._initializing = false
     this.requestUpdate();
-    console.log("ludotheque-app.init() - DONE");
+    console.log("ludotheque-page.init() - DONE");
   }
 
 
@@ -548,8 +548,6 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
-        console.log({space})
-        //const surface = JSON.parse(space.surface);
         const template = this._ludothequeDvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
@@ -583,7 +581,6 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
-        console.log({template})
         const surface = JSON.parse(template.surface);
         const itemContent = html`
             <span>${template.name}</span>
@@ -682,7 +679,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
-    console.log("ludotheque-app render(), ", this._initialized)
+    console.log("ludotheque-page render(), ", this._initialized)
 
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;

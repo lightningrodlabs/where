@@ -39,7 +39,7 @@ import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective"
 // }
 //
 // function getWhereSpace(): WhereSpace {
-//   let where_app = document.getElementsByTagName('where-app');
+//   let where_app = document.getElementsByTagName('where-page');
 //   let where_controller = where_app[0].shadowRoot!.getElementById('controller');
 //   let drawer = where_controller!.shadowRoot!.getElementById('my-drawer');
 //   let where_space = drawer!.getElementsByTagName('where-space')[0] as WhereSpace;

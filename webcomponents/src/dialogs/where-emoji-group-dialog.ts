@@ -165,6 +165,9 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
 
   /** */
   render() {
+    if (!this._loaded) {
+      return html`<span>${msg('Loading')}...</span>`;
+    }
     // @request-selected=${this.handleGroupSelect(emojiGroup)}
     /** Build emoji list */
     const emojis = Object.entries(this._currentUnicodes).map(

@@ -52,9 +52,9 @@ tmpl.innerHTML = `
 /** ----- */
 
 
-/** @element where-app */
+/** @element where-page */
 @localized()
-export class WhereApp extends ScopedElementsMixin(LitElement) {
+export class WherePage extends ScopedElementsMixin(LitElement) {
   constructor() {
     super();
   }
@@ -80,6 +80,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   playsetPerspective!: PlaysetPerspective;
 
 
+  // FIXME
   @contextProvided({context: profilesStoreContext, subscribe: true})
   @property({ type: Object })
   profileStore!: ProfilesStore;
@@ -169,35 +170,37 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   async updateProfile(nickname: string, avatar: string, color: string) {
-    console.log("updateProfile() called:", nickname)
-    try {
-      const fields: Dictionary<string> = {};
-      fields['color'] = color;
-      fields['avatar'] = avatar;
-      await this.profileStore.createProfile({
-        nickname,
-        fields,
-      });
-
-    } catch (e) {
-      console.log("updateProfile() failed");
-      console.log(e);
-    }
+    // FIXME
+    // console.log("updateProfile() called:", nickname)
+    // try {
+    //   const fields: Dictionary<string> = {};
+    //   fields['color'] = color;
+    //   fields['avatar'] = avatar;
+    //   await this.profileStore.createProfile({
+    //     nickname,
+    //     fields,
+    //   });
+    //
+    // } catch (e) {
+    //   console.log("updateProfile() failed");
+    //   console.log(e);
+    // }
   }
 
 
   /** Launch init when myProfile has been set */
   private async subscribeProfile() {
-    const myProfileStore = await this.profileStore.fetchMyProfile();
-    myProfileStore.subscribe(async (profile) => {
-      console.log("myProfileStore received entry:", profile)
-      if (profile) {
-        // if (!this._initialized && !this._initializing) {
-        //   await this.init();
-        // }
-        this._myProfile = profile;
-      }
-    });
+    // FIXME
+    // const myProfileStore = await this.profileStore.fetchMyProfile();
+    // myProfileStore.subscribe(async (profile) => {
+    //   console.log("myProfileStore received entry:", profile)
+    //   if (profile) {
+    //     // if (!this._initialized && !this._initializing) {
+    //     //   await this.init();
+    //     // }
+    //     this._myProfile = profile;
+    //   }
+    // });
   }
 
   /** Launch init when myProfile has been set */
@@ -218,18 +221,20 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
-    console.log("where-app first updated!")
+    console.log("where-page first updated!")
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
     await this.init();
-
     /** add custom styles to TopAppBar */
-    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
-    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
+    // FIXME
+    //const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    //topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
 
     //await this.subscribeProfile();
     //this.subscribePlay();
+
+    this.requestUpdate();
   }
 
   /** After each render */
@@ -286,8 +291,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   /** Called once a profile has been set */
   private async init() {
     this._initializing = true
-    console.log("where-app.init() - START");
-
+    console.log("where-page.init() - START");
+    this._whereDvm.subscribe(this, 'whereDnaPerspective');
     this._whereDvm.whereZvm.subscribe(this, 'wherePerspective');
     this._whereDvm.playsetZvm.subscribe(this, 'playsetPerspective');
     /** Get latest public entries from DHT */
@@ -297,13 +302,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     this._initializing = false
     this._canPostInit = true;
 
-    const profiles = get(await this.profileStore.fetchAllProfiles());
-    console.log({profiles})
-    const me = get(await this.profileStore.fetchAgentProfile(this.profileStore.myAgentPubKey));
-    console.log({me})
+    // FIXME
+    // const profiles = get(await this.profileStore.fetchAllProfiles());
+    // console.log({profiles})
+    // const me = get(await this.profileStore.fetchAgentProfile(this.profileStore.myAgentPubKey));
+    // console.log({me})
 
     //this.requestUpdate();
-    console.log("where-app.init() - DONE");
+    console.log("where-page.init() - DONE");
   }
 
 
@@ -372,7 +378,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     this._currentSpaceEh = spaceEh;
     this._currentTemplateEh = play.space.origin;
 
-    this.requestUpdate();
+    //this.requestUpdate();
 
     //console.log(" - selected template: " + this._currentTemplateEh);
 
@@ -422,7 +428,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
     await this._whereDvm.probeAll()
-    await this.profileStore.fetchAllProfiles()
+    // FIXME await this.profileStore.fetchAllProfiles()
     await this.pingOthers()
     // await this._whereDvm.getEntryDefs("where")
     // await this._whereDvm.getEntryDefs("where_ludotheque")
@@ -580,7 +586,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    console.log("where-app render() - " + this._currentSpaceEh);
+    console.log("where-page render()", this._currentSpaceEh);
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
@@ -634,7 +640,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
-      <span slot="secondary">${serializeHash(this.profileStore.myAgentPubKey)}</span>
+      <!-- FIXME <span slot="secondary">${serializeHash(this.profileStore.myAgentPubKey)}</span> -->
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
         value=${this._myProfile.fields['color']}></sl-color-picker>

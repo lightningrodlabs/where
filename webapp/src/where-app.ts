@@ -5,9 +5,11 @@ import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Dialog} from "@scoped-elements/material-web";
 import {CellId} from "@holochain/client";
-import { ConductorAppProxy, HappViewModel, } from "@ddd-qc/dna-client";
+import {CellContext, cellContext, ConductorAppProxy, HappViewModel, IDnaViewModel,} from "@ddd-qc/dna-client";
 import {Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
-import {LudothequeApp, setLocale, LudothequeDvm, whereHappDef} from "where-mvvm";
+import {LudothequePage, setLocale, LudothequeDvm, whereHappDef, WherePage, WhereDvm} from "where-mvvm";
+import {ContextProvider} from "@lit-labs/context";
+import {LudothequePerspective} from "where-mvvm/dist/viewModels/ludotheque.zvm";
 
 
 /** ------- */
@@ -50,12 +52,13 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   //hasProfile = false;
   //_inventory: Inventory | null = null;
 
-  private _whereCellId!: CellId;
-  private _ludoCellId!: CellId;
   private _lang?: string
 
 
   /** -- Getters -- */
+
+  get whereDvm(): WhereDvm { return this._happ.getDvm("where")! as WhereDvm }
+  get ludothequeDvm(): LudothequeDvm { return this._happ.getDvm("ludotheque")! as LudothequeDvm}
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -80,10 +83,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   async firstUpdated() {
     this._conductorAppProxy = await ConductorAppProxy.new(Number(process.env.HC_APP_PORT));
     this._happ = await this._conductorAppProxy.newHappViewModel(this, whereHappDef); // FIXME this can throw an error
-
-    this._whereCellId = this._happ.getDvm("where")!.cellData.cell_id;
-    this._ludoCellId = this._happ.getDvm("ludotheque")!.cellData.cell_id;
-
+    //new ContextProvider(this, cellContext, this.whereDvm.cellData)
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
@@ -122,44 +122,54 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    console.log("where-app render()"/*, this.hasProfile*/)
-    console.log("_canLudotheque:", this._canLudotheque)
+    console.log("where-app render()", this._loaded, this._canLudotheque/*, this.hasProfile*/)
 
-    const lang = html`        
-        <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
-        <mwc-button
-                slot="primaryAction"
-                dialogAction="primaryAction"
-                @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
-            FR
-        </mwc-button>
-        <mwc-button
-                slot="primaryAction"
-                dialogAction="primaryAction"
-                @click="${() => {setLocale('en'); this._lang = 'en'}}" >
-            EN
-        </mwc-button>
-    </mwc-dialog>
-    `;
-
+    /** Wait for init to complete */
     if (!this._loaded) {
       console.log("where-app render() => Loading...");
       return html`<span>${msg('Loading')}...</span>`;
     }
+
+    /** Select language */
+    const lang = html`
+        <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
+            <mwc-button
+                    slot="primaryAction"
+                    dialogAction="primaryAction"
+                    @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
+                FR
+            </mwc-button>
+            <mwc-button
+                    slot="primaryAction"
+                    dialogAction="primaryAction"
+                    @click="${() => {setLocale('en'); this._lang = 'en'}}" >
+                EN
+            </mwc-button>
+        </mwc-dialog>
+    `;
+
+    /** Pages */
+    const ludothequePage = html`
+        <cell-context .cellData="${this.ludothequeDvm.cellData}">
+                  <ludotheque-page examples .whereCellId=${this.whereDvm.cellData.cell_id}
+                                         @import-playset="${this.handleImportRequest}"
+                                         @exit="${() => this._canLudotheque = false}"
+                  ></ludotheque-page>
+        </cell-context>
+    `;
+
+    const wherePage = html`
+        <cell-context .cellData="${this.whereDvm.cellData}">
+            <where-page .ludoCellId=${this.ludothequeDvm.cellData.cell_id} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
+        </cell-context>
+    `;
+
+
+    /** Render all */
     return html`
         ${lang}
         <!-- <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;" @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}> -->
-            ${this._canLudotheque? html`
-                  <ludotheque-app id="ludo-controller" examples
-                                         .whereCellId=${this._whereCellId}
-                                         @import-playset="${this.handleImportRequest}"
-                                         @exit="${() => this._canLudotheque = false}"
-                  ></ludotheque-app>`
-              : html`<where-app                                       
-                .ludoCellId=${this._ludoCellId}
-                @show-ludotheque="${() => this._canLudotheque = true}"
-                    ></where-app>`
-            }
+            ${this._canLudotheque? ludothequePage : wherePage}
 
         <!-- </profile-prompt> -->
         
@@ -190,14 +200,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       console.warn("this._currentPlaysetEh is null can't import")
       return;
     }
-    const ludoDvm = this._happ.getDvm("ludotheque");
-    if(!ludoDvm || !this._whereCellId) {
-      console.error("No ludoStore or whereCell in where-app")
-      return;
-    }
+
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    await (ludoDvm as LudothequeDvm).ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
+    await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellData.cell_id)
     while(Date.now() - startTime < 500) {
       //console.log(Date.now() - startTime)
       await delay(20);
@@ -210,9 +216,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
       "profile-prompt": ProfilePrompt,
-      "where-app": WhereApp,
-      "ludotheque-app": LudothequeApp,
+      "where-page": WherePage,
+      "ludotheque-page": LudothequePage,
       "mwc-dialog": Dialog,
+      "cell-context": CellContext,
     };
   }
 }

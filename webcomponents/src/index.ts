@@ -10,10 +10,10 @@ export * from './viewModels/ludotheque.dvm';
 export * from './viewModels/where.dvm';
 
 
-export * from './elements/where-app';
+export * from './elements/where-page';
 export * from './elements/where-space';
 //export * from './elements/where-folks';
-export * from './elements/ludotheque-app';
+export * from './elements/ludotheque-page';
 export * from './stringStore';
 
 export * from './localization';

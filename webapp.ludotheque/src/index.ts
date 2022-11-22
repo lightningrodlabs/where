@@ -1,1 +1,1 @@
-export * from './ludotheque-app';
+export * from './ludotheque-standalone-app';

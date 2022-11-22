@@ -1,8 +1,6 @@
-import {css, html, LitElement, PropertyValues} from "lit";
-import {property, query, state} from "lit/decorators.js";
-import {contextProvided} from "@lit-labs/context";
+import {css, html} from "lit";
+import {query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
 import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
   TextArea, TextField
@@ -18,19 +16,10 @@ import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import {localized, msg} from '@lit/localize';
 import {
-  EmojiGroupVariant,
-  MarkerPiece,
-  SvgMarkerEntry,
-  SvgMarkerVariant,
-  TemplateEntry
+  EmojiGroupVariant, MarkerPiece,
+  SvgMarkerEntry, SvgMarkerVariant, TemplateEntry
 } from "../viewModels/playset.bindings";
-import {
-  convertEntryToSpace,
-  defaultSpaceMeta,
-  MarkerType,
-  PlaysetPerspective,
-  SpaceMeta, UiItem
-} from "../viewModels/playset.perspective";
+import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/dna-client";
 import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective";
@@ -45,7 +34,8 @@ export class WhereSpaceDialog extends  ZomeElement<PlaysetPerspective, PlaysetZv
     super("where_playset");
   }
 
-  /** Private */
+  /** -- Fields -- */
+
   @state() private _currentTemplate: null | TemplateEntry = null;
 
   @state() private _currentPlaceHolders: Array<string> = [];
@@ -661,6 +651,10 @@ export class WhereSpaceDialog extends  ZomeElement<PlaysetPerspective, PlaysetZv
 
   /** */
   render() {
+    if (!this._loaded) {
+      return html`<span>${msg('Loading')}...</span>`;
+    }
+
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       let firstTemplate = Object.keys(this.perspective.templates)[0];

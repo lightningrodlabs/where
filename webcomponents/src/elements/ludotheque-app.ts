@@ -25,6 +25,7 @@ import {Inventory, PlaysetPerspective, Space} from "../viewModels/playset.perspe
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
+import {contextProvided} from "@lit-labs/context";
 
 
 /** Styles for top-app-bar */
@@ -42,58 +43,49 @@ tmpl.innerHTML = `
 
 
 /**
- * @element ludotheque-controller
+ * @element ludotheque-app
  */
 @localized()
 export class LudothequeApp extends ScopedElementsMixin(LitElement) {
-  constructor() {
-    super();
-  }
 
-  /** -- Properties */
+  /** -- Properties -- */
 
   @property()
   whereCellId: CellId | null = null;
 
-
-  /** Public attributes */
   @property({ type: Boolean, attribute: 'dummy' })
   canLoadDummy: boolean = false;
 
   @property({ type: Boolean, attribute: 'examples' })
   canLoadExamples: boolean = false;
 
-  /** Dependencies */
-
-  // @contextProvided({ context: LudothequeViewModel.context })
-  // _ludothequeViewModel!: LudothequeViewModel;
-  // @contextProvided({ context: PlaysetViewModel.context })
-  // _playsetViewModel!: PlaysetViewModel;
-
-  _ludothequeDvm!: LudothequeDvm; // Set at init()
-
-
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   ludothequePerspective!: LudothequePerspective;
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   playsetPerspective!: PlaysetPerspective;
 
+  @contextProvided({ context: LudothequeDvm.context })
+  _ludothequeDvm!: LudothequeDvm;
 
-  /** Private properties */
 
-  @state() _currentWhereId: null | string = null;
+  /** -- Private -- */
 
-  @state() _currentPlayset: null | PlaysetEntry = null;
-  @state() _currentPlaysetEh: null | EntryHashB64 = null;
-  @state() _currentTemplateEh: null| EntryHashB64 = null;
+  @state() private _currentWhereId: null | string = null;
+
+  @state() private _currentPlayset: null | PlaysetEntry = null;
+  @state() private _currentPlaysetEh: null | EntryHashB64 = null;
+  @state() private _currentTemplateEh: null| EntryHashB64 = null;
+
+  @state() private _inventory: Inventory | null = null;
 
   private _initialized: boolean = false;
   private _initializing: boolean = false;
   private _canPostInit: boolean = false;
   private _canCreatePlayset: boolean = false;
 
-  private _inventory: Inventory | null = null;
 
+
+  /** -- Getters -- */
 
   get emojiGroupDialogElem() : WhereEmojiGroupDialog {
     return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
@@ -137,7 +129,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   // }
 
 
-  /** -- methods -- */
+  /** -- Methods -- */
 
   /** */
   private probeInventory() {
@@ -145,7 +137,6 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
       const nextCount = countInventory(inventory);
       if (!this._inventory || nextCount > countInventory(this._inventory)) {
         this._inventory = inventory;
-        this.requestUpdate();
       }
     });
   }
@@ -189,13 +180,13 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
   }
 
 
-
+  /** */
   private async init() {
     if (this._initialized) {
       return;
     }
     this._initializing = true
-    console.log("ludotheque-controller.init() - START");
+    console.log("ludotheque-app.init() - START");
     /** Get latest public entries from DHT */
     await this._ludothequeDvm.probeAll();
     const playsets = this._ludothequeDvm.ludothequeZvm.perspective.playsets
@@ -227,7 +218,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     this._canPostInit = true;
     this._initializing = false
     this.requestUpdate();
-    console.log("ludotheque-controller.init() - DONE");
+    console.log("ludotheque-app.init() - DONE");
   }
 
 
@@ -557,12 +548,13 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
-        const surface = JSON.parse(space.surface);
+        console.log({space})
+        //const surface = JSON.parse(space.surface);
         const template = this._ludothequeDvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
-            <span slot="graphic" style="width:75px;">${renderSurface(surface, space.name, 70, 56)}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(space.surface, space.name, 70, 56)}</span>
             ${icon}
           `;
         return this._canCreatePlayset? html`
@@ -591,6 +583,7 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
     const items = Object.entries(this._ludothequeDvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
+        console.log({template})
         const surface = JSON.parse(template.surface);
         const itemContent = html`
             <span>${template.name}</span>
@@ -689,15 +682,17 @@ export class LudothequeApp extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
-    console.log("ludotheque-controller render() - " + this._initialized)
+    console.log("ludotheque-app render(), ", this._initialized)
+
+    if (!this._initialized) {
+      return html`<span>${msg('Loading')}...</span>`;
+    }
+
     const playset = this._currentPlaysetEh? this._ludothequeDvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
     this.probeInventory();
 
-    if (!this._initialized) {
-      return html`<span>${msg('Loading')}...</span>`;
-    }
 
     // let playsetItems = [html``];
     // if (playset) {

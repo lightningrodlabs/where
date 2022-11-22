@@ -13,7 +13,7 @@ import {PlaysetEntry} from "./viewModels/ludotheque.bindings";
 import {EmojiGroupVariant, SvgMarkerVariant} from "./viewModels/playset.bindings";
 
 
-export async function publishExamplePlayset(dvm: LudothequeDvm) {
+export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
   const playsetZvm = dvm.playsetZvm;
 
   /** Templates */
@@ -227,8 +227,8 @@ export async function publishExamplePlayset(dvm: LudothequeDvm) {
 
   /** Playset */
   const playsetEntry = await createPlayset("Demo Playset", spaceList);
-  const playsetEh = dvm.ludothequeZvm.publishPlayset(playsetEntry);
-  console.log("examples - DONE | " + playsetEh)
+  const playsetEh = await dvm.ludothequeZvm.publishPlayset(playsetEntry);
+  console.log("examples - DONE", playsetEh)
 }
 
 

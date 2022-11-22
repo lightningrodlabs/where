@@ -52,7 +52,7 @@ tmpl.innerHTML = `
 /** ----- */
 
 
-/** @element where-controller */
+/** @element where-app */
 @localized()
 export class WhereApp extends ScopedElementsMixin(LitElement) {
   constructor() {
@@ -218,7 +218,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
-    console.log("where-controller first updated!")
+    console.log("where-app first updated!")
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
@@ -286,7 +286,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   /** Called once a profile has been set */
   private async init() {
     this._initializing = true
-    console.log("where-controller.init() - START");
+    console.log("where-app.init() - START");
 
     this._whereDvm.whereZvm.subscribe(this, 'wherePerspective');
     this._whereDvm.playsetZvm.subscribe(this, 'playsetPerspective');
@@ -297,14 +297,13 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     this._initializing = false
     this._canPostInit = true;
 
-
     const profiles = get(await this.profileStore.fetchAllProfiles());
     console.log({profiles})
     const me = get(await this.profileStore.fetchAgentProfile(this.profileStore.myAgentPubKey));
     console.log({me})
 
     //this.requestUpdate();
-    console.log("where-controller.init() - DONE");
+    console.log("where-app.init() - DONE");
   }
 
 
@@ -581,9 +580,9 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    console.log("where-controller render() - " + this._currentSpaceEh);
+    console.log("where-app render() - " + this._currentSpaceEh);
     if (!this._initialized) {
-      return html`<span>Loading...</span>`;
+      return html`<span>${msg('Loading')}...</span>`;
     }
     //var userLang = navigator.language
     //console.log({userLang})

@@ -4,7 +4,7 @@
   "scripts": {
     "tsc": "tsc",
     "build": "rm -rf dist && tsc && rollup -c",
-    "build:watch": "run-singleton \"tsc -w --incremental --preserveWatchOutput\"",
+    "build:watch": "tsc -w --incremental --preserveWatchOutput",
     "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "zip": "rm -rf ludotheque-web-ui.zip &&  cd dist && bestzip ../ludotheque-web-ui.zip *"
   },

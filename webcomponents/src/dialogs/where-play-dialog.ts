@@ -745,7 +745,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   /** */
   render() {
     if (!this._loaded) {
-      return html`<span>Loading...</span>`
+      return html`<span>${msg('Loading')}...</span>`;
     }
 
     /** Determine currentTemplate */

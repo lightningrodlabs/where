@@ -19,11 +19,11 @@
 
       async function setup() {
         const appWs = await AppWebsocket.connect(
-          `ws://localhost:${process.env.HC_PORT}`
+          `ws://localhost:${process.env.HC_APP_PORT}`
         );
 
         const adminWs = await AdminWebsocket.connect(
-          `ws://localhost:${process.env.ADMIN_PORT}`
+          `ws://localhost:${process.env.HC_ADMIN_PORT}`
         );
 
         const appInfo = await appWs.appInfo({

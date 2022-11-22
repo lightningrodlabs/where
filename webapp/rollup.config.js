@@ -3,7 +3,7 @@ import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import builtins from "rollup-plugin-node-builtins";
-import globals from "rollup-plugin-node-globals";
+//import globals from "rollup-plugin-node-globals";
 
 import babel from "@rollup/plugin-babel";
 import html from "@web/rollup-plugin-html";
@@ -13,7 +13,9 @@ import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
 //const pkg = require("./package.json");
 
-const HC_PORT = process.env.HC_PORT || 8888;
+const HC_APP_PORT = process.env.HC_APP_PORT || 8888;
+const HC_ADMIN_PORT = process.env.HC_ADMIN_PORT || 8889;
+
 const DIST_FOLDER = "dist"
 
 export default {
@@ -44,7 +46,8 @@ export default {
     replace({
       "process.env.NODE_ENV": '"production"',
       "process.env.ENV": `"${process.env.ENV}"`,
-      "process.env.HC_PORT": `"${HC_PORT}"`,
+      "process.env.HC_APP_PORT": `"${HC_APP_PORT}"`,
+      "process.env.HC_ADMIN_PORT": `"${HC_ADMIN_PORT}"`,
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
       "preventAssignment": true,
     }),

@@ -31,8 +31,8 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
     replace({
       "preventAssignment": true,
       'process.env.APP_DEV': JSON.stringify(process.env.APP_DEV),
-      "process.env.HC_PORT": JSON.stringify(process.env.HC_PORT),
-      "process.env.ADMIN_PORT": JSON.stringify(process.env.ADMIN_PORT) || undefined,
+      "process.env.HC_APP_PORT": JSON.stringify(process.env.HC_APP_PORT),
+      "process.env.HC_ADMIN_PORT": JSON.stringify(process.env.HC_ADMIN_PORT) || undefined,
       delimiters: ["", ""],
     }),
 

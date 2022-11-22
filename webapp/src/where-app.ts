@@ -18,22 +18,21 @@ const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 /** -- Globals -- */
 
 const APP_DEV = process.env.APP_DEV? process.env.APP_DEV : false;
-let HC_PORT: any = process.env.HC_PORT;
+let HC_APP_PORT: any = process.env.HC_APP_PORT;
 
 /** override installed_app_id  when in Electron */
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
   let APP_ID = 'main-app'
   let searchParams = new URLSearchParams(window.location.search);
-  HC_PORT = searchParams.get("PORT");
+  HC_APP_PORT = searchParams.get("PORT");
   const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
-  //console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
   whereHappDef.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
 }
 
 console.log({APP_ID: whereHappDef.id})
-console.log({HC_PORT})
+console.log({HC_APP_PORT})
 
 
 /**
@@ -79,8 +78,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   async firstUpdated() {
-    let HC_PORT = Number(process.env.HC_PORT);
-    this._conductorAppProxy = await ConductorAppProxy.new(HC_PORT);
+    this._conductorAppProxy = await ConductorAppProxy.new(Number(process.env.HC_APP_PORT));
     this._happ = await this._conductorAppProxy.newHappViewModel(this, whereHappDef); // FIXME this can throw an error
 
     this._whereCellId = this._happ.getDvm("where")!.cellData.cell_id;
@@ -146,7 +144,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     if (!this._loaded) {
       console.log("where-app render() => Loading...");
-      return html`<span>Loading...</span>`;
+      return html`<span>${msg('Loading')}...</span>`;
     }
     return html`
         ${lang}

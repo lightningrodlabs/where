@@ -1,5 +1,5 @@
 {
-  "name": "@where/elements",
+  "name": "where-mvvm",
   "version": "0.1.0",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

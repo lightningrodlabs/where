@@ -1,105 +1,82 @@
-import { ContextProvider } from '@lit-labs/context';
-import { serializeHash } from '@holochain-open-dev/utils';
 import { state } from "lit/decorators.js";
-
-import {
-  ludothequeContext,
-  LudothequeController,
-  LudothequeStore,
-  setLocale,
-} from "@where/elements";
-
-import { HolochainClient } from "@holochain-open-dev/cell-client";
+import {setLocale, ludothequeHappDef} from "@where/elements";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import { LitElement, html } from "lit";
-import { AppWebsocket, InstalledCell } from "@holochain/client";
+import { ConductorAppProxy, HappViewModel} from "@ddd-qc/dna-client";
 
 /** Localization */
 
 setLocale('fr-fr');
 
-/** ------- */
 
-let APP_ID = 'where'
-let HC_PORT:any = process.env.HC_PORT;
-let NETWORK_ID: any = null
+/** -- Globals -- */
+
+let HC_PORT: any = process.env.HC_PORT;
+
+/** override installed_app_id when in Electron */
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
-  APP_ID = 'main-app'
+  let APP_ID = 'main-app'
   let searchParams = new URLSearchParams(window.location.search);
   HC_PORT = searchParams.get("PORT");
-  NETWORK_ID = searchParams.get("UID");
+  const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
+  ludothequeHappDef.id = APP_ID + '-' + NETWORK_ID;
 }
 
-// FIXME
-//const HC_PORT = process.env.HC_PORT
-//const HC_PORT = 8889
-console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
+console.log({APP_ID: ludothequeHappDef.id})
+console.log({HC_PORT})
 
 
+/**
+ *
+ */
 export class LudothequeApp extends ScopedElementsMixin(LitElement) {
 
-  @state() loaded = false;
+  @state() private _loaded = false;
 
-  /**
-   *
-   */
+  private _conductorAppProxy!: ConductorAppProxy;
+  private _happ!: HappViewModel;
+
+
+  /** */
   async firstUpdated() {
-    const wsUrl = `ws://localhost:${HC_PORT}`
-    const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
-      ? APP_ID
-      : APP_ID + '-' + NETWORK_ID;
-    console.log({installed_app_id})
+    this._conductorAppProxy = await ConductorAppProxy.new(Number(process.env.HC_PORT));
+    this._happ = await this._conductorAppProxy.newHappViewModel(this, ludothequeHappDef); // WARN this can throw an error
 
-    const appWebsocket = await AppWebsocket.connect(wsUrl);
-    console.log({appWebsocket})
-    const hcClient = new HolochainClient(appWebsocket)
-    console.log({hcClient})
-    const appInfo = await hcClient.appWebsocket.appInfo({installed_app_id});
-
-    /** Get Cells by role by hand */
-    let ludo_cell: InstalledCell | undefined = undefined;
-    for (const cell_data of appInfo.cell_data) {
-      if (cell_data.role_id == "ludotheque") {
-        ludo_cell = cell_data;
-      }
-    }
-    if (!ludo_cell) {
-      alert("Ludotheque Cell not found in happ")
-      return;
-    }
-
-    // Send dnaHash to electron
+    /* Send dnaHash to electron */
     if (IS_ELECTRON) {
+      const ludoDnaHashB64 = this._happ.getDnaHash("ludotheque");
       const ipc = window.require('electron').ipcRenderer;
-      const ludoDnaHashB64 = serializeHash(ludo_cell.cell_id[0])
       let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }
 
-    new ContextProvider(this, ludothequeContext, new LudothequeStore(hcClient, appInfo, ludo_cell.cell_id));
-
-    this.loaded = true;
+    this._loaded = true;
   }
 
 
+  /** */
   render() {
     console.log("ludotheque-app render()")
-    if (!this.loaded) {
+    if (!this._loaded) {
       return html`<span>Loading...</span>`;
     }
     return html`
-         <ludotheque-controller id="controller" examples @import-playset="${this.handleImportRequest}"></ludotheque-controller>
+      <ludotheque-app id="controller" examples @import-playset="${this.handleImportRequest}"></ludotheque-app>
     `;
   }
 
+
+  /** */
   private async handleImportRequest(e: any) {
     console.log("handleImportRequest() : " + JSON.stringify(e.detail))
   }
 
+
+  /** */
   static get scopedElements() {
     return {
-      "ludotheque-controller": LudothequeController,
+      "ludotheque-app": LudothequeApp,
     };
   }
 }

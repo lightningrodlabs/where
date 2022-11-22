@@ -3,7 +3,7 @@ import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "@rollup/plugin-replace";
 import builtins from "rollup-plugin-node-builtins";
-//import globals from "rollup-plugin-node-globals";
+import globals from "rollup-plugin-node-globals";
 
 import babel from "@rollup/plugin-babel";
 import html from "@web/rollup-plugin-html";
@@ -11,8 +11,7 @@ import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
 import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
-
-const pkg = require("./package.json");
+//const pkg = require("./package.json");
 
 const HC_PORT = process.env.HC_PORT || 8888;
 const DIST_FOLDER = "dist"
@@ -29,7 +28,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-  external: [],
+  //external: [],
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
@@ -49,10 +48,9 @@ export default {
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
       "preventAssignment": true,
     }),
-    builtins(),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
-    commonjs(),
-    //globals(),
+    builtins(),
+    globals(),
     /** Minify JS */
     terser(),
     /** Bundle assets references via import.meta.url */
@@ -111,5 +109,6 @@ export default {
       clientsClaim: true,
       runtimeCaching: [{ urlPattern: "polyfills/*.js", handler: "CacheFirst" }],
     }),
+    commonjs(),
   ],
 };

@@ -15,12 +15,7 @@ import {
   profilesStoreContext,
 } from "@holochain-open-dev/profiles";
 import {InstalledAppletInfo} from "@lightningrodlabs/we-applet";
-import {
-  WhereController,
-  WhereStore,
-  whereContext, LudothequeController, ludothequeContext, LudothequeStore,
-  Inventory, setLocale,
-} from "@where/elements";
+import {setLocale} from "@where/elements";
 
 
 /** ------- */

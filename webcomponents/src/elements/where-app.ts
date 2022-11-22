@@ -1,8 +1,6 @@
 import {css, html, LitElement} from "lit";
 import {property, state} from "lit/decorators.js";
-
 import { contextProvided } from '@lit-labs/context';
-import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";

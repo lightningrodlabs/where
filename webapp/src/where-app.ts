@@ -3,7 +3,7 @@ import { state } from "lit/decorators.js";
 import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import {Dialog} from "@scoped-elements/material-web";
+import {Button, Dialog} from "@scoped-elements/material-web";
 import {CellId} from "@holochain/client";
 import {CellContext, cellContext, ConductorAppProxy, HappViewModel, IDnaViewModel,} from "@ddd-qc/dna-client";
 import {Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
@@ -160,7 +160,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const wherePage = html`
         <cell-context .cellDef="${this.whereDvm.cellDef}">
-            <where-page .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
+            <where-page dummy .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
         </cell-context>
     `;
 
@@ -219,6 +219,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       "where-page": WherePage,
       "ludotheque-page": LudothequePage,
       "mwc-dialog": Dialog,
+      "mwc-button": Button,
       "cell-context": CellContext,
     };
   }

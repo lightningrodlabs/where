@@ -39,7 +39,7 @@ pub fn export_entry(entry_type_name: &str, entry: Entry, cell_id: CellId) -> Ext
   };
   let res = call(
     CallTargetCell::OtherCell(cell_id),
-    "where_playset",
+    "zPlayset",
     "import_piece".into(),
     None,
     input,

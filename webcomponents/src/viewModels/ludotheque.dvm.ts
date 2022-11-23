@@ -24,8 +24,6 @@ export class LudothequeDvm extends DnaViewModel<unknown> {
   /** -- ViewModel Interface -- */
 
   /** */
-  static context = createContext<LudothequeDvm>('dvm/ludotheque');
-  getContext(): any {return LudothequeDvm.context}
 
   protected hasChanged(): boolean {return true}
 

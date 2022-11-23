@@ -57,7 +57,7 @@ fn export_piece_inner(entry_type_name: &str, piece_entry: Entry, cell_id: CellId
   };
   let res = call(
     CallTargetCell::OtherCell(cell_id),
-    "where_playset",
+    "zPlayset",
     "import_piece".into(),
     None,
     input,

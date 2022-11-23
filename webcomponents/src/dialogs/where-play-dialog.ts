@@ -8,7 +8,6 @@ import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
@@ -24,6 +23,7 @@ import {
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/dna-client";
+import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
 /**
@@ -37,7 +37,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
   /** Properties */
   @property({ type: Object})
-  currentProfile?: Profile = undefined;
+  currentProfile?: WhereProfile = undefined;
 
   /** State */
   @state() private _currentTemplate: null | TemplateEntry = null;

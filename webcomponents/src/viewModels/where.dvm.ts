@@ -1,19 +1,17 @@
-import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
+import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
-  WhereLocation,
-  LocationInfo, PlacementSession,
-  Play,
+  LocationInfo, PlacementSession, Play,
   convertLocationToHere, Coord, convertHereToLocation,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
-import {areCellsEqual, HoloHashedB64} from "../utils";
+import {areCellsEqual} from "../utils";
 import {DnaViewModel, HappViewModel} from "@ddd-qc/dna-client";
 import {SpaceEntry} from "./playset.bindings";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {WhereSignal} from "./where.signals";
-import {createContext} from "@lit-labs/context";
 import {convertSpaceToEntry, Space} from "./playset.perspective";
+import {ProfilesZvm} from "./profiles.zvm";
 
 
 /** */
@@ -23,7 +21,6 @@ export interface WhereDnaPerspective {
   zooms: Dictionary<number>,
   agentPresences: Dictionary<number>,
 }
-
 
 
 /**
@@ -36,16 +33,11 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
 
   /** */
   constructor(happ: HappViewModel, roleId: string) {
-    super(happ, roleId, [PlaysetZvm, WhereZvm]);
+    super(happ, roleId, [PlaysetZvm, WhereZvm, ProfilesZvm]);
     happ.conductorAppProxy.addSignalHandler(this.handleSignal)
-    // this.profiles = profilesStore;
   }
 
   /** -- ViewModel Interface -- */
-
-  /** */
-  static context = createContext<WhereDvm>('dvm/where');
-  getContext(): any {return WhereDvm.context}
 
   protected hasChanged(): boolean {return true}
 
@@ -67,7 +59,6 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
   /** agentPubKey -> timestamp */
   private _agentPresences: Dictionary<number> = {};
 
-  //private profiles: ProfilesStore
 
 
   /** -- Getters --  */
@@ -75,6 +66,7 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
   /** */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("zPlayset") as PlaysetZvm}
   get whereZvm(): WhereZvm { return this.getZomeViewModel("zWhere") as WhereZvm}
+  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel("zProfiles") as ProfilesZvm}
 
   getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
   getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}
@@ -254,12 +246,9 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
 
   /** */
   private updatePresence(from: AgentPubKeyB64) {
-    // const currentTimeInSeconds: number = Math.floor(Date.now() / 1000);
-    // this._agentPresences.update(agentPresences => {
-    //   agentPresences[from] = currentTimeInSeconds;
-    //   return agentPresences;
-    // })
-    // return from;
+    const currentTimeInSeconds: number = Math.floor(Date.now() / 1000);
+    this._agentPresences[from] = currentTimeInSeconds;
+    this.notifySubscribers();
   }
 
 
@@ -321,7 +310,6 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
     }
     return this._plays
   }
-
 
 
   /** Add Play to Perspective */
@@ -441,12 +429,12 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
       return Promise.reject("Space or session not found");
     }
     const locInfo = await this.whereZvm.deleteLocation(sessionEh, idx);
-    // await this.notifyPeers({
-    //     maybeSpaceHash: spaceEh,
-    //     from: this._cellProxy.agentPubKey,
-    //     message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkAh]
-    //     }},
-    //   await this.others());
+    await this.notifyPeers({
+        maybeSpaceHash: spaceEh,
+        from: this._cellProxy.agentPubKey,
+        message: {type: "DeleteHere", content: [locInfo.location.sessionEh, locInfo.linkAh]
+        }},
+      this.allOthers());
   }
 
 
@@ -465,5 +453,15 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
   //     }
   //     , await this.others());
   // }
+
+
+  /** */
+  allOthers(): AgentPubKeyB64[] {
+    const agents = this.profilesZvm.getAgents();
+     console.log({agents})
+     const keysB64 = agents.filter((key)=> key != this.agentPubKey)
+     console.log({keysB64})
+    return keysB64
+  }
 }
 

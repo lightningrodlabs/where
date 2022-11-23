@@ -1,11 +1,8 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, query, state} from "lit/decorators.js";
-import {contextProvided} from "@lit-labs/context";
 import {sharedStyles} from "../sharedStyles";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Profile, ProfilesStore, profilesStoreContext,} from "@holochain-open-dev/profiles";
-import {Button, Dialog, TextField, Fab, Slider, Radio, Tab, TabBar} from "@scoped-elements/material-web";
+import {Button, Dialog, TextField, Fab, Slider, Tab, TabBar, CircularProgress} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
@@ -13,18 +10,13 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {localized, msg} from '@lit/localize';
-import {
-  Coord,
-  LocationInfo,
-  LocOptions,
-  PlacementSession,
-  Play,
-  WhereLocation,
-  WherePerspective
-} from "../viewModels/where.perspective";
+import {Coord, LocationInfo, LocOptions, PlacementSession, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
 import {EmojiGroupEntry, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
-import {WhereDvm} from "../viewModels/where.dvm";
-import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective";
+import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
+import {MarkerType} from "../viewModels/playset.perspective";
+import {DnaElement} from "@ddd-qc/dna-client";
+import {WhereProfile} from "../viewModels/profiles.proxy";
+
 
 // // Canvas Animation experiment
 // function draw() {
@@ -50,27 +42,21 @@ import {MarkerType, PlaysetPerspective} from "../viewModels/playset.perspective"
 
 /** @element where-space */
 @localized()
-export class WhereSpace extends ScopedElementsMixin(LitElement) {
+export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   constructor() {
-    super();
+    super("rWhere");
     this.addEventListener("wheel", this._handleWheel);
   }
 
-  /** Provided Properties */
-
-  @contextProvided({ context: WhereDvm.context, subscribe: true })
-  _whereDvm!: WhereDvm;
-
-  @contextProvided({ context: profilesStoreContext, subscribe: true })
-  _profiles!: ProfilesStore;
 
   /** Properties */
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   wherePerspective!: WherePerspective;
-  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  playsetPerspective!: PlaysetPerspective;
-
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // playsetPerspective!: PlaysetPerspective;
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // profilesPerspective!: ProfilesPerspective;
 
   @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
   // @state() _currentSessionEh: null | EntryHashB64 = null;
@@ -79,7 +65,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** State */
 
-  private _myProfile?: Profile;
+  private _myProfile?: WhereProfile;
 
   private _dialogCoord = { x: 0, y: 0 };
   private _dialogCanEdit = false;
@@ -98,15 +84,15 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
 
   getCurrentPlay(): Play | undefined {
-    return this.currentSpaceEh? this._whereDvm.getPlay(this.currentSpaceEh) : undefined
+    return this.currentSpaceEh? this._dvm.getPlay(this.currentSpaceEh) : undefined
   }
 
   getCurrentSession(): EntryHashB64 | undefined {
-    return this.currentSpaceEh? this._whereDvm.getCurrentSession(this.currentSpaceEh) : undefined
+    return this.currentSpaceEh? this._dvm.getCurrentSession(this.currentSpaceEh) : undefined
   }
 
   getCurrentZoom(): number | undefined {
-    return this.currentSpaceEh? this._whereDvm.getZoom(this.currentSpaceEh) : undefined
+    return this.currentSpaceEh? this._dvm.getZoom(this.currentSpaceEh) : undefined
   }
 
 
@@ -122,20 +108,13 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** Launch init when myProfile has been set */
-  private async subscribeProfile() {
-    const myProfileStore = await this._profiles.fetchMyProfile();
-    myProfileStore.subscribe(async (profile) => {
-      this._myProfile = profile;
-    });
-  }
-
-
   /** */
   async firstUpdated() {
-    this._whereDvm.whereZvm.subscribe(this, 'wherePerspective');
-    this._whereDvm.playsetZvm.subscribe(this, 'playsetPerspective');
-    await this.subscribeProfile();
+    await super.firstUpdated();
+    this._dvm.whereZvm.subscribe(this, 'wherePerspective');
+    // this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
+
+    // FIXME after init do this
     await this.initFab(this.resetFab);
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
@@ -146,7 +125,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   /** */
   updated(changedProperties: any) {
     //console.log("*** updated() called!");
-    if (!this.currentSpaceEh /*|| !this._plays.value*/) {
+    if (!this._loaded || !this.currentSpaceEh /*|| !this._plays.value*/) {
       return;
     }
     const play = this.getCurrentPlay();
@@ -200,14 +179,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private _handleWheel = (e: WheelEvent) => {
     if (e.target && this.currentSpaceEh) {
       e.preventDefault();
-      this._whereDvm.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
+      this._dvm.updateZoom(this.currentSpaceEh, e.deltaY > 0 ? -0.05 : 0.05);
    }
   };
 
 
   /** */
   updateZoom(delta: number): void {
-    this._whereDvm.updateZoom(this.currentSpaceEh!, delta);
+    this._dvm.updateZoom(this.currentSpaceEh!, delta);
   }
 
 
@@ -220,7 +199,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   /** */
   private getCoordsFromEvent(event: any): Coord {
     const rect = event.currentTarget.getBoundingClientRect();
-    const z = this._whereDvm.getZoom(this.currentSpaceEh!);
+    const z = this._dvm.getZoom(this.currentSpaceEh!);
     const x = (event.clientX - rect.left) / z!; //x position within the element.
     const y = (event.clientY - rect.top) / z!; //y position within the element.
     return { x, y };
@@ -236,14 +215,14 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay) return false;
     /* Session allowed */
-    if (!this._whereDvm.isCurrentSessionToday(this.currentSpaceEh!)) {
+    if (!this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
     /* Marker allowed */
     if (currentPlay.space.meta!.multi) {
       return true;
     }
-    const myLocIdx = this._whereDvm.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
+    const myLocIdx = this._dvm.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
     const hasNoLocation = myLocIdx == -1
     return hasNoLocation;
   }
@@ -253,7 +232,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private canUpdateLocation(idx: number): boolean {
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay) return false;
-    if (!this._whereDvm.isCurrentSessionToday(this.currentSpaceEh!)) {
+    if (!this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
     const sessionEh = this.getCurrentSession();
@@ -289,7 +268,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       let svgMarker = ""
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
         let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
-        svgMarker = this._whereDvm.playsetZvm.getSvgMarker(eh)!.value;
+        svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)!.value;
       }
       const location: WhereLocation = {
         coord,
@@ -304,7 +283,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
           svgMarker,
         },
       };
-      this._whereDvm.whereZvm.publishLocation(location, this.currentSpaceEh);
+      this._dvm.whereZvm.publishLocation(location, this.currentSpaceEh);
     }
   }
 
@@ -388,7 +367,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       emojiValue = currentPlay.space.meta!.singleEmoji;
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
         let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
-        svgMarker = this._whereDvm.playsetZvm.getSvgMarker(eh)!.value;
+        svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)!.value;
       }
     }
     if (emojiMarkerElem) {
@@ -409,7 +388,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       },
     };
     if (this._dialogCanEdit) {
-      this._whereDvm.updateLocation(
+      this._dvm.updateLocation(
         this.currentSpaceEh!,
         this._dialogIdx,
         this._dialogCoord,
@@ -418,7 +397,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
         emojiValue
       );
     } else {
-      this._whereDvm.whereZvm.publishLocation(location, this.currentSpaceEh!);
+      this._dvm.whereZvm.publishLocation(location, this.currentSpaceEh!);
     }
   }
 
@@ -570,7 +549,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   /** */
   handleDeleteClick(ev: any): void {
     const idx = this.getIdx(ev.target)!;
-    this._whereDvm.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
+    this._dvm.deleteLocation(this.currentSpaceEh!, idx).then(() => {});
   }
 
 
@@ -604,7 +583,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
     if (isMe) {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
-      if (this._whereDvm.isCurrentSessionToday(this.currentSpaceEh!)) {
+      if (this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
         maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
         if (this.canEditLocation(play)) {
           maybeEditBtn = html`<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
@@ -640,7 +619,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   async resetMyLocations() {
-    await this._whereDvm.deleteAllMyLocations(this.currentSpaceEh!);
+    await this._dvm.deleteAllMyLocations(this.currentSpaceEh!);
   }
 
 
@@ -705,7 +684,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroupEntry = this._whereDvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
+      const emojiGroup: EmojiGroupEntry = this._dvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`
@@ -770,7 +749,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
   private async handleTabSelected(e: any) {
     //console.log("handleTabSelected: " + e.detail.index)
     const selectedSessionEh = this._sessions[e.detail.index];
-    this._whereDvm.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
+    this._dvm.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
     this.requestUpdate();
   }
 
@@ -804,7 +783,12 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    //console.log(" - where-space render() - " + this.currentSpaceEh)
+    console.log(" - where-space render()", this.currentSpaceEh)
+    if (!this._loaded) {
+      return html`<div class="fill center-content">
+        <mwc-circular-progress indeterminate></mwc-circular-progress>
+      </div>`;
+    }
 
     /** Determine max size */
     const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
@@ -923,6 +907,7 @@ export class WhereSpace extends ScopedElementsMixin(LitElement) {
       "mwc-tab": Tab,
       "mwc-tab-bar": TabBar,
       "emoji-picker": customElements.get('emoji-picker'),
+      'mwc-circular-progress': CircularProgress,
     };
   }
   static get styles() {

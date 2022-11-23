@@ -1,23 +1,18 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, state} from "lit/decorators.js";
-import { contextProvided } from '@lit-labs/context';
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
   Button, Drawer, Formfield,
   Icon, IconButton, IconButtonToggle,
-  List, ListItem,
-  Menu, Select,
+  List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 
-import {Profile, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {CellId} from "@holochain/client";
-import {serializeHash} from "@holochain-open-dev/utils";
 
 import {delay, renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
@@ -27,12 +22,14 @@ import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
-import {get} from 'svelte/store';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
-import {Play, WherePerspective} from "../viewModels/where.perspective";
+import {Play} from "../viewModels/where.perspective";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
+import {DnaElement} from "@ddd-qc/dna-client";
+import {ProfilesPerspective} from "../viewModels/profiles.zvm";
+import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
 
@@ -54,9 +51,9 @@ tmpl.innerHTML = `
 
 /** @element where-page */
 @localized()
-export class WherePage extends ScopedElementsMixin(LitElement) {
+export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super();
+    super("rWhere");
   }
 
   /** Properties */
@@ -68,25 +65,15 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
 
   /** ViewModels */
 
-  @contextProvided({ context: WhereDvm.context, subscribe: true })
-  _whereDvm!: WhereDvm;
-
-  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  whereDnaPerspective!: WhereDnaPerspective;
-
   // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   // wherePerspective!: WherePerspective;
-  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  playsetPerspective!: PlaysetPerspective;
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // playsetPerspective!: PlaysetPerspective;
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // profilesPerspective!: ProfilesPerspective;
 
 
-  // FIXME
-  @contextProvided({context: profilesStoreContext, subscribe: true})
-  @property({ type: Object })
-  profileStore!: ProfilesStore;
-
-  private _myProfile?: Profile; // new StoreSubscriber(this, async () => await this._profiles?.fetchMyProfile());
-  //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.fetchAllProfiles);
+  private _myProfile?: WhereProfile;
 
   /** State */
 
@@ -163,45 +150,30 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     //console.log(nickname);
     const color: string = randomColor({luminosity: 'light'});
     //console.log(color);
-    await this.updateProfile(nickname, `https://robohash.org/${nickname}`, color)
+    await this.createMyProfile(nickname, `https://robohash.org/${nickname}`, color)
     //await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
 
 
   /** */
-  async updateProfile(nickname: string, avatar: string, color: string) {
+  async createMyProfile(nickname: string, avatar: string, color: string) {
     // FIXME
-    // console.log("updateProfile() called:", nickname)
-    // try {
-    //   const fields: Dictionary<string> = {};
-    //   fields['color'] = color;
-    //   fields['avatar'] = avatar;
-    //   await this.profileStore.createProfile({
-    //     nickname,
-    //     fields,
-    //   });
-    //
-    // } catch (e) {
-    //   console.log("updateProfile() failed");
-    //   console.log(e);
-    // }
+    console.log("updateProfile() called:", nickname)
+    try {
+      const fields: Dictionary<string> = {};
+      fields['color'] = color;
+      fields['avatar'] = avatar;
+      await this._dvm.profilesZvm.createMyProfile({
+        nickname,
+        fields,
+      });
+
+    } catch (e) {
+      console.log("updateProfile() failed");
+      console.log(e);
+    }
   }
 
-
-  /** Launch init when myProfile has been set */
-  private async subscribeProfile() {
-    // FIXME
-    // const myProfileStore = await this.profileStore.fetchMyProfile();
-    // myProfileStore.subscribe(async (profile) => {
-    //   console.log("myProfileStore received entry:", profile)
-    //   if (profile) {
-    //     // if (!this._initialized && !this._initializing) {
-    //     //   await this.init();
-    //     // }
-    //     this._myProfile = profile;
-    //   }
-    // });
-  }
 
   /** Launch init when myProfile has been set */
   // private subscribePlay() {
@@ -221,6 +193,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
+    await super.firstUpdated();
     console.log("where-page first updated!")
     if (this.canLoadDummy) {
       await this.createDummyProfile();
@@ -234,20 +207,21 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     //await this.subscribeProfile();
     //this.subscribePlay();
 
+    /* FIXME Dont know why I need to call this since init() should update some state properties */
     this.requestUpdate();
   }
+
 
   /** After each render */
   async updated(changedProperties: any) {
     if (this._canPostInit) {
-      await this.subscribeProfile();
       this.postInit();
     }
     //this.anchorMenu();
 
     /* look for canvas in plays and render them */
-    for (let spaceEh in this.whereDnaPerspective.plays) {
-      let play: Play = this.whereDnaPerspective.plays[spaceEh];
+    for (let spaceEh in this.perspective.plays) {
+      let play: Play = this.perspective.plays[spaceEh];
       if (play.space.surface.canvas && play.visible) {
         const id = play.space.name + '-canvas'
         const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
@@ -292,11 +266,10 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
   private async init() {
     this._initializing = true
     console.log("where-page.init() - START");
-    this._whereDvm.subscribe(this, 'whereDnaPerspective');
-    this._whereDvm.whereZvm.subscribe(this, 'wherePerspective');
-    this._whereDvm.playsetZvm.subscribe(this, 'playsetPerspective');
+    //this._dvm.whereZvm.subscribe(this, 'wherePerspective');
+    //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
     /** Get latest public entries from DHT */
-    await this._whereDvm.probeAll();
+    await this._dvm.probeAll();
     /** Done */
     this._initialized = true
     this._initializing = false
@@ -349,7 +322,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!play && time < 2000) {
-      play = this._whereDvm.getPlay(spaceEh);
+      play = this._dvm.getPlay(spaceEh);
       await delay(100);
       time += 100;
     }
@@ -370,7 +343,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
         })
       //console.log("hasToday: " + hasToday + " | " + play.space.name + " | " + today)
       if (!hasToday) {
-        await this._whereDvm.whereZvm.createNextSession(spaceEh, today /*"dummy-test-name"*/)
+        await this._dvm.whereZvm.createNextSession(spaceEh, today /*"dummy-test-name"*/)
       }
     }
 
@@ -392,9 +365,9 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
 
   /** Hide Current play and select first available one */
   async archiveSpace() {
-    await this._whereDvm.whereZvm.hidePlay(this._currentSpaceEh!)
+    await this._dvm.whereZvm.hidePlay(this._currentSpaceEh!)
     /** Select first play */
-    const firstSpaceEh = this.getFirstVisiblePlay(this.whereDnaPerspective.plays)
+    const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays)
     console.log({firstSpaceEh})
     this._currentSpaceEh = firstSpaceEh
     this.requestUpdate()
@@ -411,25 +384,12 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** */
-  async others(): Promise<Array<AgentPubKeyB64>> {
-    let keysB64 = new Array();
-    // const profiles = get(await this.profiles.fetchAllProfiles());
-    // console.log({profiles})
-    // keysB64 = profiles.keys()
-    //   .map(key => serializeHash(key))
-    //   .filter((key)=> key != this.myAgentPubKey)
-    // console.log({keysB64})
-    return keysB64
-  }
-
 
   /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._whereDvm.probeAll()
-    // FIXME await this.profileStore.fetchAllProfiles()
-    await this.pingOthers()
+    await this._dvm.probeAll();
+    await this.pingOthers();
     // await this._whereDvm.getEntryDefs("where")
     // await this._whereDvm.getEntryDefs("where_ludotheque")
     // await this._whereDvm.getEntryDefs("where_playset")
@@ -451,7 +411,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
 
   /** */
   async openSpaceDialog(spaceEh?: EntryHashB64) {
-    const maybePlay = spaceEh? this._whereDvm.getPlay(spaceEh) : undefined;
+    const maybePlay = spaceEh? this._dvm.getPlay(spaceEh) : undefined;
     this.playDialogElem.resetAllFields();
     this.playDialogElem.open(maybePlay);
     if (maybePlay) {
@@ -474,10 +434,10 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
   /** */
   private async onTemplateCreated(e: any) {
     const template = e.detail as TemplateEntry;
-    const eh = await this._whereDvm.playsetZvm.publishTemplateEntry(template);
-    this._whereDvm.notifyPeers(
-      {maybeSpaceHash: null, from: this._whereDvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
-      await this.others(),
+    const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
+    this._dvm.notifyPeers(
+      {maybeSpaceHash: null, from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      this._dvm.allOthers(),
     )
   }
 
@@ -485,10 +445,10 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
   private async onPlayCreated(e: any) {
     console.log("onPlayCreated()", e.detail)
     const newPlayInput = e.detail;
-    const spaceEh = await this._whereDvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
+    const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._whereDvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    this._whereDvm.notifyPeers(newSpace, await this.others());
+    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._dvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    this._dvm.notifyPeers(newSpace, this._dvm.allOthers());
     /* */
     await this.selectPlay(spaceEh);
   }
@@ -500,7 +460,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     /** Check if current play has been archived */
     if (e.detail.includes(this._currentSpaceEh)) {
       /** Select first visible play */
-      const firstSpaceEh = this.getFirstVisiblePlay(this.whereDnaPerspective.plays);
+      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
       this._currentSpaceEh = firstSpaceEh;
       this.requestUpdate();
     }
@@ -542,14 +502,14 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
         break;
       case "export_template":
         if (this._currentTemplateEh && this.ludoCellId) {
-          this._whereDvm.playsetZvm.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
         } else {
           console.warn("No template or ludotheque cell to export to");
         }
         break;
       case "export_space":
         if (this._currentSpaceEh && this.ludoCellId) {
-          this._whereDvm.playsetZvm.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
         } else {
           console.warn("No space or ludotheque cell to export to");
         }
@@ -568,7 +528,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
     const profile = this._myProfile!;
-    await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
+    await this.createMyProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
   private async handleSpaceClick(event: any) {
@@ -593,10 +553,12 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     //var userLang = navigator.language
     //console.log({userLang})
 
+    /* Grab things from the perspectives */
+    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey);
 
+    /** Select first play if none is set */
     if (!this._currentSpaceEh) {
-      /** Select first play  if none is set */
-      const firstSpaceEh = this.getFirstVisiblePlay(this.whereDnaPerspective.plays);
+      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
       if (firstSpaceEh) {
         this.selectPlay(firstSpaceEh);
         //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
@@ -605,13 +567,15 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
       }
     }
 
-
+    //  FIXME
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }
+
+
     /** Build play list */
     let spaceName = "none"
-    const playItems = Object.entries(this.whereDnaPerspective.plays).map(
+    const playItems = Object.entries(this.perspective.plays).map(
       ([key, play]) => {
         if (!play.visible) {
           return html ``;
@@ -619,7 +583,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
         if (key == this._currentSpaceEh) {
           spaceName = play.space.name;
         }
-        const template = this._whereDvm.playsetZvm.getTemplate(play.space.origin);
+        const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         return html`
           <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
             <span>${play.space.name}</span>
@@ -640,7 +604,7 @@ export class WherePage extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
-      <!-- FIXME <span slot="secondary">${serializeHash(this.profileStore.myAgentPubKey)}</span> -->
+      <!-- FIXME <span slot="secondary">${this._dvm.agentPubKey}</span> -->
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
         value=${this._myProfile.fields['color']}></sl-color-picker>

@@ -23,11 +23,6 @@ export class LudothequeZvm extends ZomeViewModel<LudothequePerspective, Ludotheq
 
   /** -- ZomeViewModel -- */
 
-  // static context = createContext<LudothequeZvm>('zome_view_model/where_ludotheque');
-  // getContext(): any {return LudothequeZvm.context}
-
-  getContext(): any {return createContext<LudothequeZvm>('zvm/'+ this.zomeName +'/' + this._cellProxy.dnaHash)}
-
   /* */
   protected hasChanged(): boolean {
     if (!this._previousPerspective) return true;

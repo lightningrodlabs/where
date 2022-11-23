@@ -34,10 +34,6 @@ export class PlaysetZvm extends ZomeViewModel<PlaysetPerspective, PlaysetProxy> 
 
   /** -- ZomeViewModel -- */
 
-  // static context = createContext<PlaysetZvm>('zome_view_model/where_playset');
-  // getContext(): any {return PlaysetZvm.context}
-  getContext(): any {return createContext<PlaysetZvm>('zvm/'+ this.zomeName +'/' + this._cellProxy.dnaHash)}
-
   /* */
   protected hasChanged(): boolean {
     // TODO

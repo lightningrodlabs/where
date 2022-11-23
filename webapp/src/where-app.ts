@@ -150,8 +150,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     /** Pages */
     const ludothequePage = html`
-        <cell-context .cellData="${this.ludothequeDvm.cellData}">
-                  <ludotheque-page examples .whereCellId=${this.whereDvm.cellData.cell_id}
+        <cell-context .cellDef="${this.ludothequeDvm.cellDef}">
+                  <ludotheque-page examples .whereCellId=${this.whereDvm.cellId}
                                          @import-playset="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-page>
@@ -159,8 +159,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     `;
 
     const wherePage = html`
-        <cell-context .cellData="${this.whereDvm.cellData}">
-            <where-page .ludoCellId=${this.ludothequeDvm.cellData.cell_id} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
+        <cell-context .cellDef="${this.whereDvm.cellDef}">
+            <where-page .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
         </cell-context>
     `;
 
@@ -203,7 +203,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellData.cell_id)
+    await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellId)
     while(Date.now() - startTime < 500) {
       //console.log(Date.now() - startTime)
       await delay(20);

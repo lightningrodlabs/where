@@ -14,14 +14,10 @@ import {ZomeElement} from "@ddd-qc/dna-client";
 @localized()
 export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
-    super("where_playset");
+    super("zPlayset");
   }
 
   @state() private _currentUnicodes: string[] = [];
-
-  /** Dependencies */
-  // @contextProvided({ context: PlaysetZvm.context, subscribe: true })
-  // _playsetZvm!: PlaysetZvm;
 
   /** Private properties */
 
@@ -48,19 +44,17 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
 
 
   /** */
-  async firstUpdated() {
-    super.firstUpdated();
-    // super.firstUpdated(_changedProperties);
-    this.emojiPickerElem.addEventListener('emoji-click', (event: any) => {
-      const unicode = event?.detail?.unicode
-      //console.log("emoji-click: " + unicode)
-      const index = this._currentUnicodes.indexOf(unicode);
-      if (index <= -1) {
-        this._currentUnicodes.push(unicode)
-        this.requestUpdate()
-      }
-    });
+  private async onEmojiClick(e: any) {
+    //console.log("onEmojiClick()", e)
+    const unicode = e?.detail?.unicode
+    //console.log("emoji-click: " + unicode)
+    const index = this._currentUnicodes.indexOf(unicode);
+    if (index <= -1) {
+      this._currentUnicodes.push(unicode)
+      this.requestUpdate()
+    }
   }
+
 
 
   /** preload fields with current emojiGroup values */
@@ -192,7 +186,7 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
     </div>
   </div>
   <!-- Emoji Picker -->
-  <emoji-picker id="emoji-picker" class="light"></emoji-picker>
+  <emoji-picker id="emoji-picker" class="light" @emoji-click=${this.onEmojiClick}></emoji-picker>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
   <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>

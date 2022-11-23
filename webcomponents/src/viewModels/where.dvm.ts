@@ -152,7 +152,7 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
 
   /** */
   handleSignal(appSignal: AppSignal): void {
-    if (!areCellsEqual(this._cellProxy.cellData.cell_id, appSignal.data.cellId)) {
+    if (!areCellsEqual(this._cellProxy.cellId, appSignal.data.cellId)) {
       console.trace("Rejected Signal not for this Cell");
       return
     }

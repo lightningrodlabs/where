@@ -25,13 +25,14 @@ import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} fro
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/dna-client";
 
+
 /**
  * @element where-play-dialog
  */
 @localized()
 export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
-    super("where_playset");
+    super("zPlayset");
   }
 
   /** Properties */

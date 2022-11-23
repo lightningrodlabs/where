@@ -3,22 +3,22 @@ manifest_version: "1"
 name: where
 description: ~
 roles:
-  - id: ludotheque
+  - id: rLudotheque
     provisioning:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dna-ludotheque/ludotheque.dna"
+      bundled: "../../../artifacts/ludotheque.dna"
       properties: ~
       uid: ~
       version: ~
       clone_limit: 0
-  - id: where
+  - id: rWhere
     provisioning:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dna-where/where.dna"
+      bundled: "../../../artifacts/where.dna"
       uid: ~
       properties: ~
       clone_limit: 0

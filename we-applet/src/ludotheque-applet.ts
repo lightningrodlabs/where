@@ -65,7 +65,7 @@ export class LudothequeApplet extends ScopedElementsMixin(LitElement) {
     /** Get Cells by role by hand */
     let ludo_cell: InstalledCell | undefined = undefined;
     for (const cell_data of appInfo.cell_data) {
-      if (cell_data.role_id == "ludotheque") {
+      if (cell_data.role_id == "rLudotheque") {
         ludo_cell = cell_data;
       }
     }

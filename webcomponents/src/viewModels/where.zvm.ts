@@ -20,7 +20,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   // static context = createContext<WhereZvm>('zome_view_model/where');
   // getContext(): any {return WhereZvm.context}
-  getContext(): any {return createContext<WhereZvm>('zvm/where/' + this._cellProxy.dnaHash)}
+  getContext(): any {return createContext<WhereZvm>('zvm/'+ this.zomeName +'/' + this._cellProxy.dnaHash)}
 
   /* */
   protected hasChanged(): boolean {

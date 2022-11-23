@@ -73,8 +73,8 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
   /** -- Getters --  */
 
   /** */
-  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
-  get whereZvm(): WhereZvm { return this.getZomeViewModel("where") as WhereZvm}
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("zPlayset") as PlaysetZvm}
+  get whereZvm(): WhereZvm { return this.getZomeViewModel("zWhere") as WhereZvm}
 
   getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
   getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}

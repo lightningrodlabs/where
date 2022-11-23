@@ -57,8 +57,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** -- Getters -- */
 
-  get whereDvm(): WhereDvm { return this._happ.getDvm("where")! as WhereDvm }
-  get ludothequeDvm(): LudothequeDvm { return this._happ.getDvm("ludotheque")! as LudothequeDvm}
+  get whereDvm(): WhereDvm { return this._happ.getDvm("rWhere")! as WhereDvm }
+  get ludothequeDvm(): LudothequeDvm { return this._happ.getDvm("rLudotheque")! as LudothequeDvm}
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -87,7 +87,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = this._happ.getDnaHash("where");
+      const whereDnaHashB64 = this._happ.getDnaHash("rWhere");
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }

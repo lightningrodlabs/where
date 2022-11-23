@@ -45,10 +45,10 @@ export class LudothequeStandaloneApp extends ScopedElementsMixin(LitElement) {
   async firstUpdated() {
     this._conductorAppProxy = await ConductorAppProxy.new(Number(HC_APP_PORT));
     this._happ = await this._conductorAppProxy.newHappViewModel(this, ludothequeHappDef); // WARN this can throw an error
-    new ContextProvider(this, cellContext, this._happ.getDvm("ludotheque")!.cellData)
+    new ContextProvider(this, cellContext, this._happ.getDvm("rLudotheque")!.cellData)
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {
-      const ludoDnaHashB64 = this._happ.getDnaHash("ludotheque");
+      const ludoDnaHashB64 = this._happ.getDnaHash("rLudotheque");
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }

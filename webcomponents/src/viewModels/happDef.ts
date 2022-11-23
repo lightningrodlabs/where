@@ -6,8 +6,8 @@ import {LudothequeDvm} from "./ludotheque.dvm";
 export const whereHappDef: HappDef = {
   id: "where",
   dvmDefs: [
-    ["where", WhereDvm],
-    ["ludotheque", LudothequeDvm],
+    ["rWhere", WhereDvm],
+    ["rLudotheque", LudothequeDvm],
   ]
 }
 
@@ -15,6 +15,6 @@ export const whereHappDef: HappDef = {
 export const ludothequeHappDef: HappDef = {
   id: "ludotheque",
   dvmDefs: [
-    ["ludotheque", LudothequeDvm],
+    ["rLudotheque", LudothequeDvm],
   ]
 }

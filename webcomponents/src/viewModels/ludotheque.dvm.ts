@@ -33,8 +33,8 @@ export class LudothequeDvm extends DnaViewModel<unknown> {
 
 
   /** */
-  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("where_playset") as PlaysetZvm}
-  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel("where_ludotheque") as LudothequeZvm}
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("zPlayset") as PlaysetZvm}
+  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel("zLudotheque") as LudothequeZvm}
 
 
   /** -- Methods -- */

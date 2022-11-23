@@ -80,10 +80,10 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
     let where_cell: InstalledCell | undefined = undefined;
     let ludo_cell: InstalledCell | undefined = undefined;
     for (const cell_data of appInfo.cell_data) {
-      if (cell_data.role_id == "where") {
+      if (cell_data.role_id == "rWhere") {
         where_cell = cell_data;
       }
-      if (cell_data.role_id == "ludotheque") {
+      if (cell_data.role_id == "rLudotheque") {
         ludo_cell = cell_data;
       }
     }

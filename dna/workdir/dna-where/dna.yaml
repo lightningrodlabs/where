@@ -1,12 +1,12 @@
 ---
 manifest_version: "1"
-name: where
+name: dWhere
 uuid: 00000000-0000-0000-0000-000000000000
 properties: ~
 integrity:
   origin_time: 2022-09-25T13:55:49.200Z
   zomes:
-    - name: where_playset_integrity
+    - name: playset_integrity
       bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm
     - name: where_integrity
       bundled: ../../../target/wasm32-unknown-unknown/release/where_integrity_zome.wasm
@@ -14,15 +14,15 @@ integrity:
       bundled: ../../../target/wasm32-unknown-unknown/release/profiles_integrity_zome.wasm
 coordinator:
   zomes:
-    - name: where_playset
+    - name: zPlayset
       bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_zome.wasm
       dependencies:
-        - name: where_playset_integrity
-    - name: where
+        - name: playset_integrity
+    - name: zWhere
       bundled: ../../../target/wasm32-unknown-unknown/release/where_zome.wasm
       dependencies:
         - name: where_integrity
-    - name: profiles
+    - name: zProfiles
       bundled: ../../../target/wasm32-unknown-unknown/release/profiles_zome.wasm
       dependencies:
         - name: profiles_integrity

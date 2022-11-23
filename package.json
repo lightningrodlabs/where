@@ -17,9 +17,9 @@
 
     "hash-zome"             : "bash scripts/write-zome-hash.sh",
     "build:zome"            : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown && npm run hash-zome",
-    "build:dna"             : "npm run build:zome && hc dna pack dna/workdir/dna-where && hc dna pack dna/workdir/dna-ludotheque",
-    "build:happ"            : "npm run build:dna && hc app pack dna/workdir/happ-where && hc app pack dna/workdir/happ-where-standalone && hc app pack dna/workdir/happ-ludotheque && npm run copy:happ",
-    "copy:happ"             : "cp dna/workdir/happ-where/where.happ electron/bin && cp dna/workdir/happ-ludotheque/ludotheque.happ electron/bin",
+    "build:dna"             : "npm run build:zome && hc dna pack -o ./artifacts/where.dna dna/workdir/dna-where && hc dna pack -o ./artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
+    "build:happ"            : "npm run build:dna && hc app pack -o ./artifacts/where.happ dna/workdir/happ-where && hc app pack -o ./artifacts/where-standalone.happ dna/workdir/happ-where-standalone && hc app pack -o ./artifacts/ludotheque.happ dna/workdir/happ-ludotheque && npm run copy:happ",
+    "copy:happ"             : "cp artifacts/where.happ electron/bin && cp artifacts/ludotheque.happ electron/bin",
 
     "build:localize"        : "npm run localize:build -w webcomponents",
     "build:webui"           : "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
@@ -40,9 +40,9 @@
     "start:ludotheque"      : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
     "start:playground"      : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run playground\" \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start-rerun"           : "cross-env HC_APP_PORT=8888 concurrently -k \"npm run build:watch -w webcomponents\" \"hc s run 0 -p 8888\" \"npm run start:ui -w webapp\"",
-    "start:happ"            : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate dna/workdir/happ-where/where.happ --run=$HC_APP_PORT -a where network mdns",
-    "start:happ:ludotheque" : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate dna/workdir/happ-ludotheque/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
-    "start:happ:proxied"    : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate dna/workdir/happ-where/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
+    "start:happ"            : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ -a where --run=$HC_APP_PORT network mdns",
+    "start:happ:ludotheque" : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
+    "start:happ:proxied"    : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
 
     "test"                  : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
 

@@ -3,12 +3,12 @@ manifest_version: "1"
 name: where-standalone
 description: ~
 roles:
-  - id: where
+  - id: rWhere
     provisioning:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dna-where/where.dna"
+      bundled: "../../../artifacts/where.dna"
       uid: ~
       properties: ~
       clone_limit: 0

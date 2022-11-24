@@ -28,6 +28,7 @@ export class WhereZvm extends ZomeViewModel {
 
   /** */
   async probeAll() {
+    console.log("whereZvm.probeAll()", this.perspective)
     for (const spaceEh of Object.keys(this._manifests)) {
       const maybeManifest = await this.probeManifest(spaceEh); // TODO optimize
       if (!maybeManifest) continue;
@@ -135,9 +136,16 @@ export class WhereZvm extends ZomeViewModel {
       await this.probeVisibilityForAll(); // TODO: make this optional when probing all plays
       let manifest = this.getManifest(spaceEh);
       if (!manifest) {
-        return Promise.reject("Inconsistant state: Manifest not found although sessions where found.")
+        manifest = {
+          spaceEh: spaceEh,
+          visible: true,
+          sessionEhs: sessionEhs,
+        };
+        //console.error("Session found but no manifest:", spaceEh, this.perspective)
+        //return Promise.reject("Inconsistant state: Manifest not found although sessions where found.")
+      } else {
+        manifest.sessionEhs = sessionEhs;
       }
-      manifest.sessionEhs = sessionEhs;
       this._manifests[spaceEh] = manifest;
       this.notifySubscribers();
       return manifest;

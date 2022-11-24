@@ -65,7 +65,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** State */
 
-  private _myProfile?: WhereProfile;
+  private _myProfile!: WhereProfile;
 
   private _dialogCoord = { x: 0, y: 0 };
   private _dialogCanEdit = false;
@@ -114,6 +114,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     await super.firstUpdated();
     this._dvm.whereZvm.subscribe(this, 'wherePerspective');
     // this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
+    this._dvm.profilesZvm.probeProfile(this._dvm.agentPubKey)
+    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey)!;
     this._canPostInit = true;
   }
 
@@ -804,6 +806,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       </div>`;
     }
 
+    console.log({WherePerspective: this.wherePerspective})
+
     /** Determine max size */
     const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar
     const maxH = window.innerHeight - 50 - 20; // minus top app bar, scroll bar
@@ -858,7 +862,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         }
       }
     } else {
-      console.warn("CurrentSession not found for play " + currentPlay.space.name)
+      console.warn("CurrentSession not found for play. Setting to last session", currentPlay.space.name, currentPlay)
+      const keys = Object.keys(currentPlay.sessions);
+      this._dvm.setCurrentSession(this.currentSpaceEh!, keys[keys.length - 1])
     }
 
     /** Session Tab bar */
@@ -924,6 +930,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       'mwc-circular-progress': CircularProgress,
     };
   }
+
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

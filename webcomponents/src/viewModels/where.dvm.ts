@@ -10,7 +10,7 @@ import {SpaceEntry} from "./playset.bindings";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {WhereSignal} from "./where.signals";
-import {convertEntryToSpace, convertSpaceToEntry, Space} from "./playset.perspective";
+import {convertSpaceToEntry, Space} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
 
 
@@ -79,7 +79,7 @@ export class WhereDvm extends DnaViewModel {
   async probeAll(): Promise<void> {
     console.log(`${this.roleId}.probeAll()...`)
     await super.probeAll();
-    await this.probePlays();
+    await this.probeAllPlays();
     console.log(`${this.roleId}.probeAll() Done.`);
     console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
   }
@@ -316,7 +316,7 @@ export class WhereDvm extends DnaViewModel {
   /** Plays */
 
   /** For each known space, look for an upto date Play otherwise construct it? */
-  async probePlays() : Promise<Dictionary<Play>> {
+  async probeAllPlays() : Promise<Dictionary<Play>> {
     const spaces = this.playsetZvm.perspective.spaces;
     for (const spaceEh of Object.keys(spaces)) {
       await this.probePlay(spaceEh)
@@ -340,8 +340,12 @@ export class WhereDvm extends DnaViewModel {
         this._zooms[spaceEh] = 1.0
     }
     /* Set currentSession for new Play */
-    const firstSessionEh = this.whereZvm.getManifest(spaceEh)!.sessionEhs[0];
-    // console.log("addPlay() firstSessionEh: " + firstSessionEh)
+    const maybeManifest =this.whereZvm.getManifest(spaceEh);
+    if (!maybeManifest) {
+      console.warn("addPlay() no manifest found for space", spaceEh)
+    }
+    const firstSessionEh = maybeManifest!.sessionEhs[0];
+    console.log("addPlay() firstSessionEh:", firstSessionEh, maybeManifest)
     if (firstSessionEh) {
       this._currentSessions[spaceEh] = firstSessionEh;
     } else {
@@ -398,9 +402,18 @@ export class WhereDvm extends DnaViewModel {
     /* - Sessions */
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of manifest.sessionEhs) {
-      const session = this.whereZvm.getSession(sessionEh)!;
-      sessions[session.name] = session;
+      const session = this.whereZvm.getSession(sessionEh);
+      if (!session) {
+        console.warn("Session not found in whereZvm", sessionEh, spaceEh);
+        continue;
+      }
+      //sessions[session!.name] = session!;
+      sessions[sessionEh] = session!;
     }
+    if (Object.keys(sessions).length == 0) {
+      console.error("No sessions found space", spaceEh, space);
+    }
+
     /* - Construct Play */
     const play: Play = {
       space,

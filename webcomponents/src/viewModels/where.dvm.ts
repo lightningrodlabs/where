@@ -10,7 +10,7 @@ import {SpaceEntry} from "./playset.bindings";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {WhereSignal} from "./where.signals";
-import {convertSpaceToEntry, Space} from "./playset.perspective";
+import {convertEntryToSpace, convertSpaceToEntry, Space} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
 
 
@@ -75,6 +75,14 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** -- Methods -- */
+
+  async probeAll(): Promise<void> {
+    console.log(`${this.roleId}.probeAll()...`)
+    await super.probeAll();
+    await this.probePlays();
+    console.log(`${this.roleId}.probeAll() Done.`);
+    console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
+  }
 
   /** */
   setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
@@ -184,7 +192,11 @@ export class WhereDvm extends DnaViewModel {
         break;
       case "NewSpace":
         const spaceEh = signal.message.content;
-        /*await*/ this.playsetZvm.fetchSpace(spaceEh);
+        /*await*/ this.playsetZvm.fetchSpace(spaceEh).then((space) => {
+          if (space.meta.sessionCount == 0) {
+            //this.whereZvm.createNextSession()
+          }
+      })
         // if (!this._plays[spaceEh]) {
         //   console.log("addPlay() from signal: " + spaceEh)
         //   /*await*/ this.addPlay(spaceEh)
@@ -321,7 +333,7 @@ export class WhereDvm extends DnaViewModel {
       return;
     }
     /* Construct Play and add it to perspective */
-    const play: Play = await this.probePlay(spaceEh);
+    const play: Play = (await this.probePlay(spaceEh))!;
     this._plays[spaceEh] = play
     /* Set starting zoom for new Play */
     if (!this._zooms[spaceEh]) {
@@ -371,10 +383,11 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** Construct Play from all related DNA entries */
-  async probePlay(spaceEh: EntryHashB64): Promise<Play> {
+  async probePlay(spaceEh: EntryHashB64): Promise<Play | undefined> {
     const manifest = await this.whereZvm.probeManifest(spaceEh);
     if (!manifest) {
-      return Promise.reject("No manifest found for requested Play");
+      //return Promise.reject("No manifest found for requested Play");
+      return undefined;
     }
     /* - Space */
     const space = await this.playsetZvm.getSpace(spaceEh);

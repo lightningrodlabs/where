@@ -170,7 +170,7 @@ export class WhereApplet extends ScopedElementsMixin(LitElement) {
                                          style="flex: 1;"
                                          examples
                                          .whereCellId=${this._whereCellId}
-                                         @import-playset="${this.handleImportRequest}"
+                                         @import-playset-requested="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-controller>`
               : html`<where-controller                                       

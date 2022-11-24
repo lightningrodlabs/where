@@ -1,4 +1,4 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {WhereSpace} from "./where-space";
@@ -6,7 +6,6 @@ import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
   Button, CheckListItem, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
@@ -26,6 +25,7 @@ import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 import {DnaElement} from "@ddd-qc/dna-client";
+import {serializeHash} from "@holochain-open-dev/utils";
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -64,8 +64,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
 
   /** -- Private -- */
-
-  @state() private _currentWhereId: null | string = null;
 
   @state() private _currentPlayset: null | PlaysetEntry = null;
   @state() private _currentPlaysetEh: null | EntryHashB64 = null;
@@ -681,6 +679,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       return html`<span>${msg('Loading')}...</span>`;
     }
 
+    console.log({PlaysetPerspective: this.playsetPerspective})
+
+
     const playset = this._currentPlaysetEh? this._dvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
@@ -820,9 +821,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     this.dispatchEvent(new CustomEvent('exit', { detail: {}, bubbles: true, composed: true }));
   }
 
-  private importPlayset(key: string) {
-    console.log("importPlayset() in " + this._currentWhereId + " | " + key)
-    this.dispatchEvent(new CustomEvent('import-playset', { detail: key, bubbles: true, composed: true }));
+  private importPlayset(eh: EntryHashB64) {
+    console.log("importPlayset() in " + serializeHash(this.whereCellId![0]) + " | " + eh)
+    this.dispatchEvent(new CustomEvent('import-playset-requested', { detail: eh, bubbles: true, composed: true }));
   }
 
   async openPlaysetDialog(eh?: any) {

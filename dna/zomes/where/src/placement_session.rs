@@ -38,14 +38,12 @@ pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHashB64>>
 ///
 #[hdk_extern]
 pub fn get_session_from_eh(session_eh: EntryHashB64) -> ExternResult<Option<PlacementSession>> {
-  let maybe_session = match get_latest_entry(session_eh.clone().into(), Default::default()) {
-    Ok(Some(entry)) => match PlacementSession::try_from(entry.clone()) {
-      Ok(e) => {Some(e)},
-      Err(_) => return Err(wasm_error!(WasmErrorInner::Guest(format!("No PlacementSession found at given EntryHash: {:?}", session_eh)))),
-    },
-    _ => return Ok(None),
+  let maybe_record = get(session_eh, GetOptions::content())?;
+  let Some(record) = maybe_record else {
+    return Ok(None);
   };
-  Ok(maybe_session)
+  let session = get_typed_from_record::<PlacementSession>(record)?;
+  Ok(Some(session))
 }
 
 

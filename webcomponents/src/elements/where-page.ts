@@ -24,11 +24,9 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play} from "../viewModels/where.perspective";
-import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
 import {DnaElement} from "@ddd-qc/dna-client";
-import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
@@ -83,9 +81,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @state() private _currentSpaceEh: null | EntryHashB64 = null;
   @state() private _currentTemplateEh: null| EntryHashB64 = null;
 
-  private _initialized: boolean = false;
-  private _initializing: boolean = false;
-  private _canPostInit: boolean = false;
+  private _initialized = false;
+  private _initializing = false;
+  private _canPostInit = false;
 
   /** Getters */
 
@@ -550,6 +548,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
+
+    console.log({WhereDnaPerspective: this.perspective})
+    console.log({PlaysetPerspective: this._dvm.playsetZvm.perspective})
     //var userLang = navigator.language
     //console.log({userLang})
 
@@ -567,7 +568,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
     }
 
-    //  FIXME
+    // FIXME
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }

@@ -152,7 +152,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const ludothequePage = html`
         <cell-context .cellDef="${this.ludothequeDvm.cellDef}">
                   <ludotheque-page examples .whereCellId=${this.whereDvm.cellId}
-                                         @import-playset="${this.handleImportRequest}"
+                                         @import-playset-requested="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-page>
         </cell-context>
@@ -203,7 +203,21 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellId)
+    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellId)
+    console.log("handleImportRequest()", spaceEhs.length)
+    await this.whereDvm.playsetZvm.probeAll();
+    /** Create sessions for each space */
+    for (const spaceEh of spaceEhs) {
+      const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);
+      console.log("handleImportRequest().loop", spaceEh, space)
+      if (!space) continue; // FIXME add a warn
+      if (space.meta.sessionCount == 0) {
+        await this.whereDvm.constructNewPlay(space);
+      } else {
+        await this.whereDvm.constructNewPlay(space, space!.meta.sessionLabels);
+      }
+    }
+    /** Wait for completion */
     while(Date.now() - startTime < 500) {
       //console.log(Date.now() - startTime)
       await delay(20);

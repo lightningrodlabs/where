@@ -23,7 +23,7 @@ export class LudothequeProxy extends ZomeProxy {
     return this.call('get_all_playsets', null);
   }
 
-  async exportPlayset(playsetEh: EntryHashB64, destinationCellId: CellId) : Promise<void> {
+  async exportPlayset(playsetEh: EntryHashB64, destinationCellId: CellId) : Promise<EntryHashB64[]> {
     return this.call('export_playset', {playsetEh, destinationCellId});
   }
 

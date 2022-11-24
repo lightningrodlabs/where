@@ -79,7 +79,7 @@ export class LudothequeZvm extends ZomeViewModel {
 
 
   /** */
-  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<void> {
+  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<EntryHashB64[]> {
     return this.zomeProxy.exportPlayset(playsetEh, cellId);
   }
 

@@ -13,7 +13,7 @@ pub struct ExportPlaysetInput {
 }
 
 #[hdk_extern]
-fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPlaysetInput) -> ExternResult<()> {
+fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPlaysetInput) -> ExternResult<Vec<EntryHashB64>> {
   /* Get Playset */
   let playset: Playset = get_typed_from_eh(playset_eh.into())?;
   /* Export each template */
@@ -32,12 +32,12 @@ fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPla
     export_piece_inner("EmojiGroup", entry, destination_cell_id.clone())?;
   }
   /* Export each space */
-  for spaceEh in playset.spaces {
+  for spaceEh in playset.spaces.clone() {
     let space_entry = get_entry_from_eh(spaceEh.into())?;
     export_piece_inner("space", space_entry, destination_cell_id.clone())?;
   }
   /* Done */
-  Ok(())
+  Ok(playset.spaces)
 }
 
 

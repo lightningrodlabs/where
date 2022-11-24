@@ -26,6 +26,7 @@ export class WhereProxy extends ZomeProxy {
   /** Session */
 
   async getSessionFromEh(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
+    console.log("getSessionFromEh()", sessionEh)
     return this.call('get_session_from_eh', sessionEh);
   }
 
@@ -64,6 +65,8 @@ export class WhereProxy extends ZomeProxy {
     return this.call('get_heres', sessionEh);
   }
 
+
+  /** Misc. */
 
   async notifyPeers(signal: WhereSignal, folks: Array<AgentPubKeyB64>): Promise<void> {
     return this.call('notify_peers', {signal, folks});

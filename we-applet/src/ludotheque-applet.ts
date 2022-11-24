@@ -92,7 +92,7 @@ export class LudothequeApplet extends ScopedElementsMixin(LitElement) {
       return html`<span>Loading...</span>`;
     }
     return html`
-         <ludotheque-controller id="controller" examples @import-playset="${this.handleImportRequest}"></ludotheque-controller>
+         <ludotheque-controller id="controller" examples @import-playset-requested="${this.handleImportRequest}"></ludotheque-controller>
     `;
   }
 

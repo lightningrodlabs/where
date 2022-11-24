@@ -73,6 +73,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   private _sessions?: any;
   private _activeIndex: number = -1;
 
+  private _canPostInit = false;
 
   /** Getters */
 
@@ -113,19 +114,20 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     await super.firstUpdated();
     this._dvm.whereZvm.subscribe(this, 'wherePerspective');
     // this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
-
-    // FIXME after init do this
-    await this.initFab(this.resetFab);
-    await this.initFab(this.plusFab);
-    await this.initFab(this.minusFab);
-    await this.initFab(this.hideFab);
+    this._canPostInit = true;
   }
 
 
   /** */
-  updated(changedProperties: any) {
+  async updated(changedProperties: any) {
     //console.log("*** updated() called!");
-    if (!this._loaded || !this.currentSpaceEh /*|| !this._plays.value*/) {
+    if (!this._loaded) {
+      return;
+    }
+    if (this._canPostInit) {
+      await this.postInit();
+    }
+    if (!this.currentSpaceEh /*|| !this._plays.value*/) {
       return;
     }
     const play = this.getCurrentPlay();
@@ -727,7 +729,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
                          minlength="1" type="text"></mwc-textfield>`
       }
     }
-    /** Render */
+
+    /** Render all */
     return html`
         <mwc-dialog id="edit-location-dialog" heading="${msg('Location')}"
                     scrimClickAction="" @wheel=${(e: any) => e.stopPropagation()}>
@@ -740,6 +743,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         </mwc-dialog>
     `;
   }
+
 
   // @input=${() => (this.shadowRoot!.getElementById("edit-location-tag") as TextField).reportValidity()} autoValidate=true
   // @closing=${this.handleLocationDialogClosing}
@@ -778,6 +782,16 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     this.handleLocationDialogClosing(null)
     // - Close dialog
     this.locationDialogElem.close();
+  }
+
+
+  /** */
+  private async postInit() {
+    await this.initFab(this.resetFab);
+    await this.initFab(this.plusFab);
+    await this.initFab(this.minusFab);
+    await this.initFab(this.hideFab);
+    this._canPostInit = false;
   }
 
 

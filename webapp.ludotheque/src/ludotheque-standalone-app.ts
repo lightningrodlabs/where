@@ -64,7 +64,7 @@ export class LudothequeStandaloneApp extends ScopedElementsMixin(LitElement) {
       return html`<span>${msg('Loading')}...</span>`;
     }
     return html`
-      <ludotheque-page examples @import-playset="${this.handleImportRequest}"></ludotheque-page>
+      <ludotheque-page examples @import-playset-requested="${this.handleImportRequest}"></ludotheque-page>
     `;
   }
 

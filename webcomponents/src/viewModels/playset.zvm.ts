@@ -140,11 +140,11 @@ export class PlaysetZvm extends ZomeViewModel {
     return entry;
   }
 
-  async fetchSpace(eh: EntryHashB64): Promise<SpaceEntry> {
+  async fetchSpace(eh: EntryHashB64): Promise<Space> {
     const entry = await this.zomeProxy.getSpace(eh)
     this._spaces[eh] = convertEntryToSpace(entry);
     this.notifySubscribers();
-    return entry;
+    return this._spaces[eh];
   }
 
   /** Publish */

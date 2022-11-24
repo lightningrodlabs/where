@@ -31,7 +31,8 @@ export class WhereZvm extends ZomeViewModel {
     for (const spaceEh of Object.keys(this._manifests)) {
       const maybeManifest = await this.probeManifest(spaceEh); // TODO optimize
       if (!maybeManifest) continue;
-      for (const sessionEh of Object.keys(maybeManifest.sessionEhs)){
+      console.log("whereZvm.probeAll()", maybeManifest)
+      for (const sessionEh of Object.values(maybeManifest.sessionEhs)) {
         await this.probeSession(sessionEh); // TODO optimize
       }
     }
@@ -44,10 +45,8 @@ export class WhereZvm extends ZomeViewModel {
   /* */
   get perspective(): WherePerspective {
     return {
-      playManifests: this._manifests,
-      //currentSessions: this._currentSessions,
+      manifests: this._manifests,
       sessions: this._sessions,
-      //locations: this._locations,
     };
   }
 

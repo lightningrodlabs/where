@@ -8,7 +8,7 @@ import {mapReplacer, mapReviver} from "../utils";
 export interface WherePerspective {
   //plays: Dictionary<Play>,
   /* SpaceEh -> [sessions] */
-  playManifests: Dictionary<PlayManifest>,
+  manifests: Dictionary<PlayManifest>,
   /* SessionEh -> [locations] */
   //locations: Dictionary<LocationInfo[]>,
   /** SessionEh -> PlacementSession */

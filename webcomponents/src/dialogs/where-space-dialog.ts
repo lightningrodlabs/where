@@ -31,7 +31,7 @@ import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective
 @localized()
 export class WhereSpaceDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
-    super("zPlayset");
+    super(PlaysetZvm);
   }
 
   /** -- Fields -- */

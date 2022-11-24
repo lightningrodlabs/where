@@ -11,40 +11,40 @@ export interface WhereProfile {
  *
  */
 export class ProfilesProxy extends ZomeProxy {
-  zomeName = "zProfiles"
+  static zomeName = "zProfiles"
 
 
   async getMyProfile(): Promise<HcRecord> {
-    return this.call('get_my_profile', null, null);
+    return this.call('get_my_profile', null);
   }
 
 
   async getAgentProfile(agentPubKey: AgentPubKey): Promise<HcRecord | undefined> {
-    return this.call('get_agent_profile', agentPubKey, null);
+    return this.call('get_agent_profile', agentPubKey);
   }
 
 
   async getAgentsProfiles(agentPubKeys: AgentPubKey[]): Promise<HcRecord[]> {
-    return this.call('get_agents_profiles', agentPubKeys, null);
+    return this.call('get_agents_profiles', agentPubKeys);
   }
 
 
   async searchProfiles(nicknamePrefix: string): Promise<Array<HcRecord>> {
-    return this.call('search_profiles', {nickname_prefix: nicknamePrefix}, null);
+    return this.call('search_profiles', {nickname_prefix: nicknamePrefix});
   }
 
 
   async getAllProfiles(): Promise<HcRecord[]> {
-    return this.call('get_all_profiles', null, null);
+    return this.call('get_all_profiles', null);
   }
 
 
   async createProfile(profile: WhereProfile): Promise<HcRecord> {
-    return this.call('create_profile', profile, null);
+    return this.call('create_profile', profile);
   }
 
 
   async updateProfile(profile: WhereProfile): Promise<HcRecord> {
-    return this.call('update_profile', profile, null);
+    return this.call('update_profile', profile);
   }
 }

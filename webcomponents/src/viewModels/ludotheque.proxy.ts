@@ -9,22 +9,22 @@ import {HoloHashedB64} from "../utils";
  *
  */
 export class LudothequeProxy extends ZomeProxy {
-  zomeName = "zLudotheque"
+  static zomeName = "zLudotheque"
 
   async getPlayset(eh: EntryHashB64): Promise<PlaysetEntry> {
-    return this.call('get_playset', eh, null);
+    return this.call('get_playset', eh);
   }
 
   async createPlayset(entry: PlaysetEntry): Promise<EntryHashB64> {
-    return this.call('create_playset', entry, null);
+    return this.call('create_playset', entry);
   }
 
   async getAllPlaysets(): Promise<Array<HoloHashedB64<PlaysetEntry>>> {
-    return this.call('get_all_playsets', null, null);
+    return this.call('get_all_playsets', null);
   }
 
   async exportPlayset(playsetEh: EntryHashB64, destinationCellId: CellId) : Promise<void> {
-    return this.call('export_playset', {playsetEh, destinationCellId}, null);
+    return this.call('export_playset', {playsetEh, destinationCellId});
   }
 
 }

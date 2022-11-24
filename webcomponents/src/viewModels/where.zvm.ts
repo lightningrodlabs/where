@@ -4,20 +4,20 @@ import {Coord, WhereLocation, convertLocationToHere, WherePerspective, LocationI
   HereInfo, convertHereToLocation, PlacementSession, PlayManifest
 } from "./where.perspective";
 import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";
-import {createContext} from "@lit-labs/context";
 import {WhereSignal} from "./where.signals";
 
 
 /**
  *
  */
-export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
+export class WhereZvm extends ZomeViewModel {
 
   /** Ctor */
   constructor(protected _cellProxy: CellProxy) {
     super(new WhereProxy(_cellProxy));
   }
 
+  get zomeProxy(): WhereProxy {return this._baseZomeProxy as WhereProxy;}
 
   /* */
   protected hasChanged(): boolean {
@@ -111,12 +111,12 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   notifyPeers(signal: WhereSignal, folks: Array<AgentPubKeyB64>) {
-    this._zomeProxy.notifyPeers(signal, folks)
+    this.zomeProxy.notifyPeers(signal, folks)
   }
 
   /** Returns list of hidden spaces */
   async probeVisibilityForAll(): Promise<EntryHashB64[]> {
-    const hiddens = await this._zomeProxy.getHiddenSpaces();
+    const hiddens = await this.zomeProxy.getHiddenSpaces();
     for (const hiddenEh of hiddens) {
       if (this.getManifest(hiddenEh)) {
         this._manifests[hiddenEh].visible = false;
@@ -129,7 +129,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   async probeManifest(spaceEh: EntryHashB64): Promise<PlayManifest | null> {
-      const sessionEhs = await this._zomeProxy.getSpaceSessions(spaceEh);
+      const sessionEhs = await this.zomeProxy.getSpaceSessions(spaceEh);
       if (sessionEhs.length == 0) {
         return null;
       }
@@ -147,7 +147,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   async probeSession(sessionEh: EntryHashB64): Promise<PlacementSession> {
-    const entry = await this._zomeProxy.getSessionFromEh(sessionEh);
+    const entry = await this.zomeProxy.getSessionFromEh(sessionEh);
     if (!entry) {
       console.error("fetchSession(): Session entry not found")
       return Promise.reject("fetchSession(): Session entry not found");
@@ -165,7 +165,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   private async probeLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
-    const hereInfos = await this._zomeProxy.getHeres(sessionEh);
+    const hereInfos = await this.zomeProxy.getHeres(sessionEh);
     //console.debug({hereInfos})
     const locs = hereInfos.map((info: HereInfo) => {
       return convertHereToLocation(info)
@@ -190,7 +190,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
-    const [eh, index] = await this._zomeProxy.createNextSession(spaceEh, name);
+    const [eh, index] = await this.zomeProxy.createNextSession(spaceEh, name);
     this.addSession(spaceEh, name, eh, index);
     this.notifySubscribers();
     return eh;
@@ -200,7 +200,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
   /** */
   async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<void> {
     const index = this._manifests[spaceEh]? this._manifests[spaceEh].sessionEhs.length : 0;
-    const ehs = await this._zomeProxy.createSessions(spaceEh, sessionNames);
+    const ehs = await this.zomeProxy.createSessions(spaceEh, sessionNames);
     for (let i = 0; i < sessionNames.length; i++) {
       this.addSession(spaceEh, sessionNames[i], ehs[i], index + i)
     }
@@ -212,14 +212,14 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   async hidePlay(spaceEh: EntryHashB64) : Promise<void> {
-    const _ = await this._zomeProxy.hideSpace(spaceEh);
+    const _ = await this.zomeProxy.hideSpace(spaceEh);
     this._manifests[spaceEh].visible = false
     this.notifySubscribers();
   }
 
   /** */
   async unhidePlay(spaceEh: EntryHashB64): Promise<void> {
-    const _ = await this._zomeProxy.unhideSpace(spaceEh);
+    const _ = await this.zomeProxy.unhideSpace(spaceEh);
     this._manifests[spaceEh].visible = true
     this.notifySubscribers();
   }
@@ -229,7 +229,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
 
   /** */
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64) : Promise<ActionHashB64> {
-    const session = await this._zomeProxy.getSessionFromEh(location.sessionEh);
+    const session = await this.zomeProxy.getSessionFromEh(location.sessionEh);
     const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
     const locInfo: LocationInfo = { location, linkAh, authorPubKey: this._cellProxy.agentPubKey }
     this._sessions[location.sessionEh].locations.push(locInfo)
@@ -241,7 +241,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
   /** */
   private async publishLocationWithSessionIndex(location: WhereLocation, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
     const entry = convertLocationToHere(location);
-    const ah = this._zomeProxy.addHere(spaceEh, sessionIndex, entry.value, entry.meta);
+    const ah = this.zomeProxy.addHere(spaceEh, sessionIndex, entry.value, entry.meta);
     return ah;
   }
 
@@ -256,9 +256,9 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
     if (emoji != null) {
       locInfo.location.meta.emoji = emoji
     }
-    const session = await this._zomeProxy.getSessionFromEh(sessionEh);
+    const session = await this.zomeProxy.getSessionFromEh(sessionEh);
     const newLinkAh: ActionHashB64 = await this.publishLocationWithSessionIndex(locInfo.location, spaceEh, session!.index)
-    await this._zomeProxy.deleteHere(locInfo.linkAh)
+    await this.zomeProxy.deleteHere(locInfo.linkAh)
     locInfo.linkAh = newLinkAh;
     this._sessions[sessionEh].locations[locIdx] = locInfo;
     this.notifySubscribers();
@@ -269,7 +269,7 @@ export class WhereZvm extends ZomeViewModel<WherePerspective, WhereProxy> {
   /** */
   async deleteLocation(sessionEh: EntryHashB64, idx: number): Promise<LocationInfo> {
     const locInfo = this.getSession(sessionEh)!.locations[idx]!
-    await this._zomeProxy.deleteHere(locInfo.linkAh)
+    await this.zomeProxy.deleteHere(locInfo.linkAh)
     this._sessions[sessionEh].locations[idx] = null;
     this.notifySubscribers();
     return locInfo;

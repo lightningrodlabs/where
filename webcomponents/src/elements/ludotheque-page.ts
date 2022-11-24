@@ -21,14 +21,11 @@ import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
 import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
-import {Inventory, PlaysetPerspective, Space} from "../viewModels/playset.perspective";
+import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {contextProvided} from "@lit-labs/context";
 import {DnaElement} from "@ddd-qc/dna-client";
-import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
-
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -50,7 +47,7 @@ tmpl.innerHTML = `
 @localized()
 export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   constructor() {
-    super("rLudotheque");
+    super(LudothequeDvm);
   }
   /** -- Properties -- */
 

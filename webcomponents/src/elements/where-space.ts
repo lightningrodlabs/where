@@ -44,7 +44,7 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 @localized()
 export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   constructor() {
-    super("rWhere");
+    super(WhereDvm);
     this.addEventListener("wheel", this._handleWheel);
   }
 

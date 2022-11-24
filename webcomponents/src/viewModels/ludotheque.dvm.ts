@@ -5,7 +5,6 @@ import {EmojiGroupVariant, SvgMarkerVariant} from "./playset.bindings";
 import {DnaViewModel, HappViewModel} from "@ddd-qc/dna-client";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";
-import {createContext} from "@lit-labs/context";
 
 
 /**
@@ -14,7 +13,7 @@ import {createContext} from "@lit-labs/context";
  *  - Playset
  *  - Ludotheque
  */
-export class LudothequeDvm extends DnaViewModel<unknown> {
+export class LudothequeDvm extends DnaViewModel {
 
   /** */
   constructor(happ: HappViewModel, roleId: string) {
@@ -31,8 +30,8 @@ export class LudothequeDvm extends DnaViewModel<unknown> {
 
 
   /** */
-  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("zPlayset") as PlaysetZvm}
-  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel("zLudotheque") as LudothequeZvm}
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.zomeName) as PlaysetZvm}
+  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel(LudothequeZvm.zomeName) as LudothequeZvm}
 
 
   /** -- Methods -- */

@@ -53,7 +53,7 @@ tmpl.innerHTML = `
 @localized()
 export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super("rWhere");
+    super(WhereDvm);
   }
 
   /** Properties */

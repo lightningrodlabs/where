@@ -3,6 +3,7 @@ import {ProfilesProxy, WhereProfile} from "./profiles.proxy";
 import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {deserializeHash, serializeHash} from "@holochain-open-dev/utils";
 import { decode } from '@msgpack/msgpack';
+import {PlaysetProxy} from "./playset.proxy";
 
 /** */
 export interface ProfilesPerspective {
@@ -14,13 +15,16 @@ export interface ProfilesPerspective {
 /**
  *
  */
-export class ProfilesZvm extends ZomeViewModel<ProfilesPerspective, ProfilesProxy> {
+export class ProfilesZvm extends ZomeViewModel {
   /** Ctor */
   constructor(protected _cellProxy: CellProxy) {
     super(new ProfilesProxy(_cellProxy));
   }
 
   /** -- ZomeViewModel -- */
+
+  get zomeProxy(): ProfilesProxy {return this._baseZomeProxy as ProfilesProxy;}
+
 
   /* */
   protected hasChanged(): boolean {
@@ -55,7 +59,7 @@ export class ProfilesZvm extends ZomeViewModel<ProfilesPerspective, ProfilesProx
 
   /** */
   async probeAllProfiles(): Promise<void> {
-    const alLRecords = await this._zomeProxy.getAllProfiles();
+    const alLRecords = await this.zomeProxy.getAllProfiles();
     for (const record of alLRecords) {
       const agent = serializeHash(record.signed_action.hashed.content.author);
       this._profiles[agent] = decode((record.entry as any).Present.entry) as WhereProfile;
@@ -66,7 +70,7 @@ export class ProfilesZvm extends ZomeViewModel<ProfilesPerspective, ProfilesProx
 
   /** */
   async probeProfile(agentPubKey: AgentPubKeyB64): Promise<void> {
-    const record = await this._zomeProxy.getAgentProfile(deserializeHash(agentPubKey));
+    const record = await this.zomeProxy.getAgentProfile(deserializeHash(agentPubKey));
     if (!record) {
       return;
     }
@@ -77,14 +81,14 @@ export class ProfilesZvm extends ZomeViewModel<ProfilesPerspective, ProfilesProx
 
   /** */
   async createMyProfile(profile: WhereProfile): Promise<void> {
-    await this._zomeProxy.createProfile(profile);
+    await this.zomeProxy.createProfile(profile);
     this._profiles[this.agentPubKey] = profile;
     this.notifySubscribers();
   }
 
   /** */
   async updateMyProfile(profile: WhereProfile): Promise<void> {
-    await this._zomeProxy.updateProfile(profile);
+    await this.zomeProxy.updateProfile(profile);
     this._profiles[this.agentPubKey] = profile;
     this.notifySubscribers();
   }

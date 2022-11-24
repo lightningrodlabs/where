@@ -23,7 +23,7 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 @localized()
 export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super("rWhere");
+    super(WhereDvm);
   }
 
   /** -- Fields -- */

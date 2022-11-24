@@ -25,11 +25,12 @@ export interface WhereDnaPerspective {
 
 /**
  * ViewModel fo the Where DNA
- * Holds 2 zomes:
+ * Holds 3 zomes:
  *  - Playset
  *  - Where
+ *  - Profiles
  */
-export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
+export class WhereDvm extends DnaViewModel {
 
   /** */
   constructor(happ: HappViewModel, roleId: string) {
@@ -64,9 +65,9 @@ export class WhereDvm extends DnaViewModel<WhereDnaPerspective> {
   /** -- Getters --  */
 
   /** */
-  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel("zPlayset") as PlaysetZvm}
-  get whereZvm(): WhereZvm { return this.getZomeViewModel("zWhere") as WhereZvm}
-  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel("zProfiles") as ProfilesZvm}
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.zomeName) as PlaysetZvm}
+  get whereZvm(): WhereZvm { return this.getZomeViewModel(WhereZvm.zomeName) as WhereZvm}
+  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel(ProfilesZvm.zomeName) as ProfilesZvm}
 
   getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
   getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}

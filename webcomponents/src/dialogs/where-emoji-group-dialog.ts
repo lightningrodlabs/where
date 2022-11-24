@@ -14,7 +14,7 @@ import {ZomeElement} from "@ddd-qc/dna-client";
 @localized()
 export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
-    super("zPlayset");
+    super(PlaysetZvm);
   }
 
   @state() private _currentUnicodes: string[] = [];

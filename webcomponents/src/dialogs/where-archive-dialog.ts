@@ -59,6 +59,8 @@ export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm
 
   /** */
   render() {
+    console.log("<where-archive-dialog> render()");
+
     const manifests = this.perspective.plays;
 
     return html`

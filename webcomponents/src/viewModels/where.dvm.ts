@@ -87,6 +87,7 @@ export class WhereDvm extends DnaViewModel {
   /** */
   setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
     this._currentSessions[spaceEh] = sessionEh;
+    console.log("setCurrentSession()", this._providedHosts);
     this.notifySubscribers();
   }
 
@@ -315,54 +316,64 @@ export class WhereDvm extends DnaViewModel {
 
   /** Plays */
 
-  /** For each known space, look for an upto date Play otherwise construct it? */
-  async probeAllPlays() : Promise<Dictionary<Play>> {
-    const spaces = this.playsetZvm.perspective.spaces;
-    for (const spaceEh of Object.keys(spaces)) {
-      await this.probePlay(spaceEh)
-    }
-    return this._plays
-  }
-
-
-  /** Add Play to Perspective */
-  private async addPlay(spaceEh: EntryHashB64): Promise<void>   {
-    /* Check if already added */
-    if (this.getPlay(spaceEh)) {
-      console.log("addPlay() aborted. Already have a Play for this space", spaceEh)
-      return;
-    }
-    /* Construct Play and add it to perspective */
-    const play: Play = (await this.probePlay(spaceEh))!;
-    this._plays[spaceEh] = play
-    /* Set starting zoom for new Play */
-    if (!this._zooms[spaceEh]) {
-        this._zooms[spaceEh] = 1.0
-    }
-    /* Set currentSession for new Play */
-    const maybeManifest =this.whereZvm.getManifest(spaceEh);
-    if (!maybeManifest) {
-      console.warn("addPlay() no manifest found for space", spaceEh)
-    }
-    const firstSessionEh = maybeManifest!.sessionEhs[0];
-    console.log("addPlay() firstSessionEh:", firstSessionEh, maybeManifest)
-    if (firstSessionEh) {
-      this._currentSessions[spaceEh] = firstSessionEh;
-    } else {
-      console.error("No session found for Play " + play.space.name)
-    }
-    this.notifySubscribers();
-  }
-
 
   /** */
-  async publishSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<EntryHashB64> {
+  async publishSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<[EntryHashB64, Dictionary<PlacementSession>]> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
     let spaceEh = await this.playsetZvm.publishSpaceEntry(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
-    await this.whereZvm.createSessions(spaceEh, sessionNames);
-    return spaceEh;
+    const sessions = await this.whereZvm.createSessions(spaceEh, sessionNames);
+    return [spaceEh, sessions];
+  }
+
+
+  /** For each known space, look for an upto date Play otherwise construct it? */
+  async probeAllPlays() : Promise<Dictionary<Play>> {
+    const spaces = this.playsetZvm.perspective.spaces;
+    for (const spaceEh of Object.keys(spaces)) {
+      const play = await this.probePlay(spaceEh);
+      /** Add or update play to perspective */
+      if (play) {
+        this.addPlay(spaceEh, play);
+      }
+    }
+    this.notifySubscribers();
+    return this._plays;
+  }
+
+
+  /** Add Play to Perspective */
+  private addPlay(spaceEh: EntryHashB64, play: Play): void   {
+    const hasAlready = this.getPlay(spaceEh);
+    /** plays */
+    console.log("addPlay()", spaceEh, play);
+    this._plays[spaceEh] = play
+    /* Check if already added */
+    if (hasAlready) {
+      console.log("addPlay() just updating. Already had a Play for this space in this perspective", spaceEh)
+      return;
+    }
+    /* zooms */
+    if (!this._zooms[spaceEh]) {
+        this._zooms[spaceEh] = 1.0
+    }
+    /* currentSessions */
+    if (!this._currentSessions[spaceEh]) {
+      const maybeManifest = this.whereZvm.getManifest(spaceEh);
+      if (!maybeManifest) {
+        console.error("addPlay() No manifest found for space", spaceEh);
+        return;
+      }
+      if (maybeManifest.sessionEhs.length <= 0) {
+        console.error("No session found for Play", play.space.name);
+        return;
+      }
+      const firstSessionEh = maybeManifest!.sessionEhs[0];
+      console.log("addPlay() firstSessionEh:", firstSessionEh, maybeManifest)
+      this._currentSessions[spaceEh] = firstSessionEh;
+    }
+    //this.notifySubscribers();
   }
 
 
@@ -377,10 +388,17 @@ export class WhereDvm extends DnaViewModel {
     }
     /* - Create and commit SpaceEntry */
     const entry = convertSpaceToEntry(space);
-    const spaceEh: EntryHashB64 = await this.publishSpaceWithSessions(entry, sessionNames)
-    /* - Add play to store */
+    const [spaceEh, sessions] = await this.publishSpaceWithSessions(entry, sessionNames)
+    /* - Add play to perspective */
     console.log("newPlay(): " + space.name + " | " + spaceEh)
-    this.addPlay(spaceEh);
+    /* Form Play */
+    const play: Play = {
+      space,
+      visible: true,
+      sessions,
+    };
+    this.addPlay(spaceEh, play);
+    this.notifySubscribers();
     /* Done */
     return spaceEh;
   }
@@ -402,7 +420,8 @@ export class WhereDvm extends DnaViewModel {
     /* - Sessions */
     let sessions: Dictionary<PlacementSession> = {};
     for (const sessionEh of manifest.sessionEhs) {
-      const session = this.whereZvm.getSession(sessionEh);
+      // const session = this.whereZvm.getSession(sessionEh);
+      const session = await this.whereZvm.probeSession(sessionEh);
       if (!session) {
         console.warn("Session not found in whereZvm", sessionEh, spaceEh);
         continue;
@@ -412,6 +431,7 @@ export class WhereDvm extends DnaViewModel {
     }
     if (Object.keys(sessions).length == 0) {
       console.error("No sessions found space", spaceEh, space);
+      return undefined;
     }
 
     /* - Construct Play */
@@ -420,8 +440,6 @@ export class WhereDvm extends DnaViewModel {
       visible: manifest.visible,
       sessions,
     };
-    this._plays[spaceEh] = play;
-    this.notifySubscribers();
     /* - Done */
     return play;
   }

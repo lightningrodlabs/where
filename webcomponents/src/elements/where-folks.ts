@@ -188,7 +188,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("where-folks render()")
+    console.log("<where-folks> render()")
     if (!this._loaded) {
       return html`<div class="fill center-content">
         <mwc-circular-progress indeterminate></mwc-circular-progress>

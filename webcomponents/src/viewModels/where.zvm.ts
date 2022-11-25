@@ -186,12 +186,14 @@ export class WhereZvm extends ZomeViewModel {
   /** -- Sessions -- */
 
   /** Add Session to Perspective */
-  private addSession(spaceEh: EntryHashB64, name: string, sessionEh: EntryHashB64, index: number) {
+  private addSession(spaceEh: EntryHashB64, name: string, sessionEh: EntryHashB64, index: number): PlacementSession {
     if (!this._manifests[spaceEh]) {
       this._manifests[spaceEh] = {spaceEh, visible: true, sessionEhs: [sessionEh]} as PlayManifest;
     }
     this._manifests[spaceEh].sessionEhs.push(sessionEh);
-    this._sessions[sessionEh] = {name, index, locations: []} as PlacementSession;
+    const session: PlacementSession = {name, index, locations: []};
+    this._sessions[sessionEh] = session;
+    return session;
   }
 
 
@@ -205,13 +207,17 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<void> {
+  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<PlacementSession>> {
     const index = this._manifests[spaceEh]? this._manifests[spaceEh].sessionEhs.length : 0;
     const ehs = await this.zomeProxy.createSessions(spaceEh, sessionNames);
+    let sessions: any = {};
     for (let i = 0; i < sessionNames.length; i++) {
-      this.addSession(spaceEh, sessionNames[i], ehs[i], index + i)
+      const session = this.addSession(spaceEh, sessionNames[i], ehs[i], index + i)
+      sessions[ehs[i]] = session;
+
     }
     this.notifySubscribers();
+    return sessions;
   }
 
 

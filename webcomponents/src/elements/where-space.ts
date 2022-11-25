@@ -59,7 +59,6 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   // profilesPerspective!: ProfilesPerspective;
 
   @property({type: String}) currentSpaceEh: null | EntryHashB64 = null;
-  // @state() _currentSessionEh: null | EntryHashB64 = null;
   @property() neighborWidth: number = 0;
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
@@ -238,6 +237,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   /** */
   private canUpdateLocation(idx: number): boolean {
     const currentPlay = this.getCurrentPlay();
+    console.log("canUpdateLocation()", idx, currentPlay);
     if (!currentPlay) return false;
     if (!this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
@@ -417,6 +417,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private drag(dragEvent: DragEvent) {
+    console.log("dragstart", dragEvent)
     const ev = dragEvent as any;
     const target = dragEvent.currentTarget? dragEvent.currentTarget : ev.originalTarget;
     if (!target) {
@@ -442,6 +443,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private drop(ev: any) {
+    console.log("dragEnd", ev)
     ev.preventDefault();
     if (!ev.dataTransfer || !ev.target) {
       return;
@@ -467,10 +469,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     let coord = this.getCoordsFromEvent(ev);
     coord.x = coord.x + offsetX;
     coord.y = coord.y + offsetY;
-    // FIXME
-    // this._whereDvm.others().then((others) => {
-    //   this._whereDvm.updateLocation(this.currentSpaceEh!, idx, coord, others)
-    // });
+    this._dvm.updateLocation(this.currentSpaceEh!, idx, coord, this._dvm.allOthers())
   }
 
 
@@ -802,7 +801,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   render() {
-    console.log(" - where-space render()", this.currentSpaceEh)
+    console.log("<where-space> render()", this.currentSpaceEh)
     if (!this._loaded) {
       return html`<div class="fill center-content">
         <mwc-circular-progress indeterminate></mwc-circular-progress>
@@ -842,33 +841,36 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     /** Get current play and zoom level */
     const currentPlay = this.getCurrentPlay()!;
     const z = this.getCurrentZoom()!;
-    /** Render locations if we have a current session */
-    const currentSessionEh = this.getCurrentSession();
-    let session: null | PlacementSession = null;
-    let locationItems = undefined;
-    if (currentSessionEh) {
-      session = currentPlay.sessions[currentSessionEh];
-      if (!session) {
-        console.error(" ** Session not found in Play '" + currentPlay.space.name + "' | " + currentSessionEh)
-        console.error({play: currentPlay})
-      } else {
-        /** Render Play's session's locations */
-        if (this.hideFab && this.hideFab.icon === 'visibility') {
-          locationItems = session.locations.map((locationInfo, i) => {
-            if (this.soloAgent != null && locationInfo) {
-              if (this.soloAgent != locationInfo.authorPubKey) {
-                return;
-              }
-            }
-            return this.renderLocation(locationInfo, z, currentPlay, i)
-          });
-        }
-      }
-    } else {
+    let currentSessionEh = this.getCurrentSession();
+    console.log("<where-space> render() currentSessionEh", currentSessionEh)
+
+    if (!currentSessionEh) {
       console.warn("CurrentSession not found for play. Setting to last session", currentPlay.space.name, currentPlay)
       const keys = Object.keys(currentPlay.sessions);
-      this._dvm.setCurrentSession(this.currentSpaceEh!, keys[keys.length - 1])
+      currentSessionEh = keys[keys.length - 1];
+      this._dvm.setCurrentSession(this.currentSpaceEh!, currentSessionEh)
     }
+
+    /** Render locations if we have a current session */
+    let locationItems = undefined;
+    let session = currentPlay.sessions[currentSessionEh];
+    if (!session) {
+      console.error(" ** Session not found in Play '" + currentPlay.space.name + "' | " + currentSessionEh)
+      console.error({play: currentPlay})
+    } else {
+      /** Render Play's session's locations */
+      if (!this.hideFab || this.hideFab && this.hideFab.icon === 'visibility') {
+        locationItems = session.locations.map((locationInfo, i) => {
+          if (this.soloAgent != null && locationInfo) {
+            if (this.soloAgent != locationInfo.authorPubKey) {
+              return;
+            }
+          }
+          return this.renderLocation(locationInfo, z, currentPlay, i)
+        });
+      }
+    }
+
 
     /** Session Tab bar */
     this._sessions = {};

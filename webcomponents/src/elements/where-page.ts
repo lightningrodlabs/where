@@ -189,6 +189,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   //   });
   // }
 
+
   /** After first render only */
   async firstUpdated() {
     console.log("where-page first updated!")
@@ -196,10 +197,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       await this.createDummyProfile();
     }
     await this.init();
-    /** add custom styles to TopAppBar */
-    // FIXME
-    //const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
-    //topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
 
     //await this.subscribeProfile();
     //this.subscribePlay();
@@ -296,6 +293,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   private postInit() {
+    /** add custom styles to TopAppBar */
+    // FIXME
+    //const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    //topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
     this.anchorMenu()
     /** Drawer */
@@ -313,22 +314,22 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   private async selectPlay(spaceEh: EntryHashB64): Promise<void> {
-    console.log("Requested Play: " + spaceEh);
+    console.log("selectPlay()", spaceEh);
     let play = null;
-    // - Wait for store to be updated with newly created Play
-    // TODO: better to trigger select on subscribe of playStore
+    /** Wait for store to be updated with newly created Play */
+    // TODO: Remove this hack
     let time = 0;
-    while(!play && time < 2000) {
+    while(!play && time < 2 * 1000) {
       play = this._dvm.getPlay(spaceEh);
       await delay(100);
       time += 100;
     }
     if (!play) {
-      console.error("selectPlay failed: Play not found in store")
-      return Promise.reject("Play not found in store")
+      console.error("selectPlay() failed: Play not found")
+      return Promise.reject("Play not found")
     }
 
-    // - Check if play should generate a new session for today
+    /** Check if play should generate a new session for today */
     if (play.space.meta.sessionCount < 0) {
       const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
       let hasToday = false;
@@ -344,9 +345,11 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
     }
 
-    // - This will trigger a render()
+    /** (This will trigger a render()) */
     this._currentSpaceEh = spaceEh;
     this._currentTemplateEh = play.space.origin;
+
+    // FIXME check if space has a current session?
 
     //this.requestUpdate();
 
@@ -391,7 +394,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     // await this._whereDvm.getEntryDefs("where_ludotheque")
     // await this._whereDvm.getEntryDefs("where_playset")
     // await this._whereDvm.getEntryDefs("where_integrity")
-    this.requestUpdate();
+
+    //this.requestUpdate();
   }
 
 
@@ -424,7 +428,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return;
     }
     const value = this.playListElem.items[index].value;
-    this.selectPlay(value);
+    await this.selectPlay(value);
   }
 
 
@@ -543,29 +547,34 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("where-page render()", this._currentSpaceEh);
+    console.log("<where-page> render()", this._currentSpaceEh);
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
 
-    console.log({WhereDnaPerspective: this.perspective})
-    console.log({PlaysetPerspective: this._dvm.playsetZvm.perspective})
+    // DEBUG
+    //console.log({WhereDnaPerspective: this.perspective})
+    //console.log({PlaysetPerspective: this._dvm.playsetZvm.perspective})
+
+    // LOCALIZATION
     //var userLang = navigator.language
     //console.log({userLang})
 
-    /* Grab things from the perspectives */
-    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey);
+    /* -- Grab things from the perspectives -- */
 
     /** Select first play if none is set */
     if (!this._currentSpaceEh) {
       const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
       if (firstSpaceEh) {
         this.selectPlay(firstSpaceEh);
-        //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-        //console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
-        //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
+        return;
       }
     }
+
+    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey);
+
+
+    /* -- Build elements -- */
 
     // FIXME
     if (this.drawerElem) {

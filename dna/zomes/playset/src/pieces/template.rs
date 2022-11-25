@@ -1,7 +1,7 @@
 use hdk::prelude::*;
 use hdk::hash_path::path::TypedPath;
 use holo_hash::EntryHashB64;
-use zome_utils::get_typed_from_links;
+use zome_utils::*;
 use playset_integrity::*;
 
 
@@ -35,14 +35,11 @@ pub fn create_template(input: Template) -> ExternResult<EntryHashB64> {
 
 #[hdk_extern]
 fn get_template(input: EntryHashB64) -> ExternResult<Option<Template>> {
-    let eh: EntryHash = input.into();
-    match get_details(eh, GetOptions::content())? {
-            Some(Details::Entry(EntryDetails {entry, .. })) => {
-                let tmpl: Template = entry.try_into()?;
-                Ok(Some(tmpl))
-            }
-        _ => Ok(None),
-    }
+    let maybe_record = get(input, GetOptions::content())?;
+    let Some(record) = maybe_record 
+        else {return Ok(None)};
+    let typed = get_typed_from_record::<Template>(record)?;
+    Ok(Some(typed))
 }
 
 #[hdk_extern]

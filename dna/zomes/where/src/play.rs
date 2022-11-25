@@ -30,13 +30,10 @@ fn create_play(input: Playfield) -> ExternResult<EntryHashB64> {
 #[hdk_extern]
 pub fn get_play(play_eh: EntryHashB64) -> ExternResult<Option<Playfield>> {
   let eh: EntryHash = play_eh.into();
-  match get_details(eh, GetOptions::content())? {
-    Some(Details::Entry(EntryDetails {entry, .. })) => {
-      let play: Playfield = entry.try_into()?;
-      Ok(Some(play))
-    }
-    _ => Ok(None),
-  }
+  let Some(Details::Entry(EntryDetails {entry, .. })) = get_details(eh, GetOptions::content())? 
+    else {return Ok(None)}
+  let play: Playfield = entry.try_into()?;
+  Ok(Some(play))
 }
 
 

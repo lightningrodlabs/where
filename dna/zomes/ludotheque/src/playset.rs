@@ -1,7 +1,7 @@
 use hdk::hash_path::path::TypedPath;
 use hdk::prelude::*;
 use holo_hash::EntryHashB64;
-use zome_utils::get_typed_from_links;
+use zome_utils::*;
 
 use ludotheque_integrity::*;
 
@@ -36,14 +36,11 @@ fn create_playset(input: Playset) -> ExternResult<EntryHashB64> {
 
 #[hdk_extern]
 fn get_playset(input: EntryHashB64) -> ExternResult<Option<Playset>> {
-  let eh: EntryHash = input.into();
-  match get_details(eh, GetOptions::content())? {
-    Some(Details::Entry(EntryDetails {entry, .. })) => {
-      let obj: Playset = entry.try_into()?;
-      Ok(Some(obj))
-    }
-    _ => Ok(None),
-  }
+  let maybe_record = get(input, GetOptions::content())?;
+  let Some(record) = maybe_record 
+      else {return Ok(None)};
+  let typed = get_typed_from_record::<Playset>(record)?;
+  Ok(Some(typed))
 }
 
 

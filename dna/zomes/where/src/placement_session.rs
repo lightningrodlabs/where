@@ -50,9 +50,9 @@ pub fn get_session_from_eh(session_eh: EntryHashB64) -> ExternResult<Option<Plac
 ///
 pub fn is_valid_space(space_eh: EntryHash) -> ExternResult<()> {
   let _entry_type = get_entry_type_from_eh(space_eh)?;
-  // FIXME issue in HDK
-  // if entry_type != playset_integrity::UnitEntryTypes::Space.try_into().unwrap() {
-  //   return Err(wasm_error!(WasmErrorInner::Guest("input.space_eh does not point to a space entry".to_string())));
+  // FIXME issue in HDK: cant add playset_integrity_zome because of link issue
+  // if entry_type != playset_integrity::PlaysetTypes::Space.try_into().unwrap() {
+  //   return zome_error!("input.space_eh does not point to a space entry");
   // }
   Ok(())
 }

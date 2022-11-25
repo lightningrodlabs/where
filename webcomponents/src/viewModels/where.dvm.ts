@@ -32,6 +32,8 @@ export interface WhereDnaPerspective {
  */
 export class WhereDvm extends DnaViewModel {
 
+  static roleId = "rWhere";
+
   /** */
   constructor(happ: HappViewModel, roleId: string) {
     super(happ, roleId, [PlaysetZvm, WhereZvm, ProfilesZvm]);

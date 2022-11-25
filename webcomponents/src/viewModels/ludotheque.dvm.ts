@@ -15,6 +15,8 @@ import {LudothequeZvm} from "./ludotheque.zvm";
  */
 export class LudothequeDvm extends DnaViewModel {
 
+  static roleId = "rLudotheque";
+
   /** */
   constructor(happ: HappViewModel, roleId: string) {
     super(happ, roleId, [PlaysetZvm, LudothequeZvm]);

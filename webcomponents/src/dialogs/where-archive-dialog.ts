@@ -34,8 +34,8 @@ export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm
     for (const item of this._spaceList.items) {
       const spaceEh = item.value;
       const visible = !item.selected;
-      const maybePlay = this._dvm.getPlay(spaceEh)
-      if (maybePlay && maybePlay.visible != visible) {
+      const maybeManifest = this._dvm.whereZvm.getManifest(spaceEh)
+      if (maybeManifest && maybeManifest.visible != visible) {
         changed.push(spaceEh)
         if (visible) {
           await this._dvm.whereZvm.unhidePlay(spaceEh)
@@ -61,26 +61,26 @@ export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm
   render() {
     console.log("<where-archive-dialog> render()");
 
-    const manifests = this.perspective.plays;
+    const plays = this.perspective.plays;
 
     return html`
-<mwc-dialog id="archive-dialog" heading="${msg('Archived Spaces')}" @opened=${this.handleDialogOpened}>
-<mwc-list id="space-list" multi>
-  ${Object.entries(manifests).map(
-    ([key, play]) => html`
-      <mwc-check-list-item
-        left
-        value="${key}"
-        .selected=${!play.visible}>
-            ${play.space.name}
-      </mwc-check-list-item>
-    `
-  )}
-</mwc-list>
-<mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
-<mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
-</mwc-dialog>
-`
+      <mwc-dialog id="archive-dialog" heading="${msg('Archived Spaces')}" @opened=${this.handleDialogOpened}>
+      <mwc-list id="space-list" multi>
+        ${Object.entries(plays).map(
+          ([key, play]) => html`
+            <mwc-check-list-item
+              left
+              value="${key}"
+              .selected=${!this._dvm.whereZvm.getManifest(key)!.visible}>
+                  ${play.space.name}
+            </mwc-check-list-item>
+          `
+        )}
+      </mwc-list>
+      <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+      <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
+      </mwc-dialog>
+    `;
   }
 
 
@@ -93,6 +93,9 @@ export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm
       "mwc-button": Button,
     };
   }
+
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

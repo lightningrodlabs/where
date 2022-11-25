@@ -67,7 +67,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   @state() private _currentPlayset: null | PlaysetEntry = null;
   @state() private _currentPlaysetEh: null | EntryHashB64 = null;
-  @state() private _currentTemplateEh: null| EntryHashB64 = null;
+  //@state() private _currentTemplateEh: null| EntryHashB64 = null;
 
   @state() private _inventory: Inventory | null = null;
 

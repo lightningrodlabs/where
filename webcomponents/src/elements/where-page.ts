@@ -23,7 +23,7 @@ import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
-import {Play} from "../viewModels/where.perspective";
+import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
 import {DnaElement} from "@ddd-qc/dna-client";
@@ -63,8 +63,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** ViewModels */
 
-  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  // wherePerspective!: WherePerspective;
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  wherePerspective!: WherePerspective;
   // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   // playsetPerspective!: PlaysetPerspective;
   // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
@@ -79,7 +79,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @state() private _neighborWidth: number = 150;
 
   @state() private _currentSpaceEh: null | EntryHashB64 = null;
-  @state() private _currentTemplateEh: null| EntryHashB64 = null;
+  @state() private _currentTemplateEh?: EntryHashB64;
 
   @state() private _initialized = false;
   @state() private _canPostInit = false;
@@ -196,7 +196,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       await this.createDummyProfile();
     }
 
-    //this._dvm.whereZvm.subscribe(this, 'wherePerspective');
+    this._dvm.whereZvm.subscribe(this, 'wherePerspective');
     //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
 
     /** Get latest public entries from DHT */
@@ -220,7 +220,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     /* look for canvas in Plays and render them */
     for (let spaceEh in this.perspective.plays) {
       let play: Play = this.perspective.plays[spaceEh];
-      if (play.space.surface.canvas && play.visible) {
+      if (play.space.surface.canvas && this._dvm.getVisibility(spaceEh)!) {
         const id = play.space.name + '-canvas'
         const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
         if (!canvas) {
@@ -251,8 +251,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return null;
     }
     for (let spaceEh in plays) {
-      const play = plays[spaceEh]
-      if (play.visible) {
+      if (this._dvm.getVisibility(spaceEh)!) {
         return spaceEh
       }
     }
@@ -380,9 +379,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  async openTemplateDialog(templateEh?: any) {
+  async openTemplateDialog(templateEh?: EntryHashB64) {
     this.templateDialogElem.clearAllFields();
-    this.templateDialogElem.open(templateEh);
+    const template = templateEh? this._dvm.playsetZvm.getTemplate(templateEh) : undefined;
+    this.templateDialogElem.open(template);
   }
 
   /** */
@@ -483,7 +483,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         break;
       case "export_template":
         if (this._currentTemplateEh && this.ludoCellId) {
-          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh!, PieceType.Template, this.ludoCellId!)
         } else {
           console.warn("No template or ludotheque cell to export to");
         }
@@ -556,25 +556,23 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /* -- Build elements -- */
 
-    // FIXME
     if (this.drawerElem) {
       this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
     }
 
-
     /** Build play list */
     let spaceName = "none"
     const playItems = Object.entries(this.perspective.plays).map(
-      ([key, play]) => {
-        if (!play.visible) {
+      ([spaceEh, play]) => {
+        if (!this._dvm.getVisibility(spaceEh)!) {
           return html ``;
         }
-        if (key == this._currentSpaceEh) {
+        if (spaceEh == this._currentSpaceEh) {
           spaceName = play.space.name;
         }
         const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         return html`
-          <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
+          <mwc-list-item class="space-li" .selected=${spaceEh == this._currentSpaceEh} multipleGraphics twoline value="${spaceEh}" graphic="large">
             <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>

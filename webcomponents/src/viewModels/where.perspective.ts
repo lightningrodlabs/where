@@ -16,7 +16,7 @@ export interface WherePerspective {
 /** A 'Play' is a live 'Space' with locations and sessions */
 export interface Play {
   space: Space,
-  visible: boolean;
+  //visible: boolean;
   /* SessionName -> Session */
   sessions: Dictionary<PlacementSession>,
 }

@@ -59,7 +59,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   /** -- Methods -- */
 
   /** */
-  open(template: TemplateEntry) {
+  open(template?: TemplateEntry) {
     this._templateToPreload = template;
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog
     dialog.open = true

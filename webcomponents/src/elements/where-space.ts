@@ -808,7 +808,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       </div>`;
     }
 
-    console.log({WherePerspective: this.wherePerspective})
+    // console.log({WherePerspective: this.wherePerspective})
 
     /** Determine max size */
     const maxW = window.innerWidth - this.neighborWidth - 24; // minus scroll bar

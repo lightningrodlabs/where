@@ -73,6 +73,8 @@ export class WhereDvm extends DnaViewModel {
   getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}
   getCurrentSession(spaceEh: EntryHashB64): EntryHashB64 | undefined { return this._currentSessions[spaceEh]}
 
+  getVisibility(spaceEh: EntryHashB64): boolean | undefined { return this.whereZvm.getManifest(spaceEh)?.visible}
+
 
   /** -- Methods -- */
 
@@ -394,7 +396,6 @@ export class WhereDvm extends DnaViewModel {
     /* Form Play */
     const play: Play = {
       space,
-      visible: true,
       sessions,
     };
     this.addPlay(spaceEh, play);
@@ -437,7 +438,6 @@ export class WhereDvm extends DnaViewModel {
     /* - Construct Play */
     const play: Play = {
       space,
-      visible: manifest.visible,
       sessions,
     };
     /* - Done */

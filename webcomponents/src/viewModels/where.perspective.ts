@@ -6,14 +6,12 @@ import {mapReplacer, mapReviver} from "../utils";
 
 /** */
 export interface WherePerspective {
-  //plays: Dictionary<Play>,
   /* SpaceEh -> [sessions] */
   manifests: Dictionary<PlayManifest>,
-  /* SessionEh -> [locations] */
-  //locations: Dictionary<LocationInfo[]>,
   /** SessionEh -> PlacementSession */
   sessions: Dictionary<PlacementSession>,
 }
+
 
 /** A 'Play' is a live 'Space' with locations and sessions */
 export interface Play {

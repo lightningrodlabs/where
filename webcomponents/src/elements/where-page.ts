@@ -81,9 +81,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @state() private _currentSpaceEh: null | EntryHashB64 = null;
   @state() private _currentTemplateEh: null| EntryHashB64 = null;
 
-  private _initialized = false;
-  private _initializing = false;
-  private _canPostInit = false;
+  @state() private _initialized = false;
+  @state() private _canPostInit = false;
 
   /** Getters */
 
@@ -192,17 +191,22 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** After first render only */
   async firstUpdated() {
-    console.log("where-page first updated!")
+    console.log("<where-page> firstUpdated()")
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
-    await this.init();
 
-    //await this.subscribeProfile();
-    //this.subscribePlay();
+    //this._dvm.whereZvm.subscribe(this, 'wherePerspective');
+    //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
 
-    /* FIXME Dont know why I need to call this since init() should update some state properties */
-    this.requestUpdate();
+    /** Get latest public entries from DHT */
+    await this._dvm.probeAll();
+
+    this._initialized = true
+    this._canPostInit = true;
+
+    /* FIXME Dont know why I need to call this since some state properties have been modified */
+    // this.requestUpdate();
   }
 
 
@@ -213,7 +217,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
     //this.anchorMenu();
 
-    /* look for canvas in plays and render them */
+    /* look for canvas in Plays and render them */
     for (let spaceEh in this.perspective.plays) {
       let play: Play = this.perspective.plays[spaceEh];
       if (play.space.surface.canvas && play.visible) {
@@ -256,30 +260,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-  /** Called once a profile has been set */
-  private async init() {
-    this._initializing = true
-    console.log("where-page.init() - START");
-    //this._dvm.whereZvm.subscribe(this, 'wherePerspective');
-    //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
-    /** Get latest public entries from DHT */
-    await this._dvm.probeAll();
-    /** Done */
-    this._initialized = true
-    this._initializing = false
-    this._canPostInit = true;
-
-    // FIXME
-    // const profiles = get(await this.profileStore.fetchAllProfiles());
-    // console.log({profiles})
-    // const me = get(await this.profileStore.fetchAgentProfile(this.profileStore.myAgentPubKey));
-    // console.log({me})
-
-    //this.requestUpdate();
-    console.log("where-page.init() - DONE");
-  }
-
-
   /** */
   private anchorMenu() {
     const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
@@ -294,9 +274,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   private postInit() {
     /** add custom styles to TopAppBar */
-    // FIXME
-    //const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
-    //topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
+    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    console.log("<where-page> postInit()", topBar);
+    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
     this.anchorMenu()
     /** Drawer */

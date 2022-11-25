@@ -1,7 +1,7 @@
 use hdk::prelude::*;
 use hdk::hash_path::path::TypedPath;
 use holo_hash::EntryHashB64;
-use zome_utils::get_typed_from_links;
+use zome_utils::*;
 use playset_integrity::*;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
@@ -36,14 +36,11 @@ pub fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
 ///
 #[hdk_extern]
 fn get_emoji_group(input: EntryHashB64) -> ExternResult<Option<EmojiGroup>> {
-    let eh: EntryHash = input.into();
-    match get_details(eh, GetOptions::content())? {
-            Some(Details::Entry(EntryDetails {entry, .. })) => {
-                let tmpl: EmojiGroup = entry.try_into()?;
-                Ok(Some(tmpl))
-            }
-        _ => Ok(None),
-    }
+    let maybe_record = get(input, GetOptions::content())?;
+    let Some(record) = maybe_record 
+        else {return Ok(None)};
+    let typed = get_typed_from_record::<EmojiGroup>(record)?;
+    Ok(Some(typed))
 }
 
 

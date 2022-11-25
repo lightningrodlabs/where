@@ -17,12 +17,12 @@ pub struct ExportPieceInput {
 #[hdk_extern]
 pub fn export_piece(input: ExportPieceInput) -> ExternResult<()> {
   if input.piece_type_name == "space" {
-    return error("space piece should be exported with 'export_space()' zome function");
+    return zome_error!("space piece should be exported with 'export_space()' zome function");
   }
   if input.piece_type_name != "template"
     && input.piece_type_name != "SvgMarker"
     && input.piece_type_name != "EmojiGroup" {
-    return error(&format!("unknown piece type: '{}'", input.piece_type_name));
+    return zome_error!("unknown piece type: '{}'", input.piece_type_name);
   }
   let entry = get_entry_from_eh(input.piece_eh.into())?;
   export_entry(&input.piece_type_name, entry, input.cell_id.clone())?;

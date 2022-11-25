@@ -18,7 +18,7 @@ fn import_piece(ImportPieceInput{piece_entry, piece_type_name}: ImportPieceInput
   /// Bail if we already have it
   let eh = hash_entry(piece_entry.clone())?;
   let maybe_entry = get_entry_from_eh(eh);
-  if let Ok(_) = maybe_entry {
+  if maybe_entry.is_ok() {
     return Ok(());
   }
   /// Import depending on type

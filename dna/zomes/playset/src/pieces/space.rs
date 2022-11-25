@@ -31,14 +31,11 @@ pub fn create_space(input: Space) -> ExternResult<EntryHashB64> {
 ///
 #[hdk_extern]
 pub fn get_space(space_eh: EntryHashB64) -> ExternResult<Option<Space>> {
-    let eh: EntryHash = space_eh.into();
-    match get_details(eh, GetOptions::content())? {
-        Some(Details::Entry(EntryDetails {entry, .. })) => {
-            let space: Space = entry.try_into()?;
-            Ok(Some(space))
-        }
-        _ => Ok(None),
-    }
+    let maybe_record = get(space_eh, GetOptions::content())?;
+    let Some(record) = maybe_record 
+        else {return Ok(None)};
+    let typed = get_typed_from_record::<Space>(record)?;
+    Ok(Some(typed))
 }
 
 

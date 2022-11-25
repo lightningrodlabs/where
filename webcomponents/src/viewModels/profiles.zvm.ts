@@ -69,13 +69,15 @@ export class ProfilesZvm extends ZomeViewModel {
 
 
   /** */
-  async probeProfile(agentPubKey: AgentPubKeyB64): Promise<void> {
+  async probeProfile(agentPubKey: AgentPubKeyB64): Promise<WhereProfile | undefined> {
     const record = await this.zomeProxy.getAgentProfile(deserializeHash(agentPubKey));
     if (!record) {
       return;
     }
-    this._profiles[agentPubKey] = decode((record.entry as any).Present.entry) as WhereProfile;
+    const profile: WhereProfile = decode((record.entry as any).Present.entry) as WhereProfile;
+    this._profiles[agentPubKey] = profile;
     this.notifySubscribers();
+    return profile;
   }
 
 

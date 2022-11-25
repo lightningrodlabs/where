@@ -60,9 +60,6 @@ jobs:
           cp target/wasm32-unknown-unknown/release/where_ludotheque_zome.wasm ./artifacts
           cp target/wasm32-unknown-unknown/release/where_integrity_zome.wasm ./artifacts
           cp target/wasm32-unknown-unknown/release/where_zome.wasm ./artifacts        
-          cp dna/workdir/dna-where/where.dna ./artifacts
-          cp dna/workdir/dna-ludotheque/ludotheque.dna ./artifacts          
-          cp dna/workdir/happ-where/where.happ ./artifacts 
           cp we-applet/where-we_applet-ui.zip ./artifacts
           cp webapp/where-web-ui.zip ./artifacts           
           cp webapp/webhapp.workdir/where.webhapp ./artifacts

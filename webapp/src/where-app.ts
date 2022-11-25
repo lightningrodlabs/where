@@ -1,15 +1,22 @@
-import { LitElement, html } from "lit";
+import {LitElement, html, css} from "lit";
 import { state } from "lit/decorators.js";
 import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
-import {CellId} from "@holochain/client";
-import {CellContext, cellContext, ConductorAppProxy, HappViewModel, IDnaViewModel,} from "@ddd-qc/dna-client";
-import {Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
+import {AppWebsocket} from "@holochain/client";
+import {CellContext, ConductorAppProxy, HappViewModel} from "@ddd-qc/dna-client";
+import {
+  CreateProfile,
+  Profile,
+  ProfilePrompt,
+  ProfilesService,
+  ProfilesStore,
+  profilesStoreContext
+} from "@holochain-open-dev/profiles";
 import {LudothequePage, setLocale, LudothequeDvm, whereHappDef, WherePage, WhereDvm} from "where-mvvm";
 import {ContextProvider} from "@lit-labs/context";
-import {LudothequePerspective} from "where-mvvm/dist/viewModels/ludotheque.zvm";
+import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 
 
 /** ------- */
@@ -44,21 +51,20 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   @state() private _loaded = false;
   @state() private _canLudotheque = false;
+  @state() private _hasStartingProfile = false;
+  @state() private _lang?: string
 
   private _conductorAppProxy!: ConductorAppProxy;
   private _happ!: HappViewModel;
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
-  //hasProfile = false;
-  //_inventory: Inventory | null = null;
 
-  private _lang?: string
 
 
   /** -- Getters -- */
 
-  get whereDvm(): WhereDvm { return this._happ.getDvm("rWhere")! as WhereDvm }
-  get ludothequeDvm(): LudothequeDvm { return this._happ.getDvm("rLudotheque")! as LudothequeDvm}
+  get whereDvm(): WhereDvm { return this._happ.getDvm(WhereDvm.roleId)! as WhereDvm }
+  get ludothequeDvm(): LudothequeDvm { return this._happ.getDvm(LudothequeDvm.roleId)! as LudothequeDvm}
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -71,6 +77,48 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** -- Methods -- */
 
+
+  async initializeHapp() {
+    const wsUrl = `ws://localhost:${HC_APP_PORT}`
+    const appWebsocket = await AppWebsocket.connect(wsUrl);
+    this._conductorAppProxy = await ConductorAppProxy.new(appWebsocket);
+    this._happ = await this._conductorAppProxy.newHappViewModel(this, whereHappDef); // FIXME this can throw an error
+    /* Do this if not providing cellContext via <cell-context> */
+    //new ContextProvider(this, cellContext, this.whereDvm.cellDef)
+
+    /** Send Where dnaHash to electron */
+    if (IS_ELECTRON) {
+      const whereDnaHashB64 = this._happ.getDnaHash("rWhere");
+      const ipc = window.require('electron').ipcRenderer;
+      let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
+    }
+
+    /** ProfilesStore used by <create-profile> */
+    const whereCellDef = this._happ.getDvm(WhereDvm.roleId)!.cellDef;
+    const hcClient = new HolochainClient(appWebsocket)
+    const whereClient = new CellClient(hcClient, whereCellDef)
+    const profilesService = new ProfilesService(whereClient, "zProfiles");
+    const profilesStore = new ProfilesStore(profilesService, {
+      additionalFields: ['color'], //['color', 'lang'],
+      avatarMode: APP_DEV? "avatar-optional" : "avatar-required"
+    })
+    console.log({profilesStore})
+    new ContextProvider(this, profilesStoreContext, profilesStore);
+
+
+    await this._happ.probeAll();
+    let profileZvm = (this._happ.getDvm(WhereDvm.roleId)! as WhereDvm).profilesZvm;
+    const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
+    console.log({me})
+    if (me) {
+      this._hasStartingProfile = true;
+    }
+
+    /** Done */
+    this._loaded = true;
+  }
+
+
   /** */
   async updated() {
     if (!APP_DEV && this._loaded && !this._lang) {
@@ -81,52 +129,25 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   async firstUpdated() {
-    this._conductorAppProxy = await ConductorAppProxy.new(Number(process.env.HC_APP_PORT));
-    this._happ = await this._conductorAppProxy.newHappViewModel(this, whereHappDef); // FIXME this can throw an error
-    //new ContextProvider(this, cellContext, this.whereDvm.cellData)
-
-    /** Send Where dnaHash to electron */
-    if (IS_ELECTRON) {
-      const whereDnaHashB64 = this._happ.getDnaHash("rWhere");
-      const ipc = window.require('electron').ipcRenderer;
-      let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
-    }
-
-    // /** ProfilesStore */
-    // const profilesService = new ProfilesService(whereClient);
-    // const profilesStore = new ProfilesStore(profilesService, {
-    //   //additionalFields: ['color', 'lang'],
-    //   avatarMode: APP_DEV? "avatar-optional" : "avatar-required"
-    // })
-    // console.log({profilesStore})
-    // await profilesStore.fetchAllProfiles()
-    // const me = await profilesStore.fetchAgentProfile(profilesStore.myAgentPubKey);
-    // console.log({me})
-    // if (me) {
-    //   this.hasProfile = true;
-    // }
-    // new ContextProvider(this, profilesStoreContext, profilesStore);
-
-    /** Done */
-    this._loaded = true;
+    await this.initializeHapp();
   }
 
 
   /** */
-  onNewProfile(profile: Profile) {
-    console.log({profile})
-    //this.hasProfile = true;
-    this.requestUpdate();
+  async onNewProfile(profile: Profile) {
+    //console.log("onNewProfile()", profile)
+    await this.whereDvm.profilesZvm.createMyProfile(profile);
+    this._hasStartingProfile = true;
   }
 
 
   /** */
   render() {
-    console.log("where-app render()", this._loaded, this._canLudotheque/*, this.hasProfile*/)
+    console.log("where-app render()", this._loaded, this._canLudotheque, this._hasStartingProfile)
 
     /** Wait for init to complete */
     if (!this._loaded) {
-      console.log("where-app render() => Loading...");
+      //console.log("where-app render() => Loading...");
       return html`<span>${msg('Loading')}...</span>`;
     }
 
@@ -160,21 +181,39 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const wherePage = html`
         <cell-context .cellDef="${this.whereDvm.cellDef}">
-            <where-page dummy .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
+            <where-page .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
         </cell-context>
     `;
+
+
+    const page = this._canLudotheque? ludothequePage : wherePage
+
+    // const guardedPage = this.hasStartingProfile
+    //   ? page
+    //   : html`<profile-prompt style="margin-left:-7px; margin-top:0px;display:block;" @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
+    //             ${page}
+    //         </profile-prompt>`;
+
+
+    const createProfile = html `
+        <div
+                class="column"
+                style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
+        >
+            <div class="column" style="align-items: center;">
+                <slot name="hero"></slot>
+                <create-profile @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}></create-profile>
+            </div>
+        </div>`;
+
+    const guardedPage = this._hasStartingProfile? page : createProfile;
 
 
     /** Render all */
     return html`
         ${lang}
-        <!-- <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;" @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}> -->
-            ${this._canLudotheque? ludothequePage : wherePage}
-
-        <!-- </profile-prompt> -->
-        
-        <!--<where-controller id="controller" dummy></where-controller>-->
-
+        ${guardedPage}
+        <!-- DIALOGS -->
         <mwc-dialog id="importing-dialog"  heading="${msg('Importing Playset')}" scrimClickAction="" escapeKeyAction="">
             <div>Playset ${this._currentPlaysetEh}...</div>
             <!--<mwc-button
@@ -235,6 +274,23 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       "mwc-dialog": Dialog,
       "mwc-button": Button,
       "cell-context": CellContext,
+      'create-profile': CreateProfile,
     };
   }
+
+
+  /** */
+  static get styles() {
+    return [
+      css`
+      .column {
+        display: flex;
+        flex-direction: column;
+      }
+      `,
+    ];
+  }
 }
+
+
+

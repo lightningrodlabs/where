@@ -37,6 +37,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   @state() private _loaded = false;
 
+
   /** -- Methods -- */
 
   /** After first render only */
@@ -101,7 +102,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (Object.keys(profiles).length === 0)
       return html`
         <mwc-list-item
-        >There are no created profiles yet
+        >(no profiles found)
         </mwc-list-item
         >`;
 

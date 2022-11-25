@@ -147,46 +147,28 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //console.log(nickname);
     const color: string = randomColor({luminosity: 'light'});
     //console.log(color);
-    await this.createMyProfile(nickname, `https://robohash.org/${nickname}`, color)
+    await this.setMyProfile(nickname, `https://robohash.org/${nickname}`, color)
     //await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
 
 
   /** */
-  async createMyProfile(nickname: string, avatar: string, color: string) {
-    // FIXME
+  async setMyProfile(nickname: string, avatar: string, color: string) {
     console.log("updateProfile() called:", nickname)
+    const fields: Dictionary<string> = {};
+    fields['color'] = color;
+    fields['avatar'] = avatar;
     try {
-      const fields: Dictionary<string> = {};
-      fields['color'] = color;
-      fields['avatar'] = avatar;
-      await this._dvm.profilesZvm.createMyProfile({
-        nickname,
-        fields,
-      });
-
+    if (this._dvm.profilesZvm.getProfile(this._dvm.profilesZvm.agentPubKey)) {
+      await this._dvm.profilesZvm.updateMyProfile({nickname, fields});
+    } else {
+      await this._dvm.profilesZvm.createMyProfile({nickname, fields});
+    }
     } catch (e) {
-      console.log("updateProfile() failed");
+      console.log("createMyProfile() failed");
       console.log(e);
     }
   }
-
-
-  /** Launch init when myProfile has been set */
-  // private subscribePlay() {
-  //   this._whereStore.plays.subscribe(async (plays) => {
-  //     if (!this._currentSpaceEh) {
-  //       /** Select first play  if none is set */
-  //       const firstSpaceEh = this.getFirstVisiblePlay(plays);
-  //       if (firstSpaceEh) {
-  //         await this.selectPlay(firstSpaceEh);
-  //         console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-  //         console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
-  //         //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
-  //       }
-  //     }
-  //   });
-  // }
 
 
   /** After first render only */
@@ -509,7 +491,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
     const profile = this._myProfile!;
-    await this.createMyProfile(profile.nickname, profile.fields['avatar'], color)
+    await this.setMyProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
   private async handleSpaceClick(event: any) {

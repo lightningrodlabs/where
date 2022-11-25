@@ -15,4 +15,5 @@ hdk.workspace = true
 zome_utils.workspace = true
 
 where_integrity = { package = "where_integrity_zome", path = "../where_integrity" }
+#playset_integrity = { package = "where_playset_integrity_zome", path = "../playset_integrity" }
 

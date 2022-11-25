@@ -28,19 +28,18 @@ pub struct UpdateHereInput {
 
 #[hdk_extern]
 fn add_here(input: AddHereInput) -> ExternResult<ActionHashB64> {
-    // Find session
+    /// Find session
     let get_input = GetSessionInput {space_eh: input.space_eh.into(), index: input.session_index};
     let maybe_session_eh = get_session(get_input)?;
-    let session_eh64: EntryHashB64 = match maybe_session_eh {
-        Some(eh) => eh.into(),
-        None => return Err(wasm_error!(WasmErrorInner::Guest("Session not found".to_string()))),
-    };
-    // Create and link 'Here'
+    let Some(session_eh) =  maybe_session_eh 
+        else {return zome_error!("Session not found")};
+    let session_eh64: EntryHashB64 = session_eh.into();
+    /// Create and link 'Here'
     let here = Here {value: input.value, session_eh: session_eh64.clone(), meta: input.meta};
     let here_eh = hash_entry(here.clone())?;
     create_entry(WhereEntry::Here(here.clone()))?;
-    let link_hh = create_link(session_eh64, here_eh, WhereLinkType::All, LinkTag::from(()))?;
-    Ok(link_hh.into())
+    let link_ah = create_link(session_eh64, here_eh, WhereLinkType::All, LinkTag::from(()))?;
+    Ok(link_ah.into())
 }
 
 #[hdk_extern]
@@ -75,48 +74,33 @@ pub struct HereOutput {
 #[hdk_extern]
 fn get_heres(session_eh: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
     debug!("get_heres() called: {:?}", session_eh);
-    // make sure its a session
-    match get_latest_entry(session_eh.clone().into(), Default::default()) {
-        Ok(Some(entry)) => match PlacementSession::try_from(entry.clone()) {
-            Ok(_e) => {},
-            Err(_) => return Err(wasm_error!(WasmErrorInner::Guest("get_heres(): No PlacementSession found at given EntryHash".to_string()))),
-        },
-        _ => return Err(wasm_error!(WasmErrorInner::Guest("get_heres(): No entry found at given EntryHash".to_string()))),
-    }
-    // Get links
+    /// make sure its a session
+    let _session = get_session_from_eh(session_eh.clone())?;
+    /// Get links
     let heres = get_heres_inner(session_eh.into())?;
     debug!("get_heres() result: {:?}", heres);
     Ok(heres)
 }
 
+///
 fn get_heres_inner(base: EntryHash) -> ExternResult<Vec<HereOutput>> {
     let links = get_links(base, WhereLinkType::All, None)?;
     let mut output = Vec::with_capacity(links.len());
-    // for every link get details on the target and create the message
+    /// Get details of every link on the target and create the message.
     for link in links.into_iter().map(|link| link) {
         debug!("get_heres_inner() link: {:?}", link);
-        let w = match get_details(link.target, GetOptions::content())? {
-            Some(Details::Entry(EntryDetails {
-                entry, mut actions, ..
-            })) => {
-                // Turn the entry into a HereOutput
-                let entry: Here = entry.try_into()?;
-                let signed_action = match actions.pop() {
-                    Some(h) => h,
-                    // Ignoring missing messages
-                    None => continue,
-                };
-
-                // Create the output for the UI
-                HereOutput {
-                    entry,
-                    link_ah: link.create_link_hash.into(),
-                    author: signed_action.action().author().clone().into()
-                }
-            }
-            // Here is missing. This could be an error but we are
-            // going to ignore it.
-            _ => continue,
+        let details =  get_details(link.target, GetOptions::content())?;
+        let Some(Details::Entry(EntryDetails {entry, mut actions, .. })) = details 
+            else {continue};
+        /// Turn the entry into a HereOutput
+        let entry: Here = entry.try_into()?;
+        let Some(signed_action) = actions.pop() 
+            else {continue};
+        /// Create the output for the UI            
+        let w = HereOutput {
+            entry,
+            link_ah: link.create_link_hash.into(),
+            author: signed_action.action().author().clone().into()
         };
         output.push(w);
     }

@@ -164,7 +164,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** After first render only */
   async firstUpdated() {
-    await super.firstUpdated();
     this._dvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
     this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
     await this.init();

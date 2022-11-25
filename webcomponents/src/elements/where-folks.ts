@@ -1,5 +1,5 @@
 import { html, css } from "lit";
-import { property } from "lit/decorators.js";
+import { property, state } from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
 import {SlAvatar, SlBadge, SlInput, SlTooltip} from '@scoped-elements/shoelace';
 import {
@@ -19,6 +19,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
+
 /** @element where-folks */
 @localized()
 export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
@@ -34,13 +35,14 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   profilesPerspective!: ProfilesPerspective;
 
+  @state() private _loaded = false;
 
   /** -- Methods -- */
 
   /** After first render only */
   async firstUpdated() {
-    await super.firstUpdated();
-    this._dvm.profilesZvm.subscribe(this, "profilesPerspective")
+    this._dvm.profilesZvm.subscribe(this, "profilesPerspective");
+    this._loaded = true;
   }
 
 
@@ -186,6 +188,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
+    console.log("where-folks render()")
     if (!this._loaded) {
       return html`<div class="fill center-content">
         <mwc-circular-progress indeterminate></mwc-circular-progress>

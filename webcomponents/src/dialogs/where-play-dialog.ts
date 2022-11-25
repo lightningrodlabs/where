@@ -745,10 +745,6 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
   /** */
   render() {
-    if (!this._loaded) {
-      return html`<span>${msg('Loading')}...</span>`;
-    }
-
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       const firstTemplateEh = Object.keys(this.perspective.templates)[0];

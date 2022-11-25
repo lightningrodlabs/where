@@ -191,7 +191,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** After first render only */
   async firstUpdated() {
-    await super.firstUpdated();
     console.log("where-page first updated!")
     if (this.canLoadDummy) {
       await this.createDummyProfile();

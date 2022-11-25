@@ -73,7 +73,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   private _sessions?: any;
   private _activeIndex: number = -1;
 
-  private _canPostInit = false;
+  @state() private _loaded = false;
+
+  private _canPostInit = false
 
   /** Getters */
 
@@ -111,11 +113,12 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   async firstUpdated() {
-    await super.firstUpdated();
     this._dvm.whereZvm.subscribe(this, 'wherePerspective');
     // this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
-    this._dvm.profilesZvm.probeProfile(this._dvm.agentPubKey)
+    await this._dvm.profilesZvm.probeProfile(this._dvm.agentPubKey)
     this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey)!;
+    //await this.postInit();
+    this._loaded = true;
     this._canPostInit = true;
   }
 

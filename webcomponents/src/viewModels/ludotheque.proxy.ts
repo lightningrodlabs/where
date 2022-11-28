@@ -9,7 +9,7 @@ import {HoloHashedB64} from "../utils";
  *
  */
 export class LudothequeProxy extends ZomeProxy {
-  static zomeName = "zLudotheque"
+  static readonly DEFAULT_ZOME_NAME = "zLudotheque"
 
   async getPlayset(eh: EntryHashB64): Promise<PlaysetEntry> {
     return this.call('get_playset', eh);

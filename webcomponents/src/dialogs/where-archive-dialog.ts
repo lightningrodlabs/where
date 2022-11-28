@@ -11,7 +11,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 @localized()
 export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super(WhereDvm);
+    super(WhereDvm.DEFAULT_ROLE_ID);
   }
 
   @query('#space-list')

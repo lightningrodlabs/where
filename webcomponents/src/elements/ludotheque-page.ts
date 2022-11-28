@@ -47,7 +47,7 @@ tmpl.innerHTML = `
 @localized()
 export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   constructor() {
-    super(LudothequeDvm);
+    super(LudothequeDvm.DEFAULT_ROLE_ID);
   }
   /** -- Properties -- */
 

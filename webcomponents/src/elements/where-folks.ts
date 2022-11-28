@@ -9,7 +9,7 @@ import {
   Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle, CircularProgress,
 } from "@scoped-elements/material-web";
 import {AgentPubKeyB64, Dictionary} from "@holochain-open-dev/core-types";
-import {deserializeHash, serializeHash} from "@holochain-open-dev/utils";
+import {deserializeHash} from "@holochain-open-dev/utils";
 
 import { sharedStyles } from "../sharedStyles";
 import {MARKER_WIDTH} from "../sharedRender";
@@ -24,7 +24,7 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 @localized()
 export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super(WhereDvm);
+    super(WhereDvm.DEFAULT_ROLE_ID);
   }
 
   /** -- Fields -- */

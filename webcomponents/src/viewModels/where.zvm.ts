@@ -3,7 +3,7 @@ import {WhereProxy} from './where.proxy';
 import {Coord, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo,
   HereInfo, convertHereToLocation, PlacementSession, PlayManifest
 } from "./where.perspective";
-import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";
+import {ZomeViewModel} from "@ddd-qc/dna-client";
 import {WhereSignal} from "./where.signals";
 
 
@@ -12,12 +12,8 @@ import {WhereSignal} from "./where.signals";
  */
 export class WhereZvm extends ZomeViewModel {
 
-  /** Ctor */
-  constructor(protected _cellProxy: CellProxy) {
-    super(new WhereProxy(_cellProxy));
-  }
-
-  get zomeProxy(): WhereProxy {return this._baseZomeProxy as WhereProxy;}
+  static readonly ZOME_PROXY = WhereProxy;
+  get zomeProxy(): WhereProxy {return this._zomeProxy as WhereProxy;}
 
   /* */
   protected hasChanged(): boolean {
@@ -244,7 +240,7 @@ export class WhereZvm extends ZomeViewModel {
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64) : Promise<ActionHashB64> {
     const session = await this.zomeProxy.getSessionFromEh(location.sessionEh);
     const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
-    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this._cellProxy.agentPubKey }
+    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this.agentPubKey }
     this._sessions[location.sessionEh].locations.push(locInfo)
     this.notifySubscribers();
     return linkAh;

@@ -1,9 +1,8 @@
-import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";;
+import {ZomeViewModel} from "@ddd-qc/dna-client";;
 import {ProfilesProxy, WhereProfile} from "./profiles.proxy";
 import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {deserializeHash, serializeHash} from "@holochain-open-dev/utils";
 import { decode } from '@msgpack/msgpack';
-import {PlaysetProxy} from "./playset.proxy";
 
 /** */
 export interface ProfilesPerspective {
@@ -16,14 +15,9 @@ export interface ProfilesPerspective {
  *
  */
 export class ProfilesZvm extends ZomeViewModel {
-  /** Ctor */
-  constructor(protected _cellProxy: CellProxy) {
-    super(new ProfilesProxy(_cellProxy));
-  }
 
-  /** -- ZomeViewModel -- */
-
-  get zomeProxy(): ProfilesProxy {return this._baseZomeProxy as ProfilesProxy;}
+  static readonly ZOME_PROXY = ProfilesProxy;
+  get zomeProxy(): ProfilesProxy {return this._zomeProxy as ProfilesProxy;}
 
 
   /* */

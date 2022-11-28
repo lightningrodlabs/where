@@ -8,7 +8,7 @@ import {HoloHashedB64} from "../utils";
  *
  */
 export class PlaysetProxy extends ZomeProxy {
-  static zomeName = "zPlayset"
+  static readonly DEFAULT_ZOME_NAME = "zPlayset"
 
   /** Export  */
   async exportPiece(pieceEh: EntryHashB64, pieceTypeName: string, cellId: CellId) : Promise<void> {

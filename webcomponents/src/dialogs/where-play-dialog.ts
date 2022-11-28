@@ -32,7 +32,7 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 @localized()
 export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
-    super(PlaysetZvm);
+    super(PlaysetZvm.DEFAULT_ZOME_NAME);
   }
 
   /** Properties */

@@ -1,15 +1,8 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
-import {createContext} from "@lit-labs/context";
-import {
-  EmojiGroupEntry,
-  GetInventoryOutput,
-  PieceType,
-  SpaceEntry,
-  SvgMarkerEntry,
-  TemplateEntry
+import {EmojiGroupEntry, GetInventoryOutput, PieceType, SpaceEntry, SvgMarkerEntry, TemplateEntry
 } from "./playset.bindings";
-import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";
+import {ZomeViewModel} from "@ddd-qc/dna-client";
 import {PlaysetProxy} from "./playset.proxy";
 import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, Space} from "./playset.perspective";
 
@@ -27,14 +20,12 @@ export function countInventory(inventory: Inventory): number {
  *
  */
 export class PlaysetZvm extends ZomeViewModel {
-  /** Ctor */
-  constructor(protected _cellProxy: CellProxy) {
-    super(new PlaysetProxy(_cellProxy));
-  }
+
+  static readonly ZOME_PROXY = PlaysetProxy;
 
   /** -- ZomeViewModel -- */
 
-  get zomeProxy(): PlaysetProxy {return this._baseZomeProxy as PlaysetProxy;}
+  get zomeProxy(): PlaysetProxy {return this._zomeProxy as PlaysetProxy;}
 
   /* */
   protected hasChanged(): boolean {

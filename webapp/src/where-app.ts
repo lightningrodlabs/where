@@ -4,17 +4,10 @@ import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
-import {AppWebsocket} from "@holochain/client";
+import {AppSignal, AppWebsocket} from "@holochain/client";
 import {CellContext, ConductorAppProxy, HappViewModel} from "@ddd-qc/dna-client";
-import {
-  CreateProfile,
-  Profile,
-  ProfilePrompt,
-  ProfilesService,
-  ProfilesStore,
-  profilesStoreContext
-} from "@holochain-open-dev/profiles";
-import {LudothequePage, setLocale, LudothequeDvm, whereHappDef, WherePage, WhereDvm} from "where-mvvm";
+import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
+import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "where-mvvm";
 import {ContextProvider} from "@lit-labs/context";
 import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 
@@ -37,10 +30,10 @@ if (IS_ELECTRON) {
   HC_APP_PORT = searchParams.get("PORT");
   const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
-  whereHappDef.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
+  DEFAULT_WHERE_DEF.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
 }
 
-console.log({APP_ID: whereHappDef.id})
+console.log({APP_ID: DEFAULT_WHERE_DEF.id})
 console.log({HC_APP_PORT})
 
 
@@ -49,22 +42,26 @@ console.log({HC_APP_PORT})
  */
 export class WhereApp extends ScopedElementsMixin(LitElement) {
 
-  @state() private _loaded = false;
+  //@state() private _loaded = false;
   @state() private _canLudotheque = false;
   @state() private _hasStartingProfile = false;
   @state() private _lang?: string
 
   private _conductorAppProxy!: ConductorAppProxy;
-  private _happ!: HappViewModel;
+  @state() private _hvm!: HappViewModel;
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
 
+ constructor() {
+   super();
+   this.initializeHapp();
+ }
 
 
   /** -- Getters -- */
 
-  get whereDvm(): WhereDvm { return this._happ.getDvm(WhereDvm.roleId)! as WhereDvm }
-  get ludothequeDvm(): LudothequeDvm { return this._happ.getDvm(LudothequeDvm.roleId)! as LudothequeDvm}
+  get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)! as WhereDvm }
+  get ludothequeDvm(): LudothequeDvm { return this._hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)! as LudothequeDvm}
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -77,26 +74,29 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** -- Methods -- */
 
+  handleSignal(sig: AppSignal) {
+    this._conductorAppProxy.onSignal(sig);
+  }
 
   async initializeHapp() {
     const wsUrl = `ws://localhost:${HC_APP_PORT}`
-    const appWebsocket = await AppWebsocket.connect(wsUrl);
+    const appWebsocket = await AppWebsocket.connect(wsUrl, 10 * 1000, (sig) => {this.handleSignal(sig)});
     this._conductorAppProxy = await ConductorAppProxy.new(appWebsocket);
-    this._happ = await this._conductorAppProxy.newHappViewModel(this, whereHappDef); // FIXME this can throw an error
+    this._hvm = await HappViewModel.new(this, this._conductorAppProxy, DEFAULT_WHERE_DEF); // FIXME this can throw an error
     /* Do this if not providing cellContext via <cell-context> */
     //new ContextProvider(this, cellContext, this.whereDvm.cellDef)
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = this._happ.getDnaHash("rWhere");
+      const whereDnaHashB64 = this._hvm.getDnaHash(WhereDvm.DEFAULT_ROLE_ID);
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }
 
     /** ProfilesStore used by <create-profile> */
-    const whereCellDef = this._happ.getDvm(WhereDvm.roleId)!.cellDef;
+    const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.installedCell;
     const hcClient = new HolochainClient(appWebsocket)
-    const whereClient = new CellClient(hcClient, whereCellDef)
+    const whereClient = new CellClient(hcClient, whereCell)
     const profilesService = new ProfilesService(whereClient, "zProfiles");
     const profilesStore = new ProfilesStore(profilesService, {
       additionalFields: ['color'], //['color', 'lang'],
@@ -106,8 +106,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     new ContextProvider(this, profilesStoreContext, profilesStore);
 
 
-    await this._happ.probeAll();
-    let profileZvm = (this._happ.getDvm(WhereDvm.roleId)! as WhereDvm).profilesZvm;
+    await this._hvm.probeAll();
+    let profileZvm = (this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)! as WhereDvm).profilesZvm;
     const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
     console.log({me})
     if (me) {
@@ -115,21 +115,21 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     }
 
     /** Done */
-    this._loaded = true;
+    //this._loaded = true;
+  }
+
+
+  /** */
+  shouldUpdate() {
+    return !!this._hvm;
   }
 
 
   /** */
   async updated() {
-    if (!APP_DEV && this._loaded && !this._lang) {
+    if (!APP_DEV && /*this._loaded &&*/ !this._lang) {
       this.langDialogElem.open = true;
     }
-  }
-
-
-  /** */
-  async firstUpdated() {
-    await this.initializeHapp();
   }
 
 
@@ -143,13 +143,13 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    console.log("where-app render()", this._loaded, this._canLudotheque, this._hasStartingProfile)
+    console.log("where-app render()",/*, this._loaded,*/ this._canLudotheque, this._hasStartingProfile)
 
     /** Wait for init to complete */
-    if (!this._loaded) {
-      //console.log("where-app render() => Loading...");
-      return html`<span>${msg('Loading')}...</span>`;
-    }
+    // if (!this._loaded) {
+    //   //console.log("where-app render() => Loading...");
+    //   return html`<span>${msg('Loading')}...</span>`;
+    // }
 
     /** Select language */
     const lang = html`
@@ -171,7 +171,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     /** Pages */
     const ludothequePage = html`
-        <cell-context .cellDef="${this.ludothequeDvm.cellDef}">
+        <cell-context .installedCell="${this.ludothequeDvm.installedCell}">
                   <ludotheque-page examples .whereCellId=${this.whereDvm.cellId}
                                          @import-playset-requested="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
@@ -180,7 +180,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     `;
 
     const wherePage = html`
-        <cell-context .cellDef="${this.whereDvm.cellDef}">
+        <cell-context .installedCell="${this.whereDvm.installedCell}">
             <where-page .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
         </cell-context>
     `;

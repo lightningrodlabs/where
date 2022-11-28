@@ -51,7 +51,7 @@ tmpl.innerHTML = `
 @localized()
 export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super(WhereDvm);
+    super(WhereDvm.DEFAULT_ROLE_ID);
   }
 
   /** Properties */
@@ -170,6 +170,11 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
   }
 
+
+  /** */
+  shouldUpdate() {
+    return !!this._dvm;
+  }
 
   /** After first render only */
   async firstUpdated() {
@@ -639,7 +644,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-
+  /** */
   static get scopedElements() {
     return {
       "mwc-menu": Menu,
@@ -668,6 +673,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     };
   }
 
+  /** */
   static get styles() {
     return [
       sharedStyles,

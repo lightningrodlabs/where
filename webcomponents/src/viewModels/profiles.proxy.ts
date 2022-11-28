@@ -11,7 +11,7 @@ export interface WhereProfile {
  *
  */
 export class ProfilesProxy extends ZomeProxy {
-  static zomeName = "zProfiles"
+  static readonly DEFAULT_ZOME_NAME = "zProfiles"
 
 
   async getMyProfile(): Promise<HcRecord> {

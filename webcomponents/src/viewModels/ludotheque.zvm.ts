@@ -2,7 +2,7 @@ import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
 import {PlaysetEntry} from "./ludotheque.bindings";
 import {LudothequeProxy} from "./ludotheque.proxy";
-import {CellProxy, ZomeViewModel} from "@ddd-qc/dna-client";
+import {ZomeViewModel} from "@ddd-qc/dna-client";
 
 
 /** */
@@ -16,14 +16,8 @@ export interface LudothequePerspective {
  */
 export class LudothequeZvm extends ZomeViewModel {
 
-  /** Ctor */
-  constructor(protected _cellProxy: CellProxy) {
-    super(new LudothequeProxy(_cellProxy));
-  }
-
-  /** -- ZomeViewModel -- */
-
-  get zomeProxy(): LudothequeProxy {return this._baseZomeProxy as LudothequeProxy;}
+  static readonly ZOME_PROXY = LudothequeProxy;
+  get zomeProxy(): LudothequeProxy {return this._zomeProxy as LudothequeProxy;}
 
   /* */
   protected hasChanged(): boolean {

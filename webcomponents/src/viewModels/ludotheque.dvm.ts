@@ -15,26 +15,19 @@ import {LudothequeZvm} from "./ludotheque.zvm";
  */
 export class LudothequeDvm extends DnaViewModel {
 
-  static roleId = "rLudotheque";
+  static readonly DEFAULT_ROLE_ID = "rLudotheque";
+  static readonly ZVM_DEFS = [PlaysetZvm, LudothequeZvm]
+  readonly signalHandler = undefined;
 
-  /** */
-  constructor(happ: HappViewModel, roleId: string) {
-    super(happ, roleId, [PlaysetZvm, LudothequeZvm]);
-  }
+  /** QoL Helpers */
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.DEFAULT_ZOME_NAME) as PlaysetZvm}
+  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel(LudothequeZvm.DEFAULT_ZOME_NAME) as LudothequeZvm}
 
-  /** -- ViewModel Interface -- */
 
-  /** */
+  /** -- Perspective -- */
 
   protected hasChanged(): boolean {return true}
-
   get perspective(): unknown {return}
-
-
-  /** */
-  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.zomeName) as PlaysetZvm}
-  get ludothequeZvm(): LudothequeZvm { return this.getZomeViewModel(LudothequeZvm.zomeName) as LudothequeZvm}
-
 
   /** -- Methods -- */
 
@@ -69,12 +62,7 @@ export class LudothequeDvm extends DnaViewModel {
 
     /* Commit PlaysetEntry */
     const playsetEh = await this.ludothequeZvm.publishPlayset(playset);
-    // - Notify others
-    // const newSpace: Signal = {maybeSpaceHash: spaceEh, from: this.myAgentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    // this.service.notify(newSpace, this.others());
-    // - Add play to store
     console.log("checkAndPublishPlayset(): " + playset.name + " | " + playsetEh)
-
     /* Done */
     return playsetEh;
   }

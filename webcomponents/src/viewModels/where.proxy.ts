@@ -7,7 +7,7 @@ import {WhereSignal} from "./where.signals";
  *
  */
 export class WhereProxy extends ZomeProxy {
-  static  zomeName = "zWhere"
+  static  readonly DEFAULT_ZOME_NAME = "zWhere"
 
 
   async hideSpace(spaceEh: EntryHashB64): Promise<EntryHashB64> {

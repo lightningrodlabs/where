@@ -1,11 +1,9 @@
 import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
-  LocationInfo, PlacementSession, Play,
-  convertLocationToHere, Coord, convertHereToLocation,
+  LocationInfo, PlacementSession, Play, convertLocationToHere, Coord, convertHereToLocation,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
-import {areCellsEqual} from "../utils";
-import {DnaViewModel, HappViewModel} from "@ddd-qc/dna-client";
+import {areCellsEqual, DnaViewModel} from "@ddd-qc/dna-client";
 import {SpaceEntry} from "./playset.bindings";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
@@ -32,15 +30,19 @@ export interface WhereDnaPerspective {
  */
 export class WhereDvm extends DnaViewModel {
 
-  static roleId = "rWhere";
+  /** -- DnaViewModel Interface -- */
 
-  /** */
-  constructor(happ: HappViewModel, roleId: string) {
-    super(happ, roleId, [PlaysetZvm, WhereZvm, ProfilesZvm]);
-    happ.conductorAppProxy.addSignalHandler(this.handleSignal)
-  }
+  static readonly DEFAULT_ROLE_ID = "rWhere";
+  static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesZvm]
+  readonly signalHandler = this.handleSignal;
 
-  /** -- ViewModel Interface -- */
+  /** QoL Helpers */
+  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.DEFAULT_ZOME_NAME) as PlaysetZvm}
+  get whereZvm(): WhereZvm { return this.getZomeViewModel(WhereZvm.DEFAULT_ZOME_NAME) as WhereZvm}
+  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel(ProfilesZvm.DEFAULT_ZOME_NAME) as ProfilesZvm}
+
+
+  /** -- Perspective -- */
 
   protected hasChanged(): boolean {return true}
 
@@ -62,19 +64,10 @@ export class WhereDvm extends DnaViewModel {
   /** agentPubKey -> timestamp */
   private _agentPresences: Dictionary<number> = {};
 
-
-
-  /** -- Getters --  */
-
-  /** */
-  get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.zomeName) as PlaysetZvm}
-  get whereZvm(): WhereZvm { return this.getZomeViewModel(WhereZvm.zomeName) as WhereZvm}
-  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel(ProfilesZvm.zomeName) as ProfilesZvm}
-
+  /** Getters */
   getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
   getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}
   getCurrentSession(spaceEh: EntryHashB64): EntryHashB64 | undefined { return this._currentSessions[spaceEh]}
-
   getVisibility(spaceEh: EntryHashB64): boolean | undefined { return this.whereZvm.getManifest(spaceEh)?.visible}
 
 
@@ -151,7 +144,6 @@ export class WhereDvm extends DnaViewModel {
       })
     return todaySessionEh == currentSessionEh;
   }
-
 
 
   /** -- Methods -- */

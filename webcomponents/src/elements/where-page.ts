@@ -84,6 +84,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @state() private _initialized = false;
   @state() private _canPostInit = false;
 
+
   /** Getters */
 
   get drawerElem() : Drawer {
@@ -189,11 +190,18 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     /** Get latest public entries from DHT */
     await this._dvm.probeAll();
 
+    /** Select first play if none is set */
+    if (!this._currentSpaceEh) {
+      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
+      if (firstSpaceEh) {
+        await this.selectPlay(firstSpaceEh);
+        //return;
+      }
+    }
+
+    /** Done */
     this._initialized = true
     this._canPostInit = true;
-
-    /* FIXME Dont know why I need to call this since some state properties have been modified */
-    // this.requestUpdate();
   }
 
 
@@ -514,7 +522,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("<where-page> render()", this._currentSpaceEh);
+    console.log("<where-page> render()", this._initialized, this._currentSpaceEh);
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
@@ -527,16 +535,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //var userLang = navigator.language
     //console.log({userLang})
 
-    /* -- Grab things from the perspectives -- */
-
-    /** Select first play if none is set */
-    if (!this._currentSpaceEh) {
-      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
-      if (firstSpaceEh) {
-        this.selectPlay(firstSpaceEh);
-        return;
-      }
-    }
+    /* -- Grab things from the perspective -- */
 
     this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey);
 

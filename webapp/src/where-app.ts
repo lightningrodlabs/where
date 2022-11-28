@@ -5,16 +5,11 @@ import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
 import {AppSignal, AppWebsocket} from "@holochain/client";
-import {CellContext, ConductorAppProxy, HappViewModel} from "@ddd-qc/dna-client";
+import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/dna-client";
 import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "where-mvvm";
 import {ContextProvider} from "@lit-labs/context";
 import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
-
-
-/** ------- */
-
-const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 
 
 /** -- Globals -- */
@@ -42,20 +37,20 @@ console.log({HC_APP_PORT})
  */
 export class WhereApp extends ScopedElementsMixin(LitElement) {
 
-  //@state() private _loaded = false;
   @state() private _canLudotheque = false;
   @state() private _hasStartingProfile = false;
   @state() private _lang?: string
 
-  private _conductorAppProxy!: ConductorAppProxy;
   @state() private _hvm!: HappViewModel;
+  private _conductorAppProxy!: ConductorAppProxy;
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
 
- constructor() {
-   super();
-   this.initializeHapp();
- }
+  /** */
+  constructor() {
+    super();
+    this.initializeHapp();
+  }
 
 
   /** -- Getters -- */
@@ -78,6 +73,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     this._conductorAppProxy.onSignal(sig);
   }
 
+  /** */
   async initializeHapp() {
     const wsUrl = `ws://localhost:${HC_APP_PORT}`
     const appWebsocket = await AppWebsocket.connect(wsUrl, 10 * 1000, (sig) => {this.handleSignal(sig)});
@@ -114,8 +110,6 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       this._hasStartingProfile = true;
     }
 
-    /** Done */
-    //this._loaded = true;
   }
 
 
@@ -127,7 +121,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   async updated() {
-    if (!APP_DEV && /*this._loaded &&*/ !this._lang) {
+    if (!APP_DEV && !this._lang) {
       this.langDialogElem.open = true;
     }
   }
@@ -143,13 +137,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    console.log("where-app render()",/*, this._loaded,*/ this._canLudotheque, this._hasStartingProfile)
-
-    /** Wait for init to complete */
-    // if (!this._loaded) {
-    //   //console.log("where-app render() => Loading...");
-    //   return html`<span>${msg('Loading')}...</span>`;
-    // }
+    console.log("<where-app> render()", this._canLudotheque, this._hasStartingProfile)
 
     /** Select language */
     const lang = html`

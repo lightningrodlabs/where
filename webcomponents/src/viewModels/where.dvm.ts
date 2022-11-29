@@ -84,7 +84,7 @@ export class WhereDvm extends DnaViewModel {
   /** */
   setCurrentSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64) {
     this._currentSessions[spaceEh] = sessionEh;
-    console.log("setCurrentSession()", this._providedHosts);
+    //console.log("setCurrentSession()", this._providedHosts);
     this.notifySubscribers();
   }
 

@@ -57,7 +57,7 @@ export class LudothequeStandaloneApp extends HappElement {
     // new ContextProvider(this, cellContext, this._happ.getDvm("rLudotheque")!.cellDef)
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {
-      const ludoDnaHashB64 = this._happ.getDnaHash(LudothequeDvm.DEFAULT_ROLE_ID);
+      const ludoDnaHashB64 = this._happ.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)!.dnaHash;
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }

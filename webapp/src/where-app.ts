@@ -84,7 +84,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = this._hvm.getDnaHash(WhereDvm.DEFAULT_ROLE_ID);
+      const whereDnaHashB64 = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.dnaHash;
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }

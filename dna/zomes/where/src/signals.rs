@@ -15,9 +15,9 @@ pub enum Message {
     Pong(AgentPubKeyB64),
     NewHere(HereOutput),
     DeleteHere((EntryHashB64, ActionHashB64)), /// sessionEh, hereLinkHh
-    NewSpace(EntryHashB64),
-    /// - with entry hash of entries
     NewSession((EntryHashB64, PlacementSession)),
+    /// - with entry hash of entries
+    NewSpace(EntryHashB64),
     NewTemplate(EntryHashB64),
     NewSvgMarker(EntryHashB64),
     NewEmojiGroup(EntryHashB64),

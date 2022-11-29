@@ -17,8 +17,8 @@ export interface WherePerspective {
 export interface Play {
   space: Space,
   //visible: boolean;
-  /* SessionName -> Session */
-  sessions: Dictionary<PlacementSession>,
+  /* SessionName -> SessionEh */
+  sessions: Dictionary<EntryHashB64>,
 }
 
 /** Holds all the info to construct a Play */

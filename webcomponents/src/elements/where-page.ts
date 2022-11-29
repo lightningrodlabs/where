@@ -308,8 +308,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
       let hasToday = false;
       Object.entries(play.sessions).map(
-        ([key, session]) => {
-          if (session.name == today /*"dummy-test-name"*/) {
+        ([name, sessionEh]) => {
+          if (name == today /*"dummy-test-name"*/) {
             hasToday = true;
           }
         })

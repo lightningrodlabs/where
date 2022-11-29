@@ -243,7 +243,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       return false;
     }
     const sessionEh = this.getCurrentSession();
-    const locInfo = currentPlay.sessions[sessionEh!].locations[idx]!;
+    const session = this._dvm.whereZvm.getSession(sessionEh!)!;
+    const locInfo = session.locations[idx]!;
+    //const locInfo = currentPlay.sessions[sessionEh!].locations[idx]!;
     // TODO: should check agent key instead
     return locInfo.location.meta.authorName == this.myNickName;
   }
@@ -497,7 +499,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     const currentSessionEh = this.getCurrentSession();
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay || !currentSessionEh) return;
-    const locInfo = currentPlay.sessions[currentSessionEh].locations[idx]!;
+    const session = this._dvm.whereZvm.getSession(currentSessionEh)!;
+    const locInfo = session.locations[idx]!;
     this.openLocationDialog(
       {
         name: locInfo.location.meta.authorName,
@@ -755,8 +758,10 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private async handleTabSelected(e: any) {
-    //console.log("handleTabSelected: " + e.detail.index)
-    const selectedSessionEh = this._sessions[e.detail.index];
+    console.log("handleTabSelected:", e.detail.index);
+    const sessionName = e.detail.index;
+    const selectedSessionEh = this.perspective.plays[this.currentSpaceEh!].sessions[sessionName];
+    console.log("handleTabSelected.selectedSessionEh", selectedSessionEh)
     this._dvm.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
     this.requestUpdate();
   }
@@ -853,7 +858,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
     /** Render locations if we have a current session */
     let locationItems = undefined;
-    let session = currentPlay.sessions[currentSessionEh];
+    const session = this._dvm.whereZvm.getSession(currentSessionEh);
+    //let session = currentPlay.sessions[currentSessionEh];
     if (!session) {
       console.error(" ** Session not found in Play '" + currentPlay.space.name + "' | " + currentSessionEh)
       console.error({play: currentPlay})
@@ -875,7 +881,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     /** Session Tab bar */
     this._sessions = {};
     this._activeIndex = -1
-    const sessionTabs = Object.entries(currentPlay.sessions).map(([key, curSession])=> {
+    const sessionTabs = Object.entries(currentPlay.sessions).map(([key, curSessionEh])=> {
+      const curSession = this._dvm.whereZvm.getSession(curSessionEh)!;
       //return html `<span>${session.name} </span>`
       this._sessions[curSession.index] = key;
       if (session && currentSessionEh == key) {

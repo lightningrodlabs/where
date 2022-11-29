@@ -65,8 +65,8 @@ export class WhereDvm extends DnaViewModel {
   private _agentPresences: Dictionary<number> = {};
 
   /** Getters */
-  getZoom(spaceEh: EntryHashB64): number | undefined { return this._zooms[spaceEh]}
-  getPlay(spaceEh: EntryHashB64): Play | undefined { return this._plays[spaceEh]}
+  getZoom(spaceEh: EntryHashB64): number | undefined {return this._zooms[spaceEh]}
+  getPlay(spaceEh: EntryHashB64): Play | undefined {return this._plays[spaceEh]}
   getCurrentSession(spaceEh: EntryHashB64): EntryHashB64 | undefined { return this._currentSessions[spaceEh]}
   getVisibility(spaceEh: EntryHashB64): boolean | undefined { return this.whereZvm.getManifest(spaceEh)?.visible}
 
@@ -137,9 +137,9 @@ export class WhereDvm extends DnaViewModel {
     let todaySessionEh = null;
     const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
     Object.entries(play.sessions).map(
-      ([key, session]) => {
-        if (session.name == today /* "dummy-test-name" */) {
-          todaySessionEh = key;
+      ([name, sessionEh]) => {
+        if (name == today /* "dummy-test-name" */) {
+          todaySessionEh = sessionEh;
         }
       })
     return todaySessionEh == currentSessionEh;
@@ -150,14 +150,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   handleSignal(appSignal: AppSignal): void {
-    if (!areCellsEqual(this._cellProxy.cellId, appSignal.data.cellId)) {
-      console.trace("Rejected Signal not for this Cell");
-      return
-    }
     const signal = appSignal.data.payload
-    //if (signal.message.type != "Ping" && signal.message.type != "Pong") {
-    //  console.debug(`SIGNAL: ${signal.message.type}`, appSignal)
-    //}
     /* Update agent's presence stat */
     this.updatePresence(signal.from)
     /* Send pong response */
@@ -200,32 +193,30 @@ export class WhereDvm extends DnaViewModel {
         // }
         break;
       case "NewSession":
-          // FIXME
+        const sessEh = signal.message.content[0];
+        const session = signal.message.content[1];
+        if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
+          this.whereZvm.addSession(signal.maybeSpaceHash, sessEh, session);
+          // FIXME add session to
+        }
         break;
       case "NewHere":
         const hereInfo = signal.message.content;
         const newLocInfo: LocationInfo = convertHereToLocation(hereInfo);
         if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
-          let locations = this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations
-          const idx = locations.findIndex((locationInfo) => locationInfo!.linkAh == hereInfo.linkAh)
-          if (idx > -1) {
-            locations[idx] = newLocInfo
-          } else {
-            locations.push(newLocInfo)
-          }
-          this.notifySubscribers();
+          //console.log("locations before add", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
+          this.whereZvm.addLocation(newLocInfo);
+          //console.log("locations after add", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
         }
         break;
       case "DeleteHere":
         const sessionEh = signal.message.content[0];
         const hereLinkAh = signal.message.content[1];
         if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
-          let locations = this._plays[signal.maybeSpaceHash].sessions[sessionEh].locations
-          const idx = locations.findIndex((locationInfo) => locationInfo && locationInfo.linkAh == hereLinkAh)
-          if (idx > -1) {
-            locations.splice(idx, 1);
-          }
-          this.notifySubscribers();
+          //console.log("locations before remove", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
+          this.whereZvm.removeLocation(signal.maybeSpaceHash, sessionEh, hereLinkAh);
+          //console.log("locations before remove", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
+
         }
         break;
     }
@@ -314,13 +305,17 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** */
-  async publishSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<[EntryHashB64, Dictionary<PlacementSession>]> {
+  async publishSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<[EntryHashB64, Dictionary<EntryHashB64>]> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
     let spaceEh = await this.playsetZvm.publishSpaceEntry(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
     const sessions = await this.whereZvm.createSessions(spaceEh, sessionNames);
-    return [spaceEh, sessions];
+    let playSessions: Dictionary<EntryHashB64> = {};
+    for (const [eh, session] of Object.entries(sessions)) {
+      playSessions[session.name] = eh;
+    }
+    return [spaceEh, playSessions];
   }
 
 
@@ -413,7 +408,7 @@ export class WhereDvm extends DnaViewModel {
       return Promise.reject("Space not found")
     }
     /* - Sessions */
-    let sessions: Dictionary<PlacementSession> = {};
+    let sessions: Dictionary<EntryHashB64> = {};
     for (const sessionEh of manifest.sessionEhs) {
       // const session = this.whereZvm.getSession(sessionEh);
       const session = await this.whereZvm.probeSession(sessionEh);
@@ -422,7 +417,8 @@ export class WhereDvm extends DnaViewModel {
         continue;
       }
       //sessions[session!.name] = session!;
-      sessions[sessionEh] = session!;
+      sessions[session!.name] = sessionEh;
+      //sessions[sessionEh] = session!;
     }
     if (Object.keys(sessions).length == 0) {
       console.error("No sessions found space", spaceEh, space);

@@ -138,6 +138,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._spaces[eh];
   }
 
+
   /** Publish */
 
   async publishTemplateEntry(template: TemplateEntry) : Promise<EntryHashB64> {

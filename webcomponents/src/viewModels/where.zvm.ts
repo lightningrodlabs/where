@@ -181,14 +181,20 @@ export class WhereZvm extends ZomeViewModel {
 
   /** -- Sessions -- */
 
-  /** Add Session to Perspective */
-  private addSession(spaceEh: EntryHashB64, name: string, sessionEh: EntryHashB64, index: number): PlacementSession {
+  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: PlacementSession) {
     if (!this._manifests[spaceEh]) {
       this._manifests[spaceEh] = {spaceEh, visible: true, sessionEhs: [sessionEh]} as PlayManifest;
     }
     this._manifests[spaceEh].sessionEhs.push(sessionEh);
-    const session: PlacementSession = {name, index, locations: []};
     this._sessions[sessionEh] = session;
+    this.notifySubscribers();
+
+  }
+
+  /** Add Session to Perspective */
+  private addEmptySession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, name: string, index: number): PlacementSession {
+    const session: PlacementSession = {name, index, locations: []};
+    this.addSession(spaceEh, sessionEh, session);
     return session;
   }
 
@@ -196,8 +202,7 @@ export class WhereZvm extends ZomeViewModel {
   /** */
   async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
     const [eh, index] = await this.zomeProxy.createNextSession(spaceEh, name);
-    this.addSession(spaceEh, name, eh, index);
-    this.notifySubscribers();
+    this.addEmptySession(spaceEh, eh, name, index);
     return eh;
   }
 
@@ -208,7 +213,7 @@ export class WhereZvm extends ZomeViewModel {
     const ehs = await this.zomeProxy.createSessions(spaceEh, sessionNames);
     let sessions: any = {};
     for (let i = 0; i < sessionNames.length; i++) {
-      const session = this.addSession(spaceEh, sessionNames[i], ehs[i], index + i)
+      const session = this.addEmptySession(spaceEh, ehs[i], sessionNames[i], index + i)
       sessions[ehs[i]] = session;
 
     }
@@ -285,5 +290,35 @@ export class WhereZvm extends ZomeViewModel {
   }
 
 
+  /** */
+  addLocation(locInfo: LocationInfo): void {
+    const session = this.getSession(locInfo.location.sessionEh);
+    if (!session) {
+      throw Error("Session not found when adding location " + locInfo.linkAh)
+    }
+    for (const [i, curLoc] of Object.entries(session.locations)) {
+      if (curLoc && curLoc.linkAh == locInfo.linkAh) {
+        console.warn("Location already added", locInfo.linkAh);
+        // replace?
+        //const idx: number = i;
+        //this._sessions[locInfo.location.sessionEh].locations[idx] = locInfo;
+        return;
+      }
+    }
+    this._sessions[locInfo.location.sessionEh].locations.push(locInfo);
+    this.notifySubscribers();
+  }
 
+  /** */
+  removeLocation(spaceEh: EntryHashB64, sessionEh: EntryHashB64, linkAh: ActionHashB64): void {
+    const session = this.getSession(sessionEh);
+    if (!session) {
+      throw Error("Session not found when removing location " + linkAh)
+    }
+    const idx = session.locations.findIndex((locationInfo) => locationInfo && locationInfo.linkAh == linkAh)
+    if (idx > -1) {
+      session.locations.splice(idx, 1);
+    }
+    this.notifySubscribers();
+  }
 }

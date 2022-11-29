@@ -1,8 +1,7 @@
 import { state } from "lit/decorators.js";
-import {setLocale} from "@where/elements";
 import { html } from "lit";
 import {cellContext, ConductorAppProxy, HappElement, HappViewModel} from "@ddd-qc/dna-client";
-import {DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm, LudothequePage} from "where-mvvm";
+import {setLocale, DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm, LudothequePage} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
 import {AppWebsocket, InstalledAppId} from "@holochain/client";

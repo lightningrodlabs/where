@@ -7,7 +7,7 @@ import {Button, Dialog} from "@scoped-elements/material-web";
 import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
 import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/dna-client";
 import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
-import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "where-mvvm";
+import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
 import {ContextProvider} from "@lit-labs/context";
 import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 
@@ -15,14 +15,18 @@ import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 /** -- Globals -- */
 
 const APP_DEV = process.env.APP_DEV? process.env.APP_DEV : false;
-let HC_APP_PORT: any = process.env.HC_APP_PORT;
+let HC_APP_PORT: number = Number(process.env.HC_APP_PORT);
 
 /** override installed_app_id  when in Electron */
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
   let APP_ID = 'main-app'
   let searchParams = new URLSearchParams(window.location.search);
-  HC_APP_PORT = searchParams.get("PORT");
+  const urlPort = searchParams.get("PORT");
+  if(!urlPort) {
+    console.error("Missing PORT value in URL", window.location.search)
+  }
+  HC_APP_PORT = Number(urlPort);
   const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
   DEFAULT_WHERE_DEF.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id

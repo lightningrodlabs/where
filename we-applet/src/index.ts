@@ -1,7 +1,7 @@
 import {AdminWebsocket, AppWebsocket} from "@holochain/client";
 import {WeApplet, AppletRenderers, WeServices, InstalledAppletInfo} from "@lightningrodlabs/we-applet";
-import {LudothequeStandaloneApp} from "ludo-app";
-import {WhereApp} from "where-app";
+import {LudothequeStandaloneApp} from "@where/ludo-app";
+import {WhereApp} from "@where/app";
 
 
 /** */

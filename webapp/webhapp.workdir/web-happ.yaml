@@ -4,4 +4,4 @@ name: where
 ui:
   bundled: "../where-web-ui.zip"
 happ_manifest:
-  bundled: "../../dna/workdir/happ-where/where.happ"
+  bundled: "../artifacts/where.happ"

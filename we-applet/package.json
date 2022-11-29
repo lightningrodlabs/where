@@ -28,8 +28,8 @@
     "lit": "^2.2.0",
     "lit-svelte-stores": "^0.2.0",
     "@where/elements": "file:../webcomponents",
-    "ludo-app": "file:../webapp.ludotheque",
-    "where-app": "file:../webapp",
+    "@where/ludo-app": "file:../webapp.ludotheque",
+    "@where/app": "file:../webapp",
     "svelte": "^3.42.4"
   },
   "devDependencies": {

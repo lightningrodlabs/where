@@ -9,33 +9,35 @@ import {
   InstalledAppletInfo,
 } from "@lightningrodlabs/we-applet";
 
-import { WhereApplet } from "./where-applet";
-import { LudothequeApplet } from "./ludotheque-applet";
+//import { WhereApplet } from "./where-applet";
+//import { LudothequeApplet } from "./ludotheque-applet";
+import {LudothequeStandaloneApp} from "ludo-app";
 
 
-const whereApplet: WeApplet = {
-  async appletRenderers(
-    appWebsocket: AppWebsocket,
-    adminWebsocket: AdminWebsocket,
-    weServices: WeServices,
-    appletAppInfo: InstalledAppletInfo[]
-  ): Promise<AppletRenderers> {
-    return {
-      full(element: HTMLElement, registry: CustomElementRegistry) {
-        registry.define("where-applet", WhereApplet);
-        element.innerHTML = `
-            <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-            <where-applet style="flex: 1; display: flex;"></where-applet>
-        `;
-        const appletElement = element.querySelector("where-applet") as any;
-        appletElement.appWebsocket =  appWebsocket;
-        appletElement.profilesStore = weServices.profilesStore;
-        appletElement.appletAppInfo = appletAppInfo;
-      },
-      blocks: [],
-    };
-  },
-};
+
+// const whereApplet: WeApplet = {
+//   async appletRenderers(
+//     appWebsocket: AppWebsocket,
+//     adminWebsocket: AdminWebsocket,
+//     weServices: WeServices,
+//     appletAppInfo: InstalledAppletInfo[]
+//   ): Promise<AppletRenderers> {
+//     return {
+//       full(element: HTMLElement, registry: CustomElementRegistry) {
+//         registry.define("where-applet", WhereApplet);
+//         element.innerHTML = `
+//             <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
+//             <where-applet style="flex: 1; display: flex;"></where-applet>
+//         `;
+//         const appletElement = element.querySelector("where-applet") as any;
+//         appletElement.appWebsocket =  appWebsocket;
+//         appletElement.profilesStore = weServices.profilesStore;
+//         appletElement.appletAppInfo = appletAppInfo;
+//       },
+//       blocks: [],
+//     };
+//   },
+// };
 
 
 
@@ -48,20 +50,22 @@ const ludoApplet: WeApplet = {
   ): Promise<AppletRenderers> {
     return {
       full(element: HTMLElement, registry: CustomElementRegistry) {
-        registry.define("ludotheque-applet", LudothequeApplet);
-        element.innerHTML = `
-            <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-            <ludotheque-applet style="flex: 1; display: flex;"></ludotheque-applet>
-        `;
-        const appletElement = element.querySelector("ludotheque-applet") as any;
+        console.log("full()", appWebsocket.client.socket.url)
 
-        appletElement.appWebsocket =  appWebsocket;
-        appletElement.appletAppInfo = appletAppInfo;
+        const font = document.createElement('link');
+        font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";
+        font.rel = "stylesheet";
+        element.appendChild(font);
+
+
+        registry.define("ludotheque-app", LudothequeStandaloneApp);
+        const ludoApp = new LudothequeStandaloneApp(appWebsocket, "ludotheque-applet");
+        element.appendChild(ludoApp);
       },
       blocks: [],
     };
   },
 };
 
-
-export default whereApplet;
+export default ludoApplet;
+//export default whereApplet;

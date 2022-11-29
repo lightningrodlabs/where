@@ -4,7 +4,7 @@
     "outDir": "./out-tsc",
     "rootDir": "./src",
     "allowJs": true,
-    "declaration": false
+    "declaration": true,
   },
   "include": ["src/**/*.ts"]
 }

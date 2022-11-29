@@ -4,7 +4,7 @@ import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
-import {AppSignal, AppWebsocket} from "@holochain/client";
+import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
 import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/dna-client";
 import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "where-mvvm";
@@ -47,9 +47,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  constructor() {
+  // constructor(port_or_socket?: number | AppWebsocket, appId?: InstalledAppId) {
+  //   super(port_or_socket ? port_or_socket : HC_APP_PORT, appId);
+  //   this.initializeHapp();
+  // }
+
+  constructor(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
     super();
-    this.initializeHapp();
+    this.initializeHapp(socket, appId, profilesStore);
   }
 
 
@@ -74,13 +79,22 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
   /** */
-  async initializeHapp() {
-    const wsUrl = `ws://localhost:${HC_APP_PORT}`
-    const appWebsocket = await AppWebsocket.connect(wsUrl, 10 * 1000, (sig) => {this.handleSignal(sig)});
-    this._conductorAppProxy = await ConductorAppProxy.new(appWebsocket);
-    this._hvm = await HappViewModel.new(this, this._conductorAppProxy, DEFAULT_WHERE_DEF); // FIXME this can throw an error
+  async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
+
+    if (!socket) {
+      socket = await AppWebsocket.connect(`ws://localhost:${HC_APP_PORT}`, 10 * 1000, (sig) => {
+        this.handleSignal(sig)
+      });
+    }
+
+    this._conductorAppProxy = await ConductorAppProxy.new(socket);
+
+    const hvmDef = DEFAULT_WHERE_DEF;
+    if (appId) {hvmDef.id = appId};
+    this._hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
+
     /* Do this if not providing cellContext via <cell-context> */
-    //new ContextProvider(this, cellContext, this.whereDvm.cellDef)
+    //new ContextProvider(this, cellContext, this.whereDvm.installedCell)
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
@@ -90,14 +104,16 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     }
 
     /** ProfilesStore used by <create-profile> */
-    const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.installedCell;
-    const hcClient = new HolochainClient(appWebsocket)
-    const whereClient = new CellClient(hcClient, whereCell)
-    const profilesService = new ProfilesService(whereClient, "zProfiles");
-    const profilesStore = new ProfilesStore(profilesService, {
-      additionalFields: ['color'], //['color', 'lang'],
-      avatarMode: APP_DEV? "avatar-optional" : "avatar-required"
-    })
+    if (!profilesStore) {
+      const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.installedCell;
+      const hcClient = new HolochainClient(socket);
+      const whereClient = new CellClient(hcClient, whereCell);
+      const profilesService = new ProfilesService(whereClient, "zProfiles");
+      profilesStore = new ProfilesStore(profilesService, {
+        additionalFields: ['color'], //['color', 'lang'],
+        avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
+      })
+    }
     console.log({profilesStore})
     new ContextProvider(this, profilesStoreContext, profilesStore);
 

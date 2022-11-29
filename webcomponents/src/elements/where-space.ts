@@ -851,8 +851,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
     if (!currentSessionEh) {
       console.warn("CurrentSession not found for play. Setting to last session", currentPlay.space.name, currentPlay)
-      const keys = Object.keys(currentPlay.sessions);
-      currentSessionEh = keys[keys.length - 1];
+      const sessionEhs = Object.values(currentPlay.sessions);
+      currentSessionEh = sessionEhs[sessionEhs.length - 1];
       this._dvm.setCurrentSession(this.currentSpaceEh!, currentSessionEh)
     }
 

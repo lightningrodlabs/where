@@ -7,6 +7,7 @@ use where_integrity::*;
 use crate::{
     placement_session::*,
 };
+use crate::signals::{Message, SignalPayload};
 
 
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
@@ -28,6 +29,7 @@ pub struct UpdateHereInput {
 
 #[hdk_extern]
 fn add_here(input: AddHereInput) -> ExternResult<ActionHashB64> {
+    //debug!("add_here(): {:?}", input);
     /// Find session
     let get_input = GetSessionInput {space_eh: input.space_eh.into(), index: input.session_index};
     let maybe_session_eh = get_session(get_input)?;

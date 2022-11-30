@@ -357,7 +357,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
   }
 
-
+  /** */
+  async onDumpLogs() {
+    this._dvm.dumpLogs();
+  }
 
   /** */
   async onRefresh() {
@@ -598,6 +601,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar id="app-bar" dense>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${spaceName}</div>
+      <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
         <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>

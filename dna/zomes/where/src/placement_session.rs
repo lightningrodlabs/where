@@ -6,7 +6,7 @@ use where_integrity::*;
 //use playset_integrity::*;
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSessionInput {
   pub space_eh: EntryHashB64,

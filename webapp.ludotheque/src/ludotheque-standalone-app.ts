@@ -4,7 +4,7 @@ import {cellContext, ConductorAppProxy, HappElement, HappViewModel} from "@ddd-q
 import {setLocale, DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm, LudothequePage} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
-import {AppWebsocket, InstalledAppId} from "@holochain/client";
+import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
 
 /** Localization */
 
@@ -49,9 +49,14 @@ export class LudothequeStandaloneApp extends HappElement {
   get ludothequeDvm(): LudothequeDvm { return this.hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)! as LudothequeDvm }
 
 
+  private onSignal(signal: AppSignal): void {
+    //console.log("<ludotheque-standalone-app> onSignal()", signal);
+  }
+
   /** */
   async firstUpdated() {
-    new ContextProvider(this, cellContext, this.ludothequeDvm.installedCell)
+    new ContextProvider(this, cellContext, this.ludothequeDvm.installedCell);
+    this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.cellId);
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {
       const ludoDnaHashB64 = this.hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)!.dnaHash;

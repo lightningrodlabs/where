@@ -231,6 +231,10 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     }
   }
 
+  /** */
+  async onDumpLogs() {
+    this._dvm.dumpLogs();
+  }
 
   private async selectPlayset(playsetEh: EntryHashB64): Promise<void> {
     console.log("selectPlayset() " + playsetEh);
@@ -508,7 +512,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
           </h4>
           <div slot="footer">
             <sl-rating></sl-rating>
-            <mwc-button id="primary-action-button" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>${msg('Import')}</mwc-button>
+            <mwc-button id="primary-action-button" .disabled="${!this.whereCellId}" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>${msg('Import')}</mwc-button>
           </div>
         </sl-card>
         `
@@ -765,6 +769,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
         <mwc-icon>library_books</mwc-icon>-->
       <div slot="title">${msg('Library')}</div>
 
+      <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
       <mwc-menu id="add-menu" absolute x="0" y="0" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
         <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>

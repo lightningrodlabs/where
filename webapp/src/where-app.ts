@@ -79,19 +79,25 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   /** -- Methods -- */
 
   handleSignal(sig: AppSignal) {
+    //console.log("<where-app> handleSignal()", sig);
     this._conductorAppProxy.onSignal(sig);
   }
 
   /** */
   async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
-
     if (!socket) {
-      socket = await AppWebsocket.connect(`ws://localhost:${HC_APP_PORT}`, 10 * 1000, (sig) => {
-        this.handleSignal(sig)
-      });
+      const wsUrl =`ws://localhost:${HC_APP_PORT}`
+      console.log("<where-app> Creating AppWebsocket with", wsUrl);
+      socket = await AppWebsocket.connect(wsUrl, 10 * 1000);
     }
 
     this._conductorAppProxy = await ConductorAppProxy.new(socket);
+
+    const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
+    hcClient.addSignalHandler((sig) => {
+      //console.log("<where-app> signalCb()", sig);
+      this.handleSignal(sig);
+    })
 
     const hvmDef = DEFAULT_WHERE_DEF;
     if (appId) {hvmDef.id = appId};
@@ -110,7 +116,6 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     /** ProfilesStore used by <create-profile> */
     if (!profilesStore) {
       const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.installedCell;
-      const hcClient = new HolochainClient(socket);
       const whereClient = new CellClient(hcClient, whereCell);
       const profilesService = new ProfilesService(whereClient, "zProfiles");
       profilesStore = new ProfilesStore(profilesService, {

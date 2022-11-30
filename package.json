@@ -28,8 +28,8 @@
 
     "dev:components"        : "npm run build:watch -w webcomponents",
 
-    "devtest"               : "npm run build:devtest && npm run start",
-    "devtest:ludotheque"    : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && npm run start:ludotheque",
+    "devtest"               : "npm run build:devtest && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp\" \"npm run start\"",
+    "devtest:ludo"          : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && npm run start:ludotheque",
     "devtest:we"            : "npm run build:devtest && npm run devtest -w we-applet",
     "devtest:we:ludo"       : "npm run build:devtest:ludo && npm run devtest:ludo -w we-applet",
     "devtest:electron"      : "npm run build:devtest && npm run devtest -w electron",

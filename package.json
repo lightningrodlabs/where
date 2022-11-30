@@ -34,9 +34,9 @@
     "devtest:we:ludo"       : "npm run build:devtest:ludo && npm run devtest:ludo -w we-applet",
     "devtest:electron"      : "npm run build:devtest && npm run devtest -w electron",
 
-    "network"               : "npm run build:happ && concurrently-repeat \"npm run start\"",
+    "network"               : "npm run build:happ && concurrently-repeat \"npm run start:proxied\"",
     "network-playground"    : "npm run build:happ && concurrently-repeat \"npm run start:playground\"",
-    "network-proxied"       : "npm run build:happ && concurrently-repeat \"npm run start:proxied\"",
+    "network-mdns"       : "npm run build:happ && concurrently-repeat \"npm run start\"",
     "start:proxied"         : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ:proxied\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start"                 : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start:ludotheque"      : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",

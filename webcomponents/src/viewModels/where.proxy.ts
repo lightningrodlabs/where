@@ -26,7 +26,7 @@ export class WhereProxy extends ZomeProxy {
   /** Session */
 
   async getSessionFromEh(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
-    console.log("getSessionFromEh()", sessionEh)
+    //console.log("getSessionFromEh()", sessionEh)
     return this.call('get_session_from_eh', sessionEh);
   }
 

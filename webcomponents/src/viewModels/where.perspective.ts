@@ -1,5 +1,5 @@
 import {AgentPubKeyB64, ActionHashB64, EntryHashB64, Dictionary} from "@holochain-open-dev/core-types";
-import {HereEntry, HereOutput} from "./where.bindings";
+import {HereEntry, HereOutput, PlacementSessionEntry} from "./where.bindings";
 import {MarkerType, Space} from "./playset.perspective";
 import {mapReplacer, mapReviver} from "../utils";
 
@@ -36,6 +36,13 @@ export interface PlacementSession {
   locations: (LocationInfo | null)[];
 }
 
+export function convertSessionToEntry(session: PlacementSession, spaceEh: EntryHashB64): PlacementSessionEntry {
+  return {
+    name: session.name,
+    index: session.index,
+    spaceEh,
+  };
+}
 
 /** A 'Location' is a deserialized 'Here' with a {x,y} object as value */
 

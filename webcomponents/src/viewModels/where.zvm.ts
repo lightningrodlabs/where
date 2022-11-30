@@ -106,8 +106,8 @@ export class WhereZvm extends ZomeViewModel {
   /** -- Methods -- */
 
   /** */
-  notifyPeers(signal: WhereSignal, folks: Array<AgentPubKeyB64>) {
-    this.zomeProxy.notifyPeers(signal, folks)
+  notifyPeers(signal: WhereSignal, peers: Array<AgentPubKeyB64>) {
+    this.zomeProxy.notifyPeers(signal, peers)
   }
 
   /** Returns list of hidden spaces */
@@ -181,7 +181,7 @@ export class WhereZvm extends ZomeViewModel {
 
   /** -- Sessions -- */
 
-  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: PlacementSession) {
+  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: PlacementSession): void {
     if (!this._manifests[spaceEh]) {
       this._manifests[spaceEh] = {spaceEh, visible: true, sessionEhs: [sessionEh]} as PlayManifest;
     }
@@ -200,10 +200,10 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<EntryHashB64> {
+  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<[EntryHashB64, PlacementSession]> {
     const [eh, index] = await this.zomeProxy.createNextSession(spaceEh, name);
-    this.addEmptySession(spaceEh, eh, name, index);
-    return eh;
+    const session = this.addEmptySession(spaceEh, eh, name, index);
+    return [eh, session];
   }
 
 

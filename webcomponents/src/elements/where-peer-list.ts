@@ -9,7 +9,7 @@ import {
   Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle, CircularProgress,
 } from "@scoped-elements/material-web";
 import {AgentPubKeyB64, Dictionary} from "@holochain-open-dev/core-types";
-import {deserializeHash} from "@holochain-open-dev/utils";
+import {AgentPubKeyMap, deserializeHash} from "@holochain-open-dev/utils";
 
 import { sharedStyles } from "../sharedStyles";
 import {MARKER_WIDTH} from "../sharedRender";
@@ -20,9 +20,9 @@ import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
-/** @element where-folks */
+/** @element where-peer-list */
 @localized()
-export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
+export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
     super(WhereDvm.DEFAULT_ROLE_ID);
   }
@@ -41,8 +41,9 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** -- Methods -- */
 
   /** After first render only */
-  async firstUpdated() {
+  firstUpdated() {
     this._dvm.profilesZvm.subscribe(this, "profilesPerspective");
+    console.log("<where-peer-list> firstUpdated()", this.profilesPerspective);
     this._loaded = true;
   }
 
@@ -54,7 +55,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return "success";
     }
     const lastPingTime: number = this.perspective.agentPresences[key];
-    const currentTime: number = Math.floor(Date.now()/1000);
+    const currentTime: number = Math.floor(Date.now() / 1000);
     const diff: number = currentTime - lastPingTime;
     if (diff < 30) {
       return "success";
@@ -97,14 +98,15 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  renderList(profiles:  Dictionary<WhereProfile>/*AgentPubKeyMap<Profile>*/) {
+  renderList(profiles:  Dictionary<WhereProfile>) {
 
-    if (Object.keys(profiles).length === 0)
+    if (Object.keys(profiles).length === 0) {
       return html`
         <mwc-list-item
         >(no profiles found)
         </mwc-list-item
         >`;
+    }
 
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField && filterField.value? filterField.value : "";
@@ -131,7 +133,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
     // })
 
     /** Build avatar agent list */
-    const folks = visibleProfiles.map(([keyB64, profile]) => {
+    const peers = visibleProfiles.map(([keyB64, profile]) => {
       let key = deserializeHash(keyB64)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
@@ -149,7 +151,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
     })
 
     /** Build names agent list */
-    const list_folks = visibleProfiles.map(([keyB64, profile]) => {
+    const peer_list = visibleProfiles.map(([keyB64, profile]) => {
       let key = deserializeHash(keyB64)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
@@ -181,7 +183,7 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
       </sl-input>
       <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch>
       <div class="folks">
-        ${this.canShowTable? folks : list_folks}
+        ${this.canShowTable? peers : peer_list}
       </div>
     `
   }
@@ -189,12 +191,13 @@ export class WhereFolks extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("<where-folks> render()")
     if (!this._loaded) {
       return html`<div class="fill center-content">
         <mwc-circular-progress indeterminate></mwc-circular-progress>
       </div>`;
     }
+    console.log("<where-peer-list> render()", Object.keys(this.profilesPerspective.profiles).length);
+
     return this.renderList(this.profilesPerspective.profiles);
   }
 

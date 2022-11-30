@@ -228,9 +228,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     if (currentPlay.space.meta!.multi) {
       return true;
     }
-    const myLocIdx = this._dvm.getAgentLocIdx(this.currentSpaceEh!, this.myNickName);
-    const hasNoLocation = myLocIdx == -1
-    return hasNoLocation;
+    const maybeLocation = this._dvm.getPeerFirstLocation(this.currentSpaceEh!, this.myNickName);
+    return maybeLocation != null;
   }
 
 
@@ -292,7 +291,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
           svgMarker,
         },
       };
-      this._dvm.whereZvm.publishLocation(location, this.currentSpaceEh);
+      this._dvm.publishLocation(location, this.currentSpaceEh);
     }
   }
 
@@ -401,12 +400,11 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         this.currentSpaceEh!,
         this._dialogIdx,
         this._dialogCoord,
-        [], // FIXME await this._whereDvm.others(),
         tagValue,
         emojiValue
       );
     } else {
-      this._dvm.whereZvm.publishLocation(location, this.currentSpaceEh!);
+      this._dvm.publishLocation(location, this.currentSpaceEh!);
     }
   }
 
@@ -419,7 +417,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private drag(dragEvent: DragEvent) {
-    console.log("dragstart", dragEvent)
+    //console.log("dragstart", dragEvent)
     const ev = dragEvent as any;
     const target = dragEvent.currentTarget? dragEvent.currentTarget : ev.originalTarget;
     if (!target) {
@@ -445,7 +443,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private drop(ev: any) {
-    console.log("dragEnd", ev)
+    //console.log("dragEnd", ev)
     ev.preventDefault();
     if (!ev.dataTransfer || !ev.target) {
       return;
@@ -471,7 +469,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     let coord = this.getCoordsFromEvent(ev);
     coord.x = coord.x + offsetX;
     coord.y = coord.y + offsetY;
-    this._dvm.updateLocation(this.currentSpaceEh!, idx, coord, this._dvm.allOthers())
+    this._dvm.updateLocation(this.currentSpaceEh!, idx, coord)
   }
 
 
@@ -758,10 +756,10 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private async handleTabSelected(e: any) {
-    console.log("handleTabSelected:", e.detail.index);
+    //console.log("handleTabSelected:", e.detail.index);
     const sessionName = e.detail.index;
     const selectedSessionEh = this.perspective.plays[this.currentSpaceEh!].sessions[sessionName];
-    console.log("handleTabSelected.selectedSessionEh", selectedSessionEh)
+    //console.log("handleTabSelected.selectedSessionEh", selectedSessionEh)
     this._dvm.setCurrentSession(this.currentSpaceEh!, selectedSessionEh);
     this.requestUpdate();
   }
@@ -847,7 +845,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     const currentPlay = this.getCurrentPlay()!;
     const z = this.getCurrentZoom()!;
     let currentSessionEh = this.getCurrentSession();
-    console.log("<where-space> render() currentSessionEh", currentSessionEh)
+    //console.log("<where-space> render() currentSessionEh", currentSessionEh)
 
     if (!currentSessionEh) {
       console.warn("CurrentSession not found for play. Setting to last session", currentPlay.space.name, currentPlay)

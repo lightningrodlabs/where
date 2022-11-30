@@ -16,7 +16,7 @@ import {CellId} from "@holochain/client";
 
 import {delay, renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
-import {WhereFolks} from "./where-folks";
+import {WherePeerList} from "./where-peer-list";
 import {WhereSpace} from "./where-space";
 import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
@@ -75,7 +75,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** State */
 
-  @state() private _canShowFolks: boolean = true;
+  @state() private _canShowPeers: boolean = true;
   @state() private _neighborWidth: number = 150;
 
   @state() private _currentSpaceEh: null | EntryHashB64 = null;
@@ -107,8 +107,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
 
-  get folksElem(): WhereFolks {
-    return this.shadowRoot!.getElementById("where-folks") as WhereFolks;
+  get peerListElem(): WherePeerList {
+    return this.shadowRoot!.getElementById("where-peer-list") as WherePeerList;
   }
 
   get playDialogElem() : WherePlayDialog {
@@ -280,7 +280,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       // const margin = this.drawerElem.open? '256px' : '0px';
       // const menuButton = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
       // menuButton.style.marginRight = margin;
-      this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
+      this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowPeers? 150 : 0);
     });
     this._canPostInit = false;
   }
@@ -315,7 +315,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         })
       //console.log("hasToday: " + hasToday + " | " + play.space.name + " | " + today)
       if (!hasToday) {
-        await this._dvm.whereZvm.createNextSession(spaceEh, today /*"dummy-test-name"*/)
+        await this._dvm.createNextSession(spaceEh, today /*"dummy-test-name"*/)
       }
     }
 
@@ -364,12 +364,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("refresh: Pulling data from DHT")
     await this._dvm.probeAll();
     await this.pingOthers();
-    // await this._whereDvm.getEntryDefs("where")
-    // await this._whereDvm.getEntryDefs("where_ludotheque")
-    // await this._whereDvm.getEntryDefs("where_playset")
-    // await this._whereDvm.getEntryDefs("where_integrity")
-
-    //this.requestUpdate();
   }
 
 
@@ -413,7 +407,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
       {maybeSpaceHash: null, from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
-      this._dvm.allOthers(),
+      this._dvm.allCurrentOthers(),
     )
   }
 
@@ -424,7 +418,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
     const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._dvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
-    this._dvm.notifyPeers(newSpace, this._dvm.allOthers());
+    this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
     /* */
     await this.selectPlay(spaceEh);
   }
@@ -543,7 +537,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     /* -- Build elements -- */
 
     if (this.drawerElem) {
-      this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
+      this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowPeers ? 150 : 0);
     }
 
     /** Build play list */
@@ -604,8 +598,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar id="app-bar" dense>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${spaceName}</div>
-      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button-toggle>
-        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button> -->
+      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
+        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
       <mwc-icon-button id="where-menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
@@ -623,8 +617,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       ${this._currentSpaceEh ?
         html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">${msg('No space found')}</div>`}
-      ${this._canShowFolks ?
-      html`<where-folks id="where-folks" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-folks>`
+      ${this._canShowPeers ?
+      html`<where-peer-list id="where-peer-list" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-peer-list>`
     : html``}
 
     </div>
@@ -663,7 +657,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
-      "where-folks": WhereFolks,
+      "where-peer-list": WherePeerList,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
       'sl-tooltip': SlTooltip,

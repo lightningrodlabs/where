@@ -185,8 +185,11 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** */
-  async pingPeers(spaceHash: EntryHashB64, myKey: AgentPubKeyB64, peers: Array<AgentPubKeyB64>) {
-    const ping: WhereSignal = {maybeSpaceHash: spaceHash, from: this._cellProxy.agentPubKey, message: {type: 'Ping', content: myKey}};
+  async pingPeers(maybeSpaceHash: EntryHashB64 | null, peers: Array<AgentPubKeyB64>) {
+    const ping: WhereSignal = {
+      maybeSpaceHash,
+      from: this._cellProxy.agentPubKey,
+      message: {type: 'Ping', content: this._cellProxy.agentPubKey}};
     // console.log({signal})
     this.notifyPeers(ping, peers);
   }
@@ -195,12 +198,16 @@ export class WhereDvm extends DnaViewModel {
   /** */
   allCurrentOthers(): AgentPubKeyB64[] {
     const agents = this.profilesZvm.getAgents();
-    console.log({agents})
-    console.log({presences: this._agentPresences})
-    //const now = Date.now();
+    //console.log({agents})
+    //console.log({presences: this._agentPresences})
+    const currentTime: number = Math.floor(Date.now() / 1000);
     const keysB64 = agents
       .filter((key)=> key != this.agentPubKey)
-      //.filter((key)=> !this._agentPresences[key] || (now - this._agentPresences[key]) < 600 * 1000);
+      .filter((key)=> {
+        const lastPingTime = this._agentPresences[key];
+        if (!lastPingTime) return false;
+        return (currentTime - lastPingTime) < 5 * 60; // 5 minutes
+      });
     console.log({keysB64})
     return keysB64
   }

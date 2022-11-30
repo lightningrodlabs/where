@@ -75,7 +75,7 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
         this._nameField.reportValidity()
       }
     }
-    // FIXME
+    // TODO: Add more validation
     // ...
     // Done
     return isValid

@@ -654,6 +654,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     this.requestUpdate()
   }
 
+
   /** */
   handleEmojiGroupSelect(e?: any) {
     console.log("handleEmojiGroupSelect")
@@ -669,7 +670,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     /** Build emoji list */
     //const maybeEmojiGroupSelector = this.shadowRoot!.getElementById("emoji-group-field") as Select;
     let unicodes = ""
-    // FIXME: should retrieve group by eh instead of name
+    // TODO: should retrieve group by eh instead of name
     for (const [eh, group] of Object.entries(this.perspective.emojiGroups)) {
       if (group.name == selectedName) {
         unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
@@ -697,7 +698,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     //container!.innerHTML = ""
 
     /** Find svg marker and set to preview */
-    // FIXME: should retrieve svgMarker by eh instead of name
+    // TODO: should retrieve svgMarker by eh instead of name
     for (const [eh, svgMarker] of Object.entries(this.perspective.svgMarkers)) {
       if (svgMarker.name == selectedName) {
         // console.log("svg marker found: " + selectedName)

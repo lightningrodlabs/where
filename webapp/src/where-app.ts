@@ -262,7 +262,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     for (const spaceEh of spaceEhs) {
       const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);
       console.log("handleImportRequest().loop", spaceEh, space)
-      if (!space) continue; // FIXME add a warn
+      if (!space) {
+        console.warn("handleImportRequest() did not find spaceEh", spaceEh);
+        continue;
+      }
       if (space.meta.sessionCount == 0) {
         await this.whereDvm.constructNewPlay(space);
       } else {

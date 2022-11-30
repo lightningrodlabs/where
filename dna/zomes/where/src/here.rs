@@ -7,7 +7,6 @@ use where_integrity::*;
 use crate::{
     placement_session::*,
 };
-use crate::signals::{Message, SignalPayload};
 
 
 #[derive(Debug, Serialize, Deserialize, SerializedBytes)]
@@ -33,7 +32,7 @@ fn add_here(input: AddHereInput) -> ExternResult<ActionHashB64> {
     /// Find session
     let get_input = GetSessionInput {space_eh: input.space_eh.into(), index: input.session_index};
     let maybe_session_eh = get_session(get_input)?;
-    let Some(session_eh) =  maybe_session_eh 
+    let Some(session_eh) =  maybe_session_eh
         else {return zome_error!("Session not found")};
     let session_eh64: EntryHashB64 = session_eh.into();
     /// Create and link 'Here'
@@ -75,12 +74,12 @@ pub struct HereOutput {
 
 #[hdk_extern]
 fn get_heres(session_eh: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
-    debug!("get_heres() called: {:?}", session_eh);
+    //debug!("get_heres() called: {:?}", session_eh);
     /// make sure its a session
     let _session = get_session_from_eh(session_eh.clone())?;
     /// Get links
     let heres = get_heres_inner(session_eh.into())?;
-    debug!("get_heres() result: {:?}", heres);
+    //debug!("get_heres() result: {:?}", heres);
     Ok(heres)
 }
 
@@ -90,15 +89,15 @@ fn get_heres_inner(base: EntryHash) -> ExternResult<Vec<HereOutput>> {
     let mut output = Vec::with_capacity(links.len());
     /// Get details of every link on the target and create the message.
     for link in links.into_iter().map(|link| link) {
-        debug!("get_heres_inner() link: {:?}", link);
+        //debug!("get_heres_inner() link: {:?}", link);
         let details =  get_details(link.target, GetOptions::content())?;
-        let Some(Details::Entry(EntryDetails {entry, mut actions, .. })) = details 
+        let Some(Details::Entry(EntryDetails {entry, mut actions, .. })) = details
             else {continue};
         /// Turn the entry into a HereOutput
         let entry: Here = entry.try_into()?;
-        let Some(signed_action) = actions.pop() 
+        let Some(signed_action) = actions.pop()
             else {continue};
-        /// Create the output for the UI            
+        /// Create the output for the UI
         let w = HereOutput {
             entry,
             link_ah: link.create_link_hash.into(),

@@ -67,7 +67,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
         this._nameField.reportValidity()
       }
     }
-    // FIXME
+    // TODO: Add more validation
     // ...
     // Done
     return isValid

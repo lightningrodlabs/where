@@ -177,6 +177,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     return !!this._dvm;
   }
 
+
   /** After first render only */
   async firstUpdated() {
     console.log("<where-page> firstUpdated()")
@@ -189,6 +190,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /** Get latest public entries from DHT */
     await this._dvm.probeAll();
+    this.pingAllOthers();
 
     /** Select first play if none is set */
     if (!this._currentSpaceEh) {
@@ -349,13 +351,22 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  async pingOthers() {
-    if (this._currentSpaceEh) {
-      // console.log("Pinging All")
-      // FIXME
-      //await this._whereStore.pingOthers(this._currentSpaceEh, serializeHash(this.profileStore.myAgentPubKey))
-    }
+  async pingActiveOthers() {
+    //if (this._currentSpaceEh) {
+      console.log("Pinging All Others");
+      await this._dvm.pingPeers(this._currentSpaceEh, this._dvm.allCurrentOthers());
+    //}
   }
+
+  /** */
+  async pingAllOthers() {
+    //if (this._currentSpaceEh) {
+    console.log("Pinging All Others");
+    const agents = this._dvm.profilesZvm.getAgents();
+    await this._dvm.pingPeers(this._currentSpaceEh, agents);
+    //}
+  }
+
 
   /** */
   async onDumpLogs() {
@@ -366,7 +377,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
     await this._dvm.probeAll();
-    await this.pingOthers();
+    await this.pingAllOthers();
   }
 
 
@@ -505,7 +516,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
   private async handleSpaceClick(event: any) {
-    await this.pingOthers();
+    await this.pingActiveOthers();
   }
 
   handleAvatarClicked(key: AgentPubKeyB64) {
@@ -574,7 +585,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
-      <!-- FIXME <span slot="secondary">${this._dvm.agentPubKey}</span> -->
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
         value=${this._myProfile.fields['color']}></sl-color-picker>

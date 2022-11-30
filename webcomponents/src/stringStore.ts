@@ -42,7 +42,7 @@ export class StringStore {
     }
     const answer = map!.get(key)
     if (!answer) {
-      return "FIXME";
+      throw Error(`String "${key}" not found in Stringstore`)
     }
     return answer;
   }

@@ -157,7 +157,7 @@ export function convertFieldToMeta(meta: Dictionary<string>): SpaceMeta {
       Object.assign(spaceMeta, {[key]: JSON.parse(value, mapReviver)})
     }
   } catch (e) {
-    console.error("Failed parsing meta filed into PlayMeta")
+    console.error("Failed parsing meta field into PlayMeta")
     console.error(e)
   }
   //console.log({spaceMeta})

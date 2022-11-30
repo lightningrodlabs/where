@@ -1,5 +1,5 @@
 import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
-import {HereOutput, PlacementSessionEntry} from "./where.bindings";
+import {HereEntry, HereOutput, PlacementSessionEntry} from "./where.bindings";
 
 export type WhereSignal = {
   maybeSpaceHash: EntryHashB64 | null,
@@ -13,6 +13,7 @@ export type WhereSignalMessage =
   | {type: "Pong", content: AgentPubKeyB64}
   | {type: "NewHere", content:  HereOutput}
   | {type: "DeleteHere", content: [EntryHashB64, ActionHashB64]}
+  | {type: "UpdateHere", content: [number, ActionHashB64, HereEntry]}
   | {type: "NewSession", content: [EntryHashB64, PlacementSessionEntry]}
   | {type: "NewSpace", content: EntryHashB64}
   | {type: "NewTemplate", content: EntryHashB64}

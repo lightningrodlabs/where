@@ -1,4 +1,4 @@
-import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
+import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
   LocationInfo,
   PlacementSession,
@@ -7,7 +7,7 @@ import {
   Coord,
   convertHereToLocation,
   WhereLocation,
-  convertSessionToEntry,
+  convertSessionToEntry, HereInfo,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
 import {areCellsEqual, DnaViewModel} from "@ddd-qc/dna-client";
@@ -17,6 +17,7 @@ import {WhereZvm} from "./where.zvm";
 import {WhereSignal, WhereSignalMessage} from "./where.signals";
 import {convertSpaceToEntry, Space} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
+import {HereEntry} from "./where.bindings";
 
 
 /** */
@@ -152,6 +153,18 @@ export class WhereDvm extends DnaViewModel {
 
         }
         break;
+      case "UpdateHere":
+        const idx = signal.message.content[0];
+        const newHereInfo: HereInfo =   {
+          entry: signal.message.content[2],
+          linkAh: signal.message.content[1],
+          author: signal.from,
+          };
+        const newInfo = convertHereToLocation(newHereInfo);
+        if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
+          this.whereZvm.updateLocation(newInfo.location.sessionEh, signal.maybeSpaceHash, idx, newInfo.location.coord, newInfo.location.meta.tag, newInfo.location.meta.emoji);
+        }
+        break;
     }
   }
 
@@ -184,9 +197,10 @@ export class WhereDvm extends DnaViewModel {
     const agents = this.profilesZvm.getAgents();
     console.log({agents})
     console.log({presences: this._agentPresences})
+    //const now = Date.now();
     const keysB64 = agents
       .filter((key)=> key != this.agentPubKey)
-      .filter((key)=> !this._agentPresences[key] || this._agentPresences[key] < 600);
+      //.filter((key)=> !this._agentPresences[key] || (now - this._agentPresences[key]) < 600 * 1000);
     console.log({keysB64})
     return keysB64
   }
@@ -476,11 +490,10 @@ export class WhereDvm extends DnaViewModel {
     const oldLocInfo = this.whereZvm.getLocations(sessionEh)![locIdx]!
    const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji);
     const entry = convertLocationToHere(newLocInfo.location);
-    let message: WhereSignalMessage = {type: "DeleteHere", content: [oldLocInfo.location.sessionEh, oldLocInfo.linkAh]};
+    let message: WhereSignalMessage = {type: "UpdateHere", content: [locIdx, newLocInfo.linkAh, entry]};
     let signal: WhereSignal = {maybeSpaceHash: spaceEh, from: this._cellProxy.agentPubKey, message};
     await this.notifyPeers(signal, this.allCurrentOthers());
-    signal.message = {type: "NewHere", content: {entry, linkAh: newLocInfo.linkAh, author: this._cellProxy.agentPubKey}};
-    await this.notifyPeers(signal, this.allCurrentOthers());
+
   }
 
 

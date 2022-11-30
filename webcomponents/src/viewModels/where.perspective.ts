@@ -111,7 +111,7 @@ export function convertHereToLocation(info: HereInfo) : LocationInfo {
       Object.assign(locationMeta, {[key]: JSON.parse(value, mapReviver)})
     }
   } catch (e) {
-    console.error("Failed parsing meta filed into LocationMeta")
+    console.error("Failed parsing meta field into LocationMeta")
     console.error(e)
   }
   //

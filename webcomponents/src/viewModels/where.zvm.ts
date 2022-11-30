@@ -317,8 +317,11 @@ export class WhereZvm extends ZomeViewModel {
     }
     const idx = session.locations.findIndex((locationInfo) => locationInfo && locationInfo.linkAh == linkAh)
     if (idx > -1) {
-      session.locations.splice(idx, 1);
+      //session.locations.splice(idx, 1);
+      session.locations[idx] = null;
+      this.notifySubscribers();
+    } else {
+      console.warn("removeLocation() failed. linkAh not found in session", linkAh, sessionEh, session.locations, idx);
     }
-    this.notifySubscribers();
   }
 }

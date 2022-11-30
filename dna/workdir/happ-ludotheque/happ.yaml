@@ -1,14 +1,14 @@
 ---
 manifest_version: "1"
-name: ludotheque
+name: hLudotheque
 description: ~
 roles:
-  - id: ludotheque
+  - id: rLudotheque
     provisioning:
       strategy: create
       deferred: false
     dna:
-      bundled: "../dna-ludotheque/ludotheque.dna"
+      bundled: "../../../artifacts/ludotheque.dna"
       properties: ~
       uid: ~
       version: ~

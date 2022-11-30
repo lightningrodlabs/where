@@ -1,6 +1,6 @@
 use hdk::prelude::*;
 use hdk::hash_path::path::TypedPath;
-use zome_utils::get_typed_from_links;
+use zome_utils::*;
 use holo_hash::EntryHashB64;
 use playset_integrity::*;
 
@@ -30,14 +30,11 @@ pub fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
 
 #[hdk_extern]
 fn get_svg_marker(input: EntryHashB64) -> ExternResult<Option<SvgMarker>> {
-    let eh: EntryHash = input.into();
-    match get_details(eh, GetOptions::content())? {
-            Some(Details::Entry(EntryDetails {entry, .. })) => {
-                let tmpl: SvgMarker = entry.try_into()?;
-                Ok(Some(tmpl))
-            }
-        _ => Ok(None),
-    }
+    let maybe_record = get(input, GetOptions::content())?;
+    let Some(record) = maybe_record 
+        else {return Ok(None)};
+    let typed = get_typed_from_record::<SvgMarker>(record)?;
+    Ok(Some(typed))
 }
 
 #[hdk_extern]

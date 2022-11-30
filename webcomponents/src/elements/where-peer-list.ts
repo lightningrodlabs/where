@@ -1,71 +1,61 @@
-import { html, css, LitElement } from "lit";
-import { property } from "lit/decorators.js";
-import { contextProvided } from '@lit-labs/context';
+import { html, css } from "lit";
+import { property, state } from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
-import {StoreSubscriber, TaskSubscriber} from "lit-svelte-stores";
 import {SlAvatar, SlBadge, SlInput, SlTooltip} from '@scoped-elements/shoelace';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {
   ListItem,
   Select,
   IconButton,
-  Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle,
+  Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle, CircularProgress,
 } from "@scoped-elements/material-web";
-
-import {
-  profilesStoreContext,
-  ProfilesStore, Profile,
-} from "@holochain-open-dev/profiles";
-import {AgentPubKeyB64} from "@holochain-open-dev/core-types";
-import {AgentPubKeyMap, serializeHash} from "@holochain-open-dev/utils";
+import {AgentPubKeyB64, Dictionary} from "@holochain-open-dev/core-types";
+import {AgentPubKeyMap, deserializeHash} from "@holochain-open-dev/utils";
 
 import { sharedStyles } from "../sharedStyles";
-import {whereContext} from "../types";
-import { WhereStore } from "../where.store";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
+import {DnaElement} from "@ddd-qc/dna-client";
+import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
+import {ProfilesPerspective} from "../viewModels/profiles.zvm";
+import {WhereProfile} from "../viewModels/profiles.proxy";
 
-/** @element where-folks */
+
+/** @element where-peer-list */
 @localized()
-export class WhereFolks extends ScopedElementsMixin(LitElement) {
+export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super();
+    super(WhereDvm.DEFAULT_ROLE_ID);
   }
 
-  /** Public attributes */
+  /** -- Fields -- */
   @property() soloAgent: AgentPubKeyB64 | null  = null; // filter for a specific agent
 
-  @property({type: Boolean}) canShowTable: boolean = true;
+  @property() canShowTable: boolean = true;
+
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  profilesPerspective!: ProfilesPerspective;
+
+  @state() private _loaded = false;
 
 
-  /** Dependencies */
+  /** -- Methods -- */
 
-  @contextProvided({ context: whereContext, subscribe: true })
-  _store!: WhereStore;
-  @contextProvided({ context: profilesStoreContext, subscribe: true })
-  _profiles!: ProfilesStore;
+  /** After first render only */
+  firstUpdated() {
+    this._dvm.profilesZvm.subscribe(this, "profilesPerspective");
+    console.log("<where-peer-list> firstUpdated()", this.profilesPerspective);
+    this._loaded = true;
+  }
 
-  //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.knownProfiles);
-  _agentPresences = new StoreSubscriber(this, () => this._store?.agentPresences);
-
-
-  private _allProfilesTask = new TaskSubscriber(
-    this,
-    () => this._profiles.fetchAllProfiles(),
-    () => [this._profiles]
-  );
-
-
-  /** Methods */
 
   /** */
   determineAgentStatus(key: AgentPubKeyB64) {
     // const status = "primary"; // "neutral"
-    if (key == serializeHash(this._profiles.myAgentPubKey)) {
+    if (key == this._dvm.agentPubKey) {
       return "success";
     }
-    const lastPingTime: number = this._agentPresences.value[key];
-    const currentTime: number = Math.floor(Date.now()/1000);
+    const lastPingTime: number = this.perspective.agentPresences[key];
+    const currentTime: number = Math.floor(Date.now() / 1000);
     const diff: number = currentTime - lastPingTime;
     if (diff < 30) {
       return "success";
@@ -89,25 +79,45 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  renderList(profiles: any /*AgentPubKeyMap<Profile>*/) {
+  status2color(status: string): string {
+    switch(status) {
+      case "primary": return "rgb(14, 165, 233)"; break;
+      case "neutral": return "rgb(113, 113, 122)"; break;
+      case "success": return "rgb(34, 197, 94)"; break;
+      case "warning": return "rgb(245, 158, 11)"; break;
+      case "danger": return "rgb(239, 68, 68)"; break;
+      default: return "rgb(0, 0, 0)"; break;
+    }
+  }
 
-    if (profiles.keys().length === 0)
+
+  /** */
+  toggleView() {
+    this.canShowTable = !this.canShowTable;
+  }
+
+
+  /** */
+  renderList(profiles:  Dictionary<WhereProfile>) {
+
+    if (Object.keys(profiles).length === 0) {
       return html`
         <mwc-list-item
-        >There are no created profiles yet
+        >(no profiles found)
         </mwc-list-item
         >`;
+    }
 
     const filterField = this.shadowRoot!.getElementById("filter-field") as TextField;
     const filterStr = filterField && filterField.value? filterField.value : "";
 
-    const visibleProfiles = profiles.entries().filter(([key, profile]: any /* FIXME*/) => {
+    const visibleProfiles = Object.entries(profiles).filter(([key, profile]) => {
       return filterStr.length < 2 || profile.nickname.toLowerCase().includes(filterStr.toLowerCase())
     });
 
     //console.log({visibleProfiles})
 
-    // /** Build avatar agent list */
+    /** Build avatar agent list */
     // const folks = visibleProfiles.map(([key, profile])=> {
     //   let opacity = 1.0;
     //   if (this.soloAgent && this.soloAgent != key) {
@@ -123,8 +133,8 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     // })
 
     /** Build avatar agent list */
-    const folks = visibleProfiles.map(([key, profile]: any /* FIXME*/) => {
-      let keyB64 = serializeHash(key)
+    const peers = visibleProfiles.map(([keyB64, profile]) => {
+      let key = deserializeHash(keyB64)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
         opacity = 0.4;
@@ -141,8 +151,8 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
     })
 
     /** Build names agent list */
-    const list_folks = visibleProfiles.map(([key, profile]: any /* FIXME*/) => {
-      let keyB64 = serializeHash(key)
+    const peer_list = visibleProfiles.map(([keyB64, profile]) => {
+      let key = deserializeHash(keyB64)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
         opacity = 0.4;
@@ -173,38 +183,22 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       </sl-input>
       <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch>
       <div class="folks">
-        ${this.canShowTable? folks : list_folks}
+        ${this.canShowTable? peers : peer_list}
       </div>
     `
   }
 
+
+  /** */
   render() {
-    return this._allProfilesTask.render({
-      pending: () => html`<div class="fill center-content">
+    if (!this._loaded) {
+      return html`<div class="fill center-content">
         <mwc-circular-progress indeterminate></mwc-circular-progress>
-      </div>`,
-      complete: profiles => this.renderList(profiles),
-    });
-  }
-
-
-
-  /** */
-  status2color(status: string): string {
-    switch(status) {
-      case "primary": return "rgb(14, 165, 233)"; break;
-      case "neutral": return "rgb(113, 113, 122)"; break;
-      case "success": return "rgb(34, 197, 94)"; break;
-      case "warning": return "rgb(245, 158, 11)"; break;
-      case "danger": return "rgb(239, 68, 68)"; break;
-      default: return "rgb(0, 0, 0)"; break;
+      </div>`;
     }
-  }
+    console.log("<where-peer-list> render()", Object.keys(this.profilesPerspective.profiles).length);
 
-
-  /** */
-  toggleView() {
-    this.canShowTable = !this.canShowTable;
+    return this.renderList(this.profilesPerspective.profiles);
   }
 
 
@@ -226,6 +220,7 @@ export class WhereFolks extends ScopedElementsMixin(LitElement) {
       'sl-tooltip': SlTooltip,
       'sl-badge': SlBadge,
       'sl-input': SlInput,
+      'mwc-circular-progress': CircularProgress,
     };
   }
 

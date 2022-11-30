@@ -1,68 +1,71 @@
-import {ContextProvider} from "@lit-labs/context";
-import { LitElement, html } from "lit";
+import {LitElement, html, css} from "lit";
 import { state } from "lit/decorators.js";
 import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
-import {serializeHash} from '@holochain-open-dev/utils';
-import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import {Dialog} from "@scoped-elements/material-web";
-import {CellId, InstalledCell, AppWebsocket} from "@holochain/client";
-import {
-  Profile,
-  ProfilePrompt, ProfilesService,
-  ProfilesStore,
-  profilesStoreContext,
-} from "@holochain-open-dev/profiles";
-import {
-  WhereController, LudothequeController,
-  WhereStore, LudothequeStore,
-  whereContext, ludothequeContext,
-  Inventory, setLocale,
-} from "@where/elements";
+import {Button, Dialog} from "@scoped-elements/material-web";
+import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
+import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/dna-client";
+import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
+import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
+import {ContextProvider} from "@lit-labs/context";
+import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
 
 
-
-/** ------- */
-
-const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
+/** -- Globals -- */
 
 const APP_DEV = process.env.APP_DEV? process.env.APP_DEV : false;
-let APP_ID = 'where'
-let HC_PORT:any = process.env.HC_PORT;
-let NETWORK_ID: any = null
+let HC_APP_PORT: number = Number(process.env.HC_APP_PORT);
+
+/** override installed_app_id  when in Electron */
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
-  APP_ID = 'main-app'
+  let APP_ID = 'main-app'
   let searchParams = new URLSearchParams(window.location.search);
-  HC_PORT = searchParams.get("PORT");
-  NETWORK_ID = searchParams.get("UID");
+  const urlPort = searchParams.get("PORT");
+  if(!urlPort) {
+    console.error("Missing PORT value in URL", window.location.search)
+  }
+  HC_APP_PORT = Number(urlPort);
+  const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
+  DEFAULT_WHERE_DEF.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
 }
 
-// FIXME
-//const HC_PORT = process.env.HC_PORT
-//const HC_PORT = 8889
-console.log("HC_PORT = " + HC_PORT + " || " + process.env.HC_PORT);
+console.log({APP_ID: DEFAULT_WHERE_DEF.id})
+console.log({HC_APP_PORT})
 
 
+/**
+ *
+ */
 export class WhereApp extends ScopedElementsMixin(LitElement) {
 
-  @state() loaded = false;
-  @state() _canLudotheque: boolean = false;
+  @state() private _canLudotheque = false;
+  @state() private _hasStartingProfile = false;
+  @state() private _lang?: string
 
-  hasProfile: boolean = false;
-  _currentPlaysetEh: null | EntryHashB64 = null;
+  @state() private _hvm!: HappViewModel;
+  private _conductorAppProxy!: ConductorAppProxy;
+  private _currentPlaysetEh: null | EntryHashB64 = null;
 
-  _ludoStore: LudothequeStore | null = null;
-  _whereStore: WhereStore | null = null;
 
-  _inventory: Inventory | null = null;
+  /** */
+  // constructor(port_or_socket?: number | AppWebsocket, appId?: InstalledAppId) {
+  //   super(port_or_socket ? port_or_socket : HC_APP_PORT, appId);
+  //   this.initializeHapp();
+  // }
 
-  _whereCellId: CellId | null = null;
-  _ludoCellId: CellId | null = null;
+  constructor(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
+    super();
+    this.initializeHapp(socket, appId, profilesStore);
+  }
 
-  _lang?: string
+
+  /** -- Getters -- */
+
+  get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)! as WhereDvm }
+  get ludothequeDvm(): LudothequeDvm { return this._hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)! as LudothequeDvm}
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -73,144 +76,157 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** -- Methods -- */
+
+  handleSignal(sig: AppSignal) {
+    //console.log("<where-app> handleSignal()", sig);
+    this._conductorAppProxy.onSignal(sig);
+  }
+
+  /** */
+  async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
+    if (!socket) {
+      const wsUrl =`ws://localhost:${HC_APP_PORT}`
+      console.log("<where-app> Creating AppWebsocket with", wsUrl);
+      socket = await AppWebsocket.connect(wsUrl, 10 * 1000);
+    }
+
+    this._conductorAppProxy = await ConductorAppProxy.new(socket);
+
+    const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
+    hcClient.addSignalHandler((sig) => {
+      //console.log("<where-app> signalCb()", sig);
+      this.handleSignal(sig);
+    })
+
+    const hvmDef = DEFAULT_WHERE_DEF;
+    if (appId) {hvmDef.id = appId};
+    this._hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
+
+    /* Do this if not providing cellContext via <cell-context> */
+    //new ContextProvider(this, cellContext, this.whereDvm.installedCell)
+
+    /** Send Where dnaHash to electron */
+    if (IS_ELECTRON) {
+      const whereDnaHashB64 = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.dnaHash;
+      const ipc = window.require('electron').ipcRenderer;
+      let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
+    }
+
+    /** ProfilesStore used by <create-profile> */
+    if (!profilesStore) {
+      const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.installedCell;
+      const whereClient = new CellClient(hcClient, whereCell);
+      const profilesService = new ProfilesService(whereClient, "zProfiles");
+      profilesStore = new ProfilesStore(profilesService, {
+        additionalFields: ['color'], //['color', 'lang'],
+        avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
+      })
+    }
+    console.log({profilesStore})
+    new ContextProvider(this, profilesStoreContext, profilesStore);
+
+
+    await this._hvm.probeAll();
+    let profileZvm = (this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)! as WhereDvm).profilesZvm;
+    const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
+    console.log({me})
+    if (me) {
+      this._hasStartingProfile = true;
+    }
+
+  }
+
+
+  /** */
+  shouldUpdate() {
+    return !!this._hvm;
+  }
+
+
   /** */
   async updated() {
-    if (!APP_DEV && this.loaded && !this._lang) {
+    if (!APP_DEV && !this._lang) {
       this.langDialogElem.open = true;
     }
   }
 
 
   /** */
-  async firstUpdated() {
-    /** Connect appWebsocket */
-    const wsUrl = `ws://localhost:${HC_PORT}`
-    const appWebsocket = await AppWebsocket.connect(wsUrl);
-    console.log({appWebsocket})
-    const hcClient = new HolochainClient(appWebsocket)
-    console.log({hcClient})
-    /** Get appInfo */
-    const installed_app_id = NETWORK_ID == null || NETWORK_ID == ''
-      ? APP_ID
-      : APP_ID + '-' + NETWORK_ID;
-    console.log({installed_app_id})
-    const appInfo = await hcClient.appWebsocket.appInfo({installed_app_id});
-
-    /** Get Cells by role 'manually' */
-    let where_cell: InstalledCell | undefined = undefined;
-    let ludo_cell: InstalledCell | undefined = undefined;
-    for (const cell_data of appInfo.cell_data) {
-      if (cell_data.role_id == "where") {
-        where_cell = cell_data;
-      }
-      if (cell_data.role_id == "ludotheque") {
-        ludo_cell = cell_data;
-      }
-    }
-    if (!where_cell) {
-      alert(msg("Error: Where app not installed"));
-      return;
-    }
-
-    /** Setup Ludotheque client & store */
-    if (ludo_cell) {
-      this._ludoCellId = ludo_cell.cell_id;
-      this._ludoStore = new LudothequeStore(hcClient, appInfo, ludo_cell.cell_id)
-      new ContextProvider(this, ludothequeContext, this._ludoStore);
-    } else {
-      alert(msg("No Ludotheques DNA were found. Ludotheque features will be disabled."))
-    }
-
-    /** Setup Where client */
-    this._whereCellId = where_cell.cell_id;
-    const whereClient = new CellClient(hcClient, where_cell)
-    console.log({whereClient})
-
-    /** Send Where dnaHash to electron */
-    if (IS_ELECTRON) {
-      const ipc = window.require('electron').ipcRenderer;
-      const whereDnaHashB64 = serializeHash(where_cell.cell_id[0])
-      let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
-    }
-
-    /** ProfilesStore */
-    const profilesService = new ProfilesService(whereClient);
-    const profilesStore = new ProfilesStore(profilesService, {
-      //additionalFields: ['color', 'lang'],
-      avatarMode: APP_DEV? "avatar-optional" : "avatar-required"
-    })
-    console.log({profilesStore})
-    await profilesStore.fetchAllProfiles()
-    const me = await profilesStore.fetchAgentProfile(profilesStore.myAgentPubKey);
-    console.log({me})
-    if (me) {
-      this.hasProfile = true;
-    }
-    new ContextProvider(this, profilesStoreContext, profilesStore);
-
-    /** WhereStore */
-    this._whereStore = new WhereStore(hcClient, profilesStore, appInfo, where_cell.cell_id);
-    new ContextProvider(this, whereContext, this._whereStore);
-
-    /** */
-    this.loaded = true;
-  }
-
-
-  /** */
-  onNewProfile(profile: Profile) {
-    console.log({profile})
-    this.hasProfile = true;
-    this.requestUpdate();
+  async onNewProfile(profile: Profile) {
+    //console.log("onNewProfile()", profile)
+    await this.whereDvm.profilesZvm.createMyProfile(profile);
+    this._hasStartingProfile = true;
   }
 
 
   /** */
   render() {
-    console.log("where-app render() || " + this.hasProfile)
-    console.log("_canLudotheque: " + this._canLudotheque)
+    console.log("<where-app> render()", this._canLudotheque, this._hasStartingProfile)
 
-    const lang = html`        
+    /** Select language */
+    const lang = html`
         <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
-        <mwc-button
-                slot="primaryAction"
-                dialogAction="primaryAction"
-                @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
-            FR
-        </mwc-button>
-        <mwc-button
-                slot="primaryAction"
-                dialogAction="primaryAction"
-                @click="${() => {setLocale('en'); this._lang = 'en'}}" >
-            EN
-        </mwc-button>
-    </mwc-dialog>
+            <mwc-button
+                    slot="primaryAction"
+                    dialogAction="primaryAction"
+                    @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
+                FR
+            </mwc-button>
+            <mwc-button
+                    slot="primaryAction"
+                    dialogAction="primaryAction"
+                    @click="${() => {setLocale('en'); this._lang = 'en'}}" >
+                EN
+            </mwc-button>
+        </mwc-dialog>
     `;
 
-    if (!this.loaded) {
-      console.log("where-app render() => Loading...");
-      return html`<span>Loading...</span>`;
-    }
+    /** Pages */
+    const ludothequePage = html`
+        <cell-context .installedCell="${this.ludothequeDvm.installedCell}">
+                  <ludotheque-page examples .whereCellId=${this.whereDvm.cellId}
+                                         @import-playset-requested="${this.handleImportRequest}"
+                                         @exit="${() => this._canLudotheque = false}"
+                  ></ludotheque-page>
+        </cell-context>
+    `;
+
+    const wherePage = html`
+        <cell-context .installedCell="${this.whereDvm.installedCell}">
+            <where-page .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
+        </cell-context>
+    `;
+
+
+    const page = this._canLudotheque? ludothequePage : wherePage
+
+    // const guardedPage = this.hasStartingProfile
+    //   ? page
+    //   : html`<profile-prompt style="margin-left:-7px; margin-top:0px;display:block;" @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
+    //             ${page}
+    //         </profile-prompt>`;
+
+
+    const createProfile = html `
+        <div
+                class="column"
+                style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
+        >
+            <div class="column" style="align-items: center;">
+                <slot name="hero"></slot>
+                <create-profile @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}></create-profile>
+            </div>
+        </div>`;
+
+    const guardedPage = this._hasStartingProfile? page : createProfile;
+
+
+    /** Render all */
     return html`
         ${lang}
-        <profile-prompt style="margin-left:-7px; margin-top:0px;display:block;"
-            @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}>
-        
-            ${this._canLudotheque? html`
-                  <ludotheque-controller id="ludo-controller" examples
-                                         .whereCellId=${this._whereCellId}
-                                         @import-playset="${this.handleImportRequest}"
-                                         @exit="${() => this._canLudotheque = false}"
-                  ></ludotheque-controller>`
-              : html`<where-controller                                       
-                .ludoCellId=${this._ludoCellId}
-                @show-ludotheque="${() => this._canLudotheque = true}"
-                    ></where-controller>`
-            }
-        
-            </profile-prompt>
-            <!--<where-controller id="controller" dummy></where-controller>-->
-
+        ${guardedPage}
+        <!-- DIALOGS -->
         <mwc-dialog id="importing-dialog"  heading="${msg('Importing Playset')}" scrimClickAction="" escapeKeyAction="">
             <div>Playset ${this._currentPlaysetEh}...</div>
             <!--<mwc-button
@@ -236,13 +252,27 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       console.warn("this._currentPlaysetEh is null can't import")
       return;
     }
-    if(!this._ludoStore || !this._whereCellId) {
-      console.error("No ludoStore or whereCell in where-app")
-      return;
-    }
+
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    await this._ludoStore.exportPlayset(this._currentPlaysetEh!, this._whereCellId!)
+    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellId)
+    console.log("handleImportRequest()", spaceEhs.length)
+    await this.whereDvm.playsetZvm.probeAll();
+    /** Create sessions for each space */
+    for (const spaceEh of spaceEhs) {
+      const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);
+      console.log("handleImportRequest().loop", spaceEh, space)
+      if (!space) {
+        console.warn("handleImportRequest() did not find spaceEh", spaceEh);
+        continue;
+      }
+      if (space.meta.sessionCount == 0) {
+        await this.whereDvm.constructNewPlay(space);
+      } else {
+        await this.whereDvm.constructNewPlay(space, space!.meta.sessionLabels);
+      }
+    }
+    /** Wait for completion */
     while(Date.now() - startTime < 500) {
       //console.log(Date.now() - startTime)
       await delay(20);
@@ -255,9 +285,28 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   static get scopedElements() {
     return {
       "profile-prompt": ProfilePrompt,
-      "where-controller": WhereController,
-      "ludotheque-controller": LudothequeController,
+      "where-page": WherePage,
+      "ludotheque-page": LudothequePage,
       "mwc-dialog": Dialog,
+      "mwc-button": Button,
+      "cell-context": CellContext,
+      'create-profile': CreateProfile,
     };
   }
+
+
+  /** */
+  static get styles() {
+    return [
+      css`
+      .column {
+        display: flex;
+        flex-direction: column;
+      }
+      `,
+    ];
+  }
 }
+
+
+

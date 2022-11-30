@@ -17,18 +17,21 @@
 
       const container = document.getElementById("container");
 
+      /** */
       async function setup() {
-        const appWs = await AppWebsocket.connect(
-          `ws://localhost:${process.env.HC_PORT}`
-        );
 
-        const adminWs = await AdminWebsocket.connect(
-          `ws://localhost:${process.env.ADMIN_PORT}`
-        );
+        console.log("setup()", process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT)
 
-        const appInfo = await appWs.appInfo({
-          installed_app_id: "where-applet",
-        });
+        const appWs = await AppWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`);
+
+        const adminWs = await AdminWebsocket.connect(`ws://localhost:${process.env.HC_ADMIN_PORT}`);
+
+        const apps = await adminWs.listApps({});
+        console.log("setup() apps", apps);
+
+        const appInfo = await appWs.appInfo({installed_app_id: "ludotheque-applet"});
+
+        console.log("setup() appInfo", appInfo);
 
         const renderers = await Applet.appletRenderers(
           appWs,

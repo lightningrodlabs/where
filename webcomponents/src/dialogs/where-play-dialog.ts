@@ -1,40 +1,13 @@
 import {css, html, LitElement} from "lit";
 import {property, query, state} from "lit/decorators.js";
-
 import {sharedStyles} from "../sharedStyles";
-import {contextProvided} from "@lit-labs/context";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import {
-  defaultLocationMeta,
-  defaultPlayMeta, EmojiGroupVariant,
-  LocationMeta, MarkerPiece,
-  MarkerType,
-  PlayMeta, SvgMarkerVariant,
-  TemplateEntry,
-  UiItem,
-  whereContext
-} from "../types";
 import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  Formfield,
-  IconButton,
-  ListItem,
-  Radio,
-  Select,
-  Tab,
-  TabBar,
-  TextArea,
-  TextField
+import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
+  TextArea, TextField
 } from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
@@ -42,42 +15,48 @@ import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import { localized, msg } from '@lit/localize';
+import {EmojiGroupVariant, MarkerPiece, SvgMarkerEntry, SvgMarkerVariant, TemplateEntry} from "../viewModels/playset.bindings";
+import {
+  defaultLocationMeta,
+  LocationMeta, Play,
+} from "../viewModels/where.perspective";
+import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
+import {PlaysetZvm} from "../viewModels/playset.zvm";
+import {ZomeElement} from "@ddd-qc/dna-client";
+import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
 /**
  * @element where-play-dialog
  */
 @localized()
-export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
+export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
+  constructor() {
+    super(PlaysetZvm.DEFAULT_ZOME_NAME);
+  }
 
-  /** Public properties */
-  @property({ type: Object}) currentProfile: Profile | undefined = undefined;
+  /** Properties */
+  @property({ type: Object})
+  currentProfile?: WhereProfile = undefined;
 
-  /** Dependencies */
-  @contextProvided({ context: whereContext, subscribe:true })
-  _store!: WhereStore;
+  /** State */
+  @state() private _currentTemplate: null | TemplateEntry = null;
+  @state() private _currentPlaceHolders: Array<string> = [];
+  @state() private _currentMeta: SpaceMeta = defaultSpaceMeta();
+  @state() private _currentMarker?: MarkerPiece;
 
-  _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
+  @property({type: Object})
+  playToPreload?: Play;
 
-  /** Private properties */
-  @state() _currentTemplate: null | TemplateEntry = null;
+  private _useTemplateSize: boolean = true; // have size fields set to default only when changing template
+  private _canvas: string = "";
 
-  @state() _currentPlaceHolders: Array<string> = [];
 
-  @state() _currentMeta: PlayMeta = defaultPlayMeta();
-
-  @state() _currentMarker?: MarkerPiece;
-
-  _spaceToPreload?: EntryHashB64;
-  _useTemplateSize: boolean = true; // have size fields set to default only when changing template
-  _canvas: string = "";
-
+  /** -- Getters -- */
 
   @query('#name-field')
   _nameField!: TextField;
-  // - Surface
+  /* - Surface */
   @query('#template-field')
   _templateField!: Select;
   @query('#width-field')
@@ -86,19 +65,19 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   _heightField!: TextField;
   @query('#ui-field')
   _uiField!: TextArea;
-  // - Marker
+  /* - Marker */
   @query('#marker-select')
   _markerTypeField!: Select;
   @query('#multi-chk')
   _multiChk!: Checkbox;
-  // - Tag
+  /* - Tag */
   @query('#tag-chk')
   _tagChk!: Checkbox;
   @query('#tag-visible-chk')
   _tagVisibleChk!: Checkbox;
   @query('#predefined-tags-field')
   _predefinedTagsField!: TextField;
-  // - Iterations
+  /* - Iterations */
   @query('#stop-count-field')
   _sessionCountField!: TextField;
   @query('#can-modify-past-chk')
@@ -134,25 +113,27 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("generative-stop-radio") as Radio;
   }
 
+  /** -- Methods -- */
 
   /** */
-  open(spaceToPreload?: EntryHashB64) {
-    this._spaceToPreload = spaceToPreload;
-    if (this._templates.value === undefined) {
-      return;
-    }
-    this.requestUpdate();
+  open(playToPreload?: Play) {
+    // if (this.playsetPerspective === undefined) {
+    //   return;
+    // }
+    // this.requestUpdate();
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog
-    dialog.open = true
+    dialog.open = true;
+    this.playToPreload = playToPreload;
   }
 
 
   /** */
-  loadPreset(spaceEh: EntryHashB64) {
-    const originalPlay = this._store.play(spaceEh);
-    if (!originalPlay) {
-      return;
-    }
+  loadPreset() {
+    const originalPlay = this.playToPreload!;
+    // const originalPlay = this._playsetZvm.whereZvm.getPlay(spaceEh);
+    // if (!originalPlay) {
+    //   return;
+    // }
     console.log("loading preset: " + originalPlay.space.name)
     this._currentMeta = { ...originalPlay.space.meta };
 
@@ -351,16 +332,18 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     }
 
     /** Create and share new Play */
-    const newSpaceEh = await this._store.newPlay({
+    const newPlayInput = {
+        space: {
         name: this._nameField.value,
-        origin: this._templateField.value,
+          origin: this._templateField.value,
         surface,
         maybeMarkerPiece: this._currentMarker,
         meta: this._currentMeta
       },
-      sessionNames);
+      sessionNames,
+    };
     // - Notify parent
-    this.dispatchEvent(new CustomEvent('play-added', { detail: newSpaceEh, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('play-created', { detail: newPlayInput, bubbles: true, composed: true }));
     // - Clear all fields
     // this.resetAllFields();
     // - Close dialog
@@ -385,7 +368,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     tabGroup.setActiveTab(generalTab);
 
     if (canResetName === undefined || canResetName) this._nameField.value = ''
-    this._currentMeta = defaultPlayMeta()
+    this._currentMeta = defaultSpaceMeta()
     // - Surface
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
@@ -414,11 +397,11 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   }
 
   private async handleDialogOpened(e: any) {
-    if (this._spaceToPreload) {
-      this.loadPreset(this._spaceToPreload);
-      this._spaceToPreload = undefined;
+    if (this.playToPreload) {
+      this.loadPreset();
+      this.playToPreload = undefined;
     }
-    this.requestUpdate()
+    //this.requestUpdate()
   }
 
   private async handleDialogClosing(e: any) {
@@ -428,7 +411,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   private handleTemplateSelect(templateName: string): void {
     this.resetAllFields(false);
     this._useTemplateSize = true;
-    this._currentTemplate = this._templates.value[templateName]
+    this._currentTemplate = this._zvm.getTemplate(templateName)!;
   }
 
   private async handlePreview(e: any) {
@@ -638,6 +621,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+  /** */
   handleMarkerTypeSelect(e: any) {
     //console.log({e})
     this._tagChk.disabled = false;
@@ -655,13 +639,13 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
         break;
       case MarkerType[MarkerType.SvgMarker]:
-        if (Object.keys(this._svgMarkers.value)[0]) {
-          this._currentMarker = {svg: Object.keys(this._svgMarkers.value)[0]};
+        if (Object.keys(this.perspective.svgMarkers)[0]) {
+          this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};
         }
         break;
       case MarkerType[MarkerType.EmojiGroup]:
-        if (Object.keys(this._emojiGroups.value)[0]) {
-          this._currentMarker = {svg: Object.keys(this._emojiGroups.value)[0]};
+        if (Object.keys(this.perspective.emojiGroups)[0]) {
+          this._currentMarker = {svg: Object.keys(this.perspective.emojiGroups)[0]};
         }
         break;
       default:
@@ -670,6 +654,8 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+
+  /** */
   handleEmojiGroupSelect(e?: any) {
     console.log("handleEmojiGroupSelect")
     //console.log({e})
@@ -684,8 +670,8 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     /** Build emoji list */
     //const maybeEmojiGroupSelector = this.shadowRoot!.getElementById("emoji-group-field") as Select;
     let unicodes = ""
-    // FIXME: should retrieve group by eh instead of name
-    for (const [eh, group] of Object.entries(this._emojiGroups.value)) {
+    // TODO: should retrieve group by eh instead of name
+    for (const [eh, group] of Object.entries(this.perspective.emojiGroups)) {
       if (group.name == selectedName) {
         unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
         this._currentMarker = {emojiGroup: eh};
@@ -712,8 +698,8 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     //container!.innerHTML = ""
 
     /** Find svg marker and set to preview */
-    // FIXME: should retrieve svgMarker by eh instead of name
-    for (const [eh, svgMarker] of Object.entries(this._svgMarkers.value)) {
+    // TODO: should retrieve svgMarker by eh instead of name
+    for (const [eh, svgMarker] of Object.entries(this.perspective.svgMarkers)) {
       if (svgMarker.name == selectedName) {
         // console.log("svg marker found: " + selectedName)
         this._currentMarker = {svg: eh};
@@ -734,7 +720,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._emojiGroups.value[groupEh]
+      group = this._zvm.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -747,13 +733,13 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._svgMarkers.value[eh]
+      svgMarker = this._zvm.getSvgMarker(eh);
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
     dialog.open(svgMarker);
     if (svgMarker) {
-      dialog.loadPreset(svgMarker);
+      dialog.loadPreset();
     }
   }
 
@@ -762,9 +748,10 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   render() {
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      let firstTemplate = Object.keys(this._templates.value)[0];
+      const firstTemplateEh = Object.keys(this.perspective.templates)[0];
       //console.log(firstTemplate)
-      this._currentTemplate = this._templates.value[firstTemplate]? this._templates.value[firstTemplate] : null
+      const firstTemplate = this._zvm.getTemplate(firstTemplateEh)
+      this._currentTemplate = firstTemplate? firstTemplate : null
       //console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
     }
     let selectedTemplateUi = this.renderTemplateFields()
@@ -795,7 +782,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         marker_eh = (this._currentMarker as EmojiGroupVariant).emojiGroup;
         /** Build group list */
         console.log("** Building emoji group field:")
-        const groups = Object.entries(this._emojiGroups.value).map(
+        const groups = Object.entries(this.perspective.emojiGroups).map(
           ([key, emojiGroup]) => {
             console.log({emojiGroup})
             return html`
@@ -808,8 +795,8 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         /** Get current unicodes */
         let unicodes = ""
         if (this._currentMarker && "emojiGroup" in this._currentMarker) {
-          const currentGroup = this._emojiGroups.value[this._currentMarker.emojiGroup];
-          unicodes = currentGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
+          const currentGroup = this._zvm.getEmojiGroup(this._currentMarker.emojiGroup);
+          unicodes = currentGroup!.unicodes.reduce((prev, cur, idx) => prev += cur);
         }
         /** Render */
         maybeMarkerTypeItems = html`
@@ -828,10 +815,11 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
       case MarkerType.SvgMarker:
         marker_eh = (this._currentMarker as SvgMarkerVariant).svg;
         /** Build marker list */
-        if ((!this._currentMarker || "emojiGroup" in this._currentMarker) && Object.keys(this._svgMarkers.value).length > 0) {
-          this._currentMarker = {svg: Object.keys(this._svgMarkers.value)[0]};
+        if ((!this._currentMarker ||
+          "emojiGroup" in this._currentMarker) && Object.keys(this.perspective.svgMarkers).length > 0) {
+          this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};
         }
-        const markers = Object.entries(this._svgMarkers.value).map(
+        const markers = Object.entries(this.perspective.svgMarkers).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
             let currentMarker = renderSvgMarker(svgMarker.value, color)
@@ -846,7 +834,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
         /** Get current unicodes */
         let selectedMarker = html``;
         if (this._currentMarker && "svg" in this._currentMarker) {
-          const marker = this._svgMarkers.value[this._currentMarker?.svg]
+          const marker = this.perspective.svgMarkers[this._currentMarker?.svg]
           //console.log({marker})
           selectedMarker = renderSvgMarker(marker.value, color)
         }
@@ -891,11 +879,11 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     <!-- Template/Surface -->
       <!-- <h4 style="margin-bottom: 15px;">Surface</h4> -->
     <mwc-select fixedMenuPosition required id="template-field" label="Template" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
-        ${Object.entries(this._templates.value).map(
+        ${Object.entries(this.perspective.templates).map(
           ([key, template]) => html`
           <mwc-list-item
             @request-selected=${() => this.handleTemplateSelect(key)}
-            .selected=${this._templates.value[key].name === this._currentTemplate!.name}
+            .selected=${this.perspective.templates[key].name === this._currentTemplate!.name}
             value="${key}"
             >${template.name}
           </mwc-list-item>
@@ -984,21 +972,23 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
   <!-- Inner dialogs -->
   <where-emoji-dialog id="emoji-dialog" @emoji-selected=${(e:any) => this.handleEmojiSelected(e.detail)}></where-emoji-dialog>
   <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
-  <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => this.handleSvgMarkerAdded(e.detail)}></where-svg-marker-dialog>
+  <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-create=${this.onSvgMarkerCreated}></where-svg-marker-dialog>
 </mwc-dialog>
 `
   }
 
+  /** */
   handleEmojiSelected(emoji: string) {
     console.log("handleEmojiSelected(): " + emoji)
     this._currentMeta.singleEmoji = emoji;
     this.requestUpdate()
   }
 
+  /** */
   handleGroupAdded(eh: EntryHashB64) {
     this._currentMarker = {emojiGroup: eh};
-    const emojiGroup = this._emojiGroups.value[eh];
-    const unicodes = emojiGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
+    const emojiGroup = this._zvm.getEmojiGroup(eh);
+    const unicodes = emojiGroup!.unicodes.reduce((prev, cur, idx) => prev += cur);
     let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
     unicodeContainer!.innerHTML = unicodes
     let emojiGroupField = this.shadowRoot!.getElementById("emoji-group-field") as Select;
@@ -1007,7 +997,10 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     emojiGroupField.select(emojiGroupField.children.length - 1);
   }
 
-  handleSvgMarkerAdded(eh: EntryHashB64) {
+  /** */
+  async onSvgMarkerCreated(e: any) {
+    const newSvgMarker = e.detail as SvgMarkerEntry;
+    const eh = await this._zvm.publishSvgMarkerEntry(newSvgMarker);
     this._currentMarker = {svg: eh};
     //const svgMarker = this._svgMarkers.value[eh];
     //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");
@@ -1018,7 +1011,7 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
     svgMarkerField.select(svgMarkerField.children.length - 1);
   }
 
-
+  /** */
   static get scopedElements() {
     return {
       'sl-avatar': SlAvatar,
@@ -1043,6 +1036,8 @@ export class WherePlayDialog extends ScopedElementsMixin(LitElement) {
       "emoji-picker": customElements.get('emoji-picker'),
     };
   }
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

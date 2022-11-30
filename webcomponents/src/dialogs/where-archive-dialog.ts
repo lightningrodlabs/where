@@ -1,39 +1,28 @@
-import { html, css, LitElement } from "lit";
+import { html, css } from "lit";
 import { state, query } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
-import { contextProvided } from '@lit-labs/context';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
-import { WhereStore } from "../where.store";
-import {whereContext} from "../types";
-import {
-  Dialog,
-  Button,
-  CheckListItem,
-  List,
-} from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
+import {Dialog, Button, CheckListItem, List} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
+import {DnaElement} from "@ddd-qc/dna-client";
+import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 
 
 /** @element where-archive-dialog */
 @localized()
-export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
+export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm> {
+  constructor() {
+    super(WhereDvm.DEFAULT_ROLE_ID);
+  }
 
-  /** Dependencies */
-  @contextProvided({ context: whereContext, subscribe: true })
-  _store!: WhereStore;
+  @query('#space-list')
+  _spaceList!: List;
 
+
+  /** */
   open() {
     const dialog = this.shadowRoot!.getElementById("archive-dialog") as Dialog
     dialog.open = true
   }
-
-
-  /** Private properties */
-  _plays? = new StoreSubscriber(this, () => this._store?.plays);
-
-  @query('#space-list')
-  _spaceList!: List;
 
 
   /** Methods */
@@ -45,17 +34,18 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
     for (const item of this._spaceList.items) {
       const spaceEh = item.value;
       const visible = !item.selected;
-      if (this._plays!.value[spaceEh].visible != visible) {
+      const maybeManifest = this._dvm.whereZvm.getManifest(spaceEh)
+      if (maybeManifest && maybeManifest.visible != visible) {
         changed.push(spaceEh)
         if (visible) {
-          await this._store.unhidePlay(spaceEh)
+          await this._dvm.whereZvm.unhidePlay(spaceEh)
         } else {
-          await this._store.hidePlay(spaceEh)
+          await this._dvm.whereZvm.hidePlay(spaceEh)
         }
       }
     }
     /** Close Dialog */
-    this.dispatchEvent(new CustomEvent('archive-update', { detail: changed, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('archive-updated', { detail: changed, bubbles: true, composed: true }));
     const dialog = this.shadowRoot!.getElementById("archive-dialog") as Dialog;
     dialog.close()
   }
@@ -69,24 +59,28 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
+    console.log("<where-archive-dialog> render()");
+
+    const plays = this.perspective.plays;
+
     return html`
-<mwc-dialog id="archive-dialog" heading="${msg('Archived Spaces')}" @opened=${this.handleDialogOpened}>
-<mwc-list id="space-list" multi>
-  ${this._plays?.value? Object.entries(this._plays.value).map(
-    ([key, play]) => html`
-      <mwc-check-list-item
-        left
-        value="${key}"
-        .selected=${!play.visible}>
-            ${play.space.name}
-      </mwc-check-list-item>
-    `
-  ) : html``}
-</mwc-list>
-<mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
-<mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
-</mwc-dialog>
-`
+      <mwc-dialog id="archive-dialog" heading="${msg('Archived Spaces')}" @opened=${this.handleDialogOpened}>
+      <mwc-list id="space-list" multi>
+        ${Object.entries(plays).map(
+          ([key, play]) => html`
+            <mwc-check-list-item
+              left
+              value="${key}"
+              .selected=${!this._dvm.whereZvm.getManifest(key)!.visible}>
+                  ${play.space.name}
+            </mwc-check-list-item>
+          `
+        )}
+      </mwc-list>
+      <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
+      <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
+      </mwc-dialog>
+    `;
   }
 
 
@@ -99,6 +93,9 @@ export class WhereArchiveDialog extends ScopedElementsMixin(LitElement) {
       "mwc-button": Button,
     };
   }
+
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

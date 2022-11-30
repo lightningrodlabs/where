@@ -1,43 +1,29 @@
-import {css, html, LitElement} from "lit";
-import {query, state} from "lit/decorators.js";
-
+import {css, html} from "lit";
+import {query, state, property} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import { EmojiGroupEntry, whereContext} from "../types";
-import {
-  Button,
-  Dialog,
-  IconButton,
-  ListItem,
-  Select,
-  TextField
-} from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
+import {Button, Dialog, IconButton, ListItem, Select, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
-import {property} from "lit/decorators.js";
-import {LudothequeStore} from "../ludotheque.store";
-import { localized, msg } from '@lit/localize';
+import {localized, msg} from '@lit/localize';
+import {EmojiGroupEntry} from "../viewModels/playset.bindings";
+import {PlaysetZvm} from "../viewModels/playset.zvm";
+import {PlaysetPerspective} from "../viewModels/playset.perspective";
+import {ZomeElement} from "@ddd-qc/dna-client";
 
 
 /** @element where-emoji-group */
 @localized()
-export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
+export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
+  constructor() {
+    super(PlaysetZvm.DEFAULT_ZOME_NAME);
+  }
 
-  @state() _currentUnicodes: string[] = [];
-
-  /** Dependencies */
-  //@contextProvided({ context: whereContext })
-  //_store!: WhereStore;
-  @property()
-  store: WhereStore | LudothequeStore | null = null;
-
+  @state() private _currentUnicodes: string[] = [];
 
   /** Private properties */
 
-  _groupToPreload?: EmojiGroupEntry;
+  private _groupToPreload?: EmojiGroupEntry;
 
-  _currentGroup: EmojiGroupEntry | null = null;
+  private _currentGroup: EmojiGroupEntry | null = null;
 
 
   @query('#name-field')
@@ -49,24 +35,27 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   open(emojiGroup?: EmojiGroupEntry) {
     this._groupToPreload = emojiGroup;
     const dialog = this.shadowRoot!.getElementById("emoji-group-dialog") as Dialog
     dialog.open = true
   }
 
-  protected firstUpdated(_changedProperties: any) {
-    // super.firstUpdated(_changedProperties);
-    this.emojiPickerElem.addEventListener('emoji-click', (event: any ) => {
-      const unicode = event?.detail?.unicode
-      //console.log("emoji-click: " + unicode)
-      const index = this._currentUnicodes.indexOf(unicode);
-      if (index <= -1) {
-        this._currentUnicodes.push(unicode)
-        this.requestUpdate()
-      }
-    });
+
+  /** */
+  private async onEmojiClick(e: any) {
+    //console.log("onEmojiClick()", e)
+    const unicode = e?.detail?.unicode
+    //console.log("emoji-click: " + unicode)
+    const index = this._currentUnicodes.indexOf(unicode);
+    if (index <= -1) {
+      this._currentUnicodes.push(unicode)
+      this.requestUpdate()
+    }
   }
+
+
 
   /** preload fields with current emojiGroup values */
   async loadPreset(emojiGroup: EmojiGroupEntry) {
@@ -75,24 +64,26 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     this._currentGroup = emojiGroup
   }
 
+
+  /** */
   private isValid() {
     let isValid: boolean = true;
-    // Check name
+    /* Check name */
     if (this._nameField) {
       if (!this._nameField.validity.valid) {
         isValid = false;
         this._nameField.reportValidity()
       }
     }
-    // FIXME
+    // TODO: Add more validation
     // ...
     // Done
     return isValid
   }
 
 
-  private createEmojiGroup() {
-    /** Create EmojiGroupEntry */
+  /** */
+  private createEmojiGroup(): EmojiGroupEntry {
     return {
       name: this._nameField.value,
       description: "",
@@ -100,33 +91,41 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   clearAllFields(e?: any) {
     this._nameField.value = "";
     this._currentUnicodes = [];
   }
 
+
+  /** */
   private async handleResetGroup(e: any) {
     this._currentUnicodes = [];
-    this.requestUpdate()
+    //this.requestUpdate()
   }
 
+
+  /** */
   private async handleOk(e: any) {
     if (!this.isValid()) return
-    if (!this.store) {
-      console.warn("No store available in svg-marker-dialog")
-      return;
-    }
+    // if (!this._playsetZvm) {
+    //   console.warn("No ViewModel available in svg-marker-dialog")
+    //   return;
+    // }
     const emojiGroup = this.createEmojiGroup()
-    const newGroupEh = await this.store.addEmojiGroup(emojiGroup);
+    const newGroupEh = await this._zvm.publishEmojiGroupEntry(emojiGroup);
     console.log("newGroupEh: " + newGroupEh)
     this.dispatchEvent(new CustomEvent('emoji-group-added', { detail: newGroupEh, bubbles: true, composed: true }));
-    // - Clear all fields
+    /* - Clear all fields */
     this.clearAllFields();
-    // - Close Dialog
+    /* - Close Dialog */
     const dialog = this.shadowRoot!.getElementById("emoji-group-dialog") as Dialog;
     dialog.close()
   }
 
+
+  /** */
   private handleDialogOpened(e: any) {
     if (this._groupToPreload) {
       this.loadPreset(this._groupToPreload);
@@ -135,6 +134,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate();
   }
 
+
+  /** */
   private handleGroupSelect(groupName: string): void {
     console.log("handleGroupSelect: " /*+ emojiGroup.name*/)
     console.log(groupName)
@@ -144,6 +145,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async handleEmojiButtonClick(unicode: string) {
     console.log("handleEmojiButtonClick: " + unicode)
     // Remove first item with that unicode
@@ -154,6 +156,8 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   render() {
     // @request-selected=${this.handleGroupSelect(emojiGroup)}
     /** Build emoji list */
@@ -179,7 +183,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
     </div>
   </div>
   <!-- Emoji Picker -->
-  <emoji-picker id="emoji-picker" class="light"></emoji-picker>
+  <emoji-picker id="emoji-picker" class="light" @emoji-click=${this.onEmojiClick}></emoji-picker>
   <!-- Dialog buttons -->
   <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
   <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
@@ -189,6 +193,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "mwc-select": Select,
@@ -203,6 +208,7 @@ export class WhereEmojiGroupDialog extends ScopedElementsMixin(LitElement) {
 
 //--font-family: "Apple SvgMarker AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto SvgMarker AnyEmoji","EmojiOne SvgMarker","Android AnyEmoji",sans-serif
 
+  /** */
   static get styles() {
     return [
       sharedStyles,

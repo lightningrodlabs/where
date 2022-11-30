@@ -6,7 +6,7 @@ use where_integrity::*;
 //use playset_integrity::*;
 
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetSessionInput {
   pub space_eh: EntryHashB64,
@@ -38,23 +38,21 @@ pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHashB64>>
 ///
 #[hdk_extern]
 pub fn get_session_from_eh(session_eh: EntryHashB64) -> ExternResult<Option<PlacementSession>> {
-  let maybe_session = match get_latest_entry(session_eh.clone().into(), Default::default()) {
-    Ok(Some(entry)) => match PlacementSession::try_from(entry.clone()) {
-      Ok(e) => {Some(e)},
-      Err(_) => return Err(wasm_error!(WasmErrorInner::Guest(format!("No PlacementSession found at given EntryHash: {:?}", session_eh)))),
-    },
-    _ => return Ok(None),
+  let maybe_record = get(session_eh, GetOptions::content())?;
+  let Some(record) = maybe_record else {
+    return Ok(None);
   };
-  Ok(maybe_session)
+  let session = get_typed_from_record::<PlacementSession>(record)?;
+  Ok(Some(session))
 }
 
 
 ///
 pub fn is_valid_space(space_eh: EntryHash) -> ExternResult<()> {
   let _entry_type = get_entry_type_from_eh(space_eh)?;
-  // FIXME issue in HDK
-  // if entry_type != playset_integrity::UnitEntryTypes::Space.try_into().unwrap() {
-  //   return Err(wasm_error!(WasmErrorInner::Guest("input.space_eh does not point to a space entry".to_string())));
+  // FIXME issue in HDK: cant add playset_integrity_zome because of link issue
+  // if entry_type != playset_integrity::PlaysetTypes::Space.try_into().unwrap() {
+  //   return zome_error!("input.space_eh does not point to a space entry");
   // }
   Ok(())
 }
@@ -81,16 +79,18 @@ pub struct SpaceSessionsInput {
 }
 
 #[hdk_extern]
-fn create_sessions(input: SpaceSessionsInput) -> ExternResult<()> {
+fn create_sessions(input: SpaceSessionsInput) -> ExternResult<Vec<EntryHashB64>> {
   /// Make sure its a space
   let _ = is_valid_space(input.space_eh.clone().into())?;
   /// Create each session
   let mut index = 0;
+  let mut ehs = Vec::new();
   for name in input.session_names {
-    create_session(input.space_eh.clone().into(), name, index)?;
+    let eh = create_session(input.space_eh.clone().into(), name, index)?;
+    ehs.push(eh);
     index += 1;
   }
-  Ok(())
+  Ok(ehs)
 }
 
 
@@ -130,9 +130,9 @@ pub struct CreateNextSessionInput {
 }
 
 #[hdk_extern]
-fn create_next_session(input: CreateNextSessionInput) -> ExternResult<EntryHashB64> {
+fn create_next_session(input: CreateNextSessionInput) -> ExternResult<(EntryHashB64, u32)> {
   let space_eh: EntryHash = input.space_eh.into();
   let next_index = get_next_session_index(space_eh.clone())?;
-  let res = create_session(space_eh, input.name, next_index);
-  res
+  let eh = create_session(space_eh, input.name, next_index)?;
+  Ok((eh, next_index))
 }

@@ -1,23 +1,11 @@
 import {css, html, LitElement} from "lit";
-import {query, state} from "lit/decorators.js";
-
+import {query, state, property} from "lit/decorators.js";
+import { localized, msg } from '@lit/localize';
 import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {WhereStore} from "../where.store";
-import {SvgMarkerEntry} from "../types";
-import {
-  Button,
-  Dialog,
-  IconButton,
-  ListItem,
-  Select, TextArea,
-  TextField
-} from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
+import {Button, Dialog, IconButton, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
-import {property} from "lit/decorators.js";
-import {LudothequeStore} from "../ludotheque.store";
-import { localized, msg } from '@lit/localize';
+import {SvgMarkerEntry} from "../viewModels/playset.bindings";
 
 
 /**
@@ -26,25 +14,23 @@ import { localized, msg } from '@lit/localize';
 @localized()
 export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
-  @state() _currentSvg: string = "";
-
-  /** Dependencies */
-  //@contextProvided({ context: whereContext })
-  //_store!: WhereStore;
-
-  @property()
-  store: WhereStore | LudothequeStore | null = null;
+  @state() private _currentSvg: string = "";
 
   /** Private properties */
 
-  _markerToPreload?: SvgMarkerEntry;
-  _currentMarker: SvgMarkerEntry | null = null;
+  private _markerToPreload?: SvgMarkerEntry;
+  private _currentMarker: SvgMarkerEntry | null = null;
 
 
   @query('#name-field')
-  _nameField!: TextField;
+  private _nameField!: TextField;
   @query('#svg-field')
-  _svgField!: TextArea;
+  private _svgField!: TextArea;
+
+
+  /** -- Methods -- */
+
+  /** Public API */
 
   open(marker?: SvgMarkerEntry) {
     this._markerToPreload = marker;
@@ -52,34 +38,43 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
     dialog.open = true
   }
 
-  protected firstUpdated(_changedProperties: any) {
-    // super.firstUpdated(_changedProperties);
-  }
 
   /** preload fields with current emojiGroup values */
-  async loadPreset(marker: SvgMarkerEntry) {
+  async loadPreset() {
+    const marker = this._markerToPreload!;
     this._nameField.value = msg('Fork of') + ' ' + marker.name;
     this._svgField.value = marker.value;
     this._currentSvg = marker.value;
     this._currentMarker = marker;
   }
 
+  /** */
+  clearAllFields(e?: any) {
+    this._nameField.value = "";
+    this._svgField.value = "";
+  }
+
+
+  /** Private API */
+
+  /** */
   private isValid() {
     let isValid: boolean = true;
-    // Check name
+    /* Check name */
     if (this._nameField) {
       if (!this._nameField.validity.valid) {
         isValid = false;
         this._nameField.reportValidity()
       }
     }
-    // FIXME
+    // TODO: Add more validation
     // ...
     // Done
     return isValid
   }
 
 
+  /** */
   private createSvgMarker(): SvgMarkerEntry {
     let svg: any =  this._svgField.value
     return {
@@ -88,38 +83,33 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  clearAllFields(e?: any) {
-    this._nameField.value = "";
-    this._svgField.value = "";
-  }
 
+  /** */
   private async handleResetMarker(e: any) {
     this._currentSvg = "";
-    this.requestUpdate()
+    //this.requestUpdate()
   }
 
 
-  private async handleOk(e: any) {
+  /** */
+  private handleOk(e: any) {
     if (!this.isValid()) return
-    if (!this.store) {
-      console.warn("No store available in svg-marker-dialog")
-      return;
-    }
     const svgMarker = this.createSvgMarker()
-    const newSvgMarkerEh = await this.store.addSvgMarker(svgMarker);
-    console.log("newSvgMarkerEh: " + newSvgMarkerEh)
-    this.dispatchEvent(new CustomEvent('svg-marker-added', { detail: newSvgMarkerEh, bubbles: true, composed: true }));
-    // - Clear all fields
+    //const newSvgMarkerEh = await this.store.addSvgMarker(svgMarker);
+    //console.log("newSvgMarkerEh: " + newSvgMarkerEh)
+    this.dispatchEvent(new CustomEvent('svg-marker-created', { detail: svgMarker, bubbles: true, composed: true }));
+    /* - Clear all fields */
     this.clearAllFields();
-    // - Close Dialog
+    /* - Close Dialog */
     const dialog = this.shadowRoot!.getElementById("svg-marker-dialog") as Dialog;
     dialog.close()
   }
 
 
+  /** */
   private handleDialogOpened(e: any) {
     if (this._markerToPreload) {
-      this.loadPreset(this._markerToPreload);
+      this.loadPreset();
       this._markerToPreload = undefined;
     }
     this.requestUpdate();
@@ -134,12 +124,15 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
   // }
 
 
+  /** */
   private previewSvgMarker() {
     if (!this._currentSvg || !this._nameField || !this._svgField) return html``
     const marker = this.createSvgMarker()
     return renderSvgMarker(marker.value, "black")
   }
 
+
+  /** */
   render() {
     return html`
 <mwc-dialog id="svg-marker-dialog" heading="${msg('New SVG Marker')} 64x64" @opened=${this.handleDialogOpened}>
@@ -162,12 +155,15 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 `
   }
 
+
+  /** */
   private async handlePreview(e: any) {
     if (!this.isValid()) return
     this.requestUpdate()
   }
 
 
+  /** */
   static get scopedElements() {
     return {
       "mwc-select": Select,
@@ -180,6 +176,8 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
     };
   }
 
+
+  /** */
   static get styles() {
     return [
       sharedStyles,

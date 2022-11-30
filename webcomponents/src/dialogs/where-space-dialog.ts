@@ -1,75 +1,51 @@
-import {css, html, LitElement, PropertyValues} from "lit";
-import {property, query, state} from "lit/decorators.js";
-import {contextProvided} from "@lit-labs/context";
-
+import {css, html} from "lit";
+import {query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-
-import {
-  defaultLocationMeta,
-  defaultPlayMeta, EmojiGroupVariant,
-  LocationMeta, ludothequeContext, MarkerPiece,
-  MarkerType,
-  PlayMeta, SvgMarkerVariant,
-  TemplateEntry,
-  UiItem,
-  whereContext
-} from "../types";
 import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
-import {
-  Button,
-  Checkbox,
-  Dialog,
-  Formfield,
-  IconButton,
-  ListItem,
-  Radio,
-  Select,
-  Tab,
-  TabBar,
-  TextArea,
-  TextField
+import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
+  TextArea, TextField
 } from "@scoped-elements/material-web";
-import {StoreSubscriber} from "lit-svelte-stores";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
-import {Profile} from "@holochain-open-dev/profiles";
 import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
 import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
-import {LudothequeStore} from "../ludotheque.store";
-import { localized, msg } from '@lit/localize';
+import {localized, msg} from '@lit/localize';
+import {
+  EmojiGroupVariant, MarkerPiece,
+  SvgMarkerEntry, SvgMarkerVariant, TemplateEntry
+} from "../viewModels/playset.bindings";
+import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
+import {PlaysetZvm} from "../viewModels/playset.zvm";
+import {ZomeElement} from "@ddd-qc/dna-client";
+import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective";
 
 
 /**
  * @element where-space-dialog
  */
 @localized()
-export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
-  /** Dependencies */
-  @contextProvided({ context: ludothequeContext, subscribe: true })
-  _store!: LudothequeStore;
+export class WhereSpaceDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
+  constructor() {
+    super(PlaysetZvm.DEFAULT_ZOME_NAME);
+  }
 
-  _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
-  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
+  /** -- Fields -- */
 
-  /** Private properties */
-  @state() _currentTemplate: null | TemplateEntry = null;
+  @state() private _currentTemplate: null | TemplateEntry = null;
 
-  @state() _currentPlaceHolders: Array<string> = [];
+  @state() private _currentPlaceHolders: Array<string> = [];
 
-  @state() _currentMeta: PlayMeta = defaultPlayMeta();
-  @state() _currentMarker?: MarkerPiece;
+  @state() private _currentMeta: SpaceMeta = defaultSpaceMeta();
+  @state() private _currentMarker?: MarkerPiece;
 
-  _spaceToPreload?: EntryHashB64;
-  _useTemplateSize: boolean = true; // have size fields set to default only when changing template
-  _canvas: string = "";
+  private _spaceToPreloadEh?: EntryHashB64;
+  private _useTemplateSize: boolean = true; // have size fields set to default only when changing template
+  private _canvas: string = "";
 
 
   @query('#name-field')
@@ -114,13 +90,12 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** -- Methods -- */
 
-  /**
-   *
-   */
-  open(spaceToPreload?: EntryHashB64) {
-    this._spaceToPreload = spaceToPreload;
-    if (this._templates.value === undefined) {
+  /** */
+  open(spaceToPreloadEh?: EntryHashB64) {
+    this._spaceToPreloadEh = spaceToPreloadEh;
+    if (this.perspective === undefined) {
       return;
     }
     this.requestUpdate();
@@ -129,11 +104,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
-  loadPreset(spaceEh: EntryHashB64) {
-    const originalSpace = this._store.spaceFromEh(spaceEh);
+  /** */
+  loadPreset() {
+    const originalSpace = this.perspective.spaces[this._spaceToPreloadEh!];
     if (!originalSpace) {
       return;
     }
@@ -147,10 +120,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._widthField.value = originalSpace.surface.size.x;
     this._heightField.value = originalSpace.surface.size.y;
     this._uiField.value = originalSpace!.meta.ui ? JSON.stringify(originalSpace.meta!.ui) : "[\n]";
-    // - Markers
+    /* - Markers */
     this._markerTypeField.value = MarkerType[originalSpace.meta.markerType];
     this._multiChk.checked = originalSpace.meta.multi;
-    // - Tags
+    /* - Tags */
     this._tagChk.checked = originalSpace.meta.canTag;
     this.tagChkLabel.label = msg('Display tag on surface')
     this._tagVisibleChk.disabled = !originalSpace.meta.canTag;
@@ -207,9 +180,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  /**
-   *
-   */
+
+  /** */
   private async handleOk(e: any) {
     /** Check validity */
     let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
@@ -234,7 +206,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     }
 
     /** General Tab */
-    // nameField
+    /* nameField */
     let isGeneralValid = this._nameField.validity.valid
     isGeneralValid &&= this._widthField.validity.valid
     isGeneralValid &&= this._heightField.validity.valid
@@ -242,7 +214,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
     }
-    // width & height fields
+    /* width & height fields */
     if (!this._widthField.validity.valid) {
       this._widthField.reportValidity()
     }
@@ -256,8 +228,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     /** Locations Tab */
     let isLocationsValid = true;
-    // n/a
-
+    /* n/a */
 
     /** Finish Validation */
     let isValid = isGeneralValid && isAdvancedValid && isLocationsValid;
@@ -266,36 +237,34 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Generate PlayMeta */
     const singleEmojiElem = this.shadowRoot!.getElementById("space-unicodes");
     let {surface, subMap} = this.generateSurface();
-    // - Misc.
+    /* - Misc. */
     this._currentMeta.ui = ui
     this._currentMeta.subMap = subMap
-    // - Marker
+    /* - Marker */
     this._currentMeta.markerType = MarkerType[this.determineMarkerType() as keyof typeof MarkerType];
     this._currentMeta.singleEmoji = singleEmojiElem? singleEmojiElem.innerText: "";
-    // - Tag
+    /* - Tag */
     this._currentMeta.multi = this._multiChk.checked;
     this._currentMeta.predefinedTags = this._predefinedTagsField.value.split(",")
     /** Create and share new Play */
-    const newSpaceEh = await this._store.newSpace({
+    const newSpace = {
         name: this._nameField.value,
         origin: this._templateField.value,
         surface,
         maybeMarkerPiece: this._currentMarker,
         meta: this._currentMeta
-      });
-    // - Notify parent
-    this.dispatchEvent(new CustomEvent('space-added', { detail: newSpaceEh, bubbles: true, composed: true }));
-    // - Clear all fields
+      };
+    /* - Notify parent */
+    this.dispatchEvent(new CustomEvent('space-created', { detail: newSpace, bubbles: true, composed: true }));
+    /* - Clear all fields */
     // this.resetAllFields();
-    // - Close dialog
+    /* - Close dialog */
     const dialog = this.shadowRoot!.getElementById("space-dialog") as Dialog;
     dialog.close()
   }
 
 
-  /**
-   *
-   */
+  /** */
   resetAllFields(canResetName?: boolean) {
     let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
     let locationsTab = this.shadowRoot!.getElementById("locations-tab") as SlTab;
@@ -304,13 +273,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     locationsTab.tab.style.color = "grey";
     advancedTab.tab.style.color = "grey";
 
-    // set first tab
+    /* set first tab */
     let tabGroup = this.shadowRoot!.getElementById("space-tab-group") as SlTabGroup;
     tabGroup.setActiveTab(generalTab);
 
     if (canResetName === undefined || canResetName) this._nameField.value = ''
-    this._currentMeta = defaultPlayMeta()
-    // - Surface
+    this._currentMeta = defaultSpaceMeta()
+    /* - Surface */
     for (let placeholder of this._currentPlaceHolders) {
       let field = this.shadowRoot!.getElementById(placeholder + '-gen') as TextField;
       // console.log('field ' + placeholder + ' - ' + field.value)
@@ -319,10 +288,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._widthField.value = ''
     this._heightField.value = ''
     this._uiField.value = '[]'
-    // - Marker
+    /* - Marker */
     this._markerTypeField.value = MarkerType[MarkerType.Avatar]
     this._multiChk.checked = false;
-    // - Tags
+    /* - Tags */
     this._tagChk.checked = false;
     this.tagChkLabel.label = msg('Display tag on surface');
     this._tagChk.disabled = false;
@@ -330,25 +299,25 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this._predefinedTagsField.value = ''
   }
 
-  /**
-   *
-   */
+  /** */
   private async handleDialogOpened(e: any) {
-    if (this._spaceToPreload) {
-      this.loadPreset(this._spaceToPreload);
-      this._spaceToPreload = undefined;
+    if (this._spaceToPreloadEh) {
+      this.loadPreset();
+      this._spaceToPreloadEh = undefined;
     }
     this.requestUpdate()
   }
 
+  /** */
   private async handleDialogClosing(e: any) {
     this.resetAllFields();
   }
 
+  /** */
   private handleTemplateSelect(templateName: string): void {
     this.resetAllFields(false);
     this._useTemplateSize = true;
-    this._currentTemplate = this._templates.value[templateName]
+    this._currentTemplate = this.perspective.templates[templateName]
   }
 
   private async handlePreview(e: any) {
@@ -356,9 +325,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
-  /**
-   *   Generate surface from template and form
-   */
+
+  /** Generate surface from template and form */
   generateSurface() {
     /** Html/SVG/JS */
     let surface: any = JSON.parse(this._currentTemplate!.surface);
@@ -398,6 +366,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   renderTemplateFields() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       return html``
@@ -413,7 +382,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
     /** -- Extract Fields  -- */
     //console.log({surface})
-    // - Parse template
+    /* - Parse template */
     const regex = /%%([a-zA-Z_0-9\-]+)%%/gm;
     var code;
     if (surface.svg) code = surface.svg;
@@ -425,7 +394,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       //let match = regex.exec(code);
       const match = [...code.matchAll(regex)];
       //console.log({match})
-      // - Remove duplicates
+      /* - Remove duplicates */
       for (const pair of match) {
         names.add(pair[1])
       }
@@ -434,7 +403,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       console.info('No variable found in template');
     }
     this._currentPlaceHolders = Array.from(names)
-    // - Generate textField for each placeholder
+    /* - Generate textField for each placeholder */
     return html`${this._currentPlaceHolders.map((name)=> html`
       <mwc-textfield outlined id="${name}-gen" label="${name}" value="" @input="${name==='ImageUrl'?this.handleImageUrlField:null}"></mwc-textfield>`
     )}`
@@ -459,10 +428,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   renderMarkerTypePreview(markerType: MarkerType) {
     let locMeta: LocationMeta = defaultLocationMeta();
     locMeta.markerType = markerType;
-    locMeta.img = "42"; // FIXME
+    //locMeta.img = "42"; // FIXME
     switch (markerType) {
       case MarkerType.EmojiGroup:
         locMeta.emoji = "⚽️";
@@ -481,6 +451,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   renderSurfacePreview() {
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
       return html``
@@ -573,13 +544,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         this.tagChkLabel.label = msg('Display tag on surface (Tag Marker type selected)')
         break;
       case MarkerType[MarkerType.SvgMarker]:
-        if (Object.keys(this._svgMarkers.value)[0]) {
-          this._currentMarker = {svg: Object.keys(this._svgMarkers.value)[0]};
+        if (Object.keys(this.perspective.svgMarkers)[0]) {
+          this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};
         }
         break;
       case MarkerType[MarkerType.EmojiGroup]:
-        if (Object.keys(this._emojiGroups.value)[0]) {
-          this._currentMarker = {svg: Object.keys(this._emojiGroups.value)[0]};
+        if (Object.keys(this.perspective.emojiGroups)[0]) {
+          this._currentMarker = {svg: Object.keys(this.perspective.emojiGroups)[0]};
         }
         break;
       default:
@@ -588,6 +559,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     this.requestUpdate()
   }
 
+
+  /** */
   handleEmojiGroupSelect(e?: any) {
     console.log("handleEmojiGroupSelect")
     //console.log({e})
@@ -602,8 +575,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     /** Build emoji list */
     //const maybeEmojiGroupSelector = this.shadowRoot!.getElementById("emoji-group-field") as Select;
     let unicodes = ""
-    // FIXME: should retrieve group by eh instead of name
-    for (const [eh, group] of Object.entries(this._emojiGroups.value)) {
+    // TODO: should retrieve group by eh instead of name
+    for (const [eh, group] of Object.entries(this.perspective.emojiGroups)) {
       if (group.name == selectedName) {
         unicodes = group.unicodes.reduce((prev, cur, idx) => prev += cur);
         this._currentMarker = {emojiGroup: eh};
@@ -630,8 +603,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     //container!.innerHTML = ""
 
     /** Find svg marker and set to preview */
-    // FIXME: should retrieve svgMarker by eh instead of name
-    for (const [eh, svgMarker] of Object.entries(this._svgMarkers.value)) {
+    // TODO: should retrieve svgMarker by eh instead of name
+    for (const [eh, svgMarker] of Object.entries(this.perspective.svgMarkers)) {
       if (svgMarker.name == selectedName) {
         // console.log("svg marker found: " + selectedName)
         this._currentMarker = {svg: eh};
@@ -652,7 +625,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._emojiGroups.value[groupEh]
+      group = this.perspective.emojiGroups[groupEh]
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -665,13 +638,13 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._svgMarkers.value[eh]
+      svgMarker = this.perspective.svgMarkers[eh]
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
     dialog.open(svgMarker);
     if (svgMarker) {
-      dialog.loadPreset(svgMarker);
+      dialog.loadPreset();
     }
   }
 
@@ -680,9 +653,9 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
   render() {
     /** Determine currentTemplate */
     if (!this._currentTemplate || this._currentTemplate.surface === "") {
-      let firstTemplate = Object.keys(this._templates.value)[0];
+      let firstTemplate = Object.keys(this.perspective.templates)[0];
       //console.log(firstTemplate)
-      this._currentTemplate = this._templates.value[firstTemplate]? this._templates.value[firstTemplate] : null
+      this._currentTemplate = this.perspective.templates[firstTemplate]? this.perspective.templates[firstTemplate] : null
       //console.log("_currentTemplate: " + (this._currentTemplate? this._currentTemplate.name : "none"))
     }
     let selectedTemplateUi = this.renderTemplateFields()
@@ -713,7 +686,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         marker_eh = (this._currentMarker as EmojiGroupVariant).emojiGroup;
         /** Build group list */
         console.log("** Building emoji group field:")
-        const groups = Object.entries(this._emojiGroups.value).map(
+        const groups = Object.entries(this.perspective.emojiGroups).map(
           ([key, emojiGroup]) => {
             console.log({emojiGroup})
             return html`
@@ -726,7 +699,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         /** Get current unicodes */
         let unicodes = ""
         if (this._currentMarker && "emojiGroup" in this._currentMarker) {
-          const currentGroup = this._emojiGroups.value[this._currentMarker.emojiGroup];
+          const currentGroup = this.perspective.emojiGroups[this._currentMarker.emojiGroup];
           unicodes = currentGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
         }
         /** Render */
@@ -746,10 +719,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
       case MarkerType.SvgMarker:
         marker_eh = (this._currentMarker as SvgMarkerVariant).svg;
         /** Build marker list */
-        if ((!this._currentMarker || "emojiGroup" in this._currentMarker) && Object.keys(this._svgMarkers.value).length > 0) {
-          this._currentMarker = {svg: Object.keys(this._svgMarkers.value)[0]};
+        if ((!this._currentMarker || "emojiGroup" in this._currentMarker) && Object.keys(this.perspective.svgMarkers).length > 0) {
+          this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};
         }
-        const markers = Object.entries(this._svgMarkers.value).map(
+        const markers = Object.entries(this.perspective.svgMarkers).map(
           ([key, svgMarker]) => {
             // console.log(" - " + svgMarker.name + ": " + key)
             let currentMarker = renderSvgMarker(svgMarker.value, color)
@@ -764,7 +737,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
         /** Get current unicodes */
         let selectedMarker = html``;
         if (this._currentMarker && "svg" in this._currentMarker) {
-          const marker = this._svgMarkers.value[this._currentMarker?.svg]
+          const marker = this.perspective.svgMarkers[this._currentMarker?.svg]
           //console.log({marker})
           selectedMarker = renderSvgMarker(marker.value, color)
         }
@@ -805,11 +778,11 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <!-- Template/Surface -->
       <!-- <h4 style="margin-bottom: 15px;">Surface</h4> -->
     <mwc-select fixedMenuPosition required id="template-field" label="${msg('Template')}" @select=${this.handleTemplateSelect}  @closing=${(e:any)=>e.stopPropagation()}>
-        ${Object.entries(this._templates.value).map(
+        ${Object.entries(this.perspective.templates).map(
           ([key, template]) => html`
           <mwc-list-item
             @request-selected=${() => this.handleTemplateSelect(key)}
-            .selected=${this._templates.value[key].name === this._currentTemplate!.name}
+            .selected=${this.perspective.templates[key].name === this._currentTemplate!.name}
             value="${key}"
             >${template.name}
           </mwc-list-item>
@@ -865,8 +838,8 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     <!--<mwc-button slot="secondaryAction" @click=${this.handlePreview}>${msg('preview')}</mwc-button>-->
   <!-- Inner dialogs -->
   <where-emoji-dialog id="emoji-dialog" @emoji-selected=${(e:any) => this.handleEmojiSelected(e.detail)}></where-emoji-dialog>
-  <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
-  <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._store}" @svg-marker-added=${(e:any) => this.handleSvgMarkerAdded(e.detail)}></where-svg-marker-dialog>
+  <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => this.handleGroupAdded(e.detail)}></where-emoji-group-dialog>
+  <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-created=${this.onSvgMarkerCreated}></where-svg-marker-dialog>
 </mwc-dialog>
 `
   }
@@ -882,7 +855,7 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
 
   handleGroupAdded(eh: EntryHashB64) {
     this._currentMarker = {emojiGroup: eh};
-    const emojiGroup = this._emojiGroups.value[eh];
+    const emojiGroup = this.perspective.emojiGroups[eh];
     const unicodes = emojiGroup.unicodes.reduce((prev, cur, idx) => prev += cur);
     let unicodeContainer = this.shadowRoot!.getElementById("space-unicodes");
     unicodeContainer!.innerHTML = unicodes
@@ -892,7 +865,10 @@ export class WhereSpaceDialog extends ScopedElementsMixin(LitElement) {
     emojiGroupField.select(emojiGroupField.children.length - 1);
   }
 
-  handleSvgMarkerAdded(eh: EntryHashB64) {
+  /** */
+  async onSvgMarkerCreated(e: any) {
+    const newSvgMarker = e.detail as SvgMarkerEntry;
+    const eh = await this._zvm.publishSvgMarkerEntry(newSvgMarker);
     this._currentMarker = {svg: eh};
     //const svgMarker = this._svgMarkers.value[eh];
     //let svgMarkerContainer = this.shadowRoot!.getElementById("svg-marker-container");

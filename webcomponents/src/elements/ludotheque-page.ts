@@ -1,52 +1,31 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, state} from "lit/decorators.js";
-
-import {contextProvided} from "@lit-labs/context";
-import {StoreSubscriber} from "lit-svelte-stores";
-
 import {sharedStyles} from "../sharedStyles";
-import {count_inventory, Inventory, ludothequeContext, PieceType, PlaysetEntry} from "../types";
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
+import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
 import {
-  //SlButton,
-  SlCard,
-  //SlIcon,
-  //SlIconButton,
-  SlRating,
-  SlTab,
-  SlTabGroup,
-  SlTabPanel,
-  SlTooltip
-} from '@scoped-elements/shoelace';
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {
-  Button,
-  CheckListItem,
-  Drawer,
-  Formfield,
-  Icon,
-  IconButton,
-  List,
-  ListItem,
-  Menu,
-  Select,
-  Slider,
-  Switch,
-  TextField,
-  TopAppBar,
+  Button, CheckListItem, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
+  Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
-import {addExamplePieces} from "../examples";
-import {LudothequeStore} from "../ludotheque.store";
+import {publishExamplePlayset} from "../examples";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId} from "@holochain/client";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
+import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
+import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
+import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
+import {countInventory} from "../viewModels/playset.zvm";
+import {PieceType} from "../viewModels/playset.bindings";
+import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
+import {DnaElement} from "@ddd-qc/dna-client";
+import {serializeHash} from "@holochain-open-dev/utils";
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -61,54 +40,45 @@ tmpl.innerHTML = `
 </style>
 `;
 
-/** ----- */
 
-/** @element ludotheque-controller */
+/**
+ * @element ludotheque-page
+ */
 @localized()
-export class LudothequeController extends ScopedElementsMixin(LitElement) {
+export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   constructor() {
-    super();
+    super(LudothequeDvm.DEFAULT_ROLE_ID);
   }
+  /** -- Properties -- */
 
   @property()
   whereCellId: CellId | null = null;
 
-
-  /** Public attributes */
-  @property({ type: Boolean, attribute: 'dummy' })
-  canLoadDummy: boolean = false;
-
   @property({ type: Boolean, attribute: 'examples' })
   canLoadExamples: boolean = false;
 
-  /** Dependencies */
-
-  @contextProvided({ context: ludothequeContext/*, subscribe: true*/ })
-  _store!: LudothequeStore;
-
-
-  _playsets = new StoreSubscriber(this, () => this._store?.playsets);
-  _spaces = new StoreSubscriber(this, () => this._store?.spaces);
-  _templates = new StoreSubscriber(this, () => this._store?.templates);
-  _svgMarkers = new StoreSubscriber(this, () => this._store?.svgMarkers);
-  _emojiGroups = new StoreSubscriber(this, () => this._store?.emojiGroups);
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  ludothequePerspective!: LudothequePerspective;
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  playsetPerspective!: PlaysetPerspective;
 
 
-  /** Private properties */
+  /** -- Private -- */
 
-  @state() _currentWhereId: null | string = null;
+  @state() private _currentPlayset: null | PlaysetEntry = null;
+  @state() private _currentPlaysetEh: null | EntryHashB64 = null;
+  //@state() private _currentTemplateEh: null| EntryHashB64 = null;
 
-  @state() _currentPlayset: null | PlaysetEntry = null;
-  @state() _currentPlaysetEh: null | EntryHashB64 = null;
-  @state() _currentTemplateEh: null| EntryHashB64 = null;
+  @state() private _inventory: Inventory | null = null;
 
   private _initialized: boolean = false;
   private _initializing: boolean = false;
   private _canPostInit: boolean = false;
   private _canCreatePlayset: boolean = false;
 
-  private _whereInventory: Inventory | null = null;
 
+
+  /** -- Getters -- */
 
   get emojiGroupDialogElem() : WhereEmojiGroupDialog {
     return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
@@ -152,38 +122,37 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   // }
 
 
-  /** -- methods -- */
+  /** -- Methods -- */
 
-  private pullWhereInventory() {
-    this._store.getWhereInventory().then(inventory => {
-      const nextCount = count_inventory(inventory);
-      if (!this._whereInventory || nextCount > count_inventory(this._whereInventory)) {
-        this._whereInventory = inventory;
-        this.requestUpdate();
+  /** */
+  private probeInventory() {
+    this._dvm.playsetZvm.probeInventory().then(inventory => {
+      const nextCount = countInventory(inventory);
+      if (!this._inventory || nextCount > countInventory(this._inventory)) {
+        this._inventory = inventory;
       }
     });
   }
 
-  /**
-   *
-   */
+
+  /** */
   hasPiece(eh: EntryHashB64, type: PieceType): boolean {
-    if (!this._whereInventory) {
+    if (!this._inventory) {
       console.warn("No localInventory found")
       return false;
     }
     switch(type) {
       case PieceType.Template:
-        return this._whereInventory!.templates.includes(eh);
+        return this._inventory!.templates.includes(eh);
         break;
       case PieceType.SvgMarker:
-        return this._whereInventory!.svgMarkers.includes(eh);
+        return this._inventory!.svgMarkers.includes(eh);
         break;
       case PieceType.EmojiGroup:
-        return this._whereInventory!.emojiGroups.includes(eh);
+        return this._inventory!.emojiGroups.includes(eh);
         break;
       case PieceType.Space:
-        return this._whereInventory!.spaces.includes(eh);
+        return this._inventory!.spaces.includes(eh);
         break;
       default:
         console.warn("Unknown piece type: " + type)
@@ -193,49 +162,34 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** Launch init when myProfile has been set */
-  private async subscribePlayset() {
-    this._store.playsets.subscribe(async (playsets) => {
-      if (!this._currentPlaysetEh) {
-        // /** Select first play */
-        // const firstEh = this.getFirstVisiblePlayset(playsets);
-        // if (firstEh) {
-        //   await this.selectPlayset(firstEh);
-        //   //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-        //   console.log("    starting Playset: ", playsets[firstEh].name, this._currentPlaysetEh);
-        //   //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentPlaysetEh);
-        // }
-      }
-    });
-    await this.init();
-  }
-
   /** After first render only */
   async firstUpdated() {
-    await this.subscribePlayset();
-
+    this._dvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
+    this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
+    await this.init();
     /** add custom styles to TopAppBar */
     const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
     topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
   }
 
 
+  /** */
   private async init() {
     if (this._initialized) {
       return;
     }
     this._initializing = true
-    console.log("ludotheque-controller.init() - START");
+    console.log("ludotheque-page.init() - START");
     /** Get latest public entries from DHT */
-    await this._store.pullDht();
-    const playsets = this._playsets.value;
+    await this._dvm.probeAll();
+    const playsets = this._dvm.ludothequeZvm.perspective.playsets
     //const templates = this._templates.value;
     console.log({playsets})
     //console.log({templates})
 
     /** load initial plays & templates if there are none */
     if (this.canLoadExamples && Object.keys(playsets).length == 0) {
-      await addExamplePieces(this._store);
+      await publishExamplePlayset(this._dvm);
       console.log("addExamplePieces() - DONE");
     }
     // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
@@ -257,13 +211,14 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this._canPostInit = true;
     this._initializing = false
     this.requestUpdate();
-    console.log("ludotheque-controller.init() - DONE");
+    console.log("ludotheque-page.init() - DONE");
   }
 
 
+  /** */
   updated(changedProperties: any) {
     if (this._canPostInit) {
-      /** Menu */
+      /** Anchor Menu */
       const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
       const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
       console.log("Ludo: Anchoring Menu to top button", menu, button)
@@ -276,6 +231,10 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+  /** */
+  async onDumpLogs() {
+    this._dvm.dumpLogs();
+  }
 
   private async selectPlayset(playsetEh: EntryHashB64): Promise<void> {
     console.log("selectPlayset() " + playsetEh);
@@ -284,7 +243,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!playset && time < 2000) {
-      playset = this._playsets.value[playsetEh];
+      playset = this._dvm.ludothequeZvm.getPlayset(playsetEh);
       await delay(100);
       time += 100;
     }
@@ -309,9 +268,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
 
 
-  /**
-   * Hide Current play and select first available one
-   */
+  /** Hide Current play and select first available one */
   async archiveSpace() {
     // await this._store.hidePlay(this._currentPlaysetEh!)
     // /** Select first play */
@@ -323,40 +280,47 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._store.pullDht()
-    this.requestUpdate();
+    await this._dvm.probeAll();
   }
 
-
+  /** */
   async openTemplateDialog(templateEh?: any) {
     this.templateDialogElem.clearAllFields();
     this.templateDialogElem.open(templateEh);
   }
 
+
+  /** */
   async openArchiveDialog() {
    //this.archiveDialogElem.open();
   }
 
+
+  /** */
   async openSpaceDialog(spaceEh?: EntryHashB64) {
     this.spaceDialogElem.resetAllFields();
     this.spaceDialogElem.open(spaceEh);
     if (spaceEh) {
-      this.spaceDialogElem.loadPreset(spaceEh);
+      this.spaceDialogElem.loadPreset();
     }
   }
 
 
+  /** */
   openAddMenu() {
     const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
     menu.open = true;
   }
 
+
+  /** */
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._emojiGroups.value[groupEh]
+      group = this._dvm.playsetZvm.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -366,20 +330,23 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
+  /** */
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._svgMarkers.value[eh]
+      svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
     dialog.open(svgMarker);
     if (svgMarker) {
-      dialog.loadPreset(svgMarker);
+      dialog.loadPreset();
     }
   }
 
 
+  /** */
   handleAddMenuSelect(e: any) {
     const menu = e.currentTarget as Menu;
     // console.log("handleMenuSelect: " + menu)
@@ -407,11 +374,17 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
+  private async handleSpaceDialogClosing(e: any) {
+    console.log("handleSpaceDialogClosing()", e.detail)
+    //const space = e.detail as Space;
+    this._dvm.playsetZvm.publishSpace(e.detail)
+  }
+
+
+  /** */
   private async handlePlaysetDialogClosing(e: any) {
-    console.log("handlePlaysetDialogClosing() : " + JSON.stringify(e.detail))
+    console.log("handlePlaysetDialogClosing()", e.detail)
     //const playset = e.detail;
     this.tabElem.show("spaces");
     this._currentPlayset = e.detail;
@@ -421,15 +394,13 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
-  private async commitPlayset() {
-    console.log("commitPlayset() : " + JSON.stringify(this._currentPlayset))
+  /** */
+  private async publishCurrentPlayset() {
+    console.log("commitPlayset()", this._currentPlayset)
     if (!this._currentPlayset) {
       return;
     }
-    // Spaces
+    /* Spaces */
     const spaceList = this.shadowRoot!.getElementById("space-list") as List;
     let selectedSpaces = new Array();
     for (const item of spaceList.items) {
@@ -439,7 +410,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.spaces = selectedSpaces;
-    // Templates
+    /* Templates */
     const templateList = this.shadowRoot!.getElementById("template-list") as List;
     let selectedTemplates = new Array();
     for (const item of templateList.items) {
@@ -449,7 +420,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.templates = selectedTemplates;
-    // SvgMarkers
+    /* SvgMarkers */
     const svgList = this.shadowRoot!.getElementById("svg-marker-list") as List;
     let selectedSvg = new Array();
     for (const item of svgList.items) {
@@ -459,7 +430,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.svgMarkers = selectedSvg;
-    // EmojiGroups
+    /* EmojiGroups */
     const emojiGroupList = this.shadowRoot!.getElementById("emoji-group-list") as List;
     let selectedGroups = new Array();
     for (const item of emojiGroupList.items) {
@@ -469,7 +440,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       }
     }
     this._currentPlayset.emojiGroups = selectedGroups;
-    // Check
+    /* Check */
     if (this._currentPlayset.spaces.length == 0
     && this._currentPlayset.templates.length == 0
     && this._currentPlayset.svgMarkers.length == 0
@@ -477,9 +448,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       console.warn("No piece added to playset")
       return;
     }
-    // Commit
-    await this._store.addPlaysetWithCheck(this._currentPlayset!);
-    // Reset
+    /* Commit */
+    await this._dvm.ludothequeZvm.publishPlayset(this._currentPlayset!);
+    /* Reset */
     this.resetCurrentPlayset();
     this._canCreatePlayset = false;
     this.drawerElem.open = false;
@@ -487,9 +458,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   private resetCurrentPlayset() {
     this._currentPlayset = null;
     this._canCreatePlayset = false;
@@ -498,9 +467,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /**
-   *
-   */
+  /** */
   private async handleArchiveDialogClosing(e: any) {
     // const spaces = this._plays.value;
     // /** Check if current play has been archived */
@@ -512,7 +479,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     // }
   }
 
-
+  /** */
   handleViewArchiveSwitch(e: any) {
     // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
     // this.canViewArchive = e.originalTarget.checked;
@@ -520,9 +487,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   }
 
 
-
+  /** */
   private renderPlaysets() {
-    const items = Object.entries(this._playsets.value).map(
+    const items = Object.entries(this._dvm.ludothequeZvm.perspective.playsets).map(
       ([key, playset]) => {
         // return html`
         //   <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
@@ -545,7 +512,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
           </h4>
           <div slot="footer">
             <sl-rating></sl-rating>
-            <mwc-button id="primary-action-button" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>${msg('Import')}</mwc-button>
+            <mwc-button id="primary-action-button" .disabled="${!this.whereCellId}" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>${msg('Import')}</mwc-button>
           </div>
         </sl-card>
         `
@@ -567,7 +534,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this._store.exportPiece(key, type, this.whereCellId!)}
+                               @click=${() => this._dvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
         ></mwc-icon-button>
       `;
   }
@@ -575,15 +542,14 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   /** */
   private renderSpaces() {
-    const items = Object.entries(this._spaces.value).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
-        const surface = JSON.parse(space.surface);
-        const template = this._store.template(space.origin);
+        const template = this._dvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
-            <span slot="graphic" style="width:75px;">${renderSurface(surface, space.name, 70, 56)}</span>
+            <span slot="graphic" style="width:75px;">${renderSurface(space.surface, space.name, 70, 56)}</span>
             ${icon}
           `;
         return this._canCreatePlayset? html`
@@ -609,7 +575,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   /** */
   private renderTemplates() {
     /* Render items */
-    const items = Object.entries(this._templates.value).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
         const surface = JSON.parse(template.surface);
@@ -645,7 +611,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
   /** */
   private renderSvgMarkers() {
     /* Render items */
-    const items = Object.entries(this._svgMarkers.value).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.svgMarkers).map(
       ([key, svgMarker]) => {
         const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
@@ -677,7 +643,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
 
   /* Render  */
   private renderEmojiGroups() {
-    const items = Object.entries(this._emojiGroups.value).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.emojiGroups).map(
       ([key, emojiGroup]) => {
         const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
         const itemContent = html`
@@ -710,15 +676,20 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
    *
    */
   render() {
-    console.log("ludotheque-controller render() - " + this._initialized)
-    const playset = this._currentPlaysetEh? this._store.playset(this._currentPlaysetEh) : null;
-
-    //this._activeIndex = -1
-    this.pullWhereInventory();
+    console.log("ludotheque-page render(), ", this._initialized)
 
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
+
+    console.log({PlaysetPerspective: this.playsetPerspective})
+
+
+    const playset = this._currentPlaysetEh? this._dvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
+
+    //this._activeIndex = -1
+    this.probeInventory();
+
 
     // let playsetItems = [html``];
     // if (playset) {
@@ -787,7 +758,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     </div>
     <div id="drawer-button-bar">
       <mwc-button id="commit-playset-button" @click=${this.resetCurrentPlayset}>${msg('cancel')}</mwc-button>
-      <mwc-button id="commit-playset-button" raised @click=${this.commitPlayset}>${msg('create')}</mwc-button>
+      <mwc-button id="commit-playset-button" raised @click=${this.publishCurrentPlayset}>${msg('create')}</mwc-button>
     </div>
   </div>
   <!-- END DRAWER -->
@@ -798,6 +769,7 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
         <mwc-icon>library_books</mwc-icon>-->
       <div slot="title">${msg('Library')}</div>
 
+      <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
       <mwc-menu id="add-menu" absolute x="0" y="0" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
         <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
@@ -838,11 +810,11 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     </div>
     <!-- DIALOGS -->
     <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._store}" @template-created=${(e:any) => console.log(e.detail)}
+    <where-template-dialog id="template-dialog" @template-created=${(e:any) => console.log(e.detail)}
     ></where-template-dialog>
-    <where-emoji-group-dialog id="emoji-group-dialog" .store="${this._store}" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
-    <where-svg-marker-dialog id="svg-marker-dialog" .store="${this._store}" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
-    <where-space-dialog id="space-dialog" @space-added=${(e:any) => console.log(e.detail)}></where-space-dialog>
+    <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
+    <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
+    <where-space-dialog id="space-dialog" @space-created=${this.handleSpaceDialogClosing}></where-space-dialog>
   </div>
 </mwc-drawer>
 `;
@@ -853,9 +825,9 @@ export class LudothequeController extends ScopedElementsMixin(LitElement) {
     this.dispatchEvent(new CustomEvent('exit', { detail: {}, bubbles: true, composed: true }));
   }
 
-  private importPlayset(key: string) {
-    console.log("importPlayset() in " + this._currentWhereId + " | " + key)
-    this.dispatchEvent(new CustomEvent('import-playset', { detail: key, bubbles: true, composed: true }));
+  private importPlayset(eh: EntryHashB64) {
+    console.log("importPlayset() in " + serializeHash(this.whereCellId![0]) + " | " + eh)
+    this.dispatchEvent(new CustomEvent('import-playset-requested', { detail: eh, bubbles: true, composed: true }));
   }
 
   async openPlaysetDialog(eh?: any) {

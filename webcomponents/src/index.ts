@@ -5,14 +5,15 @@ import './global-styles'
 
 // TODO: change exports to be available for consumer packages
 
-export * from './elements/where-controller';
-export * from './elements/where-space';
-export * from './where.service';
-export * from './where.store';
-export * from './types';
-export * from './stringStore';
+export * from './viewModels/happDef';
+export * from './viewModels/ludotheque.dvm';
+export * from './viewModels/where.dvm';
 
-export * from './elements/ludotheque-controller';
-export * from './ludotheque.store';
+
+export * from './elements/where-page';
+export * from './elements/where-space';
+export * from './elements/where-peer-list';
+export * from './elements/ludotheque-page';
+export * from './stringStore';
 
 export * from './localization';

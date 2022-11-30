@@ -1,18 +1,10 @@
-import {
-  AdminWebsocket,
-  AppWebsocket,
-} from "@holochain/client";
-import {
-  WeApplet,
-  AppletRenderers,
-  WeServices,
-  InstalledAppletInfo,
-} from "@lightningrodlabs/we-applet";
-
-import { WhereApplet } from "./where-applet";
-import { LudothequeApplet } from "./ludotheque-applet";
+import {AdminWebsocket, AppWebsocket} from "@holochain/client";
+import {WeApplet, AppletRenderers, WeServices, InstalledAppletInfo} from "@lightningrodlabs/we-applet";
+import {LudothequeStandaloneApp} from "@where/ludo-app";
+import {WhereApp} from "@where/app";
 
 
+/** */
 const whereApplet: WeApplet = {
   async appletRenderers(
     appWebsocket: AppWebsocket,
@@ -22,15 +14,16 @@ const whereApplet: WeApplet = {
   ): Promise<AppletRenderers> {
     return {
       full(element: HTMLElement, registry: CustomElementRegistry) {
-        registry.define("where-applet", WhereApplet);
-        element.innerHTML = `
-            <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-            <where-applet style="flex: 1; display: flex;"></where-applet>
-        `;
-        const appletElement = element.querySelector("where-applet") as any;
-        appletElement.appWebsocket =  appWebsocket;
-        appletElement.profilesStore = weServices.profilesStore;
-        appletElement.appletAppInfo = appletAppInfo;
+        console.log("full()", appWebsocket.client.socket.url)
+        /** Link to Font */
+        const font = document.createElement('link');
+        font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";
+        font.rel = "stylesheet";
+        element.appendChild(font);
+        /** <where-app> */
+        registry.define("where-app", WhereApp);
+        const ludoApp = new WhereApp(appWebsocket, "where-applet", weServices.profilesStore);
+        element.appendChild(ludoApp);
       },
       blocks: [],
     };
@@ -38,7 +31,7 @@ const whereApplet: WeApplet = {
 };
 
 
-
+/** */
 const ludoApplet: WeApplet = {
   async appletRenderers(
     appWebsocket: AppWebsocket,
@@ -48,15 +41,16 @@ const ludoApplet: WeApplet = {
   ): Promise<AppletRenderers> {
     return {
       full(element: HTMLElement, registry: CustomElementRegistry) {
-        registry.define("ludotheque-applet", LudothequeApplet);
-        element.innerHTML = `
-            <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet">
-            <ludotheque-applet style="flex: 1; display: flex;"></ludotheque-applet>
-        `;
-        const appletElement = element.querySelector("ludotheque-applet") as any;
-
-        appletElement.appWebsocket =  appWebsocket;
-        appletElement.appletAppInfo = appletAppInfo;
+        console.log("full()", appWebsocket.client.socket.url)
+        /** Link to Font */
+        const font = document.createElement('link');
+        font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";
+        font.rel = "stylesheet";
+        element.appendChild(font);
+        /** <ludotheque-app> */
+        registry.define("ludotheque-app", LudothequeStandaloneApp);
+        const ludoApp = new LudothequeStandaloneApp(appWebsocket, "ludotheque-applet");
+        element.appendChild(ludoApp);
       },
       blocks: [],
     };
@@ -64,4 +58,5 @@ const ludoApplet: WeApplet = {
 };
 
 
+//export default ludoApplet;
 export default whereApplet;

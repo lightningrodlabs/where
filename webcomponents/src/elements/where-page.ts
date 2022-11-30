@@ -1,37 +1,33 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, state} from "lit/decorators.js";
-
-import { contextProvided } from '@lit-labs/context';
-import { StoreSubscriber } from "lit-svelte-stores";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {
   Button, Drawer, Formfield,
   Icon, IconButton, IconButtonToggle,
-  List, ListItem,
-  Menu, Select,
+  List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 
-import {Profile, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
-import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
+import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {CellId} from "@holochain/client";
-import {serializeHash} from "@holochain-open-dev/utils";
 
-import {Dictionary, PieceType, Play, whereContext} from "../types";
 import {delay, renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
-import {WhereFolks} from "./where-folks";
-import {WhereStore} from "../where.store";
+import {WherePeerList} from "./where-peer-list";
 import {WhereSpace} from "./where-space";
 import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
-import {get} from 'svelte/store';
+import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
+import {Play, WherePerspective} from "../viewModels/where.perspective";
+import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
+import {WhereSignal} from "../viewModels/where.signals";
+import {DnaElement} from "@ddd-qc/dna-client";
+import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
 
@@ -51,47 +47,45 @@ tmpl.innerHTML = `
 /** ----- */
 
 
-/** @element where-controller */
+/** @element where-page */
 @localized()
-export class WhereController extends ScopedElementsMixin(LitElement) {
+export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super();
+    super(WhereDvm.DEFAULT_ROLE_ID);
   }
 
-  /** Public attributes */
+  /** Properties */
   @property({ type: Boolean, attribute: 'dummy' })
   canLoadDummy: boolean = false;
 
   @property()
   ludoCellId: CellId | null = null;
 
-  /** Dependencies */
+  /** ViewModels */
 
-  @contextProvided({context: profilesStoreContext, subscribe: true})
-  @property({ type: Object })
-  profileStore!: ProfilesStore;
-
-  @contextProvided({ context: whereContext, subscribe: true })
-  _whereStore!: WhereStore;
-
-  _plays = new StoreSubscriber(this, () => this._whereStore?.plays);
-  _templates = new StoreSubscriber(this, () => this._whereStore?.templates);
-  _myProfile?: Profile; // new StoreSubscriber(this, async () => await this._profiles?.fetchMyProfile());
-  //_knownProfiles = new StoreSubscriber(this, () => this._profiles?.fetchAllProfiles);
+  @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  wherePerspective!: WherePerspective;
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // playsetPerspective!: PlaysetPerspective;
+  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
+  // profilesPerspective!: ProfilesPerspective;
 
 
-  @state() _canShowFolks: boolean = true;
-  @state() _neighborWidth: number = 150;
+  private _myProfile?: WhereProfile;
 
-  /** Private properties */
+  /** State */
 
-  @state() _currentSpaceEh: null | EntryHashB64 = null;
-  @state() _currentTemplateEh: null| EntryHashB64 = null;
+  @state() private _canShowPeers: boolean = true;
+  @state() private _neighborWidth: number = 150;
 
-  private _initialized: boolean = false;
-  private _initializing: boolean = false;
-  private _canPostInit: boolean = false;
+  @state() private _currentSpaceEh: null | EntryHashB64 = null;
+  @state() private _currentTemplateEh?: EntryHashB64;
 
+  @state() private _initialized = false;
+  @state() private _canPostInit = false;
+
+
+  /** Getters */
 
   get drawerElem() : Drawer {
     return this.shadowRoot!.getElementById("my-drawer") as Drawer;
@@ -113,14 +107,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
   }
 
-  get folksElem(): WhereFolks {
-    return this.shadowRoot!.getElementById("where-folks") as WhereFolks;
+  get peerListElem(): WherePeerList {
+    return this.shadowRoot!.getElementById("where-peer-list") as WherePeerList;
   }
 
-  get spaceDialogElem() : WherePlayDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WherePlayDialog;
+  get playDialogElem() : WherePlayDialog {
+    return this.shadowRoot!.getElementById("play-dialog") as WherePlayDialog;
   }
-
 
   get myNickName(): string {
     return this._myProfile!.nickname;
@@ -155,88 +148,76 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     //console.log(nickname);
     const color: string = randomColor({luminosity: 'light'});
     //console.log(color);
-    await this.updateProfile(nickname, `https://robohash.org/${nickname}`, color)
+    await this.setMyProfile(nickname, `https://robohash.org/${nickname}`, color)
     //await this.updateProfile("Cam", "https://cdn3.iconfinder.com/data/icons/avatars-9/145/Avatar_Cat-512.png", "#69de85")
   }
 
 
   /** */
-  async updateProfile(nickname: string, avatar: string, color: string) {
+  async setMyProfile(nickname: string, avatar: string, color: string) {
     console.log("updateProfile() called:", nickname)
+    const fields: Dictionary<string> = {};
+    fields['color'] = color;
+    fields['avatar'] = avatar;
     try {
-      const fields: Dictionary<string> = {};
-      fields['color'] = color;
-      fields['avatar'] = avatar;
-      await this.profileStore.createProfile({
-        nickname,
-        fields,
-      });
-
+    if (this._dvm.profilesZvm.getProfile(this._dvm.profilesZvm.agentPubKey)) {
+      await this._dvm.profilesZvm.updateMyProfile({nickname, fields});
+    } else {
+      await this._dvm.profilesZvm.createMyProfile({nickname, fields});
+    }
     } catch (e) {
-      console.log("updateProfile() failed");
+      console.log("createMyProfile() failed");
       console.log(e);
     }
   }
 
 
-  /** Launch init when myProfile has been set */
-  private async subscribeProfile() {
-    const myProfileStore = await this.profileStore.fetchMyProfile();
-    myProfileStore.subscribe(async (profile) => {
-      console.log("myProfileStore received entry:", profile)
-      if (profile) {
-        // if (!this._initialized && !this._initializing) {
-        //   await this.init();
-        // }
-        this._myProfile = profile;
-      }
-    });
+  /** */
+  shouldUpdate() {
+    return !!this._dvm;
   }
 
-  /** Launch init when myProfile has been set */
-  // private subscribePlay() {
-  //   this._whereStore.plays.subscribe(async (plays) => {
-  //     if (!this._currentSpaceEh) {
-  //       /** Select first play  if none is set */
-  //       const firstSpaceEh = this.getFirstVisiblePlay(plays);
-  //       if (firstSpaceEh) {
-  //         await this.selectPlay(firstSpaceEh);
-  //         console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-  //         console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
-  //         //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
-  //       }
-  //     }
-  //   });
-  // }
 
   /** After first render only */
   async firstUpdated() {
-    console.log("where-controller first updated!")
+    console.log("<where-page> firstUpdated()")
     if (this.canLoadDummy) {
       await this.createDummyProfile();
     }
-    await this.init();
 
-    /** add custom styles to TopAppBar */
-    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
-    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
+    this._dvm.whereZvm.subscribe(this, 'wherePerspective');
+    //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
 
-    //await this.subscribeProfile();
-    //this.subscribePlay();
+    /** Get latest public entries from DHT */
+    await this._dvm.probeAll();
+    this.pingAllOthers();
+
+    /** Select first play if none is set */
+    if (!this._currentSpaceEh) {
+      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
+      if (firstSpaceEh) {
+        await this.selectPlay(firstSpaceEh);
+        //return;
+      }
+    }
+
+    /** Done */
+    this._initialized = true
+    this._canPostInit = true;
   }
+
 
   /** After each render */
   async updated(changedProperties: any) {
     if (this._canPostInit) {
-      await this.subscribeProfile();
       this.postInit();
     }
     //this.anchorMenu();
 
-    // look for canvas in plays and render them
-    for (let spaceEh in this._plays.value) {
-      let play: Play = this._plays.value[spaceEh];
-      if (play.space.surface.canvas && play.visible) {
+    /* look for canvas in Plays and render them */
+    for (let spaceEh in this.perspective.plays) {
+      let play: Play = this.perspective.plays[spaceEh];
+      if (play.space.surface.canvas && this._dvm.getVisibility(spaceEh)!) {
         const id = play.space.name + '-canvas'
         const canvas = this.shadowRoot!.getElementById(id) as HTMLCanvasElement;
         if (!canvas) {
@@ -267,8 +248,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return null;
     }
     for (let spaceEh in plays) {
-      const play = plays[spaceEh]
-      if (play.visible) {
+      if (this._dvm.getVisibility(spaceEh)!) {
         return spaceEh
       }
     }
@@ -276,33 +256,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** Called once a profile has been set */
-  private async init() {
-    this._initializing = true
-    console.log("where-controller.init() - START");
-    /** Get latest public entries from DHT */
-    await this._whereStore.pullDht();
-    const plays = this._plays.value;
-    const templates = this._templates.value;
-    console.log({plays})
-    console.log({templates})
-    /** Done */
-    this._initialized = true
-    this._initializing = false
-    this._canPostInit = true;
-
-
-
-    const profiles = get(await this.profileStore.fetchAllProfiles());
-    console.log({profiles})
-    const me = get(await this.profileStore.fetchAgentProfile(this.profileStore.myAgentPubKey));
-    console.log({me})
-
-
-    this.requestUpdate();
-    console.log("where-controller.init() - DONE");
-  }
-
+  /** */
   private anchorMenu() {
     const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
     const button = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
@@ -312,8 +266,13 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     }
   }
 
+
   /** */
   private postInit() {
+    /** add custom styles to TopAppBar */
+    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    console.log("<where-page> postInit()", topBar);
+    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
     this.anchorMenu()
     /** Drawer */
@@ -323,7 +282,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       // const margin = this.drawerElem.open? '256px' : '0px';
       // const menuButton = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
       // menuButton.style.marginRight = margin;
-      this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowFolks? 150 : 0);
+      this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowPeers? 150 : 0);
     });
     this._canPostInit = false;
   }
@@ -331,42 +290,44 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** */
   private async selectPlay(spaceEh: EntryHashB64): Promise<void> {
-    console.log("Requested Play: " + spaceEh);
+    console.log("selectPlay()", spaceEh);
     let play = null;
-    // - Wait for store to be updated with newly created Play
-    // TODO: better to trigger select on subscribe of playStore
+    /** Wait for store to be updated with newly created Play */
+    // TODO: Remove this hack
     let time = 0;
-    while(!play && time < 2000) {
-      play = this._plays.value[spaceEh];
+    while(!play && time < 2 * 1000) {
+      play = this._dvm.getPlay(spaceEh);
       await delay(100);
       time += 100;
     }
     if (!play) {
-      console.error("selectPlay failed: Play not found in store")
-      return Promise.reject("Play not found in store")
+      console.error("selectPlay() failed: Play not found")
+      return Promise.reject("Play not found")
     }
 
-    // - Check if play should generate a new session for today
+    /** Check if play should generate a new session for today */
     if (play.space.meta.sessionCount < 0) {
       const today = new Intl.DateTimeFormat('en-GB', {timeZone: "America/New_York"}).format(new Date())
       let hasToday = false;
       Object.entries(play.sessions).map(
-        ([key, session]) => {
-          if (session.name == today /*"dummy-test-name"*/) {
+        ([name, sessionEh]) => {
+          if (name == today /*"dummy-test-name"*/) {
             hasToday = true;
           }
         })
       //console.log("hasToday: " + hasToday + " | " + play.space.name + " | " + today)
       if (!hasToday) {
-        await this._whereStore.createNextSession(spaceEh, today /*"dummy-test-name"*/)
+        await this._dvm.createNextSession(spaceEh, today /*"dummy-test-name"*/)
       }
     }
 
-    // - This will trigger a render()
+    /** (This will trigger a render()) */
     this._currentSpaceEh = spaceEh;
     this._currentTemplateEh = play.space.origin;
 
-    this.requestUpdate();
+    // FIXME check if space has a current session?
+
+    //this.requestUpdate();
 
     //console.log(" - selected template: " + this._currentTemplateEh);
 
@@ -380,10 +341,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** Hide Current play and select first available one */
   async archiveSpace() {
-    await this._whereStore.hidePlay(this._currentSpaceEh!)
+    await this._dvm.whereZvm.hidePlay(this._currentSpaceEh!)
     /** Select first play */
-    const spaces = this._plays.value;
-    const firstSpaceEh = this.getFirstVisiblePlay(spaces)
+    const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays)
     console.log({firstSpaceEh})
     this._currentSpaceEh = firstSpaceEh
     this.requestUpdate()
@@ -391,42 +351,55 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  async pingOthers() {
-    if (this._currentSpaceEh) {
-      // console.log("Pinging All")
-      await this._whereStore.pingOthers(this._currentSpaceEh, serializeHash(this.profileStore.myAgentPubKey))
-    }
+  async pingActiveOthers() {
+    //if (this._currentSpaceEh) {
+      console.log("Pinging All Others");
+      await this._dvm.pingPeers(this._currentSpaceEh, this._dvm.allCurrentOthers());
+    //}
+  }
+
+  /** */
+  async pingAllOthers() {
+    //if (this._currentSpaceEh) {
+    console.log("Pinging All Others");
+    const agents = this._dvm.profilesZvm.getAgents();
+    await this._dvm.pingPeers(this._currentSpaceEh, agents);
+    //}
   }
 
 
   /** */
+  async onDumpLogs() {
+    this._dvm.dumpLogs();
+  }
+
+  /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._whereStore.pullDht()
-    await this.profileStore.fetchAllProfiles()
-    await this.pingOthers()
-    await this._whereStore.getEntryDefs("where")
-    await this._whereStore.getEntryDefs("where_ludotheque")
-    await this._whereStore.getEntryDefs("where_playset")
-    await this._whereStore.getEntryDefs("where_integrity")
-    this.requestUpdate();
+    await this._dvm.probeAll();
+    await this.pingAllOthers();
   }
 
 
-  async openTemplateDialog(templateEh?: any) {
+  /** */
+  async openTemplateDialog(templateEh?: EntryHashB64) {
     this.templateDialogElem.clearAllFields();
-    this.templateDialogElem.open(templateEh);
+    const template = templateEh? this._dvm.playsetZvm.getTemplate(templateEh) : undefined;
+    this.templateDialogElem.open(template);
   }
 
+  /** */
   async openArchiveDialog() {
     this.archiveDialogElem.open();
   }
 
+  /** */
   async openSpaceDialog(spaceEh?: EntryHashB64) {
-    this.spaceDialogElem.resetAllFields();
-    this.spaceDialogElem.open(spaceEh);
-    if (spaceEh) {
-      this.spaceDialogElem.loadPreset(spaceEh);
+    const maybePlay = spaceEh? this._dvm.getPlay(spaceEh) : undefined;
+    this.playDialogElem.resetAllFields();
+    this.playDialogElem.open(maybePlay);
+    if (maybePlay) {
+      this.playDialogElem.loadPreset();
     }
   }
 
@@ -438,23 +411,46 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       return;
     }
     const value = this.playListElem.items[index].value;
-    this.selectPlay(value);
+    await this.selectPlay(value);
   }
 
 
   /** */
+  private async onTemplateCreated(e: any) {
+    const template = e.detail as TemplateEntry;
+    const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
+    this._dvm.notifyPeers(
+      {maybeSpaceHash: null, from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      this._dvm.allCurrentOthers(),
+    )
+  }
+
+  /** */
+  private async onPlayCreated(e: any) {
+    console.log("onPlayCreated()", e.detail)
+    const newPlayInput = e.detail;
+    const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
+    /* - Notify others */
+    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._dvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
+    /* */
+    await this.selectPlay(spaceEh);
+  }
+
+
+
+  /** */
   private async handleArchiveDialogClosing(e: any) {
-    const spaces = this._plays.value;
     /** Check if current play has been archived */
     if (e.detail.includes(this._currentSpaceEh)) {
       /** Select first visible play */
-      const firstSpaceEh = this.getFirstVisiblePlay(spaces);
+      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
       this._currentSpaceEh = firstSpaceEh;
       this.requestUpdate();
     }
   }
 
-
+  /** */
   handleViewArchiveSwitch(e: any) {
     // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
     // this.canViewArchive = e.originalTarget.checked;
@@ -462,6 +458,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
   }
 
 
+  /** */
   openTopMenu() {
     const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
     menu.open = true;
@@ -489,14 +486,14 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
         break;
       case "export_template":
         if (this._currentTemplateEh && this.ludoCellId) {
-          this._whereStore.exportPiece(this._currentTemplateEh, PieceType.Template, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh!, PieceType.Template, this.ludoCellId!)
         } else {
           console.warn("No template or ludotheque cell to export to");
         }
         break;
       case "export_space":
         if (this._currentSpaceEh && this.ludoCellId) {
-          this._whereStore.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
         } else {
           console.warn("No space or ludotheque cell to export to");
         }
@@ -515,11 +512,11 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
     const profile = this._myProfile!;
-    await this.updateProfile(profile.nickname, profile.fields['avatar'], color)
+    await this.setMyProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
   private async handleSpaceClick(event: any) {
-    await this.pingOthers();
+    await this.pingActiveOthers();
   }
 
   handleAvatarClicked(key: AgentPubKeyB64) {
@@ -533,42 +530,43 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 
   /** */
   render() {
-    console.log("where-controller render() - " + this._currentSpaceEh);
+    console.log("<where-page> render()", this._initialized, this._currentSpaceEh);
     if (!this._initialized) {
-      return html`<span>Loading...</span>`;
+      return html`<span>${msg('Loading')}...</span>`;
     }
+
+    // DEBUG
+    //console.log({WhereDnaPerspective: this.perspective})
+    //console.log({PlaysetPerspective: this._dvm.playsetZvm.perspective})
+
+    // LOCALIZATION
     //var userLang = navigator.language
     //console.log({userLang})
 
+    /* -- Grab things from the perspective -- */
 
-    if (!this._currentSpaceEh) {
-      /** Select first play  if none is set */
-      const firstSpaceEh = this.getFirstVisiblePlay(this._plays.value);
-      if (firstSpaceEh) {
-        this.selectPlay(firstSpaceEh);
-        //console.log("starting Template: ", /*templates[this._currentTemplateEh!].name,*/ this._currentTemplateEh);
-        //console.log("    starting Play: ", plays[firstSpaceEh].space.name, this._currentSpaceEh);
-        //console.log(" starting Session: ", plays[firstSpaceEh].name, this._currentSpaceEh);
-      }
-    }
+    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey);
 
+
+    /* -- Build elements -- */
 
     if (this.drawerElem) {
-      this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowFolks ? 150 : 0);
+      this._neighborWidth = (this.drawerElem.open ? 256 : 0) + (this._canShowPeers ? 150 : 0);
     }
+
     /** Build play list */
     let spaceName = "none"
-    const playItems = Object.entries(this._plays.value).map(
-      ([key, play]) => {
-        if (!play.visible) {
+    const playItems = Object.entries(this.perspective.plays).map(
+      ([spaceEh, play]) => {
+        if (!this._dvm.getVisibility(spaceEh)!) {
           return html ``;
         }
-        if (key == this._currentSpaceEh) {
+        if (spaceEh == this._currentSpaceEh) {
           spaceName = play.space.name;
         }
-        const template = this._whereStore.template(play.space.origin);
+        const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         return html`
-          <mwc-list-item class="space-li" .selected=${key == this._currentSpaceEh} multipleGraphics twoline value="${key}" graphic="large">
+          <mwc-list-item class="space-li" .selected=${spaceEh == this._currentSpaceEh} multipleGraphics twoline value="${spaceEh}" graphic="large">
             <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>
@@ -587,7 +585,6 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-list-item twoline graphic="avatar" hasMeta>
       ${!this._myProfile ? html`` : html`
       <span>${this.myNickName}</span>
-      <span slot="secondary">${serializeHash(this.profileStore.myAgentPubKey)}</span>
       <sl-avatar style="margin-left:-22px;border:none;background-color:${this.myColor};" slot="graphic" .image=${this.myAvatar}></sl-avatar>
         <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
         value=${this._myProfile.fields['color']}></sl-color-picker>
@@ -614,8 +611,9 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where - ${spaceName}</div>
-      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button-toggle>
-        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowFolks = !this._canShowFolks}></mwc-icon-button> -->
+      <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
+      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
+        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
       <mwc-icon-button id="where-menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
@@ -633,18 +631,18 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       ${this._currentSpaceEh ?
         html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">${msg('No space found')}</div>`}
-      ${this._canShowFolks ?
-      html`<where-folks id="where-folks" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-folks>`
+      ${this._canShowPeers ?
+      html`<where-peer-list id="where-peer-list" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-peer-list>`
     : html``}
 
     </div>
     <!-- DIALOGS -->
-    <where-archive-dialog id="archive-dialog" @archive-update="${this.handleArchiveDialogClosing}"></where-archive-dialog>
-    <where-template-dialog id="template-dialog" .store="${this._whereStore}" @template-created=${(e:any) => console.log(e.detail)}></where-template-dialog>
+    <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
+    <where-template-dialog id="template-dialog" @template-created=${this.onTemplateCreated}></where-template-dialog>
     ${!this._myProfile ? html`` : html`
-      <where-play-dialog id="space-dialog"
+      <where-play-dialog id="play-dialog"
                           .currentProfile=${this._myProfile}
-                          @play-added=${(e:any) => this.selectPlay(e.detail)}>
+                          @play-created=${this.onPlayCreated}>
       </where-play-dialog>
     `}
   </div>
@@ -652,6 +650,8 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
 `;
   }
 
+
+  /** */
   static get scopedElements() {
     return {
       "mwc-menu": Menu,
@@ -671,7 +671,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
-      "where-folks": WhereFolks,
+      "where-peer-list": WherePeerList,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
       'sl-tooltip': SlTooltip,
@@ -680,6 +680,7 @@ export class WhereController extends ScopedElementsMixin(LitElement) {
     };
   }
 
+  /** */
   static get styles() {
     return [
       sharedStyles,

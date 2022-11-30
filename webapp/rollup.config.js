@@ -11,10 +11,11 @@ import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 import { terser } from "rollup-plugin-terser";
 import { generateSW } from "rollup-plugin-workbox";
 import path from "path";
+//const pkg = require("./package.json");
 
-const pkg = require("./package.json");
+const HC_APP_PORT = process.env.HC_APP_PORT || 8888;
+const HC_ADMIN_PORT = process.env.HC_ADMIN_PORT || 8889;
 
-const HC_PORT = process.env.HC_PORT || 8888;
 const DIST_FOLDER = "dist"
 
 export default {
@@ -29,7 +30,7 @@ export default {
   watch: {
     clearScreen: false,
   },
-  external: [],
+  //external: [],
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
@@ -45,16 +46,16 @@ export default {
     replace({
       "process.env.NODE_ENV": '"production"',
       "process.env.ENV": `"${process.env.ENV}"`,
-      "process.env.HC_PORT": `"${HC_PORT}"`,
+      "process.env.HC_APP_PORT": `"${HC_APP_PORT}"`,
+      "process.env.HC_ADMIN_PORT": `"${HC_ADMIN_PORT}"`,
       "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
       "preventAssignment": true,
     }),
-    builtins(),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
-    commonjs(),
+    builtins(),
     //globals(),
     /** Minify JS */
-    terser(),
+    //terser(),
     /** Bundle assets references via import.meta.url */
     importMetaAssets(),
     /** Compile JS to a lower language target */
@@ -111,5 +112,6 @@ export default {
       clientsClaim: true,
       runtimeCaching: [{ urlPattern: "polyfills/*.js", handler: "CacheFirst" }],
     }),
+    commonjs(),
   ],
 };

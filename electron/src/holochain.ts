@@ -35,7 +35,7 @@ export function stateSignalToText(state: StateSignal): StateSignalText {
 
 const whereDnaPath = app.isPackaged
   ? path.join(app.getAppPath(), '../app/bin/where.happ')
-  : path.join(app.getAppPath(), '../dna/workdir/happ-where/where.happ')
+  : path.join(app.getAppPath(), '../artifacts/where.happ')
 
 //console.log({whereDnaPath})
 

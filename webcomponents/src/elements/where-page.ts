@@ -26,7 +26,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
-import {DnaElement} from "@ddd-qc/dna-client";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
@@ -51,7 +51,7 @@ tmpl.innerHTML = `
 @localized()
 export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super(WhereDvm.DEFAULT_ROLE_ID);
+    super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
   }
 
   /** Properties */

@@ -1,6 +1,6 @@
 import { state } from "lit/decorators.js";
 import { html } from "lit";
-import {cellContext, ConductorAppProxy, HappElement, HappViewModel} from "@ddd-qc/dna-client";
+import {cellContext, ConductorAppProxy, HappElement, HappViewModel} from "@ddd-qc/lit-happ";
 import {setLocale, DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm, LudothequePage} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
@@ -46,7 +46,7 @@ export class LudothequeStandaloneApp extends HappElement {
 
 
   /** QoL */
-  get ludothequeDvm(): LudothequeDvm { return this.hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)! as LudothequeDvm }
+  get ludothequeDvm(): LudothequeDvm { return this.hvm.getDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME)! as LudothequeDvm }
 
 
   private onSignal(signal: AppSignal): void {
@@ -56,10 +56,10 @@ export class LudothequeStandaloneApp extends HappElement {
   /** */
   async firstUpdated() {
     new ContextProvider(this, cellContext, this.ludothequeDvm.installedCell);
-    this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.cellId);
+    this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.hcl.toString());
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {
-      const ludoDnaHashB64 = this.hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)!.dnaHash;
+      const ludoDnaHashB64 = this.hvm.getDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }

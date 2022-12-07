@@ -14,7 +14,7 @@ import {Coord, LocationInfo, LocOptions, PlacementSession, Play, WhereLocation, 
 import {EmojiGroupEntry, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {MarkerType} from "../viewModels/playset.perspective";
-import {DnaElement} from "@ddd-qc/dna-client";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
@@ -44,7 +44,7 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 @localized()
 export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   constructor() {
-    super(WhereDvm.DEFAULT_ROLE_ID);
+    super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
     this.addEventListener("wheel", this._handleWheel);
   }
 

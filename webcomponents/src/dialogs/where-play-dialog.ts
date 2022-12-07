@@ -22,7 +22,7 @@ import {
 } from "../viewModels/where.perspective";
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
-import {ZomeElement} from "@ddd-qc/dna-client";
+import {ZomeElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
 

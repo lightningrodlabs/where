@@ -1,4 +1,4 @@
-import {ZomeProxy} from "@ddd-qc/dna-client";
+import {ZomeProxy} from "@ddd-qc/lit-happ";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {CellId} from "@holochain/client";
 import {EmojiGroupEntry, GetInventoryOutput, SpaceEntry, SvgMarkerEntry, TemplateEntry} from "./playset.bindings";

@@ -1,4 +1,4 @@
-import {ZomeViewModel} from "@ddd-qc/dna-client";;
+import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {ProfilesProxy, WhereProfile} from "./profiles.proxy";
 import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {deserializeHash, serializeHash} from "@holochain-open-dev/utils";

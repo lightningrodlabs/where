@@ -1,5 +1,5 @@
 import { AgentPubKey, Record as HcRecord } from '@holochain/client';
-import {ZomeProxy} from "@ddd-qc/dna-client";
+import {ZomeProxy} from "@ddd-qc/lit-happ";
 
 export interface WhereProfile {
   nickname: string;

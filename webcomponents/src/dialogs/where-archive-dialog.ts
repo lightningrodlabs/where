@@ -3,7 +3,7 @@ import { state, query } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
 import {Dialog, Button, CheckListItem, List} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
-import {DnaElement} from "@ddd-qc/dna-client";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 
 
@@ -11,7 +11,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 @localized()
 export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super(WhereDvm.DEFAULT_ROLE_ID);
+    super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
   }
 
   @query('#space-list')

@@ -5,7 +5,7 @@ import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
 import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
-import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/dna-client";
+import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/lit-happ";
 import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
 import {ContextProvider} from "@lit-labs/context";
@@ -64,8 +64,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   /** -- Getters -- */
 
-  get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)! as WhereDvm }
-  get ludothequeDvm(): LudothequeDvm { return this._hvm.getDvm(LudothequeDvm.DEFAULT_ROLE_ID)! as LudothequeDvm}
+  get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm }
+  get ludothequeDvm(): LudothequeDvm { return this._hvm.getDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME)! as LudothequeDvm}
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -108,14 +108,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.dnaHash;
+      const whereDnaHashB64 = this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }
 
     /** ProfilesStore used by <create-profile> */
     if (!profilesStore) {
-      const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)!.installedCell;
+      const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.installedCell;
       const whereClient = new CellClient(hcClient, whereCell);
       const profilesService = new ProfilesService(whereClient, "zProfiles");
       profilesStore = new ProfilesStore(profilesService, {
@@ -128,7 +128,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
     await this._hvm.probeAll();
-    let profileZvm = (this._hvm.getDvm(WhereDvm.DEFAULT_ROLE_ID)! as WhereDvm).profilesZvm;
+    let profileZvm = (this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm).profilesZvm;
     const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
     console.log({me})
     if (me) {

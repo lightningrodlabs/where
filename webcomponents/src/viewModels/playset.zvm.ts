@@ -2,7 +2,7 @@ import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
 import {EmojiGroupEntry, GetInventoryOutput, PieceType, SpaceEntry, SvgMarkerEntry, TemplateEntry
 } from "./playset.bindings";
-import {ZomeViewModel} from "@ddd-qc/dna-client";
+import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetProxy} from "./playset.proxy";
 import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, Space} from "./playset.perspective";
 

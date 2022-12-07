@@ -14,7 +14,7 @@ import {AgentPubKeyMap, deserializeHash} from "@holochain-open-dev/utils";
 import { sharedStyles } from "../sharedStyles";
 import {MARKER_WIDTH} from "../sharedRender";
 import {g_stringStore} from "../stringStore";
-import {DnaElement} from "@ddd-qc/dna-client";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
@@ -24,7 +24,7 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 @localized()
 export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
-    super(WhereDvm.DEFAULT_ROLE_ID);
+    super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
   }
 
   /** -- Fields -- */

@@ -1,14 +1,12 @@
 ---
 manifest_version: "1"
 name: where-standalone
-description: ~
+description: Standalone happ for Where for testing purpose
 roles:
   - id: rWhere
     provisioning:
       strategy: create
-      deferred: false
+      deferred: true
     dna:
       bundled: "../../../artifacts/where.dna"
-      uid: ~
-      properties: ~
       clone_limit: 0

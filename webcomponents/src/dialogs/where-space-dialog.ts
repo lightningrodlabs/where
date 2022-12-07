@@ -21,7 +21,7 @@ import {
 } from "../viewModels/playset.bindings";
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
-import {ZomeElement} from "@ddd-qc/dna-client";
+import {ZomeElement} from "@ddd-qc/lit-happ";
 import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective";
 
 

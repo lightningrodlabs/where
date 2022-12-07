@@ -1,4 +1,4 @@
-import {ZomeProxy} from "@ddd-qc/dna-client";
+import {ZomeProxy} from "@ddd-qc/lit-happ";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {PlaysetEntry} from "./ludotheque.bindings";
 import {CellId} from "@holochain/client";

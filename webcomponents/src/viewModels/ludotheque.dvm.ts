@@ -2,7 +2,7 @@ import {PlaysetEntry} from "./ludotheque.bindings";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {MarkerType} from "./playset.perspective";
 import {EmojiGroupVariant, SvgMarkerVariant} from "./playset.bindings";
-import {DnaViewModel, HappViewModel} from "@ddd-qc/dna-client";
+import {DnaViewModel, HappViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";
 
@@ -15,7 +15,7 @@ import {LudothequeZvm} from "./ludotheque.zvm";
  */
 export class LudothequeDvm extends DnaViewModel {
 
-  static readonly DEFAULT_ROLE_ID = "rLudotheque";
+  static readonly DEFAULT_BASE_ROLE_NAME = "rLudotheque";
   static readonly ZVM_DEFS = [PlaysetZvm, LudothequeZvm]
   readonly signalHandler = undefined;
 

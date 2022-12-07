@@ -3,7 +3,7 @@ import {WhereProxy} from './where.proxy';
 import {Coord, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo,
   HereInfo, convertHereToLocation, PlacementSession, PlayManifest
 } from "./where.perspective";
-import {ZomeViewModel} from "@ddd-qc/dna-client";
+import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {WhereSignal} from "./where.signals";
 
 

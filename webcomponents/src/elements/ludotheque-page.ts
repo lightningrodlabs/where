@@ -24,7 +24,7 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {DnaElement} from "@ddd-qc/dna-client";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {serializeHash} from "@holochain-open-dev/utils";
 
 /** Styles for top-app-bar */
@@ -47,7 +47,7 @@ tmpl.innerHTML = `
 @localized()
 export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   constructor() {
-    super(LudothequeDvm.DEFAULT_ROLE_ID);
+    super(LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
   }
   /** -- Properties -- */
 

@@ -1,5 +1,5 @@
 import {EntryHashB64, ActionHashB64, Dictionary, AgentPubKeyB64} from '@holochain-open-dev/core-types';
-import {ZomeProxy} from "@ddd-qc/dna-client";
+import {ZomeProxy} from "@ddd-qc/lit-happ";
 import {AddHereInput, HereOutput, PlacementSessionEntry} from "./where.bindings";
 import {WhereSignal} from "./where.signals";
 

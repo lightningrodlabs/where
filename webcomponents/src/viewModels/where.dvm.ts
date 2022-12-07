@@ -10,7 +10,7 @@ import {
   convertSessionToEntry, HereInfo,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
-import {areCellsEqual, DnaViewModel} from "@ddd-qc/dna-client";
+import {areCellsEqual, DnaViewModel} from "@ddd-qc/lit-happ";
 import {SpaceEntry} from "./playset.bindings";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
@@ -40,7 +40,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** -- DnaViewModel Interface -- */
 
-  static readonly DEFAULT_ROLE_ID = "rWhere";
+  static readonly DEFAULT_BASE_ROLE_NAME = "rWhere";
   static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesZvm]
   readonly signalHandler = this.handleSignal;
 
@@ -217,10 +217,10 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async probeAll(): Promise<void> {
-    console.log(`${this.roleId}.probeAll()...`)
+    console.log(`${this.roleInstanceId}.probeAll()...`)
     await super.probeAll();
     await this.probeAllPlays();
-    console.log(`${this.roleId}.probeAll() Done.`);
+    console.log(`${this.roleInstanceId}.probeAll() Done.`);
     console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
   }
 

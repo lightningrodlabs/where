@@ -1,15 +1,12 @@
 ---
 manifest_version: "1"
 name: hLudotheque
-description: ~
+description: Ludotheque standalone happ
 roles:
   - id: rLudotheque
     provisioning:
       strategy: create
-      deferred: false
+      deferred: true
     dna:
       bundled: "../../../artifacts/ludotheque.dna"
-      properties: ~
-      uid: ~
-      version: ~
       clone_limit: 0

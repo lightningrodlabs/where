@@ -1,8 +1,6 @@
 ---
 manifest_version: "1"
 name: dLudotheque
-uuid: 00000000-0000-0000-0000-000000000000
-properties: ~
 integrity:
   origin_time: 2022-09-25T13:55:49.200Z
   zomes:

@@ -9,7 +9,7 @@ roles:
       deferred: true
     dna:
       bundled: "../../../artifacts/ludotheque.dna"
-      clone_limit: 0
+      clone_limit: 10
   - id: rWhere
     provisioning:
       strategy: create

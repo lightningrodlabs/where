@@ -1,6 +1,6 @@
 ---
 manifest_version: "1"
-name: where
+name: wWhere
 ui:
   bundled: "../where-web-ui.zip"
 happ_manifest:

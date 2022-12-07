@@ -24,7 +24,7 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {DnaElement} from "@ddd-qc/lit-happ";
+import {DnaElement, RoleCells} from "@ddd-qc/lit-happ";
 import {serializeHash} from "@holochain-open-dev/utils";
 
 /** Styles for top-app-bar */
@@ -53,6 +53,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   @property()
   whereCellId: CellId | null = null;
+
+  @property()
+  cloneName: string = "standalone";
 
   @property({ type: Boolean, attribute: 'examples' })
   canLoadExamples: boolean = false;
@@ -767,7 +770,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">${msg('Library')}</div>
+      <div slot="title">${msg('Library')}: ${this.cloneName}</div>
 
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>

@@ -4,12 +4,13 @@ import { msg } from '@lit/localize';
 import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
-import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
-import {CellContext, ConductorAppProxy, HappViewModel, delay} from "@ddd-qc/lit-happ";
+import {AppSignal, AppWebsocket, CellId, InstalledAppId} from "@holochain/client";
+import {CellContext, ConductorAppProxy, HappViewModel, delay, RoleCells, HCL} from "@ddd-qc/lit-happ";
 import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
 import {ContextProvider} from "@lit-labs/context";
 import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
+import * as net from "net";
 
 
 /** -- Globals -- */
@@ -49,6 +50,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   private _conductorAppProxy!: ConductorAppProxy;
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
+  @state() private _ludoRoleCells!: RoleCells;
+  //private _curLudoCellId?: CellId;
+
+  @state() private _curLudoName: string = "default";
+
 
   /** */
   // constructor(port_or_socket?: number | AppWebsocket, appId?: InstalledAppId) {
@@ -65,7 +71,14 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   /** -- Getters -- */
 
   get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm }
-  get ludothequeDvm(): LudothequeDvm { return this._hvm.getDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME)! as LudothequeDvm}
+  get ludothequeDvm(): LudothequeDvm {
+    const hcl = this._curLudoName !== "default"
+      ? new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, -1, this._curLudoName) /* cloneIndex will not be used */
+      : new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    const maybeDvm = this._hvm.getDvm(hcl);
+    if (!maybeDvm) console.error("DVM not found for ludotheque " + hcl.toString(), this._hvm);
+    return maybeDvm! as LudothequeDvm;
+  }
 
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
@@ -101,21 +114,25 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const hvmDef = DEFAULT_WHERE_DEF;
     if (appId) {hvmDef.id = appId};
-    this._hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
+    const hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
 
     /* Do this if not providing cellContext via <cell-context> */
     //new ContextProvider(this, cellContext, this.whereDvm.installedCell)
 
     /** Send Where dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
+      const whereDnaHashB64 = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }
 
+    /** Grab ludo cells */
+    this._ludoRoleCells = await this._conductorAppProxy.fetchCells(hvmDef.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+
+
     /** ProfilesStore used by <create-profile> */
     if (!profilesStore) {
-      const whereCell = this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.installedCell;
+      const whereCell = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.installedCell;
       const whereClient = new CellClient(hcClient, whereCell);
       const profilesService = new ProfilesService(whereClient, "zProfiles");
       profilesStore = new ProfilesStore(profilesService, {
@@ -127,14 +144,15 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     new ContextProvider(this, profilesStoreContext, profilesStore);
 
 
-    await this._hvm.probeAll();
-    let profileZvm = (this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm).profilesZvm;
+    await hvm.probeAll();
+    let profileZvm = (hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm).profilesZvm;
     const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
     console.log({me})
     if (me) {
       this._hasStartingProfile = true;
     }
-
+    /** Done. Trigger update */
+    this._hvm = hvm;
   }
 
 
@@ -157,6 +175,28 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     //console.log("onNewProfile()", profile)
     await this.whereDvm.profilesZvm.createMyProfile(profile);
     this._hasStartingProfile = true;
+  }
+
+
+  /** */
+  async onShowLudo(cloneName: string) {
+    this._curLudoName = cloneName;
+    this._canLudotheque = true;
+  }
+
+
+  /** */
+  async onAddLudoClone(cloneName: string) {
+    console.log("onAddLudoClone()", cloneName);
+    if (this._ludoRoleCells.clones[cloneName]) {
+      console.warn(`AddLudoClone() aborted. Ludotheque clone ${cloneName} already exists.`)
+      return;
+    }
+    const cellDef = { modifiers: {network_seed: cloneName}, cloneName}
+    const [cloneIndex, dvm] = await this._hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
+    console.log("Ludotheque clone created:", dvm.hcl.toString());
+    this._ludoRoleCells = await this._conductorAppProxy.fetchCells(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    this._curLudoName = cloneName;
   }
 
 
@@ -185,7 +225,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     /** Pages */
     const ludothequePage = html`
         <cell-context .installedCell="${this.ludothequeDvm.installedCell}">
-                  <ludotheque-page examples .whereCellId=${this.whereDvm.cellId}
+                  <ludotheque-page .cloneName="${this._curLudoName}" examples .whereCellId=${this.whereDvm.cellId}
                                          @import-playset-requested="${this.handleImportRequest}"
                                          @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-page>
@@ -194,7 +234,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     const wherePage = html`
         <cell-context .installedCell="${this.whereDvm.installedCell}">
-            <where-page .ludoCellId=${this.ludothequeDvm.cellId} @show-ludotheque="${() => this._canLudotheque = true}"></where-page>
+            <where-page 
+                    .ludoRoleCells=${this._ludoRoleCells} 
+                    @show-ludotheque="${(e:any) => this.onShowLudo(e.detail)}"
+                    @add-ludotheque="${(e:any) => this.onAddLudoClone(e.detail)}"
+            ></where-page>
         </cell-context>
     `;
 

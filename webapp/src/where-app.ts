@@ -223,11 +223,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
         </mwc-dialog>
     `;
 
+    //.dvm="${this.ludothequeDvm}"
+
     /** Pages */
     const ludothequePage = html`
         <cell-context .installedCell="${this.ludothequeDvm.installedCell}">
                   <ludotheque-page examples
-                                   .dvm="${this.ludothequeDvm}"
                                    .whereCellId=${this.whereDvm.cellId}
                                    @import-playset-requested="${this.handleImportRequest}"
                                    @exit="${() => this._canLudotheque = false}"

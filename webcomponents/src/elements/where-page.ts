@@ -64,7 +64,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   ludoRoleCells: RoleCells | null = null;
 
   @property()
-  selectedLudo!: RoleInstanceId; // = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
+  selectedLudo!: RoleInstanceId;
 
   /** ViewModels */
 
@@ -674,7 +674,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar id="app-bar" dense>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
       <div slot="title">Where: ${spaceName} | ${this.selectedLudo}</div>
-      ${ludoCloneSelect}
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
         <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->
@@ -696,7 +695,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">${msg('No space found')}</div>`}
       ${this._canShowPeers ?
-      html`<where-peer-list id="where-peer-list" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;"></where-peer-list>`
+      html`
+        <where-peer-list id="where-peer-list" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;">
+        </where-peer-list>
+        ${ludoCloneSelect}`
     : html``}
 
     </div>

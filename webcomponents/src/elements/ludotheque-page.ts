@@ -1,4 +1,4 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {WhereSpace} from "./where-space";
@@ -24,9 +24,9 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {DnaElement, RoleInstanceId} from "@ddd-qc/lit-happ";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {serializeHash} from "@holochain-open-dev/utils";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
+
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -46,12 +46,12 @@ tmpl.innerHTML = `
  * @element ludotheque-page
  */
 @localized()
-export class LudothequePage extends ScopedElementsMixin(LitElement) {
+export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
+  constructor() {
+    super(LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+  }
 
   /** -- Properties -- */
-
-  @property()
-  dvm!: LudothequeDvm;
 
   @property()
   whereCellId: CellId | null = null;
@@ -128,8 +128,8 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /** After first render only */
   async firstUpdated() {
-    this.dvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
-    this.dvm.playsetZvm.subscribe(this, 'playsetPerspective');
+    this._dvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
+    this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
     await this.init();
     /** add custom styles to TopAppBar */
     const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
@@ -141,16 +141,16 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   private async init() {
     console.log("ludotheque-page.init() - START");
     /** Get latest public entries from DHT */
-    await this.dvm.probeAll();
+    await this._dvm.probeAll();
     await this.probeInventory();
-    const playsets = this.dvm.ludothequeZvm.perspective.playsets
+    const playsets = this._dvm.ludothequeZvm.perspective.playsets
     //const templates = this._templates.value;
     console.log({playsets})
     //console.log({templates})
 
-    /** load initial plays & templates if there are none */
-    if (this.canLoadExamples && Object.keys(playsets).length == 0) {
-      await publishExamplePlayset(this.dvm);
+    /** load initial plays & templates if there are none (in base cell only) */
+    if (this.canLoadExamples && Object.keys(playsets).length == 0 && this._dvm.roleInstanceId === this._dvm.baseRoleName) {
+      await publishExamplePlayset(this._dvm);
       console.log("addExamplePieces() - DONE");
     }
     // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
@@ -194,7 +194,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /** */
   private async probeInventory() {
-    const inventory = await this.dvm.playsetZvm.probeInventory();
+    const inventory = await this._dvm.playsetZvm.probeInventory();
     const nextCount = countInventory(inventory);
     if (!this._inventory || nextCount > countInventory(this._inventory)) {
       this._inventory = inventory;
@@ -231,7 +231,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /** */
   async onDumpLogs() {
-    this.dvm.dumpLogs();
+    this._dvm.dumpLogs();
   }
 
 
@@ -243,7 +243,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!playset && time < 2000) {
-      playset = this.dvm.ludothequeZvm.getPlayset(playsetEh);
+      playset = this._dvm.ludothequeZvm.getPlayset(playsetEh);
       await delay(100);
       time += 100;
     }
@@ -283,7 +283,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this.dvm.probeAll();
+    await this._dvm.probeAll();
   }
 
   /** */
@@ -320,7 +320,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this.dvm.playsetZvm.getEmojiGroup(groupEh)
+      group = this._dvm.playsetZvm.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -335,7 +335,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this.dvm.playsetZvm.getSvgMarker(eh)
+      svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
@@ -378,7 +378,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   private async handleSpaceDialogClosing(e: any) {
     console.log("handleSpaceDialogClosing()", e.detail)
     //const space = e.detail as Space;
-    this.dvm.playsetZvm.publishSpace(e.detail)
+    this._dvm.playsetZvm.publishSpace(e.detail)
   }
 
 
@@ -449,7 +449,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
       return;
     }
     /* Commit */
-    await this.dvm.ludothequeZvm.publishPlayset(this._currentPlayset!);
+    await this._dvm.ludothequeZvm.publishPlayset(this._currentPlayset!);
     /* Reset */
     this.resetCurrentPlayset();
     this._canCreatePlayset = false;
@@ -489,7 +489,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /** */
   private renderPlaysets() {
-    const items = Object.entries(this.dvm.ludothequeZvm.perspective.playsets).map(
+    const items = Object.entries(this._dvm.ludothequeZvm.perspective.playsets).map(
       ([key, playset]) => {
         // return html`
         //   <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
@@ -534,7 +534,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this.dvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
+                               @click=${() => this._dvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
         ></mwc-icon-button>
       `;
   }
@@ -542,10 +542,10 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /** */
   private renderSpaces() {
-    const items = Object.entries(this.dvm.playsetZvm.perspective.spaces).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
-        const template = this.dvm.playsetZvm.getTemplate(space.origin);
+        const template = this._dvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
@@ -575,7 +575,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   /** */
   private renderTemplates() {
     /* Render items */
-    const items = Object.entries(this.dvm.playsetZvm.perspective.templates).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
         const surface = JSON.parse(template.surface);
@@ -611,7 +611,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
   /** */
   private renderSvgMarkers() {
     /* Render items */
-    const items = Object.entries(this.dvm.playsetZvm.perspective.svgMarkers).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.svgMarkers).map(
       ([key, svgMarker]) => {
         const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
@@ -643,7 +643,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
 
   /* Render  */
   private renderEmojiGroups() {
-    const items = Object.entries(this.dvm.playsetZvm.perspective.emojiGroups).map(
+    const items = Object.entries(this._dvm.playsetZvm.perspective.emojiGroups).map(
       ([key, emojiGroup]) => {
         const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
         const itemContent = html`
@@ -685,7 +685,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
     console.log({PlaysetPerspective: this.playsetPerspective})
 
 
-    const playset = this._currentPlaysetEh? this.dvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
+    const playset = this._currentPlaysetEh? this._dvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
 
@@ -765,7 +765,7 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
     <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">${msg('Library')}: ${this.dvm.roleInstanceId}</div>
+      <div slot="title">${msg('Library')}: ${this._dvm.roleInstanceId}</div>
 
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
@@ -777,8 +777,8 @@ export class LudothequePage extends ScopedElementsMixin(LitElement) {
         <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
       </mwc-menu>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
-      ></mwc-icon-button>
+      ${this.whereCellId === null? html`` : html`<mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
+      ></mwc-icon-button>`}
     </mwc-top-app-bar>
     <!-- APP BODY -->
     <div class="appBody">

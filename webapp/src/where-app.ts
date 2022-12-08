@@ -5,7 +5,7 @@ import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
 import {AppSignal, AppWebsocket, CellId, InstalledAppId} from "@holochain/client";
-import {CellContext, ConductorAppProxy, HappViewModel, delay, RoleCells, HCL} from "@ddd-qc/lit-happ";
+import {CellContext, ConductorAppProxy, HappViewModel, delay, RoleCells, HCL, RoleInstanceId} from "@ddd-qc/lit-happ";
 import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
 import {ContextProvider} from "@lit-labs/context";
@@ -53,7 +53,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   @state() private _ludoRoleCells!: RoleCells;
   //private _curLudoCellId?: CellId;
 
-  @state() private _curLudoName: string = "default";
+  @state() private _curLudoRoleInstanceId: RoleInstanceId = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
 
 
   /** */
@@ -72,9 +72,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm }
   get ludothequeDvm(): LudothequeDvm {
-    const hcl = this._curLudoName !== "default"
-      ? new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, -1, this._curLudoName) /* cloneIndex will not be used */
-      : new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    //const hcl = this._curLudoRoleInstanceId !== LudothequeDvm.DEFAULT_BASE_ROLE_NAME
+      //? new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, -1, this._curLudoRoleInstanceId) /* cloneIndex will not be used */
+      //: new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    const hcl = new HCL(this._hvm.appId, this._curLudoRoleInstanceId);
     const maybeDvm = this._hvm.getDvm(hcl);
     if (!maybeDvm) console.error("DVM not found for ludotheque " + hcl.toString(), this._hvm);
     return maybeDvm! as LudothequeDvm;
@@ -179,8 +180,8 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  async onShowLudo(cloneName: string) {
-    this._curLudoName = cloneName;
+  async onShowLudo(roleInstanceId: RoleInstanceId) {
+    this._curLudoRoleInstanceId = roleInstanceId;
     this._canLudotheque = true;
   }
 
@@ -188,15 +189,15 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   /** */
   async onAddLudoClone(cloneName: string) {
     console.log("onAddLudoClone()", cloneName);
-    if (this._ludoRoleCells.clones[cloneName]) {
-      console.warn(`AddLudoClone() aborted. Ludotheque clone ${cloneName} already exists.`)
-      return;
-    }
-    const cellDef = { modifiers: {network_seed: cloneName}, cloneName}
+    // if (this._ludoRoleCells.clones[cloneName]) {
+    //   console.warn(`AddLudoClone() aborted. Ludotheque clone "${cloneName}" already exists.`)
+    //   return;
+    // }
+    const cellDef = { modifiers: {network_seed: cloneName}/*, cloneName: cloneName*/}
     const [cloneIndex, dvm] = await this._hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
     console.log("Ludotheque clone created:", dvm.hcl.toString());
     this._ludoRoleCells = await this._conductorAppProxy.fetchCells(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-    this._curLudoName = cloneName;
+    this._curLudoRoleInstanceId = dvm.roleInstanceId;
   }
 
 
@@ -225,9 +226,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     /** Pages */
     const ludothequePage = html`
         <cell-context .installedCell="${this.ludothequeDvm.installedCell}">
-                  <ludotheque-page .cloneName="${this._curLudoName}" examples .whereCellId=${this.whereDvm.cellId}
-                                         @import-playset-requested="${this.handleImportRequest}"
-                                         @exit="${() => this._canLudotheque = false}"
+                  <ludotheque-page examples
+                                   .dvm="${this.ludothequeDvm}"
+                                   .whereCellId=${this.whereDvm.cellId}
+                                   @import-playset-requested="${this.handleImportRequest}"
+                                   @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-page>
         </cell-context>
     `;
@@ -236,8 +239,9 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
         <cell-context .installedCell="${this.whereDvm.installedCell}">
             <where-page 
                     .ludoRoleCells=${this._ludoRoleCells} 
-                    @show-ludotheque="${(e:any) => this.onShowLudo(e.detail)}"
-                    @add-ludotheque="${(e:any) => this.onAddLudoClone(e.detail)}"
+                    .selectedLudo=${this._curLudoRoleInstanceId}
+                    @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
+                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
             ></where-page>
         </cell-context>
     `;

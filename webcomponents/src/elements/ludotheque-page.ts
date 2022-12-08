@@ -1,4 +1,4 @@
-import {css, html} from "lit";
+import {css, html, LitElement} from "lit";
 import {property, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {WhereSpace} from "./where-space";
@@ -24,8 +24,9 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {DnaElement, RoleCells} from "@ddd-qc/lit-happ";
+import {DnaElement, RoleInstanceId} from "@ddd-qc/lit-happ";
 import {serializeHash} from "@holochain-open-dev/utils";
+import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -45,17 +46,15 @@ tmpl.innerHTML = `
  * @element ludotheque-page
  */
 @localized()
-export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
-  constructor() {
-    super(LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-  }
+export class LudothequePage extends ScopedElementsMixin(LitElement) {
+
   /** -- Properties -- */
 
   @property()
-  whereCellId: CellId | null = null;
+  dvm!: LudothequeDvm;
 
   @property()
-  cloneName: string = "standalone";
+  whereCellId: CellId | null = null;
 
   @property({ type: Boolean, attribute: 'examples' })
   canLoadExamples: boolean = false;
@@ -74,8 +73,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   @state() private _inventory: Inventory | null = null;
 
-  private _initialized: boolean = false;
-  private _initializing: boolean = false;
+  @state() private _initialized: boolean = false;
   private _canPostInit: boolean = false;
   private _canCreatePlayset: boolean = false;
 
@@ -127,14 +125,80 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** -- Methods -- */
 
+
+  /** After first render only */
+  async firstUpdated() {
+    this.dvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
+    this.dvm.playsetZvm.subscribe(this, 'playsetPerspective');
+    await this.init();
+    /** add custom styles to TopAppBar */
+    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
+    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
+  }
+
+
   /** */
-  private probeInventory() {
-    this._dvm.playsetZvm.probeInventory().then(inventory => {
-      const nextCount = countInventory(inventory);
-      if (!this._inventory || nextCount > countInventory(this._inventory)) {
-        this._inventory = inventory;
+  private async init() {
+    console.log("ludotheque-page.init() - START");
+    /** Get latest public entries from DHT */
+    await this.dvm.probeAll();
+    await this.probeInventory();
+    const playsets = this.dvm.ludothequeZvm.perspective.playsets
+    //const templates = this._templates.value;
+    console.log({playsets})
+    //console.log({templates})
+
+    /** load initial plays & templates if there are none */
+    if (this.canLoadExamples && Object.keys(playsets).length == 0) {
+      await publishExamplePlayset(this.dvm);
+      console.log("addExamplePieces() - DONE");
+    }
+    // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
+    //   console.warn("No plays or templates found")
+    // }
+
+    /** Drawer */
+    if (this.drawerElem) {
+      const container = this.drawerElem.parentNode!;
+      container.addEventListener('MDCTopAppBar:nav', () => {
+        this.drawerElem.open = !this.drawerElem.open;
+        const margin = this.drawerElem.open? '256px' : '0px';
+        const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
+        menuButton.style.marginRight = margin;
+      });
+    }
+    /** Done */
+    this._canPostInit = true;
+    this._initialized = true
+    console.log("ludotheque-page.init() - DONE");
+  }
+
+
+  /** */
+  async updated(changedProperties: any) {
+    if (this._canPostInit) {
+      /** Anchor Menu */
+      const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
+      const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
+      console.log("Ludo: Anchoring Menu to top button", menu, button)
+      if (menu && button) {
+        menu.anchor = button
+        console.log({menu})
+        this._canPostInit = false;
+        this.requestUpdate()
       }
-    });
+    }
+    await this.probeInventory();
+  }
+
+
+  /** */
+  private async probeInventory() {
+    const inventory = await this.dvm.playsetZvm.probeInventory();
+    const nextCount = countInventory(inventory);
+    if (!this._inventory || nextCount > countInventory(this._inventory)) {
+      this._inventory = inventory;
+    }
   }
 
 
@@ -165,80 +229,13 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   }
 
 
-  /** After first render only */
-  async firstUpdated() {
-    this._dvm.ludothequeZvm.subscribe(this, 'ludothequePerspective');
-    this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
-    await this.init();
-    /** add custom styles to TopAppBar */
-    const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
-    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
-  }
-
-
-  /** */
-  private async init() {
-    if (this._initialized) {
-      return;
-    }
-    this._initializing = true
-    console.log("ludotheque-page.init() - START");
-    /** Get latest public entries from DHT */
-    await this._dvm.probeAll();
-    const playsets = this._dvm.ludothequeZvm.perspective.playsets
-    //const templates = this._templates.value;
-    console.log({playsets})
-    //console.log({templates})
-
-    /** load initial plays & templates if there are none */
-    if (this.canLoadExamples && Object.keys(playsets).length == 0) {
-      await publishExamplePlayset(this._dvm);
-      console.log("addExamplePieces() - DONE");
-    }
-    // if (Object.keys(plays).length == 0 || Object.keys(templates).length == 0) {
-    //   console.warn("No plays or templates found")
-    // }
-
-    /** Drawer */
-    if (this.drawerElem) {
-      const container = this.drawerElem.parentNode!;
-      container.addEventListener('MDCTopAppBar:nav', () => {
-        this.drawerElem.open = !this.drawerElem.open;
-        const margin = this.drawerElem.open? '256px' : '0px';
-        const menuButton = this.shadowRoot!.getElementById("menu-button") as IconButton;
-        menuButton.style.marginRight = margin;
-      });
-    }
-    /** Done */
-    this._initialized = true
-    this._canPostInit = true;
-    this._initializing = false
-    this.requestUpdate();
-    console.log("ludotheque-page.init() - DONE");
-  }
-
-
-  /** */
-  updated(changedProperties: any) {
-    if (this._canPostInit) {
-      /** Anchor Menu */
-      const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
-      const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
-      console.log("Ludo: Anchoring Menu to top button", menu, button)
-      if (menu && button) {
-        menu.anchor = button
-        console.log({menu})
-        this._canPostInit = false;
-        this.requestUpdate()
-      }
-    }
-  }
-
   /** */
   async onDumpLogs() {
-    this._dvm.dumpLogs();
+    this.dvm.dumpLogs();
   }
 
+
+  /** */
   private async selectPlayset(playsetEh: EntryHashB64): Promise<void> {
     console.log("selectPlayset() " + playsetEh);
     let playset = null;
@@ -246,7 +243,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     // TODO: better to trigger select on subscribe of playStore
     let time = 0;
     while(!playset && time < 2000) {
-      playset = this._dvm.ludothequeZvm.getPlayset(playsetEh);
+      playset = this.dvm.ludothequeZvm.getPlayset(playsetEh);
       await delay(100);
       time += 100;
     }
@@ -286,7 +283,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._dvm.probeAll();
+    await this.dvm.probeAll();
   }
 
   /** */
@@ -323,7 +320,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   async openEmojiGroupDialog(groupEh: EntryHashB64 | null) {
     let group = undefined;
     if (groupEh) {
-      group = this._dvm.playsetZvm.getEmojiGroup(groupEh)
+      group = this.dvm.playsetZvm.getEmojiGroup(groupEh)
     }
     const dialog = this.emojiGroupDialogElem;
     dialog.clearAllFields();
@@ -338,7 +335,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   async openSvgMarkerDialog(eh: EntryHashB64 | null) {
     let svgMarker = undefined;
     if (eh) {
-      svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)
+      svgMarker = this.dvm.playsetZvm.getSvgMarker(eh)
     }
     const dialog = this.svgMarkerDialogElem;
     dialog.clearAllFields();
@@ -381,7 +378,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   private async handleSpaceDialogClosing(e: any) {
     console.log("handleSpaceDialogClosing()", e.detail)
     //const space = e.detail as Space;
-    this._dvm.playsetZvm.publishSpace(e.detail)
+    this.dvm.playsetZvm.publishSpace(e.detail)
   }
 
 
@@ -452,7 +449,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       return;
     }
     /* Commit */
-    await this._dvm.ludothequeZvm.publishPlayset(this._currentPlayset!);
+    await this.dvm.ludothequeZvm.publishPlayset(this._currentPlayset!);
     /* Reset */
     this.resetCurrentPlayset();
     this._canCreatePlayset = false;
@@ -492,7 +489,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** */
   private renderPlaysets() {
-    const items = Object.entries(this._dvm.ludothequeZvm.perspective.playsets).map(
+    const items = Object.entries(this.dvm.ludothequeZvm.perspective.playsets).map(
       ([key, playset]) => {
         // return html`
         //   <mwc-list-item class="space-li" twoline value="${key}" graphic="large">
@@ -537,7 +534,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this._dvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
+                               @click=${() => this.dvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
         ></mwc-icon-button>
       `;
   }
@@ -545,10 +542,10 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** */
   private renderSpaces() {
-    const items = Object.entries(this._dvm.playsetZvm.perspective.spaces).map(
+    const items = Object.entries(this.dvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
         const icon = this.renderPieceIcon(key, PieceType.Space);
-        const template = this._dvm.playsetZvm.getTemplate(space.origin);
+        const template = this.dvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
@@ -578,7 +575,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   /** */
   private renderTemplates() {
     /* Render items */
-    const items = Object.entries(this._dvm.playsetZvm.perspective.templates).map(
+    const items = Object.entries(this.dvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
         const icon = this.renderPieceIcon(key, PieceType.Template);
         const surface = JSON.parse(template.surface);
@@ -614,7 +611,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   /** */
   private renderSvgMarkers() {
     /* Render items */
-    const items = Object.entries(this._dvm.playsetZvm.perspective.svgMarkers).map(
+    const items = Object.entries(this.dvm.playsetZvm.perspective.svgMarkers).map(
       ([key, svgMarker]) => {
         const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
@@ -646,7 +643,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /* Render  */
   private renderEmojiGroups() {
-    const items = Object.entries(this._dvm.playsetZvm.perspective.emojiGroups).map(
+    const items = Object.entries(this.dvm.playsetZvm.perspective.emojiGroups).map(
       ([key, emojiGroup]) => {
         const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
         const itemContent = html`
@@ -688,11 +685,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     console.log({PlaysetPerspective: this.playsetPerspective})
 
 
-    const playset = this._currentPlaysetEh? this._dvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
+    const playset = this._currentPlaysetEh? this.dvm.ludothequeZvm.getPlayset(this._currentPlaysetEh) : null;
 
     //this._activeIndex = -1
-    this.probeInventory();
-
 
     // let playsetItems = [html``];
     // if (playset) {
@@ -770,7 +765,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">${msg('Library')}: ${this.cloneName}</div>
+      <div slot="title">${msg('Library')}: ${this.dvm.roleInstanceId}</div>
 
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>

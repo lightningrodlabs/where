@@ -75,7 +75,7 @@ export class LudothequeStandaloneApp extends HappElement {
       return html`<span>${msg('Loading')}...</span>`;
     }
     return html`
-      <ludotheque-page examples @import-playset-requested="${this.handleImportRequest}"></ludotheque-page>
+      <ludotheque-page examples .dvm=${this.ludothequeDvm} @import-playset-requested="${this.handleImportRequest}"></ludotheque-page>
     `;
   }
 

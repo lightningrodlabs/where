@@ -26,7 +26,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
-import {DnaElement, RoleCells, RoleInstanceId} from "@ddd-qc/lit-happ";
+import {destructureRoleInstanceId, DnaElement, RoleCells, RoleInstanceId} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
@@ -97,8 +97,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   get ludoCellId(): CellId {
     //console.log("get ludoCellId() called", this.ludoRoleCells);
     if (this.selectedLudo == LudothequeDvm.DEFAULT_BASE_ROLE_NAME) return this.ludoRoleCells!.original.cell_id;
-    const maybeCell = this.ludoRoleCells!.clones[this.selectedLudo];
-    if (!maybeCell) return this.ludoRoleCells!.original.cell_id;
+    const maybePair = destructureRoleInstanceId(this.selectedLudo);
+    if (!maybePair) return this.ludoRoleCells!.original.cell_id;
+    const maybeCell = this.ludoRoleCells!.clones[String(maybePair[1])];
+    if (!maybeCell) {
+      console.error("Ludotheque not found", this.selectedLudo)
+      return this.ludoRoleCells!.original.cell_id;
+    }
     return maybeCell.cell_id;
   }
 
@@ -204,18 +209,18 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
 
     /** Get latest public entries from DHT */
-    await this._dvm.probeAll();
-    this.pingAllOthers();
+    /*await*/ this._dvm.probeAll()//.then(() => {
+      this.pingAllOthers();
 
-    /** Select first play if none is set */
-    if (!this._currentSpaceEh) {
-      const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
-      if (firstSpaceEh) {
-        await this.selectPlay(firstSpaceEh);
-        //return;
+      /** Select first play if none is set */
+      if (!this._currentSpaceEh) {
+        const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
+        if (firstSpaceEh) {
+          /*await*/ this.selectPlay(firstSpaceEh);
+          //return;
+        }
       }
-    }
-
+    //})
     /** Done */
     this._initialized = true
     this._canPostInit = true;

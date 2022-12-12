@@ -9,8 +9,8 @@ export type MarkerPiece = SvgMarkerVariant | EmojiGroupVariant
 
 
 export enum PieceType {
-  Template = 'template',
-  Space = 'space',
+  Template = 'Template',
+  Space = 'Space',
   SvgMarker = 'SvgMarker',
   EmojiGroup = 'EmojiGroup'
 }

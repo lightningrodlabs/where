@@ -5,7 +5,7 @@ import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, IconButton, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
-import {SvgMarkerEntry} from "../viewModels/playset.bindings";
+import {SvgMarker} from "../viewModels/playset.bindings";
 
 
 /**
@@ -18,8 +18,8 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  private _markerToPreload?: SvgMarkerEntry;
-  private _currentMarker: SvgMarkerEntry | null = null;
+  private _markerToPreload?: SvgMarker;
+  private _currentMarker: SvgMarker | null = null;
 
 
   @query('#name-field')
@@ -32,7 +32,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
   /** Public API */
 
-  open(marker?: SvgMarkerEntry) {
+  open(marker?: SvgMarker) {
     this._markerToPreload = marker;
     const dialog = this.shadowRoot!.getElementById("svg-marker-dialog") as Dialog
     dialog.open = true
@@ -75,7 +75,7 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  private createSvgMarker(): SvgMarkerEntry {
+  private createSvgMarker(): SvgMarker {
     let svg: any =  this._svgField.value
     return {
       name: this._nameField.value,

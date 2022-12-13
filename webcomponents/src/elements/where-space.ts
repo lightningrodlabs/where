@@ -10,8 +10,8 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {localized, msg} from '@lit/localize';
-import {Coord, LocationInfo, LocOptions, PlacementSession, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
-import {EmojiGroupEntry, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
+import {Coord, LocationInfo, LocOptions, TypedPlacementSession, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
+import {EmojiGroup, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {MarkerType} from "../viewModels/playset.perspective";
 import {DnaElement} from "@ddd-qc/lit-happ";
@@ -691,7 +691,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroupEntry = this._dvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
+      const emojiGroup: EmojiGroup = this._dvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`

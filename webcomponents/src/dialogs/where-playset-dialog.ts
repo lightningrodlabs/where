@@ -6,7 +6,7 @@ import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
 import {Coord} from "../viewModels/where.perspective";
-import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
+import {Playset} from "../viewModels/ludotheque.bindings";
 
 
 /** @element where-playset-dialog */
@@ -18,7 +18,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
   /** Private properties */
 
-  _playsetToPreload?: PlaysetEntry;
+  _playsetToPreload?: Playset;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -33,7 +33,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
     this._descriptionField.value = this._playsetToPreload!.description;
   }
 
-  open(playset?: PlaysetEntry) {
+  open(playset?: Playset) {
     this._playsetToPreload = playset;
     const dialog = this.shadowRoot!.getElementById("playset-inner-dialog") as Dialog
     dialog.open = true
@@ -62,7 +62,7 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
 
 
   /** Create PlaysetEntry from fields */
-  private createEmptyPlayset(): PlaysetEntry {
+  private createEmptyPlayset(): Playset {
     return {
       name: this._nameField.value,
       description: this._descriptionField.value,

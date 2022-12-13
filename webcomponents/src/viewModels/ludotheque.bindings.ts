@@ -1,6 +1,6 @@
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 
-export interface PlaysetEntry {
+export interface Playset {
   name: string;
   description: string;
   templates: EntryHashB64[];

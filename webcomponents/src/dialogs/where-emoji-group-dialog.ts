@@ -4,7 +4,7 @@ import {sharedStyles} from "../sharedStyles";
 import {Button, Dialog, IconButton, ListItem, Select, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {localized, msg} from '@lit/localize';
-import {EmojiGroupEntry} from "../viewModels/playset.bindings";
+import {EmojiGroup} from "../viewModels/playset.bindings";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {ZomeElement} from "@ddd-qc/lit-happ";
@@ -21,9 +21,9 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
 
   /** Private properties */
 
-  private _groupToPreload?: EmojiGroupEntry;
+  private _groupToPreload?: EmojiGroup;
 
-  private _currentGroup: EmojiGroupEntry | null = null;
+  private _currentGroup: EmojiGroup | null = null;
 
 
   @query('#name-field')
@@ -36,7 +36,7 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
 
 
   /** */
-  open(emojiGroup?: EmojiGroupEntry) {
+  open(emojiGroup?: EmojiGroup) {
     this._groupToPreload = emojiGroup;
     const dialog = this.shadowRoot!.getElementById("emoji-group-dialog") as Dialog
     dialog.open = true
@@ -58,7 +58,7 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
 
 
   /** preload fields with current emojiGroup values */
-  async loadPreset(emojiGroup: EmojiGroupEntry) {
+  async loadPreset(emojiGroup: EmojiGroup) {
     this._nameField.value = msg('Fork of') + ' ' + emojiGroup.name;
     this._currentUnicodes = emojiGroup.unicodes
     this._currentGroup = emojiGroup
@@ -83,7 +83,7 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
 
 
   /** */
-  private createEmojiGroup(): EmojiGroupEntry {
+  private createEmojiGroup(): EmojiGroup {
     return {
       name: this._nameField.value,
       description: "",

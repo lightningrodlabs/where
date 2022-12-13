@@ -1,12 +1,12 @@
 import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 
-export interface HereEntry {
+export interface Here {
   value: string,
   sessionEh: EntryHashB64,
   meta: Dictionary<string>,
 }
 
-export interface PlacementSessionEntry {
+export interface PlacementSession {
   name: string,
   index: number,
   spaceEh: EntryHashB64,
@@ -22,7 +22,7 @@ export interface AddHereInput {
 
 
 export interface HereOutput {
-  entry: HereEntry,
+  entry: Here,
   linkAh: ActionHashB64,
   author: AgentPubKeyB64,
 }

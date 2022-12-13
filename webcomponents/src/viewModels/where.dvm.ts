@@ -1,7 +1,7 @@
 import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
   LocationInfo,
-  PlacementSession,
+  TypedPlacementSession,
   Play,
   convertLocationToHere,
   Coord,
@@ -11,13 +11,13 @@ import {
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
 import {areCellsEqual, DnaViewModel} from "@ddd-qc/lit-happ";
-import {SpaceEntry} from "./playset.bindings";
+import {Space} from "./playset.bindings";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {WhereSignal, WhereSignalMessage} from "./where.signals";
-import {convertSpaceToEntry, Space} from "./playset.perspective";
+import {convertSpaceToEntry, TypedSpace} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
-import {HereEntry} from "./where.bindings";
+import {Here} from "./where.bindings";
 
 
 /** */
@@ -408,7 +408,7 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** */
-  async publishSpaceWithSessions(space: SpaceEntry, sessionNames: string[]): Promise<[EntryHashB64, Dictionary<EntryHashB64>]> {
+  async publishSpaceWithSessions(space: Space, sessionNames: string[]): Promise<[EntryHashB64, Dictionary<EntryHashB64>]> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
     let spaceEh = await this.playsetZvm.publishSpaceEntry(space);
@@ -462,7 +462,7 @@ export class WhereDvm extends DnaViewModel {
    * Create new empty play with starting space
    * Creates a default "global" session if none provided
    */
-  async constructNewPlay(space: Space, sessionNamesArray?: string[]): Promise<EntryHashB64> {
+  async constructNewPlay(space: TypedSpace, sessionNamesArray?: string[]): Promise<EntryHashB64> {
     let sessionNames = ["global"];
     if (sessionNamesArray && sessionNamesArray.length > 0 && sessionNamesArray[0] != "") {
       sessionNames = sessionNamesArray

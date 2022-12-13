@@ -17,7 +17,7 @@ export enum PieceType {
 
 
 
-export interface SpaceEntry {
+export interface Space {
   name: string;
   origin: EntryHashB64;
   surface: string;
@@ -26,17 +26,17 @@ export interface SpaceEntry {
 }
 
 
-export interface TemplateEntry  {
+export interface Template {
   name: string;
   surface: string;
 }
 
-export interface SvgMarkerEntry  {
+export interface SvgMarker {
   name: string;
   value: string;
 }
 
-export interface EmojiGroupEntry {
+export interface EmojiGroup {
   name: string,
   description: string,
   unicodes: string[],

@@ -1,11 +1,11 @@
 import {Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
-  EmojiGroupEntry,
+  EmojiGroup,
   GetInventoryOutput,
   MarkerPiece,
-  SpaceEntry,
-  SvgMarkerEntry,
-  TemplateEntry
+  Space,
+  SvgMarker,
+  Template
 } from "./playset.bindings";
 import {mapReplacer, mapReviver} from "../utils";
 
@@ -14,17 +14,17 @@ export type Inventory = GetInventoryOutput;
 /** */
 export interface PlaysetPerspective {
   /** SvgMarkerEh -> SvgMarker */
-  svgMarkers: Dictionary<SvgMarkerEntry>,
+  svgMarkers: Dictionary<SvgMarker>,
   /** EmojiGroupEh -> EmojiGroup */
-  emojiGroups: Dictionary<EmojiGroupEntry>,
+  emojiGroups: Dictionary<EmojiGroup>,
   /** TemplateEh -> Template */
-  templates: Dictionary<TemplateEntry>,
+  templates: Dictionary<Template>,
   /** SpaceEh -> Space */
-  spaces: Dictionary<Space>,
+  spaces: Dictionary<TypedSpace>,
 }
 
 
-export interface Space {
+export interface TypedSpace {
   name: string;
   origin: EntryHashB64;
   surface: any;
@@ -114,7 +114,7 @@ export function defaultSpaceMeta(): SpaceMeta {
 
 
 /** */
-export function convertEntryToSpace(entry: SpaceEntry): Space {
+export function convertEntryToSpace(entry: Space): TypedSpace {
   return {
     name: entry.name,
     origin: entry.origin,
@@ -125,7 +125,7 @@ export function convertEntryToSpace(entry: SpaceEntry): Space {
 }
 
 /** */
-export function convertSpaceToEntry(space: Space): SpaceEntry {
+export function convertSpaceToEntry(space: TypedSpace): Space {
   return {
     name: space.name,
     origin: space.origin,

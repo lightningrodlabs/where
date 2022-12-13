@@ -1,13 +1,13 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
-import {PlaysetEntry} from "./ludotheque.bindings";
+import {Playset} from "./ludotheque.bindings";
 import {LudothequeProxy} from "./ludotheque.proxy";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 
 
 /** */
 export interface LudothequePerspective {
-  playsets: Dictionary<PlaysetEntry>;
+  playsets: Dictionary<Playset>;
 }
 
 
@@ -40,10 +40,10 @@ export class LudothequeZvm extends ZomeViewModel {
   }
 
   /** PlaysetEh -> Playset */
-  private _playsets: Dictionary<PlaysetEntry> = {};
+  private _playsets: Dictionary<Playset> = {};
 
 
-  getPlayset(playsetEh: EntryHashB64): PlaysetEntry | undefined {
+  getPlayset(playsetEh: EntryHashB64): Playset | undefined {
     return this._playsets[playsetEh];
   }
 
@@ -52,7 +52,7 @@ export class LudothequeZvm extends ZomeViewModel {
 
   /** Probe */
 
-  async probePlaysets(): Promise<Dictionary<PlaysetEntry>> {
+  async probePlaysets(): Promise<Dictionary<Playset>> {
     const playsets = await this.zomeProxy.getAllPlaysets();
     for (const e of playsets) {
       this._playsets[e.hash] = e.content
@@ -64,7 +64,7 @@ export class LudothequeZvm extends ZomeViewModel {
   /** Publish */
 
   /** */
-  async publishPlayset(playset: PlaysetEntry) : Promise<EntryHashB64> {
+  async publishPlayset(playset: Playset) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this.zomeProxy.createPlayset(playset)
     this._playsets[eh] = playset;
     this.notifySubscribers();
@@ -73,8 +73,8 @@ export class LudothequeZvm extends ZomeViewModel {
 
 
   /** */
-  async exportPlayset(playsetEh: EntryHashB64, cellId: CellId) : Promise<EntryHashB64[]> {
-    return this.zomeProxy.exportPlayset(playsetEh, cellId);
+  async exportPlayset(playsetEh: EntryHashB64, destinationCellId: CellId) : Promise<EntryHashB64[]> {
+    return this.zomeProxy.exportPlayset({destinationCellId, playsetEh});
   }
 
 }

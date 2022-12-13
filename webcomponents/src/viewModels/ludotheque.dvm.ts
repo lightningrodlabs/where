@@ -1,8 +1,8 @@
-import {PlaysetEntry} from "./ludotheque.bindings";
+import {Playset} from "./ludotheque.bindings";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {MarkerType} from "./playset.perspective";
 import {EmojiGroupVariant, SvgMarkerVariant} from "./playset.bindings";
-import {DnaViewModel, HappViewModel} from "@ddd-qc/lit-happ";
+import {DnaViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";
 
@@ -32,7 +32,7 @@ export class LudothequeDvm extends DnaViewModel {
   /** -- Methods -- */
 
   /** Create new playset with starting spaces */
-  async checkAndPublishPlayset(playset: PlaysetEntry): Promise<EntryHashB64> {
+  async checkAndPublishPlayset(playset: Playset): Promise<EntryHashB64> {
     console.log("addPlaysetWithCheck() before: ", playset)
     for (const spaceEh of playset.spaces) {
       const space = this.playsetZvm.getSpace(spaceEh)!;

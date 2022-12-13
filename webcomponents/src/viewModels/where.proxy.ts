@@ -2,7 +2,7 @@
 
 import {EntryHashB64, ActionHashB64, Dictionary, AgentPubKeyB64} from '@holochain-open-dev/core-types';
 import {ZomeProxy} from "@ddd-qc/lit-happ";
-import {AddHereInput, HereOutput, PlacementSessionEntry} from "./where.bindings";
+import {AddHereInput, HereOutput, PlacementSession} from "./where.bindings";
 import {WhereSignal} from "./where.signals";
 
 /**
@@ -23,7 +23,7 @@ export class WhereProxy extends ZomeProxy {
     return this.call('get_hidden_spaces', null);
   }
 
-  async getSessionFromEh(sessionEh: EntryHashB64): Promise<PlacementSessionEntry | null> {
+  async getSessionFromEh(sessionEh: EntryHashB64): Promise<PlacementSession | null> {
     return this.call('get_session_from_eh', sessionEh);
   }
 

@@ -24,7 +24,7 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
-import {PieceType, TemplateEntry} from "../viewModels/playset.bindings";
+import {PieceType, Template} from "../viewModels/playset.bindings";
 import {WhereSignal} from "../viewModels/where.signals";
 import {destructureRoleInstanceId, DnaElement, RoleCells, RoleInstanceId} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
@@ -437,7 +437,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   private async onTemplateCreated(e: any) {
-    const template = e.detail as TemplateEntry;
+    const template = e.detail as Template;
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
       {maybeSpaceHash: null, from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},

@@ -1,10 +1,10 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
-import {EmojiGroupEntry, GetInventoryOutput, PieceType, SpaceEntry, SvgMarkerEntry, TemplateEntry
+import {EmojiGroup, GetInventoryOutput, PieceType, Space, SvgMarker, Template
 } from "./playset.bindings";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetProxy} from "./playset.proxy";
-import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, Space} from "./playset.perspective";
+import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, TypedSpace} from "./playset.perspective";
 
 
 /** */
@@ -53,15 +53,15 @@ export class PlaysetZvm extends ZomeViewModel {
     };
   }
 
-  private _svgMarkers: Dictionary<SvgMarkerEntry> = {};
-  private _emojiGroups: Dictionary<EmojiGroupEntry> = {};
-  private _templates: Dictionary<TemplateEntry> = {};
-  private _spaces: Dictionary<Space> = {};
+  private _svgMarkers: Dictionary<SvgMarker> = {};
+  private _emojiGroups: Dictionary<EmojiGroup> = {};
+  private _templates: Dictionary<Template> = {};
+  private _spaces: Dictionary<TypedSpace> = {};
 
-  getSvgMarker(eh: EntryHashB64): SvgMarkerEntry | undefined {return this._svgMarkers[eh]}
-  getEmojiGroup(eh: EntryHashB64): EmojiGroupEntry | undefined {return this._emojiGroups[eh]}
-  getTemplate(templateEh64: EntryHashB64): TemplateEntry | undefined {return this._templates[templateEh64]}
-  getSpace(eh: EntryHashB64): Space | undefined {return this._spaces[eh]}
+  getSvgMarker(eh: EntryHashB64): SvgMarker | undefined {return this._svgMarkers[eh]}
+  getEmojiGroup(eh: EntryHashB64): EmojiGroup | undefined {return this._emojiGroups[eh]}
+  getTemplate(templateEh64: EntryHashB64): Template | undefined {return this._templates[templateEh64]}
+  getSpace(eh: EntryHashB64): TypedSpace | undefined {return this._spaces[eh]}
 
 
   /** -- Methods -- */
@@ -72,7 +72,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this.zomeProxy.getInventory();
   }
 
-  async probeTemplates() : Promise<Dictionary<TemplateEntry>> {
+  async probeTemplates() : Promise<Dictionary<Template>> {
     const templates = await this.zomeProxy.getTemplates();
     for (const t of templates) {
         this._templates[t.hash] = t.content
@@ -81,7 +81,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._templates;
   }
 
-  async probeSvgMarkers() : Promise<Dictionary<SvgMarkerEntry>> {
+  async probeSvgMarkers() : Promise<Dictionary<SvgMarker>> {
     const markers = await this.zomeProxy.getSvgMarkers();
     for (const e of markers) {
       this._svgMarkers[e.hash] = e.content
@@ -90,7 +90,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._svgMarkers
   }
 
-  async probeEmojiGroups() : Promise<Dictionary<EmojiGroupEntry>> {
+  async probeEmojiGroups() : Promise<Dictionary<EmojiGroup>> {
     const groups = await this.zomeProxy.getEmojiGroups();
     for (const e of groups) {
       this._emojiGroups[e.hash] = e.content
@@ -99,7 +99,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._emojiGroups
   }
 
-  async probeSpaces() : Promise<Dictionary<Space>> {
+  async probeSpaces() : Promise<Dictionary<TypedSpace>> {
     const spaces = await this.zomeProxy.getSpaces();
     for (const e of spaces) {
       this._spaces[e.hash] = convertEntryToSpace(e.content)
@@ -110,28 +110,28 @@ export class PlaysetZvm extends ZomeViewModel {
 
   /** Fetch */
 
-  async fetchSvgMarker(eh: EntryHashB64): Promise<SvgMarkerEntry> {
+  async fetchSvgMarker(eh: EntryHashB64): Promise<SvgMarker> {
     const svgMarkerEntry = await this.zomeProxy.getSvgMarker(eh)
     this._svgMarkers[eh] = svgMarkerEntry;
     this.notifySubscribers();
     return svgMarkerEntry;
   }
 
-  async fetchEmojiGroup(eh: EntryHashB64): Promise<EmojiGroupEntry> {
+  async fetchEmojiGroup(eh: EntryHashB64): Promise<EmojiGroup> {
     const entry = await this.zomeProxy.getEmojiGroup(eh)
     this._emojiGroups[eh] = entry;
     this.notifySubscribers();
     return entry;
   }
 
-  async fetchTemplate(eh: EntryHashB64): Promise<TemplateEntry> {
+  async fetchTemplate(eh: EntryHashB64): Promise<Template> {
     const entry = await this.zomeProxy.getTemplate(eh)
     this._templates[eh] = entry;
     this.notifySubscribers();
     return entry;
   }
 
-  async fetchSpace(eh: EntryHashB64): Promise<Space> {
+  async fetchSpace(eh: EntryHashB64): Promise<TypedSpace> {
     const entry = await this.zomeProxy.getSpace(eh)
     this._spaces[eh] = convertEntryToSpace(entry);
     this.notifySubscribers();
@@ -141,21 +141,21 @@ export class PlaysetZvm extends ZomeViewModel {
 
   /** Publish */
 
-  async publishTemplateEntry(template: TemplateEntry) : Promise<EntryHashB64> {
+  async publishTemplateEntry(template: Template) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this.zomeProxy.createTemplate(template)
     this._templates[eh] = template
     this.notifySubscribers();
     return eh
   }
 
-  async publishEmojiGroupEntry(emojiGroup: EmojiGroupEntry) : Promise<EntryHashB64> {
+  async publishEmojiGroupEntry(emojiGroup: EmojiGroup) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this.zomeProxy.createEmojiGroup(emojiGroup)
     this._emojiGroups[eh] = emojiGroup
     this.notifySubscribers();
     return eh
   }
 
-  async publishSvgMarkerEntry(svgMarker: SvgMarkerEntry) : Promise<EntryHashB64> {
+  async publishSvgMarkerEntry(svgMarker: SvgMarker) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this.zomeProxy.createSvgMarker(svgMarker)
     this._svgMarkers[eh] = svgMarker
     this.notifySubscribers();
@@ -164,7 +164,7 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async publishSpace(space: Space): Promise<EntryHashB64> {
+  async publishSpace(space: TypedSpace): Promise<EntryHashB64> {
     const entry = convertSpaceToEntry(space);
     const spaceEh: EntryHashB64 = await this.publishSpaceEntry(entry)
     return spaceEh;
@@ -172,7 +172,7 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async publishSpaceEntry(space: SpaceEntry) : Promise<EntryHashB64> {
+  async publishSpaceEntry(space: Space) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this.zomeProxy.createSpace(space)
     this._spaces[eh] = convertEntryToSpace(space)
     this.notifySubscribers();

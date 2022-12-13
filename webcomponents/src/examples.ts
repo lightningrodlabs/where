@@ -6,10 +6,10 @@ import {
   tvstatic_template_canvas
 } from "./templates";
 import {PlaysetZvm} from "./viewModels/playset.zvm";
-import {MarkerType, Space} from "./viewModels/playset.perspective";
+import {MarkerType, TypedSpace} from "./viewModels/playset.perspective";
 import {HoloHashedB64} from "./utils";
 import {LudothequeDvm} from "./viewModels/ludotheque.dvm";
-import {PlaysetEntry} from "./viewModels/ludotheque.bindings";
+import {Playset} from "./viewModels/ludotheque.bindings";
 import {EmojiGroupVariant, SvgMarkerVariant} from "./viewModels/playset.bindings";
 
 
@@ -84,9 +84,9 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
   /** Spaces */
   console.log("Spaces...")
 
-  let spaceList: Array<HoloHashedB64<Space>> = new Array();
+  let spaceList: Array<HoloHashedB64<TypedSpace>> = new Array();
 
-  const publishSpace = async (zvm: PlaysetZvm, space: Space) => {
+  const publishSpace = async (zvm: PlaysetZvm, space: TypedSpace) => {
     const hash = await zvm.publishSpace(space);
     spaceList.push({hash, content: space})
   }
@@ -233,7 +233,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
 
 
 /** */
-export function createPlayset(name: string, spaces: HoloHashedB64<Space>[]): PlaysetEntry {
+export function createPlayset(name: string, spaces: HoloHashedB64<TypedSpace>[]): Playset {
   console.log("newPlayset() called:")
   console.log({spaces})
   /* Get templates */
@@ -276,5 +276,5 @@ export function createPlayset(name: string, spaces: HoloHashedB64<Space>[]): Pla
     templates,
     svgMarkers,
     emojiGroups,
-  } as PlaysetEntry;
+  } as Playset;
 }

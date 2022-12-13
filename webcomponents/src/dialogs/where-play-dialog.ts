@@ -15,7 +15,7 @@ import {WhereEmojiDialog} from "./where-emoji-dialog";
 import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import { localized, msg } from '@lit/localize';
-import {EmojiGroupVariant, MarkerPiece, SvgMarkerEntry, SvgMarkerVariant, TemplateEntry} from "../viewModels/playset.bindings";
+import {EmojiGroupVariant, MarkerPiece, SvgMarker, SvgMarkerVariant, Template} from "../viewModels/playset.bindings";
 import {
   defaultLocationMeta,
   LocationMeta, Play,
@@ -40,7 +40,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   currentProfile?: WhereProfile = undefined;
 
   /** State */
-  @state() private _currentTemplate: null | TemplateEntry = null;
+  @state() private _currentTemplate: null | Template = null;
   @state() private _currentPlaceHolders: Array<string> = [];
   @state() private _currentMeta: SpaceMeta = defaultSpaceMeta();
   @state() private _currentMarker?: MarkerPiece;
@@ -999,7 +999,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
   /** */
   async onSvgMarkerCreated(e: any) {
-    const newSvgMarker = e.detail as SvgMarkerEntry;
+    const newSvgMarker = e.detail as SvgMarker;
     const eh = await this._zvm.publishSvgMarkerEntry(newSvgMarker);
     this._currentMarker = {svg: eh};
     //const svgMarker = this._svgMarkers.value[eh];

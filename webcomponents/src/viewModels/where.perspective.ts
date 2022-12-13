@@ -1,6 +1,6 @@
 import {AgentPubKeyB64, ActionHashB64, EntryHashB64, Dictionary} from "@holochain-open-dev/core-types";
-import {HereEntry, HereOutput, PlacementSessionEntry} from "./where.bindings";
-import {MarkerType, Space} from "./playset.perspective";
+import {Here, HereOutput, PlacementSession} from "./where.bindings";
+import {MarkerType, TypedSpace} from "./playset.perspective";
 import {mapReplacer, mapReviver} from "../utils";
 
 
@@ -9,13 +9,13 @@ export interface WherePerspective {
   /* SpaceEh -> [sessions] */
   manifests: Dictionary<PlayManifest>,
   /** SessionEh -> PlacementSession */
-  sessions: Dictionary<PlacementSession>,
+  sessions: Dictionary<TypedPlacementSession>,
 }
 
 
 /** A 'Play' is a live 'Space' with locations and sessions */
 export interface Play {
-  space: Space,
+  space: TypedSpace,
   //visible: boolean;
   /* SessionName -> SessionEh */
   sessions: Dictionary<EntryHashB64>,
@@ -30,13 +30,13 @@ export interface PlayManifest {
 
 
 /** */
-export interface PlacementSession {
+export interface TypedPlacementSession {
   name: string,
   index: number,
   locations: (LocationInfo | null)[];
 }
 
-export function convertSessionToEntry(session: PlacementSession, spaceEh: EntryHashB64): PlacementSessionEntry {
+export function convertSessionToEntry(session: TypedPlacementSession, spaceEh: EntryHashB64): PlacementSession {
   return {
     name: session.name,
     index: session.index,
@@ -128,7 +128,7 @@ export function convertHereToLocation(info: HereInfo) : LocationInfo {
 
 
 /** */
-export function convertLocationToHere(location: WhereLocation) : HereEntry {
+export function convertLocationToHere(location: WhereLocation) : Here {
   let meta: Dictionary<string> = {};
   for (const [key, value] of Object.entries(location.meta)) {
     meta[key] = JSON.stringify(value, mapReplacer)
@@ -137,6 +137,6 @@ export function convertLocationToHere(location: WhereLocation) : HereEntry {
     value: JSON.stringify(location.coord),
     sessionEh: location.sessionEh,
     meta,
-  } as HereEntry
+  } as Here
 }
 

@@ -10,7 +10,7 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import { localized, msg } from '@lit/localize';
 import {TemplateType} from "../viewModels/playset.perspective";
-import {TemplateEntry} from "../viewModels/playset.bindings";
+import {Template} from "../viewModels/playset.bindings";
 
 
 /** */
@@ -46,7 +46,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   private _currentType: TemplateType = TemplateType.Html;
   private _canvas: string = "";
 
-  private _templateToPreload?: TemplateEntry;
+  private _templateToPreload?: Template;
 
   @query('#name-field')
   _nameField!: TextField;
@@ -59,7 +59,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   /** -- Methods -- */
 
   /** */
-  open(template?: TemplateEntry) {
+  open(template?: Template) {
     this._templateToPreload = template;
     const dialog = this.shadowRoot!.getElementById("template-dialog") as Dialog
     dialog.open = true
@@ -133,7 +133,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  private createTemplate(): TemplateEntry {
+  private createTemplate(): Template {
     /** Create Surface */
     let surface: any = {}
     /** Size */
@@ -172,7 +172,7 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
     return this.renderTemplate(template)
   }
 
-  private renderTemplate(template: TemplateEntry) {
+  private renderTemplate(template: Template) {
     if (template.surface === "") {
       return html``
     }

@@ -19,7 +19,7 @@ import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
-import {PlaysetEntry} from "../viewModels/ludotheque.bindings";
+import {Playset} from "../viewModels/ludotheque.bindings";
 import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PieceType} from "../viewModels/playset.bindings";
@@ -67,7 +67,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** -- Private -- */
 
-  @state() private _currentPlayset: null | PlaysetEntry = null;
+  @state() private _currentPlayset: null | Playset = null;
   @state() private _currentPlaysetEh: null | EntryHashB64 = null;
   //@state() private _currentTemplateEh: null| EntryHashB64 = null;
 

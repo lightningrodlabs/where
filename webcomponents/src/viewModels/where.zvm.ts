@@ -1,7 +1,7 @@
 import {EntryHashB64, ActionHashB64, AgentPubKeyB64, Dictionary} from '@holochain-open-dev/core-types';
 import {WhereProxy} from './where.proxy';
 import {Coord, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo,
-  HereInfo, convertHereToLocation, PlacementSession, PlayManifest
+  HereInfo, convertHereToLocation, TypedPlacementSession, PlayManifest
 } from "./where.perspective";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {WhereSignal} from "./where.signals";
@@ -54,14 +54,14 @@ export class WhereZvm extends ZomeViewModel {
   /** SpaceEh -> sessionEh */
   //private _currentSessions: Dictionary<EntryHashB64> = {};
   /** SessionEh -> PlacementSession */
-  private _sessions: Dictionary<PlacementSession> = {};
+  private _sessions: Dictionary<TypedPlacementSession> = {};
   /* SessionEh -> [locations] */
   //private _locations: Dictionary<LocationInfo[]> = {};
 
   //getPlay(eh: EntryHashB64): Play | undefined {return this._plays[eh]}
   getManifest(eh: EntryHashB64): PlayManifest | undefined {return this._manifests[eh]}
   //getCurrentSession(eh: EntryHashB64): EntryHashB64 | undefined {return this._currentSessions[eh]}
-  getSession(eh: EntryHashB64): PlacementSession | undefined {return this._sessions[eh]}
+  getSession(eh: EntryHashB64): TypedPlacementSession | undefined {return this._sessions[eh]}
   getLocations(eh: EntryHashB64): (LocationInfo | null)[] | undefined {return this._sessions[eh].locations}
 
 
@@ -149,13 +149,13 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async probeSession(sessionEh: EntryHashB64): Promise<PlacementSession> {
+  async probeSession(sessionEh: EntryHashB64): Promise<TypedPlacementSession> {
     const entry = await this.zomeProxy.getSessionFromEh(sessionEh);
     if (!entry) {
       console.error("fetchSession(): Session entry not found")
       return Promise.reject("fetchSession(): Session entry not found");
     }
-    const session: PlacementSession = {
+    const session: TypedPlacementSession = {
       name: entry.name,
       index: entry.index,
       locations: await this.probeLocations(sessionEh)
@@ -181,7 +181,7 @@ export class WhereZvm extends ZomeViewModel {
 
   /** -- Sessions -- */
 
-  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: PlacementSession): void {
+  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: TypedPlacementSession): void {
     if (!this._manifests[spaceEh]) {
       this._manifests[spaceEh] = {spaceEh, visible: true, sessionEhs: [sessionEh]} as PlayManifest;
     }
@@ -192,15 +192,15 @@ export class WhereZvm extends ZomeViewModel {
   }
 
   /** Add Session to Perspective */
-  private addEmptySession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, name: string, index: number): PlacementSession {
-    const session: PlacementSession = {name, index, locations: []};
+  private addEmptySession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, name: string, index: number): TypedPlacementSession {
+    const session: TypedPlacementSession = {name, index, locations: []};
     this.addSession(spaceEh, sessionEh, session);
     return session;
   }
 
 
   /** */
-  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<[EntryHashB64, PlacementSession]> {
+  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<[EntryHashB64, TypedPlacementSession]> {
     const [eh, index] = await this.zomeProxy.createNextSession(spaceEh, name);
     const session = this.addEmptySession(spaceEh, eh, name, index);
     return [eh, session];
@@ -208,7 +208,7 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<PlacementSession>> {
+  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<TypedPlacementSession>> {
     const index = this._manifests[spaceEh]? this._manifests[spaceEh].sessionEhs.length : 0;
     const ehs = await this.zomeProxy.createSessions(spaceEh, sessionNames);
     let sessions: any = {};

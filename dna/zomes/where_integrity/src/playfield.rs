@@ -2,7 +2,8 @@ use hdi::prelude::*;
 use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+// Comment out for zits
+//#[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum MarkerKind {
   AnyEmoji,
   Avatar,
@@ -13,8 +14,8 @@ pub enum MarkerKind {
   Tag,
 }
 
-
-#[hdk_entry_helper]
+// Comment out for zits
+//#[hdk_entry_helper]
 #[derive(Clone)]
 pub struct Playfield {
   pub name: String,

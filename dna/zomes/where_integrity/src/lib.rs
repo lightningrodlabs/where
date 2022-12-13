@@ -7,10 +7,10 @@
 //pub mod error;
 pub mod here;
 pub mod placement_session;
-pub mod playfield;
+//pub mod playfield;
 
 pub use here::*;
-pub use playfield::*;
+//pub use playfield::*;
 pub use placement_session::*;
 
 
@@ -28,8 +28,8 @@ pub enum WhereEntry {
     Here(Here),
     #[entry_def(required_validations = 2, visibility = "public")]
     PlacementSession(PlacementSession),
-    #[entry_def(required_validations = 2, visibility = "public")]
-    Playfield(Playfield),
+    //#[entry_def(required_validations = 2, visibility = "public")]
+    //Playfield(Playfield),
 }
 
 

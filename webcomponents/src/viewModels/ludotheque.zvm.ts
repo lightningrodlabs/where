@@ -1,7 +1,7 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
-import {Playset} from "./ludotheque.bindings";
-import {LudothequeProxy} from "./ludotheque.proxy";
+import {Playset} from "../bindings/ludotheque";
+import {LudothequeProxy} from "../bindings/ludotheque.proxy";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 
 

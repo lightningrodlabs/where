@@ -6,7 +6,7 @@ import {
   Space,
   SvgMarker,
   Template
-} from "./playset.bindings";
+} from "../bindings/playset";
 import {mapReplacer, mapReviver} from "../utils";
 
 export type Inventory = GetInventoryOutput;

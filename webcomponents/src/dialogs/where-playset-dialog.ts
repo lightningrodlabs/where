@@ -6,7 +6,7 @@ import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
 import {Coord} from "../viewModels/where.perspective";
-import {Playset} from "../viewModels/ludotheque.bindings";
+import {Playset} from "../bindings/ludotheque";
 
 
 /** @element where-playset-dialog */

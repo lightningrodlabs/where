@@ -19,10 +19,10 @@ import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
-import {Playset} from "../viewModels/ludotheque.bindings";
+import {Playset} from "../bindings/ludotheque";
 import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
-import {PieceType} from "../viewModels/playset.bindings";
+import {PlaysetEntry, PlaysetEntryType} from "../bindings/playset";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {serializeHash} from "@holochain-open-dev/utils";
@@ -203,22 +203,22 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
 
   /** */
-  hasPiece(eh: EntryHashB64, type: PieceType): boolean {
+  hasPiece(eh: EntryHashB64, type: PlaysetEntryType): boolean {
     if (!this._inventory) {
       console.warn("No localInventory found")
       return false;
     }
     switch(type) {
-      case PieceType.Template:
+      case PlaysetEntryType.Template:
         return this._inventory!.templates.includes(eh);
         break;
-      case PieceType.SvgMarker:
+      case PlaysetEntryType.SvgMarker:
         return this._inventory!.svgMarkers.includes(eh);
         break;
-      case PieceType.EmojiGroup:
+      case PlaysetEntryType.EmojiGroup:
         return this._inventory!.emojiGroups.includes(eh);
         break;
-      case PieceType.Space:
+      case PlaysetEntryType.Space:
         return this._inventory!.spaces.includes(eh);
         break;
       default:
@@ -527,7 +527,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
 
   /** */
-  private renderPieceIcon(key: string, type: PieceType) {
+  private renderPieceIcon(key: string, type: PlaysetEntryType) {
     //console.log({whereCellId: this.whereCellId})
     const hasPiece = this.hasPiece(key, type);
     return hasPiece
@@ -544,7 +544,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   private renderSpaces() {
     const items = Object.entries(this._dvm.playsetZvm.perspective.spaces).map(
       ([key, space]) => {
-        const icon = this.renderPieceIcon(key, PieceType.Space);
+        const icon = this.renderPieceIcon(key, PlaysetEntryType.Space);
         const template = this._dvm.playsetZvm.getTemplate(space.origin);
         const itemContent = html`
             <span>${space.name}</span>
@@ -577,7 +577,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     /* Render items */
     const items = Object.entries(this._dvm.playsetZvm.perspective.templates).map(
       ([key, template]) => {
-        const icon = this.renderPieceIcon(key, PieceType.Template);
+        const icon = this.renderPieceIcon(key, PlaysetEntryType.Template);
         const surface = JSON.parse(template.surface);
         const itemContent = html`
             <span>${template.name}</span>
@@ -613,7 +613,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     /* Render items */
     const items = Object.entries(this._dvm.playsetZvm.perspective.svgMarkers).map(
       ([key, svgMarker]) => {
-        const icon = this.renderPieceIcon(key, PieceType.SvgMarker);
+        const icon = this.renderPieceIcon(key, PlaysetEntryType.SvgMarker);
         let svg = renderSvgMarker(svgMarker.value, "black");
         const itemContent = html`
             <span>${svgMarker.name}</span>
@@ -645,7 +645,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   private renderEmojiGroups() {
     const items = Object.entries(this._dvm.playsetZvm.perspective.emojiGroups).map(
       ([key, emojiGroup]) => {
-        const icon = this.renderPieceIcon(key, PieceType.EmojiGroup);
+        const icon = this.renderPieceIcon(key, PlaysetEntryType.EmojiGroup);
         const itemContent = html`
             <span>${emojiGroup.name}</span>
             <span slot="secondary">${emojiGroup.unicodes}</span>

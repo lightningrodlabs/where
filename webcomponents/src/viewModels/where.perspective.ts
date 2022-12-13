@@ -1,5 +1,5 @@
 import {AgentPubKeyB64, ActionHashB64, EntryHashB64, Dictionary} from "@holochain-open-dev/core-types";
-import {Here, HereOutput, PlacementSession} from "./where.bindings";
+import {Here, HereOutput, PlacementSession} from "../bindings/where";
 import {MarkerType, TypedSpace} from "./playset.perspective";
 import {mapReplacer, mapReviver} from "../utils";
 

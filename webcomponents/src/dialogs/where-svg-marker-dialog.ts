@@ -5,7 +5,7 @@ import {sharedStyles} from "../sharedStyles";
 import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 import {Button, Dialog, IconButton, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
-import {SvgMarker} from "../viewModels/playset.bindings";
+import {SvgMarker} from "../bindings/playset";
 
 
 /**

@@ -10,8 +10,8 @@ import {SlAvatar} from "@scoped-elements/shoelace";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {localized, msg} from '@lit/localize';
-import {Coord, LocationInfo, LocOptions, TypedPlacementSession, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
-import {EmojiGroup, EmojiGroupVariant, SvgMarkerVariant} from "../viewModels/playset.bindings";
+import {Coord, LocationInfo, LocOptions, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
+import {EmojiGroup, MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "../bindings/playset";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {MarkerType} from "../viewModels/playset.perspective";
 import {DnaElement} from "@ddd-qc/lit-happ";
@@ -275,7 +275,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     } else {
       let svgMarker = ""
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
-        let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
+        let eh = (currentPlay.space.maybeMarkerPiece as MarkerPieceVariantSvg).svg;
         svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)!.value;
       }
       const location: WhereLocation = {
@@ -374,7 +374,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       markerType = currentPlay.space.meta!.markerType;
       emojiValue = currentPlay.space.meta!.singleEmoji;
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
-        let eh = (currentPlay.space.maybeMarkerPiece as SvgMarkerVariant).svg;
+        let eh = (currentPlay.space.maybeMarkerPiece as MarkerPieceVariantSvg).svg;
         svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)!.value;
       }
     }
@@ -691,7 +691,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       `;
     }
     if (play!.space.meta.markerType == MarkerType.EmojiGroup) {
-      const emojiGroup: EmojiGroup = this._dvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup)!;
+      const emojiGroup: EmojiGroup = this._dvm.playsetZvm.getEmojiGroup((play!.space.maybeMarkerPiece! as MarkerPieceVariantEmojiGroup).emojiGroup)!;
       const emojis = Object.entries(emojiGroup.unicodes).map(
         ([key, unicode]) => {
           return html`

@@ -36,7 +36,7 @@ pub fn create_template(input: Template) -> ExternResult<EntryHashB64> {
 #[hdk_extern]
 fn get_template(input: EntryHashB64) -> ExternResult<Option<Template>> {
     let maybe_record = get(input, GetOptions::content())?;
-    let Some(record) = maybe_record 
+    let Some(record) = maybe_record
         else {return Ok(None)};
     let typed = get_typed_from_record::<Template>(record)?;
     Ok(Some(typed))

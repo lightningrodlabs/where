@@ -9,8 +9,8 @@ import {PlaysetZvm} from "./viewModels/playset.zvm";
 import {MarkerType, TypedSpace} from "./viewModels/playset.perspective";
 import {HoloHashedB64} from "./utils";
 import {LudothequeDvm} from "./viewModels/ludotheque.dvm";
-import {Playset} from "./viewModels/ludotheque.bindings";
-import {EmojiGroupVariant, SvgMarkerVariant} from "./viewModels/playset.bindings";
+import {Playset} from "./bindings/ludotheque";
+import {MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "./viewModels/playset.bindings";
 
 
 export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
@@ -249,13 +249,13 @@ export function createPlayset(name: string, spaces: HoloHashedB64<TypedSpace>[])
   for (const {hash, content} of spaces) {
     const space = content
     if (space.meta.markerType == MarkerType.SvgMarker) {
-      let markerEh = (space.maybeMarkerPiece! as SvgMarkerVariant).svg;
+      let markerEh = (space.maybeMarkerPiece! as MarkerPieceVariantSvg).svg;
       if (markerEh && !svgMarkers.includes(markerEh)) {
         svgMarkers.push(markerEh)
       }
     } else {
       if (space.meta.markerType == MarkerType.EmojiGroup) {
-        let eh = (space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup;
+        let eh = (space.maybeMarkerPiece! as MarkerPieceVariantEmojiGroup).emojiGroup;
         if (eh && !svgMarkers.includes(eh)) {
           emojiGroups.push(eh)
         }

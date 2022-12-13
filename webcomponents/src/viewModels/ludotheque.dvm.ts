@@ -1,7 +1,7 @@
-import {Playset} from "./ludotheque.bindings";
+import {Playset} from "../bindings/ludotheque";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {MarkerType} from "./playset.perspective";
-import {EmojiGroupVariant, SvgMarkerVariant} from "./playset.bindings";
+import {MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "./playset.bindings";
 import {DnaViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";
@@ -45,13 +45,13 @@ export class LudothequeDvm extends DnaViewModel {
 
       /* Get Markers */
       if (space.meta.markerType == MarkerType.SvgMarker) {
-        let markerEh = (space.maybeMarkerPiece! as SvgMarkerVariant).svg;
+        let markerEh = (space.maybeMarkerPiece! as MarkerPieceVariantSvg).svg;
         if (markerEh && !playset.svgMarkers.includes(markerEh)) {
           playset.svgMarkers.push(markerEh)
         }
       } else {
         if (space.meta.markerType == MarkerType.EmojiGroup) {
-          let eh = (space.maybeMarkerPiece! as EmojiGroupVariant).emojiGroup!;
+          let eh = (space.maybeMarkerPiece! as MarkerPieceVariantEmojiGroup).emojiGroup!;
           if (eh && !playset.emojiGroups.includes(eh)) {
             playset.emojiGroups.push(eh)
           }

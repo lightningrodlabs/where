@@ -31,7 +31,7 @@ pub fn create_svg_marker(input: SvgMarker) -> ExternResult<EntryHashB64> {
 #[hdk_extern]
 fn get_svg_marker(input: EntryHashB64) -> ExternResult<Option<SvgMarker>> {
     let maybe_record = get(input, GetOptions::content())?;
-    let Some(record) = maybe_record 
+    let Some(record) = maybe_record
         else {return Ok(None)};
     let typed = get_typed_from_record::<SvgMarker>(record)?;
     Ok(Some(typed))

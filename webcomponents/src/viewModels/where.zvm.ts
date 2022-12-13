@@ -1,10 +1,10 @@
 import {EntryHashB64, ActionHashB64, AgentPubKeyB64, Dictionary} from '@holochain-open-dev/core-types';
-import {WhereProxy} from './where.proxy';
+import {WhereProxy} from '../bindings/where.proxy';
 import {Coord, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo,
   HereInfo, convertHereToLocation, TypedPlacementSession, PlayManifest
 } from "./where.perspective";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
-import {WhereSignal} from "./where.signals";
+import {SignalPayload} from "../bindings/where";
 
 
 /**
@@ -106,8 +106,8 @@ export class WhereZvm extends ZomeViewModel {
   /** -- Methods -- */
 
   /** */
-  notifyPeers(signal: WhereSignal, peers: Array<AgentPubKeyB64>) {
-    this.zomeProxy.notifyPeers(signal, peers)
+  notifyPeers(signal: SignalPayload, peers: Array<AgentPubKeyB64>) {
+    this.zomeProxy.notifyPeers({signal, peers})
   }
 
   /** Returns list of hidden spaces */
@@ -201,7 +201,7 @@ export class WhereZvm extends ZomeViewModel {
 
   /** */
   async createNextSession(spaceEh: EntryHashB64, name: string): Promise<[EntryHashB64, TypedPlacementSession]> {
-    const [eh, index] = await this.zomeProxy.createNextSession(spaceEh, name);
+    const [eh, index] = await this.zomeProxy.createNextSession({spaceEh, name});
     const session = this.addEmptySession(spaceEh, eh, name, index);
     return [eh, session];
   }
@@ -210,7 +210,7 @@ export class WhereZvm extends ZomeViewModel {
   /** */
   async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<TypedPlacementSession>> {
     const index = this._manifests[spaceEh]? this._manifests[spaceEh].sessionEhs.length : 0;
-    const ehs = await this.zomeProxy.createSessions(spaceEh, sessionNames);
+    const ehs = await this.zomeProxy.createSessions({spaceEh, sessionNames});
     let sessions: any = {};
     for (let i = 0; i < sessionNames.length; i++) {
       const session = this.addEmptySession(spaceEh, ehs[i], sessionNames[i], index + i)
@@ -255,7 +255,7 @@ export class WhereZvm extends ZomeViewModel {
   /** */
   private async publishLocationWithSessionIndex(location: WhereLocation, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
     const entry = convertLocationToHere(location);
-    const ah = this.zomeProxy.addHere(spaceEh, sessionIndex, entry.value, entry.meta);
+    const ah = this.zomeProxy.addHere({spaceEh, sessionIndex, value: entry.value, meta: entry.meta});
     return ah;
   }
 

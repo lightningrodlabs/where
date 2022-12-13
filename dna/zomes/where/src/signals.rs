@@ -54,17 +54,17 @@ fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
 #[serde(rename_all = "camelCase")]
 pub struct NotifyInput {
     pub signal: SignalPayload,
-    pub folks: Vec<AgentPubKeyB64>,
+    pub peers: Vec<AgentPubKeyB64>,
 }
 
 ///
 #[hdk_extern]
 fn notify_peers(input: NotifyInput) -> ExternResult<()> {
-    let mut folks: Vec<AgentPubKey> = vec![];
-    for a in input.folks.clone() {
-        folks.push(a.into())
+    let mut peers: Vec<AgentPubKey> = vec![];
+    for a in input.peers.clone() {
+        peers.push(a.into())
     }
-    debug!("Sending signal {:?} to {:?}", input.signal, input.folks);
-    remote_signal(ExternIO::encode(input.signal).unwrap(),folks)?;
+    debug!("Sending signal {:?} to {:?}", input.signal, input.peers);
+    remote_signal(ExternIO::encode(input.signal).unwrap(), peers)?;
     Ok(())
 }

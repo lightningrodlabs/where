@@ -24,12 +24,12 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
-import {PieceType, Template} from "../viewModels/playset.bindings";
-import {WhereSignal} from "../viewModels/where.signals";
+import {PlaysetEntry, PlaysetEntryType, Template} from "../bindings/playset";
 import {destructureRoleInstanceId, DnaElement, RoleCells, RoleInstanceId} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
+import {SignalPayload} from "../bindings/where";
 
 
 
@@ -440,7 +440,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const template = e.detail as Template;
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
-      {maybeSpaceHash: null, from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      {from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
       this._dvm.allCurrentOthers(),
     )
   }
@@ -451,7 +451,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const newPlayInput = e.detail;
     const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: WhereSignal = {maybeSpaceHash: spaceEh, from: this._dvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
     this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
     /* */
     await this.selectPlay(spaceEh);
@@ -510,14 +510,14 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         break;
       case "export_template":
         if (this._currentTemplateEh && this.ludoCellId) {
-          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh!, PieceType.Template, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh!, PlaysetEntryType.Template, this.ludoCellId!)
         } else {
           console.warn("No template or ludotheque cell to export to");
         }
         break;
       case "export_space":
         if (this._currentSpaceEh && this.ludoCellId) {
-          this._dvm.playsetZvm.exportPiece(this._currentSpaceEh, PieceType.Space, this.ludoCellId!)
+          this._dvm.playsetZvm.exportPiece(this._currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
         } else {
           console.warn("No space or ludotheque cell to export to");
         }

@@ -4,10 +4,10 @@ import {sharedStyles} from "../sharedStyles";
 import {Button, Dialog, IconButton, ListItem, Select, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {localized, msg} from '@lit/localize';
-import {EmojiGroup} from "../viewModels/playset.bindings";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {ZomeElement} from "@ddd-qc/lit-happ";
+import {EmojiGroup} from "../bindings/playset";
 
 
 /** @element where-emoji-group */

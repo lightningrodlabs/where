@@ -37,7 +37,7 @@ pub fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
 #[hdk_extern]
 fn get_emoji_group(input: EntryHashB64) -> ExternResult<Option<EmojiGroup>> {
     let maybe_record = get(input, GetOptions::content())?;
-    let Some(record) = maybe_record 
+    let Some(record) = maybe_record
         else {return Ok(None)};
     let typed = get_typed_from_record::<EmojiGroup>(record)?;
     Ok(Some(typed))

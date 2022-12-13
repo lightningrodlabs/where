@@ -1,9 +1,9 @@
 import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
 import {CellId} from "@holochain/client";
-import {EmojiGroup, GetInventoryOutput, PieceType, Space, SvgMarker, Template
-} from "./playset.bindings";
+import {EmojiGroup, GetInventoryOutput, PlaysetEntryType, Space, SvgMarker, Template
+} from "../bindings/playset";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
-import {PlaysetProxy} from "./playset.proxy";
+import {PlaysetProxy} from "../bindings/playset.proxy";
 import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, TypedSpace} from "./playset.perspective";
 
 
@@ -91,7 +91,7 @@ export class PlaysetZvm extends ZomeViewModel {
   }
 
   async probeEmojiGroups() : Promise<Dictionary<EmojiGroup>> {
-    const groups = await this.zomeProxy.getEmojiGroups();
+    const groups = await this.zomeProxy.getAllEmojiGroups();
     for (const e of groups) {
       this._emojiGroups[e.hash] = e.content
     }
@@ -111,29 +111,41 @@ export class PlaysetZvm extends ZomeViewModel {
   /** Fetch */
 
   async fetchSvgMarker(eh: EntryHashB64): Promise<SvgMarker> {
-    const svgMarkerEntry = await this.zomeProxy.getSvgMarker(eh)
-    this._svgMarkers[eh] = svgMarkerEntry;
+    const svgMarkerEntry = await this.zomeProxy.getSvgMarker(eh);
+    if (svgMarkerEntry === null) {
+      Promise.reject("SvgMarker not found at " + eh)
+    }
+    this._svgMarkers[eh] = svgMarkerEntry!;
     this.notifySubscribers();
-    return svgMarkerEntry;
+    return this._svgMarkers[eh];
   }
 
   async fetchEmojiGroup(eh: EntryHashB64): Promise<EmojiGroup> {
-    const entry = await this.zomeProxy.getEmojiGroup(eh)
-    this._emojiGroups[eh] = entry;
+    const entry = await this.zomeProxy.getEmojiGroup(eh);
+    if (entry === null) {
+      Promise.reject("EmojiGroup not found at " + eh)
+    }
+    this._emojiGroups[eh] = entry!;
     this.notifySubscribers();
-    return entry;
+    return this._emojiGroups[eh];
   }
 
   async fetchTemplate(eh: EntryHashB64): Promise<Template> {
-    const entry = await this.zomeProxy.getTemplate(eh)
-    this._templates[eh] = entry;
+    const entry = await this.zomeProxy.getTemplate(eh);
+    if (entry === null) {
+      Promise.reject("Template not found at " + eh)
+    }
+    this._templates[eh] = entry!;
     this.notifySubscribers();
-    return entry;
+    return this._templates[eh];
   }
 
   async fetchSpace(eh: EntryHashB64): Promise<TypedSpace> {
-    const entry = await this.zomeProxy.getSpace(eh)
-    this._spaces[eh] = convertEntryToSpace(entry);
+    const entry = await this.zomeProxy.getSpace(eh);
+    if (entry === null) {
+      Promise.reject("Space not found at " + eh)
+    }
+    this._spaces[eh] = convertEntryToSpace(entry!);
     this.notifySubscribers();
     return this._spaces[eh];
   }
@@ -181,11 +193,11 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async exportPiece(pieceEh: EntryHashB64, pieceType: PieceType, cellId: CellId) : Promise<void> {
-    if (pieceType == PieceType.Space) {
-      return this.zomeProxy.exportSpace(pieceEh, cellId);
+  async exportPiece(pieceEh: EntryHashB64, pieceType: PlaysetEntryType, cellId: CellId) : Promise<void> {
+    if (pieceType == PlaysetEntryType.Space) {
+      return this.zomeProxy.exportSpace({spaceEh: pieceEh, cellId});
     }
-    return this.zomeProxy.exportPiece(pieceEh, pieceType, cellId);
+    return this.zomeProxy.exportPiece({pieceEh, pieceTypeName: pieceType, cellId});
   }
 
 

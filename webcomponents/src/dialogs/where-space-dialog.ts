@@ -16,9 +16,9 @@ import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import {localized, msg} from '@lit/localize';
 import {
-  EmojiGroupVariant, MarkerPiece,
-  SvgMarker, SvgMarkerVariant, Template
-} from "../viewModels/playset.bindings";
+  MarkerPieceVariantEmojiGroup, MarkerPiece,
+  SvgMarker, MarkerPieceVariantSvg, Template
+} from "../bindings/playset";
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/lit-happ";
@@ -683,7 +683,7 @@ export class WhereSpaceDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm
         `
         break;
       case MarkerType.EmojiGroup:
-        marker_eh = (this._currentMarker as EmojiGroupVariant).emojiGroup;
+        marker_eh = (this._currentMarker as MarkerPieceVariantEmojiGroup).emojiGroup;
         /** Build group list */
         console.log("** Building emoji group field:")
         const groups = Object.entries(this.perspective.emojiGroups).map(
@@ -717,7 +717,7 @@ export class WhereSpaceDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm
         break;
 
       case MarkerType.SvgMarker:
-        marker_eh = (this._currentMarker as SvgMarkerVariant).svg;
+        marker_eh = (this._currentMarker as MarkerPieceVariantSvg).svg;
         /** Build marker list */
         if ((!this._currentMarker || "emojiGroup" in this._currentMarker) && Object.keys(this.perspective.svgMarkers).length > 0) {
           this._currentMarker = {svg: Object.keys(this.perspective.svgMarkers)[0]};

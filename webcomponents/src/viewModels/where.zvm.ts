@@ -1,7 +1,7 @@
 import {EntryHashB64, ActionHashB64, AgentPubKeyB64, Dictionary} from '@holochain-open-dev/core-types';
 import {WhereProxy} from '../bindings/where.proxy';
-import {Coord, WhereLocation, convertLocationToHere, WherePerspective, LocationInfo,
-  HereInfo, convertHereToLocation, TypedPlacementSession, PlayManifest
+import {Coord, WhereLocation, dematerializeHere, WherePerspective, LocationInfo,
+  HereInfo, materializeHere, PlacementSessionMat, PlayManifest
 } from "./where.perspective";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {SignalPayload} from "../bindings/where";
@@ -54,14 +54,14 @@ export class WhereZvm extends ZomeViewModel {
   /** SpaceEh -> sessionEh */
   //private _currentSessions: Dictionary<EntryHashB64> = {};
   /** SessionEh -> PlacementSession */
-  private _sessions: Dictionary<TypedPlacementSession> = {};
+  private _sessions: Dictionary<PlacementSessionMat> = {};
   /* SessionEh -> [locations] */
   //private _locations: Dictionary<LocationInfo[]> = {};
 
   //getPlay(eh: EntryHashB64): Play | undefined {return this._plays[eh]}
   getManifest(eh: EntryHashB64): PlayManifest | undefined {return this._manifests[eh]}
   //getCurrentSession(eh: EntryHashB64): EntryHashB64 | undefined {return this._currentSessions[eh]}
-  getSession(eh: EntryHashB64): TypedPlacementSession | undefined {return this._sessions[eh]}
+  getSession(eh: EntryHashB64): PlacementSessionMat | undefined {return this._sessions[eh]}
   getLocations(eh: EntryHashB64): (LocationInfo | null)[] | undefined {return this._sessions[eh].locations}
 
 
@@ -149,13 +149,13 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async probeSession(sessionEh: EntryHashB64): Promise<TypedPlacementSession> {
+  async probeSession(sessionEh: EntryHashB64): Promise<PlacementSessionMat> {
     const entry = await this.zomeProxy.getSessionFromEh(sessionEh);
     if (!entry) {
       console.error("fetchSession(): Session entry not found")
       return Promise.reject("fetchSession(): Session entry not found");
     }
-    const session: TypedPlacementSession = {
+    const session: PlacementSessionMat = {
       name: entry.name,
       index: entry.index,
       locations: await this.probeLocations(sessionEh)
@@ -171,7 +171,7 @@ export class WhereZvm extends ZomeViewModel {
     const hereInfos = await this.zomeProxy.getHeres(sessionEh);
     //console.debug({hereInfos})
     const locs = hereInfos.map((info: HereInfo) => {
-      return convertHereToLocation(info)
+      return materializeHere(info)
     });
     //this._locations[sessionEh] = locs;
     //this.notifySubscribers();
@@ -181,7 +181,7 @@ export class WhereZvm extends ZomeViewModel {
 
   /** -- Sessions -- */
 
-  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: TypedPlacementSession): void {
+  addSession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, session: PlacementSessionMat): void {
     if (!this._manifests[spaceEh]) {
       this._manifests[spaceEh] = {spaceEh, visible: true, sessionEhs: [sessionEh]} as PlayManifest;
     }
@@ -192,15 +192,15 @@ export class WhereZvm extends ZomeViewModel {
   }
 
   /** Add Session to Perspective */
-  private addEmptySession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, name: string, index: number): TypedPlacementSession {
-    const session: TypedPlacementSession = {name, index, locations: []};
+  private addEmptySession(spaceEh: EntryHashB64, sessionEh: EntryHashB64, name: string, index: number): PlacementSessionMat {
+    const session: PlacementSessionMat = {name, index, locations: []};
     this.addSession(spaceEh, sessionEh, session);
     return session;
   }
 
 
   /** */
-  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<[EntryHashB64, TypedPlacementSession]> {
+  async createNextSession(spaceEh: EntryHashB64, name: string): Promise<[EntryHashB64, PlacementSessionMat]> {
     const [eh, index] = await this.zomeProxy.createNextSession({spaceEh, name});
     const session = this.addEmptySession(spaceEh, eh, name, index);
     return [eh, session];
@@ -208,7 +208,7 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<TypedPlacementSession>> {
+  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<PlacementSessionMat>> {
     const index = this._manifests[spaceEh]? this._manifests[spaceEh].sessionEhs.length : 0;
     const ehs = await this.zomeProxy.createSessions({spaceEh, sessionNames});
     let sessions: any = {};
@@ -244,6 +244,7 @@ export class WhereZvm extends ZomeViewModel {
   /** */
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64) : Promise<ActionHashB64> {
     const session = await this.zomeProxy.getSessionFromEh(location.sessionEh);
+    if (!session) console.error("Current session not found", spaceEh, location.sessionEh);
     const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
     const locInfo: LocationInfo = { location, linkAh, authorPubKey: this.agentPubKey }
     this._sessions[location.sessionEh].locations.push(locInfo)
@@ -254,7 +255,8 @@ export class WhereZvm extends ZomeViewModel {
 
   /** */
   private async publishLocationWithSessionIndex(location: WhereLocation, spaceEh: EntryHashB64, sessionIndex: number): Promise<ActionHashB64> {
-    const entry = convertLocationToHere(location);
+    const entry = dematerializeHere(location);
+    //console.log("publishLocationWithSessionIndex()", entry, location, spaceEh, sessionIndex)
     const ah = this.zomeProxy.addHere({spaceEh, sessionIndex, value: entry.value, meta: entry.meta});
     return ah;
   }

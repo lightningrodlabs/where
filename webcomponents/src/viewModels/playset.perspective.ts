@@ -20,11 +20,11 @@ export interface PlaysetPerspective {
   /** TemplateEh -> Template */
   templates: Dictionary<Template>,
   /** SpaceEh -> Space */
-  spaces: Dictionary<TypedSpace>,
+  spaces: Dictionary<SpaceMat>,
 }
 
 
-export interface TypedSpace {
+export interface SpaceMat {
   name: string;
   origin: EntryHashB64;
   surface: any;
@@ -114,7 +114,7 @@ export function defaultSpaceMeta(): SpaceMeta {
 
 
 /** */
-export function convertEntryToSpace(entry: Space): TypedSpace {
+export function materializeSpace(entry: Space): SpaceMat {
   return {
     name: entry.name,
     origin: entry.origin,
@@ -125,7 +125,7 @@ export function convertEntryToSpace(entry: Space): TypedSpace {
 }
 
 /** */
-export function convertSpaceToEntry(space: TypedSpace): Space {
+export function dematerializeSpace(space: SpaceMat): Space {
   return {
     name: space.name,
     origin: space.origin,

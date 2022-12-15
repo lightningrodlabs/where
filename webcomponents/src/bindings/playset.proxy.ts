@@ -67,12 +67,26 @@ Entry,
 /** Record */
 Record,
 RecordEntry,
+/** admin types */
+ZomeName,
+MembraneProof,
+ZomeDefinition,
+IntegrityZome,
+CoordinatorZome,
+DnaDefinition,
+ResourceBytes,
+ResourceMap,
+CellProvisioning,
+HoloHashB64,
+DnaVersionSpec,
+DnaVersionFlexible,
+NetworkSeed,
+ZomeLocation,
    } from '@holochain/client';
 
 import {
 // Common
 Dictionary,
-HoloHashB64,
 EntryHashB64,
 ActionHashB64,
 DhtOpHashB64,

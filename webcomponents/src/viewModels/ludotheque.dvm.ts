@@ -1,7 +1,7 @@
 import {Playset} from "../bindings/ludotheque";
 import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {MarkerType} from "./playset.perspective";
-import {MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "./playset.bindings";
+import {MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "../bindings/playset";
 import {DnaViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {LudothequeZvm} from "./ludotheque.zvm";

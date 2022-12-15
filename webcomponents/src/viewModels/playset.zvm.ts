@@ -4,7 +4,7 @@ import {EmojiGroup, GetInventoryOutput, PlaysetEntryType, Space, SvgMarker, Temp
 } from "../bindings/playset";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetProxy} from "../bindings/playset.proxy";
-import {convertEntryToSpace, convertSpaceToEntry, Inventory, PlaysetPerspective, TypedSpace} from "./playset.perspective";
+import {materializeSpace, dematerializeSpace, Inventory, PlaysetPerspective, SpaceMat} from "./playset.perspective";
 
 
 /** */
@@ -56,12 +56,12 @@ export class PlaysetZvm extends ZomeViewModel {
   private _svgMarkers: Dictionary<SvgMarker> = {};
   private _emojiGroups: Dictionary<EmojiGroup> = {};
   private _templates: Dictionary<Template> = {};
-  private _spaces: Dictionary<TypedSpace> = {};
+  private _spaces: Dictionary<SpaceMat> = {};
 
   getSvgMarker(eh: EntryHashB64): SvgMarker | undefined {return this._svgMarkers[eh]}
   getEmojiGroup(eh: EntryHashB64): EmojiGroup | undefined {return this._emojiGroups[eh]}
   getTemplate(templateEh64: EntryHashB64): Template | undefined {return this._templates[templateEh64]}
-  getSpace(eh: EntryHashB64): TypedSpace | undefined {return this._spaces[eh]}
+  getSpace(eh: EntryHashB64): SpaceMat | undefined {return this._spaces[eh]}
 
 
   /** -- Methods -- */
@@ -99,10 +99,10 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._emojiGroups
   }
 
-  async probeSpaces() : Promise<Dictionary<TypedSpace>> {
+  async probeSpaces() : Promise<Dictionary<SpaceMat>> {
     const spaces = await this.zomeProxy.getSpaces();
     for (const e of spaces) {
-      this._spaces[e.hash] = convertEntryToSpace(e.content)
+      this._spaces[e.hash] = materializeSpace(e.content)
     }
     this.notifySubscribers();
     return this._spaces
@@ -140,12 +140,12 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._templates[eh];
   }
 
-  async fetchSpace(eh: EntryHashB64): Promise<TypedSpace> {
+  async fetchSpace(eh: EntryHashB64): Promise<SpaceMat> {
     const entry = await this.zomeProxy.getSpace(eh);
     if (entry === null) {
       Promise.reject("Space not found at " + eh)
     }
-    this._spaces[eh] = convertEntryToSpace(entry!);
+    this._spaces[eh] = materializeSpace(entry!);
     this.notifySubscribers();
     return this._spaces[eh];
   }
@@ -176,8 +176,8 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async publishSpace(space: TypedSpace): Promise<EntryHashB64> {
-    const entry = convertSpaceToEntry(space);
+  async publishSpace(space: SpaceMat): Promise<EntryHashB64> {
+    const entry = dematerializeSpace(space);
     const spaceEh: EntryHashB64 = await this.publishSpaceEntry(entry)
     return spaceEh;
   }
@@ -186,7 +186,7 @@ export class PlaysetZvm extends ZomeViewModel {
   /** */
   async publishSpaceEntry(space: Space) : Promise<EntryHashB64> {
     const eh: EntryHashB64 = await this.zomeProxy.createSpace(space)
-    this._spaces[eh] = convertEntryToSpace(space)
+    this._spaces[eh] = materializeSpace(space)
     this.notifySubscribers();
     return eh
   }

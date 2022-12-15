@@ -1,19 +1,19 @@
 import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
   LocationInfo,
-  TypedPlacementSession,
+  PlacementSessionMat,
   Play,
-  convertLocationToHere,
+  dematerializeHere,
   Coord,
-  convertHereToLocation,
+  materializeHere,
   WhereLocation,
-  convertSessionToEntry, HereInfo,
+  dematerializeSession, HereInfo,
 } from "./where.perspective";
 import {AppSignal} from "@holochain/client/lib/api/app/types";
 import {DnaViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
-import {convertSpaceToEntry, TypedSpace} from "./playset.perspective";
+import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
 import {Space} from "../bindings/playset";
 import {Message, MessageType, SignalPayload} from "../bindings/where";
@@ -135,7 +135,7 @@ export class WhereDvm extends DnaViewModel {
         break;
       case MessageType.NewHere:
         const hereInfo = signal.message.content;
-        const newLocInfo: LocationInfo = convertHereToLocation(hereInfo);
+        const newLocInfo: LocationInfo = materializeHere(hereInfo);
         if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
           //console.log("locations before add", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
           this.whereZvm.addLocation(newLocInfo);
@@ -159,7 +159,7 @@ export class WhereDvm extends DnaViewModel {
           linkAh: signal.message.content[1],
           author: signal.from,
           };
-        const newInfo = convertHereToLocation(newHereInfo);
+        const newInfo = materializeHere(newHereInfo);
         if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
           this.whereZvm.updateLocation(newInfo.location.sessionEh, signal.maybeSpaceHash, idx, newInfo.location.coord, newInfo.location.meta.tag, newInfo.location.meta.emoji);
         }
@@ -345,7 +345,7 @@ export class WhereDvm extends DnaViewModel {
     await this.notifyPeers({
         maybeSpaceHash: spaceEh,
         from: this._cellProxy.agentPubKey,
-        message: {type: "NewSession", content: [sessionEh, convertSessionToEntry(session, spaceEh)],
+        message: {type: "NewSession", content: [sessionEh, dematerializeSession(session, spaceEh)],
         }},
       this.allCurrentOthers());
     /** Done */
@@ -461,13 +461,13 @@ export class WhereDvm extends DnaViewModel {
    * Create new empty play with starting space
    * Creates a default "global" session if none provided
    */
-  async constructNewPlay(space: TypedSpace, sessionNamesArray?: string[]): Promise<EntryHashB64> {
+  async constructNewPlay(space: SpaceMat, sessionNamesArray?: string[]): Promise<EntryHashB64> {
     let sessionNames = ["global"];
     if (sessionNamesArray && sessionNamesArray.length > 0 && sessionNamesArray[0] != "") {
       sessionNames = sessionNamesArray
     }
     /* - Create and commit SpaceEntry */
-    const entry = convertSpaceToEntry(space);
+    const entry = dematerializeSpace(space);
     const [spaceEh, sessions] = await this.publishSpaceWithSessions(entry, sessionNames)
     /* - Add play to perspective */
     console.log("newPlay(): " + space.name + " | " + spaceEh)
@@ -495,7 +495,7 @@ export class WhereDvm extends DnaViewModel {
     }
     const oldLocInfo = this.whereZvm.getLocations(sessionEh)![locIdx]!
    const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji);
-    const entry = convertLocationToHere(newLocInfo.location);
+    const entry = dematerializeHere(newLocInfo.location);
     let message: Message = {type: MessageType.UpdateHere, content: [locIdx, newLocInfo.linkAh, entry]};
     let signal: SignalPayload = {maybeSpaceHash: spaceEh, from: this._cellProxy.agentPubKey, message};
     await this.notifyPeers(signal, this.allCurrentOthers());
@@ -524,7 +524,7 @@ export class WhereDvm extends DnaViewModel {
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64): Promise<void> {
     const linkAh = await this.whereZvm.publishLocation(location, spaceEh);
     /* Notify peers */
-    const entry = convertLocationToHere(location)
+    const entry = dematerializeHere(location)
     this.notifyPeers({
         maybeSpaceHash: spaceEh,
         from: this._cellProxy.agentPubKey,

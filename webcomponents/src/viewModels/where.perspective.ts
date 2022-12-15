@@ -1,6 +1,6 @@
 import {AgentPubKeyB64, ActionHashB64, EntryHashB64, Dictionary} from "@holochain-open-dev/core-types";
 import {Here, HereOutput, PlacementSession} from "../bindings/where";
-import {MarkerType, TypedSpace} from "./playset.perspective";
+import {MarkerType, SpaceMat} from "./playset.perspective";
 import {mapReplacer, mapReviver} from "../utils";
 
 
@@ -9,13 +9,13 @@ export interface WherePerspective {
   /* SpaceEh -> [sessions] */
   manifests: Dictionary<PlayManifest>,
   /** SessionEh -> PlacementSession */
-  sessions: Dictionary<TypedPlacementSession>,
+  sessions: Dictionary<PlacementSessionMat>,
 }
 
 
 /** A 'Play' is a live 'Space' with locations and sessions */
 export interface Play {
-  space: TypedSpace,
+  space: SpaceMat,
   //visible: boolean;
   /* SessionName -> SessionEh */
   sessions: Dictionary<EntryHashB64>,
@@ -30,13 +30,13 @@ export interface PlayManifest {
 
 
 /** */
-export interface TypedPlacementSession {
+export interface PlacementSessionMat {
   name: string,
   index: number,
   locations: (LocationInfo | null)[];
 }
 
-export function convertSessionToEntry(session: TypedPlacementSession, spaceEh: EntryHashB64): PlacementSession {
+export function dematerializeSession(session: PlacementSessionMat, spaceEh: EntryHashB64): PlacementSession {
   return {
     name: session.name,
     index: session.index,
@@ -101,10 +101,10 @@ export function defaultLocationMeta(): LocationMeta {
 }
 
 
-/** -- Conversions -- */
+/** -- Materialization -- */
 
 /** */
-export function convertHereToLocation(info: HereInfo) : LocationInfo {
+export function materializeHere(info: HereInfo) : LocationInfo {
   let locationMeta:any = {};
   try {
     for (const [key, value] of Object.entries(info.entry.meta)) {
@@ -128,9 +128,10 @@ export function convertHereToLocation(info: HereInfo) : LocationInfo {
 
 
 /** */
-export function convertLocationToHere(location: WhereLocation) : Here {
+export function dematerializeHere(location: WhereLocation) : Here {
   let meta: Dictionary<string> = {};
   for (const [key, value] of Object.entries(location.meta)) {
+    if (value === undefined) {continue;}
     meta[key] = JSON.stringify(value, mapReplacer)
   }
   return {

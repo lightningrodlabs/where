@@ -224,12 +224,12 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     if (!this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
       return false;
     }
-    /* Marker allowed */
+    /* Marker allowed if multi-allowed or if single and no other loc found*/
     if (currentPlay.space.meta!.multi) {
       return true;
     }
     const maybeLocation = this._dvm.getPeerFirstLocation(this.currentSpaceEh!, this.myNickName);
-    return maybeLocation != null;
+    return maybeLocation === null;
   }
 
 
@@ -252,13 +252,13 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** on surface click, try to create Location */
   private handleClick(event: any): void {
+    //console.log("handleClick: ", this.currentSpaceEh, event, this.canCreateLocation())
     if (!this.currentSpaceEh || event == null || !this.canCreateLocation()) {
       return;
     }
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay) return;
-    //console.log("handleClick: " + play.name)
-    //console.log(play.meta?.singleEmoji)
+    //console.log("handleClick: ", currentPlay.space.name, currentPlay.space.meta?.singleEmoji)
     const coord = this.getCoordsFromEvent(event);
     if (this.canEditLocation(currentPlay)) {
       this._dialogCoord = coord;
@@ -278,6 +278,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         let eh = (currentPlay.space.maybeMarkerPiece as MarkerPieceVariantSvg).svg;
         svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)!.value;
       }
+      if (!this.getCurrentSession()) console.error("Current session not found for space", this.currentSpaceEh)
       const location: WhereLocation = {
         coord,
         sessionEh: this.getCurrentSession()!,

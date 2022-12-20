@@ -10,7 +10,6 @@ import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, p
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
 import {ContextProvider} from "@lit-labs/context";
 import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
-import * as net from "net";
 
 
 /** -- Globals -- */
@@ -21,8 +20,8 @@ let HC_APP_PORT: number = Number(process.env.HC_APP_PORT);
 /** override installed_app_id  when in Electron */
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
-  let APP_ID = 'main-app'
-  let searchParams = new URLSearchParams(window.location.search);
+  const APP_ID = 'main-app'
+  const searchParams = new URLSearchParams(window.location.search);
   const urlPort = searchParams.get("PORT");
   if(!urlPort) {
     console.error("Missing PORT value in URL", window.location.search)
@@ -48,6 +47,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   @state() private _hvm!: HappViewModel;
   private _conductorAppProxy!: ConductorAppProxy;
+
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
   @state() private _ludoRoleCells!: RoleCells;

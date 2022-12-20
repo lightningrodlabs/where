@@ -165,9 +165,9 @@ export type Message =
  | {type: "Ping", content: AgentPubKeyB64}
  | {type: "Pong", content: AgentPubKeyB64}
  | {type: "NewHere", content: HereOutput}
- | {type: "DeleteHere", content: [EntryHashB64, ActionHashB64, ]}
- | {type: "UpdateHere", content: [number, ActionHashB64, Here, ]}
- | {type: "NewSession", content: [EntryHashB64, PlacementSession, ]}
+ | {type: "DeleteHere", content: [EntryHashB64, ActionHashB64]}
+ | {type: "UpdateHere", content: [number, ActionHashB64, Here]}
+ | {type: "NewSession", content: [EntryHashB64, PlacementSession]}
  | {type: "NewSpace", content: EntryHashB64}
  | {type: "NewTemplate", content: EntryHashB64}
  | {type: "NewSvgMarker", content: EntryHashB64}

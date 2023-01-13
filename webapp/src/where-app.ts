@@ -1,15 +1,18 @@
 import {LitElement, html, css} from "lit";
 import { state } from "lit/decorators.js";
 import { msg } from '@lit/localize';
-import {EntryHashB64} from '@holochain-open-dev/core-types';
 import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
-import {AppSignal, AppWebsocket, CellId, InstalledAppId} from "@holochain/client";
-import {CellContext, ConductorAppProxy, HappViewModel, delay, RoleCells, HCL, RoleInstanceId} from "@ddd-qc/lit-happ";
-import {CreateProfile, Profile, ProfilePrompt, ProfilesService, ProfilesStore, profilesStoreContext} from "@holochain-open-dev/profiles";
+import {
+  AppSignal,
+  AppWebsocket,
+  EntryHashB64,
+  InstalledAppId,
+  RoleName
+} from "@holochain/client";
+import {CellContext, ConductorAppProxy, HappViewModel, delay, HCL, CellsForRole} from "@ddd-qc/lit-happ";
 import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
-import {ContextProvider} from "@lit-labs/context";
-import {CellClient, HolochainClient} from "@holochain-open-dev/cell-client";
+import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 
 
 /** -- Globals -- */
@@ -50,10 +53,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
-  @state() private _ludoRoleCells!: RoleCells;
+  @state() private _ludoRoleCells!: CellsForRole;
   //private _curLudoCellId?: CellId;
 
-  @state() private _curLudoRoleInstanceId: RoleInstanceId = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
+  @state() private _curLudoRoleInstanceId: RoleName = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
 
 
   /** */
@@ -62,9 +65,9 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   //   this.initializeHapp();
   // }
 
-  constructor(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
+  constructor(socket?: AppWebsocket, appId?: InstalledAppId) {
     super();
-    this.initializeHapp(socket, appId, profilesStore);
+    this.initializeHapp(socket, appId);
   }
 
 
@@ -98,7 +101,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   }
 
   /** */
-  async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId, profilesStore?: ProfilesStore) {
+  async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId) {
     if (!socket) {
       const wsUrl =`ws://localhost:${HC_APP_PORT}`
       console.log("<where-app> Creating AppWebsocket with", wsUrl);
@@ -107,11 +110,12 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     this._conductorAppProxy = await ConductorAppProxy.new(socket);
 
-    const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
-    hcClient.addSignalHandler((sig) => {
-      //console.log("<where-app> signalCb()", sig);
-      this.handleSignal(sig);
-    })
+    // const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
+    // hcClient.addSignalHandler((sig) => {
+    //   //console.log("<where-app> signalCb()", sig);
+    //   this.handleSignal(sig);
+    // })
+    this._conductorAppProxy.addSignalHandler(this.handleSignal);
 
     const hvmDef = DEFAULT_WHERE_DEF;
     if (appId) {hvmDef.id = appId};
@@ -132,17 +136,21 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
     /** ProfilesStore used by <create-profile> */
-    if (!profilesStore) {
-      const whereCell = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.installedCell;
-      const whereClient = new CellClient(hcClient, whereCell);
-      const profilesService = new ProfilesService(whereClient, "zProfiles");
-      profilesStore = new ProfilesStore(profilesService, {
-        additionalFields: ['color'], //['color', 'lang'],
-        avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
-      })
-    }
-    console.log({profilesStore})
-    new ContextProvider(this, profilesStoreContext, profilesStore);
+    // if (!profilesStore) {
+    //   const whereCell = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell;
+    //   const installedCell: InstalledCell = {
+    //     cell_id: whereCell.cell_id,
+    //     role_name: whereCell.name,
+    //   }
+    //   const whereClient = new CellClient(hcClient, installedCell);
+    //   const profilesService = new ProfilesService(whereClient, "zProfiles");
+    //   profilesStore = new ProfilesStore(profilesService, {
+    //     additionalFields: ['color'], //['color', 'lang'],
+    //     avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
+    //   })
+    // }
+    // console.log({profilesStore})
+    // new ContextProvider(this, profilesStoreContext, profilesStore);
 
 
     await hvm.probeAll();
@@ -172,7 +180,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  async onNewProfile(profile: Profile) {
+  async createMyProfile(profile: WhereProfile) {
     //console.log("onNewProfile()", profile)
     await this.whereDvm.profilesZvm.createMyProfile(profile);
     this._hasStartingProfile = true;
@@ -180,7 +188,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  async onShowLudo(roleInstanceId: RoleInstanceId) {
+  async onShowLudo(roleInstanceId: RoleName) {
     this._curLudoRoleInstanceId = roleInstanceId;
     this._canLudotheque = true;
   }
@@ -197,7 +205,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     const [cloneIndex, dvm] = await this._hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
     console.log("Ludotheque clone created:", dvm.hcl.toString());
     this._ludoRoleCells = await this._conductorAppProxy.fetchCells(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-    this._curLudoRoleInstanceId = dvm.roleInstanceId;
+    this._curLudoRoleInstanceId = dvm.cell.name;
   }
 
 
@@ -227,7 +235,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
     /** Pages */
     const ludothequePage = html`
-        <cell-context .installedCell="${this.ludothequeDvm.installedCell}">
+        <cell-context .cell="${this.ludothequeDvm.cell}">
                   <ludotheque-page examples
                                    .whereCellId=${this.whereDvm.cellId}
                                    @import-playset-requested="${this.handleImportRequest}"
@@ -237,7 +245,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     `;
 
     const wherePage = html`
-        <cell-context .installedCell="${this.whereDvm.installedCell}">
+        <cell-context .cell="${this.whereDvm.cell}">
             <where-page 
                     .ludoRoleCells=${this._ludoRoleCells} 
                     .selectedLudo=${this._curLudoRoleInstanceId}
@@ -258,13 +266,21 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
     const createProfile = html `
-        <div
-                class="column"
-                style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
+        <div class="column"
+             style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >
-            <div class="column" style="align-items: center;">
-                <slot name="hero"></slot>
-                <create-profile @profile-created=${(e:any) => this.onNewProfile(e.detail.profile)}></create-profile>
+          <div class="column" style="align-items: center;">
+            <mwc-card>
+              <div class="column" style="margin: 16px;">
+                <span class="title" style="margin-bottom: 24px; align-self: flex-start">
+                  ${msg('Create Profile')}
+                </span>
+                  <edit-profile
+                          .saveProfileLabel=${msg('Create Profile')}
+                          @save-profile=${(e: CustomEvent) => this.createMyProfile(e.detail.profile)}
+                  ></edit-profile>
+              </div>
+            </mwc-card>
             </div>
         </div>`;
 
@@ -333,13 +349,11 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   /** */
   static get scopedElements() {
     return {
-      "profile-prompt": ProfilePrompt,
       "where-page": WherePage,
       "ludotheque-page": LudothequePage,
       "mwc-dialog": Dialog,
       "mwc-button": Button,
       "cell-context": CellContext,
-      'create-profile': CreateProfile,
     };
   }
 

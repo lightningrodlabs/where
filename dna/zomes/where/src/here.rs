@@ -90,7 +90,8 @@ fn get_heres_inner(base: EntryHash) -> ExternResult<Vec<HereOutput>> {
     /// Get details of every link on the target and create the message.
     for link in links.into_iter().map(|link| link) {
         //debug!("get_heres_inner() link: {:?}", link);
-        let details =  get_details(link.target, GetOptions::content())?;
+        let here_eh = link.target.clone().into_entry_hash().unwrap();
+        let details =  get_details(here_eh, GetOptions::content())?;
         let Some(Details::Entry(EntryDetails {entry, mut actions, .. })) = details
             else {continue};
         /// Turn the entry into a HereOutput

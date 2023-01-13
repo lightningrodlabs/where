@@ -11,8 +11,7 @@ import {
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 
-import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
-import {CellId} from "@holochain/client";
+import {AgentPubKeyB64, Cell, CellId, EntryHashB64} from "@holochain/client";
 
 import {delay, renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
@@ -24,12 +23,14 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
-import {PlaysetEntry, PlaysetEntryType, Template} from "../bindings/playset";
-import {destructureRoleInstanceId, DnaElement, RoleCells, RoleInstanceId} from "@ddd-qc/lit-happ";
+import {PlaysetEntry, PlaysetEntryType, Template} from "../bindings/playset.types";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {SignalPayload} from "../bindings/where";
+import {SignalPayload} from "../bindings/where.types";
+import {Dictionary} from "@ddd-qc/cell-proxy";
+import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 
 
 
@@ -61,10 +62,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   canLoadDummy: boolean = false;
 
   @property()
-  ludoRoleCells: RoleCells | null = null;
+  ludoRoleCells: CellsForRole | null = null;
 
   @property()
-  selectedLudo!: RoleInstanceId;
+  selectedLudoCellName!: string;
 
   /** ViewModels */
 
@@ -96,15 +97,17 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   get ludoCellId(): CellId {
     //console.log("get ludoCellId() called", this.ludoRoleCells);
-    if (this.selectedLudo == LudothequeDvm.DEFAULT_BASE_ROLE_NAME) return this.ludoRoleCells!.original.cell_id;
-    const maybePair = destructureRoleInstanceId(this.selectedLudo);
-    if (!maybePair) return this.ludoRoleCells!.original.cell_id;
-    const maybeCell = this.ludoRoleCells!.clones[String(maybePair[1])];
-    if (!maybeCell) {
-      console.error("Ludotheque not found", this.selectedLudo)
-      return this.ludoRoleCells!.original.cell_id;
+    if (this.selectedLudoCellName == LudothequeDvm.DEFAULT_BASE_ROLE_NAME) {
+      return this.ludoRoleCells!.provisioned.cell_id;
     }
-    return maybeCell.cell_id;
+    const maybeClone = this.ludoRoleCells!.clones[this.selectedLudoCellName];
+    if (!maybeClone) return this.ludoRoleCells!.provisioned.cell_id;
+    // const maybeCell = this.ludoRoleCells!.clones[String(maybePair[1])];
+    // if (!maybeCell) {
+    //   console.error("Ludotheque not found", this.selectedLudoCell)
+    //   return this.ludoRoleCells!.provisioned.cell_id;
+    // }
+    return maybeClone.cell_id;
   }
 
   get drawerElem() : Drawer {
@@ -529,7 +532,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   private showLudotheque(e?: any) {
     console.log("showLudotheque()")
-    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudo, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCellName, bubbles: true, composed: true }));
   }
 
   async handleColorChange(e: any) {
@@ -563,14 +566,14 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return;
     }
     console.log("setting _selectedLudo to", selector.value)
-    this.selectedLudo = selector.value;
+    this.selectedLudoCellName = selector.value;
     //this.requestUpdate();
   }
 
 
   /** */
   render() {
-    console.log("<where-page> render()", this._initialized, this.selectedLudo, this._currentSpaceEh);
+    console.log("<where-page> render()", this._initialized, this.selectedLudoCellName, this._currentSpaceEh);
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
@@ -598,10 +601,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     let ludoNamesLi: any[] = [];
     if (this.ludoRoleCells) {
       ludoNamesLi = Object.entries(this.ludoRoleCells!.clones).map(
-        ([cloneName, installedCell]) => {
+        ([cloneName, cell]) => {
           return html`
-          <mwc-list-item class="ludo-clone-li" value="${installedCell.role_id}" .selected=${this.selectedLudo == installedCell.role_id}>
-            ${installedCell.role_id}
+          <mwc-list-item class="ludo-clone-li" value="${cell.clone_id}" .selected=${this.selectedLudoCellName == cell.clone_id}>
+            ${cell.clone_id}
           </mwc-list-item>
         `;
         }
@@ -673,7 +676,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title">Where: ${spaceName} | ${this.selectedLudo}</div>
+      <div slot="title">Where: ${spaceName} | ${this.selectedLudoCellName}</div>
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
         <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->

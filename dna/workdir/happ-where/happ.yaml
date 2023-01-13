@@ -3,14 +3,14 @@ manifest_version: "1"
 name: hWhere
 description: Where happ (with Ludotheque clones)
 roles:
-  - id: rLudotheque
+  - name: rLudotheque
     provisioning:
       strategy: create
       deferred: true
     dna:
       bundled: "../../../artifacts/ludotheque.dna"
       clone_limit: 10
-  - id: rWhere
+  - name: rWhere
     provisioning:
       strategy: create
       deferred: true

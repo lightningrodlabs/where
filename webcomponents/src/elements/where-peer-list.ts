@@ -8,7 +8,6 @@ import {
   IconButton,
   Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle, CircularProgress,
 } from "@scoped-elements/material-web";
-import {AgentPubKeyB64, Dictionary} from "@holochain-open-dev/core-types";
 import {AgentPubKeyMap, deserializeHash} from "@holochain-open-dev/utils";
 
 import { sharedStyles } from "../sharedStyles";
@@ -18,6 +17,8 @@ import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
+import {AgentPubKeyB64} from "@holochain/client";
+import {Dictionary} from "@ddd-qc/cell-proxy";
 
 
 /** @element where-peer-list */

@@ -10,23 +10,20 @@ import {
   Button, CheckListItem, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
-import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
 import {publishExamplePlayset} from "../examples";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
-import {CellId} from "@holochain/client";
+import {CellId, encodeHashToBase64, EntryHashB64} from "@holochain/client";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 import { localized, msg } from '@lit/localize';
 import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
-import {Playset} from "../bindings/ludotheque";
+import {Playset} from "../bindings/ludotheque.types";
 import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
-import {PlaysetEntry, PlaysetEntryType} from "../bindings/playset";
+import {PlaysetEntry, PlaysetEntryType} from "../bindings/playset.types";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 import {DnaElement} from "@ddd-qc/lit-happ";
-import {serializeHash} from "@holochain-open-dev/utils";
-
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -149,7 +146,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     //console.log({templates})
 
     /** load initial plays & templates if there are none (in base cell only) */
-    if (this.canLoadExamples && Object.keys(playsets).length == 0 && this._dvm.roleInstanceId === this._dvm.baseRoleName) {
+    if (this.canLoadExamples && Object.keys(playsets).length == 0 && !this._dvm.cell.clone_id) {
       await publishExamplePlayset(this._dvm);
       console.log("addExamplePieces() - DONE");
     }
@@ -765,7 +762,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">${msg('Library')}: ${this._dvm.roleInstanceId}</div>
+      <div slot="title">${msg('Library')}: ${this._dvm.cell.name}</div>
 
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
@@ -824,7 +821,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   }
 
   private importPlayset(eh: EntryHashB64) {
-    console.log("importPlayset() in " + serializeHash(this.whereCellId![0]) + " | " + eh)
+    console.log("importPlayset() in " + encodeHashToBase64(this.whereCellId![0]) + " | " + eh)
     this.dispatchEvent(new CustomEvent('import-playset-requested', { detail: eh, bubbles: true, composed: true }));
   }
 

@@ -13,21 +13,32 @@ setLocale('fr-fr');
 
 /** -- Globals -- */
 
-let HC_APP_PORT: any = process.env.HC_APP_PORT;
-
+let HC_APP_PORT: number;
+let HC_ADMIN_PORT: number;
 /** override installed_app_id when in Electron */
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
   let APP_ID = 'main-app'
-  let searchParams = new URLSearchParams(window.location.search);
-  HC_APP_PORT = searchParams.get("PORT");
+  const searchParams = new URLSearchParams(window.location.search);
+  const urlPort = searchParams.get("APP");
+  if(!urlPort) {
+    console.error("Missing APP value in URL", window.location.search)
+  }
+  HC_APP_PORT = Number(urlPort);
+  const urlAdminPort = searchParams.get("ADMIN");
+  HC_ADMIN_PORT = Number(urlAdminPort);
   const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
   DEFAULT_LUDOTHEQUE_DEF.id = APP_ID + '-' + NETWORK_ID;
+} else {
+  HC_APP_PORT = Number(process.env.HC_PORT);
+  HC_ADMIN_PORT = Number(process.env.ADMIN_PORT);
 }
 
-console.log({APP_ID: DEFAULT_LUDOTHEQUE_DEF.id})
-console.log({HC_APP_PORT})
+
+console.log("APP_ID =", DEFAULT_LUDOTHEQUE_DEF.id)
+console.log("HC_APP_PORT", HC_APP_PORT);
+console.log("HC_ADMIN_PORT", HC_ADMIN_PORT);
 
 
 /**
@@ -55,7 +66,7 @@ export class LudothequeStandaloneApp extends HappElement {
 
   /** */
   async firstUpdated() {
-    new ContextProvider(this, cellContext, this.ludothequeDvm.installedCell);
+    new ContextProvider(this, cellContext, this.ludothequeDvm.cell);
     this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.hcl.toString());
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {

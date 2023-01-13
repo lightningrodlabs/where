@@ -7,7 +7,7 @@ import {localized, msg} from '@lit/localize';
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {ZomeElement} from "@ddd-qc/lit-happ";
-import {EmojiGroup} from "../bindings/playset";
+import {EmojiGroup} from "../bindings/playset.types";
 
 
 /** @element where-emoji-group */

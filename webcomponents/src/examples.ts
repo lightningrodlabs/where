@@ -9,8 +9,8 @@ import {PlaysetZvm} from "./viewModels/playset.zvm";
 import {MarkerType, SpaceMat} from "./viewModels/playset.perspective";
 import {HoloHashedB64} from "./utils";
 import {LudothequeDvm} from "./viewModels/ludotheque.dvm";
-import {Playset} from "./bindings/ludotheque";
-import {MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "./bindings/playset";
+import {Playset} from "./bindings/ludotheque.types";
+import {MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "./bindings/playset.types";
 
 
 export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {

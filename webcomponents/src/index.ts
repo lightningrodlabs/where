@@ -6,9 +6,9 @@ import './global-styles'
 // TODO: change exports to be available for consumer packages
 
 
-export * from './bindings/playset';
-//export * from './bindings/ludotheque';
-export * from './bindings/where';
+export * from './bindings/playset.types';
+//export * from './bindings/ludotheque.types';
+export * from './bindings/where.types';
 
 export * from './viewModels/happDef';
 export * from './viewModels/ludotheque.dvm';

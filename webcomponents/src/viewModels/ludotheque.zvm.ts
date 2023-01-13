@@ -1,13 +1,12 @@
-import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
-import {CellId} from "@holochain/client";
-import {Playset} from "../bindings/ludotheque";
+import {CellId, EntryHashB64} from "@holochain/client";
+import {Playset} from "../bindings/ludotheque.types";
 import {LudothequeProxy} from "../bindings/ludotheque.proxy";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 
 
 /** */
 export interface LudothequePerspective {
-  playsets: Dictionary<Playset>;
+  playsets: Record<string, Playset>;
 }
 
 
@@ -40,7 +39,7 @@ export class LudothequeZvm extends ZomeViewModel {
   }
 
   /** PlaysetEh -> Playset */
-  private _playsets: Dictionary<Playset> = {};
+  private _playsets: Record<string, Playset> = {};
 
 
   getPlayset(playsetEh: EntryHashB64): Playset | undefined {
@@ -52,7 +51,7 @@ export class LudothequeZvm extends ZomeViewModel {
 
   /** Probe */
 
-  async probePlaysets(): Promise<Dictionary<Playset>> {
+  async probePlaysets(): Promise<Record<string, Playset>> {
     const playsets = await this.zomeProxy.getAllPlaysets();
     for (const e of playsets) {
       this._playsets[e.hash] = e.content

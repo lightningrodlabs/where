@@ -7,7 +7,6 @@ import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select
 } from "@scoped-elements/material-web";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {EntryHashB64} from "@holochain-open-dev/core-types";
 import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
@@ -18,11 +17,12 @@ import {localized, msg} from '@lit/localize';
 import {
   MarkerPieceVariantEmojiGroup, MarkerPiece,
   SvgMarker, MarkerPieceVariantSvg, Template
-} from "../bindings/playset";
+} from "../bindings/playset.types";
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/lit-happ";
 import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective";
+import {EntryHashB64} from "@holochain/client";
 
 
 /**

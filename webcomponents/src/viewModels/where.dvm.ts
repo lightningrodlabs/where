@@ -1,4 +1,3 @@
-import {ActionHashB64, AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
   LocationInfo,
   PlacementSessionMat,
@@ -9,22 +8,22 @@ import {
   WhereLocation,
   dematerializeSession, HereInfo,
 } from "./where.perspective";
-import {AppSignal} from "@holochain/client/lib/api/app/types";
 import {DnaViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
-import {Space} from "../bindings/playset";
-import {Message, MessageType, SignalPayload} from "../bindings/where";
+import {Space} from "../bindings/playset.types";
+import {Message, MessageType, SignalPayload} from "../bindings/where.types";
+import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
 
 
 /** */
 export interface WhereDnaPerspective {
-  plays: Dictionary<Play>,
-  currentSessions: Dictionary<EntryHashB64>,
-  zooms: Dictionary<number>,
-  agentPresences: Dictionary<number>,
+  plays: Record<string, Play>,
+  currentSessions: Record<string, EntryHashB64>,
+  zooms: Record<string, number>,
+  agentPresences: Record<string, number>,
 }
 
 
@@ -41,7 +40,7 @@ export class WhereDvm extends DnaViewModel {
 
   static readonly DEFAULT_BASE_ROLE_NAME = "rWhere";
   static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesZvm]
-  readonly signalHandler = this.handleSignal;
+  readonly signalHandler?: AppSignalCb = this.handleSignal;
 
   /** QoL Helpers */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.DEFAULT_ZOME_NAME) as PlaysetZvm}
@@ -63,13 +62,13 @@ export class WhereDvm extends DnaViewModel {
   }
 
   /** SpaceEh -> Play */
-  private _plays: Dictionary<Play> = {};
+  private _plays: Record<string, Play> = {};
   /** SpaceEh -> sessionEh */
-  private _currentSessions: Dictionary<EntryHashB64> = {};
+  private _currentSessions: Record<string, EntryHashB64> = {};
   /** SpaceEh -> zoomPct */
-  private _zooms: Dictionary<number> = {};
+  private _zooms: Record<string, number> = {};
   /** agentPubKey -> timestamp */
-  private _agentPresences: Dictionary<number> = {};
+  private _agentPresences: Record<string, number> = {};
 
   /** -- Getters -- */
   getZoom(spaceEh: EntryHashB64): number | undefined {return this._zooms[spaceEh]}
@@ -81,40 +80,40 @@ export class WhereDvm extends DnaViewModel {
   /** -- Signaling -- */
 
   /** */
-  handleSignal(appSignal: AppSignal): void {
-    const signal = appSignal.data.payload
-    console.log("Received Signal", signal);
+  handleSignal(signal: AppSignal) {
+    const signalPayload = signal.data.payload
+    console.log("Received Signal", signalPayload);
     /* Update agent's presence stat */
-    this.updatePresence(signal.from)
+    this.updatePresence(signalPayload.from)
     /* Send pong response */
-    if (signal.message.type != MessageType.Pong) {
-      console.log("PONGING ", signal.from)
+    if (signalPayload.message.type != MessageType.Pong) {
+      console.log("PONGING ", signalPayload.from)
       const pong: SignalPayload = {
-        maybeSpaceHash: signal.maybeSpaceHash,
+        maybeSpaceHash: signalPayload.maybeSpaceHash,
         from: this._cellProxy.agentPubKey,
         message: {type: MessageType.Pong, content: this._cellProxy.agentPubKey}
       };
-      this.notifyPeers(pong, [signal.from])
+      this.notifyPeers(pong, [signalPayload.from])
     }
     /* Handle signal */
-    switch(signal.message.type) {
+    switch(signalPayload.message.type) {
       case MessageType.Ping:
       case MessageType.Pong:
         break;
       case MessageType.NewSvgMarker:
-        const svgEh = signal.message.content;
+        const svgEh = signalPayload.message.content;
         this.playsetZvm.fetchSvgMarker(svgEh);
         break;
       case MessageType.NewEmojiGroup:
-        const groupEh = signal.message.content
+        const groupEh = signalPayload.message.content
         this.playsetZvm.fetchEmojiGroup(groupEh);
         break;
       case MessageType.NewTemplate:
-        const templateEh = signal.message.content
+        const templateEh = signalPayload.message.content
         this.playsetZvm.fetchTemplate(templateEh);
         break;
       case MessageType.NewSpace:
-        const spaceEh = signal.message.content;
+        const spaceEh = signalPayload.message.content;
         /*await*/ this.playsetZvm.fetchSpace(spaceEh).then((space) => {
         if (space.meta.sessionCount == 0) {
           //this.whereZvm.createNextSession()
@@ -126,42 +125,42 @@ export class WhereDvm extends DnaViewModel {
         // }
         break;
       case MessageType.NewSession:
-        const sessEh = signal.message.content[0];
-        const session = signal.message.content[1];
-        if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
-          this.whereZvm.addSession(signal.maybeSpaceHash, sessEh, session);
-          this._plays[signal.maybeSpaceHash].sessions[session.name] = sessEh;
+        const sessEh = signalPayload.message.content[0];
+        const session = signalPayload.message.content[1];
+        if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
+          this.whereZvm.addSession(signalPayload.maybeSpaceHash, sessEh, session);
+          this._plays[signalPayload.maybeSpaceHash].sessions[session.name] = sessEh;
         }
         break;
       case MessageType.NewHere:
-        const hereInfo = signal.message.content;
+        const hereInfo = signalPayload.message.content;
         const newLocInfo: LocationInfo = materializeHere(hereInfo);
-        if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
+        if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
           //console.log("locations before add", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
           this.whereZvm.addLocation(newLocInfo);
           //console.log("locations after add", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
         }
         break;
       case MessageType.DeleteHere:
-        const sessionEh = signal.message.content[0];
-        const hereLinkAh = signal.message.content[1];
-        if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
+        const sessionEh = signalPayload.message.content[0];
+        const hereLinkAh = signalPayload.message.content[1];
+        if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
           //console.log("locations before remove", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
-          this.whereZvm.removeLocation(signal.maybeSpaceHash, sessionEh, hereLinkAh);
+          this.whereZvm.removeLocation(signalPayload.maybeSpaceHash, sessionEh, hereLinkAh);
           //console.log("locations before remove", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
 
         }
         break;
       case MessageType.UpdateHere:
-        const idx = signal.message.content[0];
+        const idx = signalPayload.message.content[0];
         const newHereInfo: HereInfo =   {
-          entry: signal.message.content[2],
-          linkAh: signal.message.content[1],
-          author: signal.from,
+          entry: signalPayload.message.content[2],
+          linkAh: signalPayload.message.content[1],
+          author: signalPayload.from,
           };
         const newInfo = materializeHere(newHereInfo);
-        if (signal.maybeSpaceHash && this._plays[signal.maybeSpaceHash]) {
-          this.whereZvm.updateLocation(newInfo.location.sessionEh, signal.maybeSpaceHash, idx, newInfo.location.coord, newInfo.location.meta.tag, newInfo.location.meta.emoji);
+        if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
+          this.whereZvm.updateLocation(newInfo.location.sessionEh, signalPayload.maybeSpaceHash, idx, newInfo.location.coord, newInfo.location.meta.tag, newInfo.location.meta.emoji);
         }
         break;
     }
@@ -216,16 +215,16 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async probeAll(): Promise<void> {
-    console.log(`${this.roleInstanceId}.probeAll()...`)
+    console.log(`${this.baseRoleName}.probeAll()...`)
     await super.probeAll();
     await this.probeAllPlays();
-    console.log(`${this.roleInstanceId}.probeAll() Done.`);
+    console.log(`${this.baseRoleName}.probeAll() Done.`);
     console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
   }
 
 
   /** For each known space, look for an upto date Play otherwise construct it? */
-  async probeAllPlays() : Promise<Dictionary<Play>> {
+  async probeAllPlays() : Promise<Record<string, Play>> {
     const spaces = this.playsetZvm.perspective.spaces;
     for (const spaceEh of Object.keys(spaces)) {
       const play = await this.probePlay(spaceEh);
@@ -253,7 +252,7 @@ export class WhereDvm extends DnaViewModel {
       return Promise.reject("Space not found")
     }
     /* - Sessions */
-    let sessions: Dictionary<EntryHashB64> = {};
+    let sessions: Record<string, EntryHashB64> = {};
     for (const sessionEh of manifest.sessionEhs) {
       // const session = this.whereZvm.getSession(sessionEh);
       const session = await this.whereZvm.probeSession(sessionEh);
@@ -407,13 +406,13 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** */
-  async publishSpaceWithSessions(space: Space, sessionNames: string[]): Promise<[EntryHashB64, Dictionary<EntryHashB64>]> {
+  async publishSpaceWithSessions(space: Space, sessionNames: string[]): Promise<[EntryHashB64, Record<string, EntryHashB64>]> {
     console.log("createSpaceWithSessions(): " + sessionNames);
     console.log({space})
     let spaceEh = await this.playsetZvm.publishSpaceEntry(space);
     console.log("createSpaceWithSessions(): " + spaceEh);
     const sessions = await this.whereZvm.createSessions(spaceEh, sessionNames);
-    let playSessions: Dictionary<EntryHashB64> = {};
+    let playSessions: Record<string, EntryHashB64> = {};
     for (const [eh, session] of Object.entries(sessions)) {
       playSessions[session.name] = eh;
     }

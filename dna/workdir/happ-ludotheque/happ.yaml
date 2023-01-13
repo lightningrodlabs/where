@@ -3,7 +3,7 @@ manifest_version: "1"
 name: hLudotheque
 description: Ludotheque standalone happ
 roles:
-  - id: rLudotheque
+  - name: rLudotheque
     provisioning:
       strategy: create
       deferred: true

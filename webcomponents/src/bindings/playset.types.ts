@@ -11,14 +11,23 @@ ActionHash,
 AnyDhtHash,
 KitsuneAgent,
 KitsuneSpace,
+HoloHashB64,
+AgentPubKeyB64,
+DnaHashB64,
+WasmHashB64,
+EntryHashB64,
+ActionHashB64,
+AnyDhtHashB64,
 InstalledAppId,
 Signature,
 CellId,
 DnaProperties,
-RoleId,
+RoleName,
 InstalledCell,
 Timestamp,
 HoloHashed,
+NetworkInfo,
+FetchQueueInfo,
 /** Action */
 SignedActionHashed,
 ActionHashed,
@@ -41,6 +50,7 @@ CapClaim,
 ZomeCallCapGrant,
 CapAccess,
 CapGrant,
+GrantedFunctionsType,
 /** CounterSigning */
 //CounterSigningSessionData,
 //PreflightRequest,
@@ -59,16 +69,23 @@ getDhtOpEntry,
 getDhtOpSignature,
 /** Entry */
 EntryVisibility,
-AppEntryType,
+AppEntryDef,
 EntryType,
 EntryContent,
 Entry,
 /** Record */
-Record,
-RecordEntry,
+Record as HcRecord,
+RecordEntry as HcRecordEntry,
 /** admin types */
-ZomeName,
+InstalledAppInfoStatus,
+StemCell,
+Cell,
+CellType,
+CellInfo,
+AppInfo,
 MembraneProof,
+FunctionName,
+ZomeName,
 ZomeDefinition,
 IntegrityZome,
 CoordinatorZome,
@@ -76,7 +93,6 @@ DnaDefinition,
 ResourceBytes,
 ResourceMap,
 CellProvisioning,
-HoloHashB64,
 DnaVersionSpec,
 DnaVersionFlexible,
 NetworkSeed,
@@ -84,27 +100,21 @@ ZomeLocation,
    } from '@holochain/client';
 
 import {
-// Common
-Dictionary,
-EntryHashB64,
-ActionHashB64,
+/** Common */
 DhtOpHashB64,
-DnaHashB64,
-AgentPubKeyB64,
-AnyDhtHashB64,
 DhtOpHash,
-// DnaFile
+/** DnaFile */
 DnaFile,
 DnaDef,
 Zomes,
 WasmCode,
-// entry-details
+/** entry-details */
 EntryDetails,
 RecordDetails,
 Details,
 DetailsType,
 EntryDhtStatus,
-// Validation
+/** Validation */
 ValidationStatus,
 ValidationReceipt,
    } from '@holochain-open-dev/core-types';
@@ -159,10 +169,10 @@ export enum PlaysetEntryType {
 	Template = 'Template',
 	Space = 'Space',
 }
-export type PlaysetEntryVariantSvgMarker = {svgMarker: SvgMarker}
-export type PlaysetEntryVariantEmojiGroup = {emojiGroup: EmojiGroup}
-export type PlaysetEntryVariantTemplate = {template: Template}
-export type PlaysetEntryVariantSpace = {space: Space}
+export type PlaysetEntryVariantSvgMarker = {SvgMarker: SvgMarker}
+export type PlaysetEntryVariantEmojiGroup = {EmojiGroup: EmojiGroup}
+export type PlaysetEntryVariantTemplate = {Template: Template}
+export type PlaysetEntryVariantSpace = {Space: Space}
 export type PlaysetEntry = 
  | PlaysetEntryVariantSvgMarker | PlaysetEntryVariantEmojiGroup | PlaysetEntryVariantTemplate | PlaysetEntryVariantSpace;
 
@@ -188,7 +198,7 @@ export interface Space {
   origin: EntryHashB64
   surface: string
   maybeMarkerPiece?: MarkerPiece
-  meta: Dictionary<string>
+  meta: Record<string, string>
 }
 
 /** SvgMarker Entry */

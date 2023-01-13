@@ -1,10 +1,10 @@
-import {EntryHashB64, ActionHashB64, AgentPubKeyB64, Dictionary} from '@holochain-open-dev/core-types';
 import {WhereProxy} from '../bindings/where.proxy';
 import {Coord, WhereLocation, dematerializeHere, WherePerspective, LocationInfo,
   HereInfo, materializeHere, PlacementSessionMat, PlayManifest
 } from "./where.perspective";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
-import {SignalPayload} from "../bindings/where";
+import {SignalPayload} from "../bindings/where.types";
+import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 
 /**
@@ -50,11 +50,11 @@ export class WhereZvm extends ZomeViewModel {
   /** SpaceEh -> Play */
   //private _plays: Dictionary<Play> = {};
   /** SpaceEh -> PlayManifest */
-  private _manifests: Dictionary<PlayManifest> = {};
+  private _manifests: Record<string, PlayManifest> = {};
   /** SpaceEh -> sessionEh */
   //private _currentSessions: Dictionary<EntryHashB64> = {};
   /** SessionEh -> PlacementSession */
-  private _sessions: Dictionary<PlacementSessionMat> = {};
+  private _sessions: Record<string, PlacementSessionMat> = {};
   /* SessionEh -> [locations] */
   //private _locations: Dictionary<LocationInfo[]> = {};
 
@@ -208,7 +208,7 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Dictionary<PlacementSessionMat>> {
+  async createSessions(spaceEh: EntryHashB64, sessionNames: string[]): Promise<Record<string, PlacementSessionMat>> {
     const index = this._manifests[spaceEh]? this._manifests[spaceEh].sessionEhs.length : 0;
     const ehs = await this.zomeProxy.createSessions({spaceEh, sessionNames});
     let sessions: any = {};

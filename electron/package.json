@@ -25,7 +25,7 @@
     "productName": "Where",
     "afterSign": "./afterSignHook.js",
     "appId": "com.harris-braun.where",
-    "copyright": "© 2021-2022 Harris-Braun Enterprises, LLC",
+    "copyright": "© 2021-2023 Harris-Braun Enterprises, LLC",
     "asar": false,
     "files": [
       "out-tsc/**/*",
@@ -52,19 +52,19 @@
     "@types/electron-prompt": "^1.6.1",
     "@typescript-eslint/eslint-plugin": "^5.39.0",
     "@typescript-eslint/parser": "^5.39.0",
-    "cross-env": "^7.0.3",    
+    "cross-env": "^7.0.3",
     "electron": "19.0.0",
     "electron-builder": "22.14.13",
     "electron-notarize": "^1.0.0",
     "eslint": "^8.24.0",
-    "typescript": "^4.5.5"
+    "typescript": "^4.9.0"
   },
   "dependencies": {
-    "@lightningrodlabs/electron-holochain": "0.3.0",
+    "@lightningrodlabs/electron-holochain": "0.5.2",
     "command-exists": "^1.2.8",
     "electron-prompt": "^1.7.0",
     "electron-log": "^4.4.6",
     "electron-notarize": "^1.1.1",
-    "tslib": "^2.3.1"
+    "tslib": "^2.4.0"
   }
 }

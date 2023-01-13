@@ -1,4 +1,3 @@
-import {Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {
   EmojiGroup,
   GetInventoryOutput,
@@ -6,8 +5,10 @@ import {
   Space,
   SvgMarker,
   Template
-} from "../bindings/playset";
+} from "../bindings/playset.types";
 import {mapReplacer, mapReviver} from "../utils";
+import {EntryHashB64} from "@holochain/client";
+import {Dictionary} from "@ddd-qc/cell-proxy";
 
 export type Inventory = GetInventoryOutput;
 

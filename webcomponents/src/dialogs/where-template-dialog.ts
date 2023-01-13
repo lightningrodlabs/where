@@ -10,7 +10,7 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import { localized, msg } from '@lit/localize';
 import {TemplateType} from "../viewModels/playset.perspective";
-import {Template} from "../bindings/playset";
+import {Template} from "../bindings/playset.types";
 
 
 /** */

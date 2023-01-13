@@ -7,15 +7,15 @@ import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
 import {SlAvatar} from "@scoped-elements/shoelace";
-import {AgentPubKeyB64, EntryHashB64} from "@holochain-open-dev/core-types";
 import {prefix_canvas} from "../templates";
 import {localized, msg} from '@lit/localize';
 import {Coord, LocationInfo, LocOptions, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
-import {EmojiGroup, MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "../bindings/playset";
+import {EmojiGroup, MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from "../bindings/playset.types";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {MarkerType} from "../viewModels/playset.perspective";
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
+import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 
 // // Canvas Animation experiment

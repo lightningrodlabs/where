@@ -3,7 +3,7 @@ manifest_version: "1"
 name: where-standalone
 description: Standalone happ for Where for testing purpose
 roles:
-  - id: rWhere
+  - name: rWhere
     provisioning:
       strategy: create
       deferred: true

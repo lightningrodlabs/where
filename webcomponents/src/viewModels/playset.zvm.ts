@@ -1,7 +1,6 @@
-import {Dictionary, EntryHashB64} from '@holochain-open-dev/core-types';
-import {CellId} from "@holochain/client";
+import {CellId, EntryHashB64} from "@holochain/client";
 import {EmojiGroup, GetInventoryOutput, PlaysetEntryType, Space, SvgMarker, Template
-} from "../bindings/playset";
+} from "../bindings/playset.types";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetProxy} from "../bindings/playset.proxy";
 import {materializeSpace, dematerializeSpace, Inventory, PlaysetPerspective, SpaceMat} from "./playset.perspective";
@@ -53,10 +52,10 @@ export class PlaysetZvm extends ZomeViewModel {
     };
   }
 
-  private _svgMarkers: Dictionary<SvgMarker> = {};
-  private _emojiGroups: Dictionary<EmojiGroup> = {};
-  private _templates: Dictionary<Template> = {};
-  private _spaces: Dictionary<SpaceMat> = {};
+  private _svgMarkers: Record<string, SvgMarker> = {};
+  private _emojiGroups: Record<string, EmojiGroup> = {};
+  private _templates: Record<string, Template> = {};
+  private _spaces: Record<string, SpaceMat> = {};
 
   getSvgMarker(eh: EntryHashB64): SvgMarker | undefined {return this._svgMarkers[eh]}
   getEmojiGroup(eh: EntryHashB64): EmojiGroup | undefined {return this._emojiGroups[eh]}
@@ -72,7 +71,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this.zomeProxy.getInventory();
   }
 
-  async probeTemplates() : Promise<Dictionary<Template>> {
+  async probeTemplates() : Promise<Record<string, Template>> {
     const templates = await this.zomeProxy.getTemplates();
     for (const t of templates) {
         this._templates[t.hash] = t.content
@@ -81,7 +80,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._templates;
   }
 
-  async probeSvgMarkers() : Promise<Dictionary<SvgMarker>> {
+  async probeSvgMarkers() : Promise<Record<string, SvgMarker>> {
     const markers = await this.zomeProxy.getSvgMarkers();
     for (const e of markers) {
       this._svgMarkers[e.hash] = e.content
@@ -90,7 +89,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._svgMarkers
   }
 
-  async probeEmojiGroups() : Promise<Dictionary<EmojiGroup>> {
+  async probeEmojiGroups() : Promise<Record<string, EmojiGroup>> {
     const groups = await this.zomeProxy.getAllEmojiGroups();
     for (const e of groups) {
       this._emojiGroups[e.hash] = e.content
@@ -99,7 +98,7 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._emojiGroups
   }
 
-  async probeSpaces() : Promise<Dictionary<SpaceMat>> {
+  async probeSpaces() : Promise<Record<string, SpaceMat>> {
     const spaces = await this.zomeProxy.getSpaces();
     for (const e of spaces) {
       this._spaces[e.hash] = materializeSpace(e.content)

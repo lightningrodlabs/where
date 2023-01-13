@@ -1,13 +1,13 @@
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {ProfilesProxy, WhereProfile} from "./profiles.proxy";
-import {AgentPubKeyB64, Dictionary, EntryHashB64} from "@holochain-open-dev/core-types";
 import {deserializeHash, serializeHash} from "@holochain-open-dev/utils";
 import { decode } from '@msgpack/msgpack';
+import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 /** */
 export interface ProfilesPerspective {
   /* AgentPubKeyB64 -> Profile */
-  profiles: Dictionary<WhereProfile>,
+  profiles: Record<string, WhereProfile>,
 }
 
 
@@ -41,7 +41,7 @@ export class ProfilesZvm extends ZomeViewModel {
     };
   }
 
-  private _profiles: Dictionary<WhereProfile> = {};
+  private _profiles: Record<string, WhereProfile> = {};
 
 
   getProfile(eh: EntryHashB64): WhereProfile | undefined {return this._profiles[eh]}

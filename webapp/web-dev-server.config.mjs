@@ -29,14 +29,15 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   /** Set appIndex to enable SPA routing */
   appIndex: './dist/index.html',
 
+  //       'process.env.NODE_ENV': `"production"`,
+
   plugins: [
     replace({
       "preventAssignment": true,
-      'process.env.NODE_ENV': `"production"`,
       'process.env.ENV': JSON.stringify(process.env.ENV),
       'process.env.APP_DEV': JSON.stringify(process.env.APP_DEV),
       'process.env.HC_APP_PORT': JSON.stringify(process.env.HC_APP_PORT || 8888),
-      'process.env.HC_ADMIN_PORT': JSON.stringify(process.env.HC_APP_PORT || 8889),
+      'process.env.HC_ADMIN_PORT': JSON.stringify(process.env.HC_ADMIN_PORT || 8889),
       '  COMB =': 'window.COMB =',
       delimiters: ['', ''],
     }),

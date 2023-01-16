@@ -1,5 +1,6 @@
 import { AgentPubKey, Record as HcRecord } from '@holochain/client';
 import {ZomeProxy} from "@ddd-qc/lit-happ";
+import {ludothequeFunctionNames} from "../bindings/ludotheque.fn";
 
 export interface WhereProfile {
   nickname: string;
@@ -12,7 +13,16 @@ export interface WhereProfile {
  */
 export class ProfilesProxy extends ZomeProxy {
   static readonly DEFAULT_ZOME_NAME = "zProfiles"
-
+  static readonly FN_NAMES = [
+    "entry_defs",
+    "get_my_profile",
+    "get_agent_profile",
+    "get_agents_profiles",
+    "search_profiles",
+    'get_all_profiles',
+    'create_profile',
+    'update_profile',
+  ];
 
   async getMyProfile(): Promise<HcRecord> {
     return this.call('get_my_profile', null);

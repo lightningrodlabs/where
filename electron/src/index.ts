@@ -119,7 +119,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
 
   /** load the index.html of the app */
   let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
-  mainUrl += "?PORT=" + appPort + "&UID=" + g_uid
+  mainUrl += "?APP=" + appPort + "&UID=" + g_uid
   log('info', "createMainWindow ; mainUrl = " + mainUrl)
   try {
     await mainWindow.loadURL("file://" + mainUrl)

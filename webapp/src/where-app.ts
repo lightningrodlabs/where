@@ -1,62 +1,74 @@
-import {LitElement, html, css} from "lit";
+import {html, css} from "lit";
 import { state } from "lit/decorators.js";
 import { msg } from '@lit/localize';
-import { ScopedElementsMixin } from "@open-wc/scoped-elements";
 import {Button, Dialog} from "@scoped-elements/material-web";
+import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
+import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
 import {
-  AppSignal,
-  AppWebsocket,
-  EntryHashB64,
-  InstalledAppId,
-  RoleName
-} from "@holochain/client";
-import {CellContext, ConductorAppProxy, HappViewModel, delay, HCL, CellsForRole} from "@ddd-qc/lit-happ";
-import {LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm, DEFAULT_WHERE_DEF} from "@where/elements";
+  LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm,
+  DEFAULT_WHERE_DEF,
+} from "@where/elements";
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
+import {EditProfile} from "./edit-profile";
 
 
 /** -- Globals -- */
 
 const APP_DEV = process.env.APP_DEV? process.env.APP_DEV : false;
-let HC_APP_PORT: number = Number(process.env.HC_APP_PORT);
-
+let HC_APP_PORT: number;
+let HC_ADMIN_PORT: number;
 /** override installed_app_id  when in Electron */
+//export const MY_ELECTRON_API = (window as any).myElectronAPI;
+//console.log("MY_ELECTRON_API = ", MY_ELECTRON_API);
 export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
 if (IS_ELECTRON) {
   const APP_ID = 'main-app'
   const searchParams = new URLSearchParams(window.location.search);
-  const urlPort = searchParams.get("PORT");
+  const urlPort = searchParams.get("APP");
   if(!urlPort) {
-    console.error("Missing PORT value in URL", window.location.search)
+    console.error("Missing APP value in URL", window.location.search)
   }
   HC_APP_PORT = Number(urlPort);
+  const urlAdminPort = searchParams.get("ADMIN");
+  HC_ADMIN_PORT = Number(urlAdminPort);
   const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
   DEFAULT_WHERE_DEF.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
+} else {
+  HC_APP_PORT = Number(process.env.HC_APP_PORT);
+  HC_ADMIN_PORT = Number(process.env.HC_ADMIN_PORT);
 }
 
-console.log({APP_ID: DEFAULT_WHERE_DEF.id})
-console.log({HC_APP_PORT})
+console.log("APP_ID =", DEFAULT_WHERE_DEF.id)
+console.log("HC_APP_PORT", HC_APP_PORT);
+console.log("HC_ADMIN_PORT", HC_ADMIN_PORT);
+
 
 
 /**
  *
  */
-export class WhereApp extends ScopedElementsMixin(LitElement) {
+export class WhereApp extends HappElement {
+
+  @state() private _loaded = false;
+
 
   @state() private _canLudotheque = false;
   @state() private _hasStartingProfile = false;
   @state() private _lang?: string
 
-  @state() private _hvm!: HappViewModel;
-  private _conductorAppProxy!: ConductorAppProxy;
+  static readonly HVM_DEF: HvmDef = DEFAULT_WHERE_DEF;
+
+
+  //@state() private _hvm!: HappViewModel;
+  //private _conductorAppProxy!: ConductorAppProxy;
 
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
   @state() private _ludoRoleCells!: CellsForRole;
   //private _curLudoCellId?: CellId;
 
-  @state() private _curLudoRoleInstanceId: RoleName = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
+  @state() private _curLudoCloneId?: RoleName; // = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
 
 
   /** */
@@ -66,21 +78,22 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
   // }
 
   constructor(socket?: AppWebsocket, appId?: InstalledAppId) {
-    super();
-    this.initializeHapp(socket, appId);
+    super(HC_APP_PORT);
+    //this.initializeHapp(socket, appId);
   }
 
 
   /** -- Getters -- */
 
-  get whereDvm(): WhereDvm { return this._hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm }
+  get whereDvm(): WhereDvm { return this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm }
   get ludothequeDvm(): LudothequeDvm {
     //const hcl = this._curLudoRoleInstanceId !== LudothequeDvm.DEFAULT_BASE_ROLE_NAME
       //? new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, -1, this._curLudoRoleInstanceId) /* cloneIndex will not be used */
       //: new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-    const hcl = new HCL(this._hvm.appId, this._curLudoRoleInstanceId);
-    const maybeDvm = this._hvm.getDvm(hcl);
-    if (!maybeDvm) console.error("DVM not found for ludotheque " + hcl.toString(), this._hvm);
+    console.log("get ludothequeDvm()", this._curLudoCloneId);
+    const hcl = new HCL(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, this._curLudoCloneId);
+    const maybeDvm = this.hvm.getDvm(hcl);
+    if (!maybeDvm) console.error("DVM not found for ludotheque " + hcl.toString(), this.hvm);
     return maybeDvm! as LudothequeDvm;
   }
 
@@ -97,78 +110,104 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
   handleSignal(sig: AppSignal) {
     //console.log("<where-app> handleSignal()", sig);
-    this._conductorAppProxy.onSignal(sig);
+    this.conductorAppProxy.onSignal(sig);
   }
 
   /** */
-  async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId) {
-    if (!socket) {
-      const wsUrl =`ws://localhost:${HC_APP_PORT}`
-      console.log("<where-app> Creating AppWebsocket with", wsUrl);
-      socket = await AppWebsocket.connect(wsUrl, 10 * 1000);
-    }
-
-    this._conductorAppProxy = await ConductorAppProxy.new(socket);
-
-    // const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
-    // hcClient.addSignalHandler((sig) => {
-    //   //console.log("<where-app> signalCb()", sig);
-    //   this.handleSignal(sig);
-    // })
-    this._conductorAppProxy.addSignalHandler(this.handleSignal);
-
-    const hvmDef = DEFAULT_WHERE_DEF;
-    if (appId) {hvmDef.id = appId};
-    const hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
-
-    /* Do this if not providing cellContext via <cell-context> */
-    //new ContextProvider(this, cellContext, this.whereDvm.installedCell)
-
-    /** Send Where dnaHash to electron */
+  async happInitialized() {
+    console.log("happInitialized()")
+    /** Authorize all zome calls */
+    const adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
+    //console.log({ adminWs });
+    await this.hvm.authorizeAllZomeCalls(adminWs);
+    console.log("*** Zome call authorization complete");
+    /** Probe */
+    await this.hvm.probeAll();
+    /** Send dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
+      const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
+      //let _reply = MY_ELECTRON_API.dnaHashSync(whereDnaHashB64);
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
     }
 
     /** Grab ludo cells */
-    this._ludoRoleCells = await this._conductorAppProxy.fetchCells(hvmDef.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    this._ludoRoleCells = await this.conductorAppProxy.fetchCells(DEFAULT_WHERE_DEF.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
 
-
-    /** ProfilesStore used by <create-profile> */
-    // if (!profilesStore) {
-    //   const whereCell = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell;
-    //   const installedCell: InstalledCell = {
-    //     cell_id: whereCell.cell_id,
-    //     role_name: whereCell.name,
-    //   }
-    //   const whereClient = new CellClient(hcClient, installedCell);
-    //   const profilesService = new ProfilesService(whereClient, "zProfiles");
-    //   profilesStore = new ProfilesStore(profilesService, {
-    //     additionalFields: ['color'], //['color', 'lang'],
-    //     avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
-    //   })
-    // }
-    // console.log({profilesStore})
-    // new ContextProvider(this, profilesStoreContext, profilesStore);
-
-
-    await hvm.probeAll();
-    let profileZvm = (hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm).profilesZvm;
-    const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
-    console.log({me})
-    if (me) {
-      this._hasStartingProfile = true;
-    }
-    /** Done. Trigger update */
-    this._hvm = hvm;
+    /** Done */
+    this._loaded = true;
   }
+
+  //
+  // /** */
+  // async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId) {
+  //   if (!socket) {
+  //     const wsUrl =`ws://localhost:${HC_APP_PORT}`
+  //     console.log("<where-app> Creating AppWebsocket with", wsUrl);
+  //     socket = await AppWebsocket.connect(wsUrl, 10 * 1000);
+  //   }
+  //
+  //   this._conductorAppProxy = await ConductorAppProxy.new(socket);
+  //
+  //   // const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
+  //   // hcClient.addSignalHandler((sig) => {
+  //   //   //console.log("<where-app> signalCb()", sig);
+  //   //   this.handleSignal(sig);
+  //   // })
+  //   this._conductorAppProxy.addSignalHandler(this.handleSignal);
+  //
+  //   const hvmDef = DEFAULT_WHERE_DEF;
+  //   if (appId) {hvmDef.id = appId};
+  //   const hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
+  //
+  //   /* Do this if not providing cellContext via <cell-context> */
+  //   //new ContextProvider(this, cellContext, this.whereDvm.installedCell)
+  //
+  //   /** Send Where dnaHash to electron */
+  //   if (IS_ELECTRON) {
+  //     const whereDnaHashB64 = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
+  //     const ipc = window.require('electron').ipcRenderer;
+  //     let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
+  //   }
+  //
+  //   /** Grab ludo cells */
+  //   this._ludoRoleCells = await this._conductorAppProxy.fetchCells(hvmDef.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+  //
+  //
+  //   /** ProfilesStore used by <create-profile> */
+  //   // if (!profilesStore) {
+  //   //   const whereCell = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell;
+  //   //   const installedCell: InstalledCell = {
+  //   //     cell_id: whereCell.cell_id,
+  //   //     role_name: whereCell.name,
+  //   //   }
+  //   //   const whereClient = new CellClient(hcClient, installedCell);
+  //   //   const profilesService = new ProfilesService(whereClient, "zProfiles");
+  //   //   profilesStore = new ProfilesStore(profilesService, {
+  //   //     additionalFields: ['color'], //['color', 'lang'],
+  //   //     avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
+  //   //   })
+  //   // }
+  //   // console.log({profilesStore})
+  //   // new ContextProvider(this, profilesStoreContext, profilesStore);
+  //
+  //
+  //   await hvm.probeAll();
+  //   let profileZvm = (hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm).profilesZvm;
+  //   const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
+  //   console.log({me})
+  //   if (me) {
+  //     this._hasStartingProfile = true;
+  //   }
+  //   /** Done. Trigger update */
+  //   this._hvm = hvm;
+  // }
 
 
   /** */
-  shouldUpdate() {
-    return !!this._hvm;
-  }
+  // shouldUpdate() {
+  //   return !!this._hvm;
+  // }
 
 
   /** */
@@ -188,8 +227,10 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
 
 
   /** */
-  async onShowLudo(roleInstanceId: RoleName) {
-    this._curLudoRoleInstanceId = roleInstanceId;
+  async onShowLudo(cloneId: RoleName | null) {
+    if (cloneId) {
+      this._curLudoCloneId = cloneId;
+    }
     this._canLudotheque = true;
   }
 
@@ -202,16 +243,16 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
     //   return;
     // }
     const cellDef = { modifiers: {network_seed: cloneName}/*, cloneName: cloneName*/}
-    const [cloneIndex, dvm] = await this._hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
-    console.log("Ludotheque clone created:", dvm.hcl.toString());
-    this._ludoRoleCells = await this._conductorAppProxy.fetchCells(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-    this._curLudoRoleInstanceId = dvm.cell.name;
+    const [cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
+    console.log("Ludotheque clone created:", dvm.hcl.toString(), dvm.cell.name);
+    this._ludoRoleCells = await this.conductorAppProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    this._curLudoCloneId = dvm.cell.clone_id;
   }
 
 
   /** */
   render() {
-    console.log("<where-app> render()", this._canLudotheque, this._hasStartingProfile)
+    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile)
 
     /** Select language */
     const lang = html`
@@ -248,7 +289,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
         <cell-context .cell="${this.whereDvm.cell}">
             <where-page 
                     .ludoRoleCells=${this._ludoRoleCells} 
-                    .selectedLudo=${this._curLudoRoleInstanceId}
+                    .selectedLudo=${this._curLudoCloneId}
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
             ></where-page>
@@ -354,6 +395,7 @@ export class WhereApp extends ScopedElementsMixin(LitElement) {
       "mwc-dialog": Dialog,
       "mwc-button": Button,
       "cell-context": CellContext,
+      "edit-profile": EditProfile,
     };
   }
 

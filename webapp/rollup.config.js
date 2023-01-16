@@ -22,7 +22,7 @@ export default {
     chunkFileNames: "[hash].js",
     assetFileNames: "[hash][extname]",
     format: "es",
-    dir: "dist",
+    dir: DIST_FOLDER,
   },
   watch: {
     clearScreen: false,

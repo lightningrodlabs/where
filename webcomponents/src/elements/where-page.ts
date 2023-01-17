@@ -555,18 +555,21 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   handleLudoSelect(e:any) {
     const selector = this.shadowRoot!.getElementById("ludo-clone-select") as Select;
     console.log("handleLudoSelect() called", JSON.stringify(selector.value), selector);
-    if (!selector.value) return;
     if (selector.value == "__new__") {
       const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
       dialog.open();
       return;
     }
-    console.log("setting _selectedLudo to", selector.value)
-    this.selectedLudoCloneId = selector.value;
-    //this.requestUpdate();
+    if (!selector.value) {
+      this.selectedLudoCloneId = undefined;
+    } else {
+      this.selectedLudoCloneId = selector.value;
+    }
+    console.log("setting this.selectedLudoCloneId to", this.selectedLudoCloneId)
   }
 
 
+  /** */
   getCellName(cloneId?: CloneId): string {
     if (!cloneId) {
       return this.ludoRoleCells.provisioned.name;
@@ -709,9 +712,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     </div>
     <!-- DIALOGS -->
-    <where-clone-ludo-dialog id="clone-ludo-dialog"
-                             @add-ludotheque="${(e:any) => {this.onAddLudoClone(e.detail)}}"
-    ></where-clone-ludo-dialog>
+    <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" @template-created=${this.onTemplateCreated}></where-template-dialog>
     ${!this._myProfile ? html`` : html`
@@ -723,13 +724,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   </div>
 </mwc-drawer>
 `;
-  }
-
-  async onAddLudoClone(cloneName: string) {
-    // FIXME CreateClone
-    //const newCloneId = addClone(CloneDef)
-    // FIXME Set current clone
-    // this.selectedLudoCloneId = newCloneId;
   }
 
   /** */

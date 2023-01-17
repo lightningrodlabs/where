@@ -230,6 +230,8 @@ export class WhereApp extends HappElement {
   async onShowLudo(cloneId: RoleName | null) {
     if (cloneId) {
       this._curLudoCloneId = cloneId;
+    } else {
+      this._curLudoCloneId = undefined;
     }
     this._canLudotheque = true;
   }
@@ -238,12 +240,8 @@ export class WhereApp extends HappElement {
   /** */
   async onAddLudoClone(cloneName: string) {
     console.log("onAddLudoClone()", cloneName);
-    // if (this._ludoRoleCells.clones[cloneName]) {
-    //   console.warn(`AddLudoClone() aborted. Ludotheque clone "${cloneName}" already exists.`)
-    //   return;
-    // }
-    const cellDef = { modifiers: {network_seed: cloneName}/*, cloneName: cloneName*/}
-    const [cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
+    const cellDef = { modifiers: {network_seed: cloneName}, cloneName: cloneName}
+    const [_cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
     console.log("Ludotheque clone created:", dvm.hcl.toString(), dvm.cell.name);
     this._ludoRoleCells = await this.conductorAppProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
     this._curLudoCloneId = dvm.cell.clone_id;

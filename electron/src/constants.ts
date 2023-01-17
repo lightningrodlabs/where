@@ -28,3 +28,6 @@ export const MAIN_FILE = path.join(__dirname, '../web/index.html')
 export const SPLASH_FILE = path.join(__dirname, '../web/splashscreen.html')
 export const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/icon512.png')
 export const ICON_FILEPATH = path.join(__dirname, "/logo/logo256.png")
+
+/** ADMIN */
+export const ADMIN_WS = 1235

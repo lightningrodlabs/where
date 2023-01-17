@@ -6,8 +6,6 @@ import {
   ipcMain,
   Menu,
   MenuItemConstructorOptions, nativeImage,
-  Notification,
-  screen,
   RelaunchOptions,
   shell, Tray
 } from 'electron'
@@ -37,11 +35,13 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  IS_DEBUG, APP_DATA_PATH, ICON_FILEPATH
+  IS_DEBUG, APP_DATA_PATH, ICON_FILEPATH, ADMIN_WS
 } from './constants'
 
 import {initApp, addUidToDisk} from "./init";
-import * as prompt from 'electron-prompt';
+//import * as prompt from 'electron-prompt';
+import prompt from 'electron-prompt';
+
 
 import { execFile } from 'child_process'
 
@@ -119,7 +119,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
 
   /** load the index.html of the app */
   let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
-  mainUrl += "?APP=" + appPort + "&UID=" + g_uid
+  mainUrl += "?ADMIN="+ ADMIN_WS + "&APP=" + appPort + "&UID=" + g_uid
   log('info', "createMainWindow ; mainUrl = " + mainUrl)
   try {
     await mainWindow.loadURL("file://" + mainUrl)

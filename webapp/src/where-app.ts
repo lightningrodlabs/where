@@ -242,15 +242,15 @@ export class WhereApp extends HappElement {
     console.log("onAddLudoClone()", cloneName);
     const cellDef = { modifiers: {network_seed: cloneName}, cloneName: cloneName}
     const [_cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
-    console.log("Ludotheque clone created:", dvm.hcl.toString(), dvm.cell.name);
     this._ludoRoleCells = await this.conductorAppProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
     this._curLudoCloneId = dvm.cell.clone_id;
+    console.log("Ludotheque clone created:", dvm.hcl.toString(), dvm.cell.name, this._curLudoCloneId);
   }
 
 
   /** */
   render() {
-    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile)
+    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
 
     /** Select language */
     const lang = html`
@@ -287,7 +287,7 @@ export class WhereApp extends HappElement {
         <cell-context .cell="${this.whereDvm.cell}">
             <where-page 
                     .ludoRoleCells=${this._ludoRoleCells} 
-                    .selectedLudo=${this._curLudoCloneId}
+                    .selectedLudoCloneId=${this._curLudoCloneId}
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
             ></where-page>

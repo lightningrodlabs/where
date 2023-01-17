@@ -63,7 +63,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property()
   ludoRoleCells: CellsForRole | null = null;
 
-  @property({ attribute: 'selectedLudo' })
+  @property()
   selectedLudoCloneId?: CloneId;
 
 
@@ -101,12 +101,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return this.ludoRoleCells!.provisioned.cell_id;
     }
     const maybeClone = this.ludoRoleCells!.clones[this.selectedLudoCloneId];
-    if (!maybeClone) return this.ludoRoleCells!.provisioned.cell_id;
-    // const maybeCell = this.ludoRoleCells!.clones[String(maybePair[1])];
-    // if (!maybeCell) {
-    //   console.error("Ludotheque not found", this.selectedLudoCell)
-    //   return this.ludoRoleCells!.provisioned.cell_id;
-    // }
+    if (!maybeClone) {
+      return this.ludoRoleCells!.provisioned.cell_id;
+    }
     return maybeClone.cell_id;
   }
 
@@ -579,7 +576,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("<where-page> render()", this._initialized, this.selectedLudoCloneId, this._currentSpaceEh);
+    console.log("<where-page> render()", this._initialized, this._currentSpaceEh, this.selectedLudoCloneId);
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }

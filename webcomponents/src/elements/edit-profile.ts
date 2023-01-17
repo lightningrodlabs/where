@@ -1,6 +1,6 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import {
-  Button,
+  Button, Dialog,
   Fab,
   IconButton,
   TextField,
@@ -277,9 +277,13 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
   }
 
 
-  async handleLangChange(e: any) {
-    console.log("handleLangChange: ", e.originalTarget.value)
-    this._lang = e.originalTarget.value;
+  async handleLangChange(_e: any) {
+    //console.log({langChangeEvent: e});
+    const frBtn = this.shadowRoot!.getElementById("frBtn") as any;
+    console.log({frBtn})
+    this._lang = frBtn.__checked? frBtn.value : "en";
+    //console.log("handleLangChange: ", this._lang)
+    //this._lang = grp.value;
     this.dispatchEvent(new CustomEvent('lang-selected', { detail: this._lang, bubbles: true, composed: true }));
 
   }
@@ -325,9 +329,9 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
 
             <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
                 <span style="font-size:18px;padding-right:10px;">${msg('Language')}:</span>
-                <sl-radio-group label=${msg('Language')} name="a" value="EN" @sl-change="${this.handleLangChange}">
+                <sl-radio-group id="langRadioGroup" label=${msg('Language')} name="a" value="en" @click="${this.handleLangChange}">
                     <sl-radio value="en">🇬🇧</sl-radio>
-                    <sl-radio value="fr-fr">🇫🇷</sl-radio>
+                    <sl-radio id="frBtn" value="fr-fr">🇫🇷</sl-radio>
                 </sl-radio-group>
             </div>
 

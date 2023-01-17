@@ -9,8 +9,7 @@ import {SlAvatar, SlColorPicker, SlRadio, SlRadioGroup} from '@scoped-elements/s
 import { html, css, LitElement } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { localized, msg, str } from '@lit/localize';
-import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
-import {setLocale} from "@where/elements";
+import {WhereProfile} from "../viewModels/profiles.proxy";
 
 
 // Crop the image and return a base64 bytes string of its content
@@ -164,7 +163,7 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
                 @click=${() => this._avatarFilePicker.click()}
                 style="margin-bottom: 4px;"
               ></mwc-fab>
-              <span class="placeholder label">Avatar</span>
+              <span class="placeholder label">${msg('Avatar')}</span>
             </div>`}
       </div>
     `;
@@ -281,7 +280,8 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
   async handleLangChange(e: any) {
     console.log("handleLangChange: ", e.originalTarget.value)
     this._lang = e.originalTarget.value;
-    setLocale(this._lang);
+    this.dispatchEvent(new CustomEvent('lang-selected', { detail: this._lang, bubbles: true, composed: true }));
+
   }
 
 
@@ -299,7 +299,7 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
         <div class="column">
 
           <div class="row" style="justify-content: center; margin-bottom: 12px; align-self: start;" >
-              
+
             ${this.renderAvatar()}
 
             <mwc-textfield
@@ -313,12 +313,12 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
               @input=${() => this._nicknameField.reportValidity()}
               style="margin-left: 8px;"
             ></mwc-textfield>
-              
+
           </div>
 
 
           <div class="row" style="justify-content: center; margin-bottom: 18px; align-self: start;" >
-              <span style="font-size:18px;padding-right:10px;padding-left:32px;padding-top:5px;">${msg('Color')}:</span>
+              <span style="font-size:18px;padding-right:10px;padding-top:5px;">${msg('Color')}:</span>
               <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
                                value=${this.profile?.fields['color']}></sl-color-picker>
           </div>
@@ -329,8 +329,8 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
                     <sl-radio value="en">🇬🇧</sl-radio>
                     <sl-radio value="fr-fr">🇫🇷</sl-radio>
                 </sl-radio-group>
-            </div>  
-                
+            </div>
+
           <div class="row" style="margin-top: 8px;">
 
             ${this.allowCancel
@@ -376,11 +376,11 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
   }
 
   static styles = [css`
-    
+
     sl-radio {
-      font-size: larger;  
+      font-size: larger;
     }
-    
+
     .row {
       display: flex;
       flex-direction: row;

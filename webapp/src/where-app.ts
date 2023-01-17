@@ -1,15 +1,15 @@
 import {html, css} from "lit";
 import { state } from "lit/decorators.js";
-import { msg } from '@lit/localize';
+import {localized, msg} from '@lit/localize';
 import {Button, Card, Dialog} from "@scoped-elements/material-web";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
 import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
 import {
-  LudothequePage, setLocale, LudothequeDvm, WherePage, WhereDvm,
-  DEFAULT_WHERE_DEF,
+  LudothequePage, LudothequeDvm, WherePage, WhereDvm,
+  DEFAULT_WHERE_DEF, EditProfile
 } from "@where/elements";
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
-import {EditProfile} from "./edit-profile";
+import {setLocale} from "./localization";
 
 
 /** -- Globals -- */
@@ -48,6 +48,7 @@ console.log("HC_ADMIN_PORT", HC_ADMIN_PORT);
 /**
  *
  */
+@localized()
 export class WhereApp extends HappElement {
 
   @state() private _loaded = false;
@@ -87,10 +88,6 @@ export class WhereApp extends HappElement {
 
   get whereDvm(): WhereDvm { return this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm }
   get ludothequeDvm(): LudothequeDvm {
-    //const hcl = this._curLudoRoleInstanceId !== LudothequeDvm.DEFAULT_BASE_ROLE_NAME
-      //? new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, -1, this._curLudoRoleInstanceId) /* cloneIndex will not be used */
-      //: new HCL(this._hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-    console.log("get ludothequeDvm()", this._curLudoCloneId);
     const hcl = new HCL(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME, this._curLudoCloneId);
     const maybeDvm = this.hvm.getDvm(hcl);
     if (!maybeDvm) console.error("DVM not found for ludotheque " + hcl.toString(), this.hvm);
@@ -101,9 +98,9 @@ export class WhereApp extends HappElement {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
   }
 
-  get langDialogElem() : Dialog {
-    return this.shadowRoot!.getElementById("lang-dialog") as Dialog;
-  }
+  // get langDialogElem() : Dialog {
+  //   return this.shadowRoot!.getElementById("lang-dialog") as Dialog;
+  // }
 
 
   /** -- Methods -- */
@@ -211,11 +208,11 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  async updated() {
-    if (!APP_DEV && !this._lang) {
-      this.langDialogElem.open = true;
-    }
-  }
+  // async updated() {
+  //   if (!APP_DEV && !this._lang) {
+  //     this.langDialogElem.open = true;
+  //   }
+  // }
 
 
   /** */
@@ -253,22 +250,22 @@ export class WhereApp extends HappElement {
     console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
 
     /** Select language */
-    const lang = html`
-        <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
-            <mwc-button
-                    slot="primaryAction"
-                    dialogAction="primaryAction"
-                    @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
-                FR
-            </mwc-button>
-            <mwc-button
-                    slot="primaryAction"
-                    dialogAction="primaryAction"
-                    @click="${() => {setLocale('en'); this._lang = 'en'}}" >
-                EN
-            </mwc-button>
-        </mwc-dialog>
-    `;
+    // const lang = html`
+    //     <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
+    //         <mwc-button
+    //                 slot="primaryAction"
+    //                 dialogAction="primaryAction"
+    //                 @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
+    //             FR
+    //         </mwc-button>
+    //         <mwc-button
+    //                 slot="primaryAction"
+    //                 dialogAction="primaryAction"
+    //                 @click="${() => {setLocale('en'); this._lang = 'en'}}" >
+    //             EN
+    //         </mwc-button>
+    //     </mwc-dialog>
+    // `;
 
     //.dvm="${this.ludothequeDvm}"
 
@@ -317,6 +314,7 @@ export class WhereApp extends HappElement {
                   <edit-profile
                           .saveProfileLabel=${msg('Create Profile')}
                           @save-profile=${(e: CustomEvent) => this.createMyProfile(e.detail.profile)}
+                          @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}
                   ></edit-profile>
               </div>
             </mwc-card>
@@ -328,7 +326,6 @@ export class WhereApp extends HappElement {
 
     /** Render all */
     return html`
-        ${lang}
         ${guardedPage}
         <!-- DIALOGS -->
         <mwc-dialog id="importing-dialog"  heading="${msg('Importing Playset')}" scrimClickAction="" escapeKeyAction="">

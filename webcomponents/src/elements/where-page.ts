@@ -614,7 +614,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       );
     }
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${this.ludoRoleCells.provisioned.name}</mwc-list-item>`);
-    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">Add new...</mwc-list-item>`);
+    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add new')}...</mwc-list-item>`);
 
     const ludoCloneSelect = html`
       <mwc-select id="ludo-clone-select" required style="display:inline-flex;width:230px;" label="${msg('Ludotheque')}"

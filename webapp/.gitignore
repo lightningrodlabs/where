@@ -3,3 +3,4 @@ dist
 where-ui.zip
 out-tsc/
 out-builder
+/src/generated/

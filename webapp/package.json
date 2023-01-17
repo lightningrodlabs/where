@@ -6,10 +6,12 @@
   "typings": "./dist/index.d.ts",
   "scripts": {
     "tsc": "tsc",
-    "build": "rm -rf dist && tsc && rollup -c && cd dist && cp * ../../electron/web",
+    "build": "rm -rf dist && tsc && rollup -c && cd dist && cp -r * ../../electron/web",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
     "start:ui-old": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "start:ui": "web-dev-server --config ./web-dev-server.config.mjs",
+    "localize:extract": "lit-localize extract",
+    "localize:build": "lit-localize build",
     "zip": "rm -rf where-web-ui.zip && cd dist && bestzip ../where-web-ui.zip *",
     "package": "npm run zip && hc web-app pack ./webhapp.workdir"
   },

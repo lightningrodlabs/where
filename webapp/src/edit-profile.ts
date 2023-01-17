@@ -5,11 +5,12 @@ import {
   IconButton,
   TextField,
 } from '@scoped-elements/material-web';
-import { SlAvatar } from '@scoped-elements/shoelace';
+import {SlAvatar, SlColorPicker, SlRadio, SlRadioGroup} from '@scoped-elements/shoelace';
 import { html, css, LitElement } from 'lit';
 import { property, query, state } from 'lit/decorators.js';
 import { localized, msg, str } from '@lit/localize';
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
+import {setLocale} from "@where/elements";
 
 
 // Crop the image and return a base64 bytes string of its content
@@ -70,6 +71,10 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
   @property({ type: Boolean })
   allowCancel = false;
 
+  @state() private _avatar: string | undefined;
+  @state() private _color: string | undefined;
+  @state() private _lang: string | undefined;
+
   /** Private properties */
 
   @query('#nickname-field')
@@ -80,11 +85,16 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
   @query('#avatar-file-picker')
   private _avatarFilePicker!: HTMLInputElement;
 
-  @state()
-  private _avatar: string | undefined;
 
+  /** -- Methods -- */
+
+  /** */
   firstUpdated() {
     this._avatar = this.profile?.fields['avatar'];
+
+    this._color = this.profile?.fields['color'];
+
+    this._lang = this.profile?.fields['lang'];
 
     this._nicknameField.validityTransform = (newValue: string) => {
       this.requestUpdate();
@@ -106,6 +116,7 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
     };
   }
 
+
   onAvatarUploaded() {
     if (this._avatarFilePicker.files && this._avatarFilePicker.files[0]) {
       const reader = new FileReader();
@@ -122,17 +133,9 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
     }
   }
 
-  hasAvatarMode() {
-    return (
-      this.avatarMode === 'avatar-required' ||
-      this.avatarMode === 'avatar-optional'
-    );
-  }
 
+  /** */
   renderAvatar() {
-    if (!this.hasAvatarMode()) {
-      return html``;
-    }
     return html`
       <div
         style="width: 80px; height: 80px; justify-content: center;"
@@ -208,12 +211,21 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
     return fields;
   }
 
+
+  /** */
   fireSaveProfile() {
     const nickname = this._nicknameField.value;
 
     const fields: Record<string, string> = this.getAdditionalFieldsValues();
     if (this._avatar) {
       fields['avatar'] = this._avatar;
+    }
+    if (this._color) {
+      fields['color'] = this._color;
+    }
+
+    if (this._lang) {
+      fields['lang'] = this._lang;
     }
 
     const profile: WhereProfile = {
@@ -257,21 +269,37 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
     `;
   }
 
+
+  async handleColorChange(e: any) {
+    console.log("handleColorChange: " + e.target.lastValueEmitted)
+    this._color = e.target.lastValueEmitted;
+    //const profile = this._myProfile!;
+    //await this.setMyProfile(profile.nickname, profile.fields['avatar'], color)
+  }
+
+
+  async handleLangChange(e: any) {
+    console.log("handleLangChange: ", e.originalTarget.value)
+    this._lang = e.originalTarget.value;
+    setLocale(this._lang);
+  }
+
+
+  /** */
   render() {
+    console.log("<edit-profile> render()", this._lang);
+
     return html`
-      ${
-        this.hasAvatarMode()
-          ? html`<input
-              type="file"
-              id="avatar-file-picker"
-              style="display: none;"
-              @change=${this.onAvatarUploaded}
-            />`
-          : html``
-      }
+      <input type="file"
+             id="avatar-file-picker"
+             style="display: none;"
+             @change=${this.onAvatarUploaded}
+      />
+
         <div class="column">
 
-          <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
+          <div class="row" style="justify-content: center; margin-bottom: 12px; align-self: start;" >
+              
             ${this.renderAvatar()}
 
             <mwc-textfield
@@ -285,9 +313,24 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
               @input=${() => this._nicknameField.reportValidity()}
               style="margin-left: 8px;"
             ></mwc-textfield>
+              
           </div>
-            
-            
+
+
+          <div class="row" style="justify-content: center; margin-bottom: 18px; align-self: start;" >
+              <span style="font-size:18px;padding-right:10px;padding-left:32px;padding-top:5px;">${msg('Color')}:</span>
+              <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
+                               value=${this.profile?.fields['color']}></sl-color-picker>
+          </div>
+
+            <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
+                <span style="font-size:18px;padding-right:10px;">${msg('Language')}:</span>
+                <sl-radio-group label=${msg('Language')} name="a" value="EN" @sl-change="${this.handleLangChange}">
+                    <sl-radio value="en">🇬🇧</sl-radio>
+                    <sl-radio value="fr-fr">🇫🇷</sl-radio>
+                </sl-radio-group>
+            </div>  
+                
           <div class="row" style="margin-top: 8px;">
 
             ${this.allowCancel
@@ -325,11 +368,19 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
       'mwc-button': Button,
       'mwc-fab': Fab,
       'mwc-icon-button': IconButton,
+      'sl-radio-group': SlRadioGroup,
+      'sl-radio': SlRadio,
       'sl-avatar': SlAvatar,
+      'sl-color-picker': SlColorPicker,
     };
   }
 
   static styles = [css`
+    
+    sl-radio {
+      font-size: larger;  
+    }
+    
     .row {
       display: flex;
       flex-direction: row;

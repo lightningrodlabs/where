@@ -1,7 +1,7 @@
 import {html, css} from "lit";
 import { state } from "lit/decorators.js";
 import { msg } from '@lit/localize';
-import {Button, Dialog} from "@scoped-elements/material-web";
+import {Button, Card, Dialog} from "@scoped-elements/material-web";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
 import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
 import {
@@ -394,6 +394,7 @@ export class WhereApp extends HappElement {
       "mwc-button": Button,
       "cell-context": CellContext,
       "edit-profile": EditProfile,
+      'mwc-card': Card,
     };
   }
 
@@ -406,6 +407,9 @@ export class WhereApp extends HappElement {
         display: flex;
         flex-direction: column;
       }
+        .title {
+          font-size: 20px;
+        }
       `,
     ];
   }

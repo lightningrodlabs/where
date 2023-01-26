@@ -181,7 +181,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     fields['color'] = color;
     fields['avatar'] = avatar;
     try {
-    if (this._dvm.profilesZvm.getProfile(this._dvm.profilesZvm.agentPubKey)) {
+    if (this._dvm.profilesZvm.getProfile(this._dvm.profilesZvm.cell.agentPubKey)) {
       await this._dvm.profilesZvm.updateMyProfile({nickname, fields});
     } else {
       await this._dvm.profilesZvm.createMyProfile({nickname, fields});
@@ -436,7 +436,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const template = e.detail as Template;
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
-      {from: this._dvm.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      {from: this._dvm.cell.agentPubKey, message: {type:"NewTemplate", content: eh}},
       this._dvm.allCurrentOthers(),
     )
   }
@@ -447,7 +447,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const newPlayInput = e.detail;
     const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
     this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
     /* */
     await this.selectPlay(spaceEh);
@@ -591,7 +591,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /* -- Grab things from the perspective -- */
 
-    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.agentPubKey);
+    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.cell.agentPubKey);
 
 
     /* -- Build elements -- */

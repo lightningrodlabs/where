@@ -8,7 +8,6 @@ import {
   IconButton,
   Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle, CircularProgress,
 } from "@scoped-elements/material-web";
-import {AgentPubKeyMap, deserializeHash} from "@holochain-open-dev/utils";
 
 import { sharedStyles } from "../sharedStyles";
 import {MARKER_WIDTH} from "../sharedRender";
@@ -17,7 +16,7 @@ import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
-import {AgentPubKeyB64} from "@holochain/client";
+import {AgentPubKeyB64, decodeHashFromBase64} from "@holochain/client";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 
 
@@ -52,7 +51,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   determineAgentStatus(key: AgentPubKeyB64) {
     // const status = "primary"; // "neutral"
-    if (key == this._dvm.agentPubKey) {
+    if (key == this._dvm.cell.agentPubKey) {
       return "success";
     }
     const lastPingTime: number = this.perspective.agentPresences[key];
@@ -135,7 +134,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /** Build avatar agent list */
     const peers = visibleProfiles.map(([keyB64, profile]) => {
-      let key = deserializeHash(keyB64)
+      let key = decodeHashFromBase64(keyB64)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
         opacity = 0.4;
@@ -153,7 +152,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /** Build names agent list */
     const peer_list = visibleProfiles.map(([keyB64, profile]) => {
-      let key = deserializeHash(keyB64)
+      let key = decodeHashFromBase64(keyB64)
       let opacity = 1.0;
       if (this.soloAgent && this.soloAgent != keyB64) {
         opacity = 0.4;

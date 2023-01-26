@@ -37,9 +37,9 @@
     "typescript": "^4.9.0"
   },
   "dependencies": {
-    "@holochain/client": "0.11.9",
-    "@ddd-qc/cell-proxy": "0.11.0",
-    "@ddd-qc/lit-happ": "0.11.0",
+    "@holochain/client": "0.11.15",
+    "@ddd-qc/cell-proxy": "0.12.1",
+    "@ddd-qc/lit-happ": "0.12.1",
     "@holochain-open-dev/core-types": "0.6.3",
     "@where/elements": "file:../webcomponents",
     "@open-wc/scoped-elements": "^2.1.1",

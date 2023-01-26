@@ -2,7 +2,7 @@
 
 import {LudothequeEntry, LudothequeLinkType, ExportPlaysetInput, ImportPieceInput, PlaysetOutput, Playset, } from './ludotheque.types';
 import {
-/** Types */
+/** types.ts */
 HoloHash,
 AgentPubKey,
 DnaHash,
@@ -24,12 +24,12 @@ Signature,
 CellId,
 DnaProperties,
 RoleName,
-InstalledCell,
 Timestamp,
+Duration,
 HoloHashed,
 NetworkInfo,
 FetchQueueInfo,
-/** Action */
+/** hdk/action.ts */
 SignedActionHashed,
 ActionHashed,
 ActionType,
@@ -45,14 +45,14 @@ CloseChain,
 Update,
 Delete,
 Create,
-/** Capabilities */
+/** hdk/capabilities.ts */
 CapSecret,
 CapClaim,
 ZomeCallCapGrant,
 CapAccess,
 CapGrant,
 GrantedFunctionsType,
-/** CounterSigning */
+///** hdk/countersigning.ts */
 //CounterSigningSessionData,
 //PreflightRequest,
 //CounterSigningSessionTimes,
@@ -61,26 +61,27 @@ GrantedFunctionsType,
 //PreflightBytes,
 //Role,
 //CountersigningAgentState,
-/** DhtOps */
+/** hdk/dht-ops.ts */
 DhtOpType,
 DhtOp,
 getDhtOpType,
 getDhtOpAction,
 getDhtOpEntry,
 getDhtOpSignature,
-/** Entry */
+/** hdk/entry.ts */
 EntryVisibility,
 AppEntryDef,
 EntryType,
 EntryContent,
 Entry,
-/** Record */
+/** hdk/record.ts */
 Record as HcRecord,
 RecordEntry as HcRecordEntry,
-/** admin types */
+/** api/admin/types.ts */
 InstalledAppInfoStatus,
 StemCell,
-Cell,
+ProvisionedCell,
+ClonedCell,
 CellType,
 CellInfo,
 AppInfo,
@@ -93,9 +94,15 @@ CoordinatorZome,
 DnaDefinition,
 ResourceBytes,
 ResourceMap,
+CellProvisioningStrategy,
 CellProvisioning,
 DnaVersionSpec,
 DnaVersionFlexible,
+AppRoleDnaManifest,
+AppRoleManifest,
+AppManifest,
+AppBundle,
+AppBundleSource,
 NetworkSeed,
 ZomeLocation,
    } from '@holochain/client';

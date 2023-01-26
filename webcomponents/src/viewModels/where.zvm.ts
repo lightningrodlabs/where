@@ -246,7 +246,7 @@ export class WhereZvm extends ZomeViewModel {
     const session = await this.zomeProxy.getSessionFromEh(location.sessionEh);
     if (!session) console.error("Current session not found", spaceEh, location.sessionEh);
     const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
-    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this.agentPubKey }
+    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this.cell.agentPubKey }
     this._sessions[location.sessionEh].locations.push(locInfo)
     this.notifySubscribers();
     return linkAh;

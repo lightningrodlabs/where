@@ -1,8 +1,7 @@
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {ProfilesProxy, WhereProfile} from "./profiles.proxy";
-import {deserializeHash, serializeHash} from "@holochain-open-dev/utils";
 import { decode } from '@msgpack/msgpack';
-import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
+import {AgentPubKeyB64, decodeHashFromBase64, encodeHashToBase64, EntryHashB64} from "@holochain/client";
 
 /** */
 export interface ProfilesPerspective {
@@ -55,7 +54,7 @@ export class ProfilesZvm extends ZomeViewModel {
   async probeAllProfiles(): Promise<void> {
     const alLRecords = await this.zomeProxy.getAllProfiles();
     for (const record of alLRecords) {
-      const agent = serializeHash(record.signed_action.hashed.content.author);
+      const agent = encodeHashToBase64(record.signed_action.hashed.content.author);
       this._profiles[agent] = decode((record.entry as any).Present.entry) as WhereProfile;
     }
     this.notifySubscribers();
@@ -64,7 +63,7 @@ export class ProfilesZvm extends ZomeViewModel {
 
   /** */
   async probeProfile(agentPubKey: AgentPubKeyB64): Promise<WhereProfile | undefined> {
-    const record = await this.zomeProxy.getAgentProfile(deserializeHash(agentPubKey));
+    const record = await this.zomeProxy.getAgentProfile(decodeHashFromBase64(agentPubKey));
     if (!record) {
       return;
     }
@@ -78,14 +77,14 @@ export class ProfilesZvm extends ZomeViewModel {
   /** */
   async createMyProfile(profile: WhereProfile): Promise<void> {
     await this.zomeProxy.createProfile(profile);
-    this._profiles[this.agentPubKey] = profile;
+    this._profiles[this.cell.agentPubKey] = profile;
     this.notifySubscribers();
   }
 
   /** */
   async updateMyProfile(profile: WhereProfile): Promise<void> {
     await this.zomeProxy.updateProfile(profile);
-    this._profiles[this.agentPubKey] = profile;
+    this._profiles[this.cell.agentPubKey] = profile;
     this.notifySubscribers();
   }
 

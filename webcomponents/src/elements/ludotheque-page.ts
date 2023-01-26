@@ -146,7 +146,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     //console.log({templates})
 
     /** load initial plays & templates if there are none (in base cell only) */
-    if (this.canLoadExamples && Object.keys(playsets).length == 0 && !this._dvm.cell.clone_id) {
+    if (this.canLoadExamples && Object.keys(playsets).length == 0 && !this._dvm.cell.cloneId) {
       await publishExamplePlayset(this._dvm);
       console.log("addExamplePieces() - DONE");
     }

@@ -122,7 +122,7 @@ export class WhereApp extends HappElement {
     await this.hvm.probeAll();
     /** Send dnaHash to electron */
     if (IS_ELECTRON) {
-      const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
+      const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell.dnaHash;
       //let _reply = MY_ELECTRON_API.dnaHashSync(whereDnaHashB64);
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
@@ -240,7 +240,7 @@ export class WhereApp extends HappElement {
     const cellDef = { modifiers: {network_seed: cloneName}, cloneName: cloneName}
     const [_cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
     this._ludoRoleCells = await this.conductorAppProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-    this._curLudoCloneId = dvm.cell.clone_id;
+    this._curLudoCloneId = dvm.cell.cloneId;
     console.log("Ludotheque clone created:", dvm.hcl.toString(), dvm.cell.name, this._curLudoCloneId);
   }
 
@@ -273,7 +273,7 @@ export class WhereApp extends HappElement {
     const ludothequePage = html`
         <cell-context .cell="${this.ludothequeDvm.cell}">
                   <ludotheque-page examples
-                                   .whereCellId=${this.whereDvm.cellId}
+                                   .whereCellId=${this.whereDvm.cell.id}
                                    @import-playset-requested="${this.handleImportRequest}"
                                    @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-page>
@@ -356,7 +356,7 @@ export class WhereApp extends HappElement {
 
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cellId)
+    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cell.id)
     console.log("handleImportRequest()", spaceEhs.length)
     await this.whereDvm.playsetZvm.probeAll();
     /** Create sessions for each space */

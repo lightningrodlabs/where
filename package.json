@@ -5,8 +5,7 @@
     "electron",
     "webapp",
     "webapp.ludotheque",
-    "webcomponents",
-    "we-applet"
+    "webcomponents"
   ],
   "scripts": {
     "version"               : "hc --version && holochain --version && lair-keystore --version",

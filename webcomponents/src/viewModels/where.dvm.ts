@@ -81,8 +81,11 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   handleSignal(signal: AppSignal) {
+    console.log("Received Signal", signal);
+    if (signal.zome_name === ProfilesZvm.DEFAULT_ZOME_NAME) {
+      return;
+    }
     const signalPayload = signal.payload as SignalPayload;
-    console.log("Received Signal", signalPayload);
     /* Update agent's presence stat */
     this.updatePresence(signalPayload.from)
     /* Send pong response */

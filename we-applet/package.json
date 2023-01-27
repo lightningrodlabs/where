@@ -15,7 +15,6 @@
     "package": "npm run zip && hc web-app pack ./webhapp.workdir"
   },
   "dependencies": {
-    "@holochain/client": "0.11.9",
     "@holochain-open-dev/profiles": "0.9.3",
     "@holochain-open-dev/core-types": "0.6.3",
     "@lightningrodlabs/we-applet": "^0.1.3",

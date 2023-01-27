@@ -131,6 +131,16 @@ export class WhereApp extends HappElement {
     /** Grab ludo cells */
     this._ludoRoleCells = await this.conductorAppProxy.fetchCells(DEFAULT_WHERE_DEF.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
 
+    /** Load My profile */
+    const maybeMyProfile = this.whereDvm.profilesZvm.perspective.profiles[this.whereDvm.cell.agentPubKey]
+    if (maybeMyProfile) {
+      const maybeLang = maybeMyProfile.fields['lang'];
+      if (maybeLang) {
+        setLocale(maybeLang);
+      }
+      this._hasStartingProfile = true;
+    }
+
     /** Done */
     this._loaded = true;
   }
@@ -248,6 +258,10 @@ export class WhereApp extends HappElement {
   /** */
   render() {
     console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
+
+    if (!this._loaded) {
+      return html`Loading...`;
+    }
 
     /** Select language */
     // const lang = html`

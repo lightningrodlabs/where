@@ -30,4 +30,25 @@ export const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/icon512.png')
 export const ICON_FILEPATH = path.join(__dirname, "/logo/logo256.png")
 
 /** ADMIN */
-export const ADMIN_WS = 1235
+
+/** */
+let g_adminPort = null;
+export async function getAdminPort(): Promise<number> {
+  if (g_adminPort === null) {
+    g_adminPort = await getPortFree();
+  }
+  return g_adminPort;
+}
+
+import net, {AddressInfo} from "net"
+
+async function getPortFree() {
+  console.log("debug", "getPortFree()")
+  return new Promise( res => {
+    const srv = net.createServer();
+    srv.listen(0, () => {
+      const port = (srv.address() as AddressInfo).port;
+      srv.close((err) => res(port))
+    });
+  })
+}

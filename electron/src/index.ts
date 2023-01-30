@@ -35,7 +35,7 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  IS_DEBUG, APP_DATA_PATH, ICON_FILEPATH, ADMIN_WS
+  IS_DEBUG, APP_DATA_PATH, ICON_FILEPATH, getAdminPort,
 } from './constants'
 
 import {initApp, addUidToDisk} from "./init";
@@ -119,7 +119,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
 
   /** load the index.html of the app */
   let mainUrl = app.isPackaged? MAIN_FILE : path.join(DEVELOPMENT_UI_URL, "index.html")
-  mainUrl += "?ADMIN="+ ADMIN_WS + "&APP=" + appPort + "&UID=" + g_uid
+  mainUrl += "?ADMIN="+ await getAdminPort() + "&APP=" + appPort + "&UID=" + g_uid
   log('info', "createMainWindow ; mainUrl = " + mainUrl)
   try {
     await mainWindow.loadURL("file://" + mainUrl)
@@ -314,7 +314,7 @@ function create_tray() {
  */
 async function startMainWindow(splashWindow: BrowserWindow) {
   /** Init conductor */
-  const opts = createHolochainOptions(g_uid, g_sessionDataPath)
+  const opts = await createHolochainOptions(g_uid, g_sessionDataPath);
   log('debug', {opts})
   const {statusEmitter, shutdown } = await initAgent(app, opts, BINARY_PATHS)
   g_statusEmitter = statusEmitter;

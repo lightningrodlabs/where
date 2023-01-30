@@ -1,7 +1,7 @@
 import * as path from 'path'
 import { app } from 'electron'
 import { ElectronHolochainOptions, StateSignal, PathOptions } from '@lightningrodlabs/electron-holochain'
-import {MAIN_APP_ID, COMMUNITY_PROXY_URL, ADMIN_WS} from './constants'
+import {MAIN_APP_ID, COMMUNITY_PROXY_URL, getAdminPort} from './constants'
 
 // these messages get seen on the splash page
 export enum StateSignalText {
@@ -62,7 +62,7 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
 /**
  *
  */
-function createHolochainOptions(uid: string, storagePath: string):  ElectronHolochainOptions {
+async function createHolochainOptions(uid: string, storagePath: string): Promise<ElectronHolochainOptions> {
   const options:  ElectronHolochainOptions = {
     happPath: whereDnaPath,
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
@@ -70,7 +70,7 @@ function createHolochainOptions(uid: string, storagePath: string):  ElectronHolo
     appId: MAIN_APP_ID + '-' + uid,
     //appId: MAIN_APP_ID,
     appWsPort: 0,
-    adminWsPort: ADMIN_WS,
+    adminWsPort: await getAdminPort(),
     //proxyUrl: COMMUNITY_PROXY_URL,
     //bootstrapUrl: "",
     //uid,

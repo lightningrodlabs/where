@@ -4,12 +4,12 @@ rustc --version
 
 # For ts-bindings
 # KEEP THIS IN SYNC
-cargo install zits --version 1.5.0
+cargo install zits --version 1.6.0
 
 ### install `hc` cli tool
 # use the version to match version holochain + hdk version used
 # KEEP THIS IN SYNC
-cargo install holochain_cli --version 0.1.0-beta-rc.4
+cargo install holochain_cli --version 0.1.0
 
 
 ### install wasm32 compilation target

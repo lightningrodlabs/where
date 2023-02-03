@@ -1,14 +1,15 @@
-import { state } from "lit/decorators.js";
+import { state, property } from "lit/decorators.js";
 import { html } from "lit";
-import {cellContext, ConductorAppProxy, HappElement, HappViewModel} from "@ddd-qc/lit-happ";
-import {setLocale, DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm, LudothequePage} from "@where/elements";
+import {cellContext, HappElement} from "@ddd-qc/lit-happ";
+import {DEFAULT_LUDOTHEQUE_DEF, DEFAULT_WHERE_DEF, LudothequeDvm, LudothequePage, WhereDvm} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
-import {AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
+import {AdminWebsocket, AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
+import {setLocale} from "@where/app";
 
 /** Localization */
 
-setLocale('fr-fr');
+//setLocale('fr-fr');
 
 
 /** -- Globals -- */
@@ -31,8 +32,8 @@ if (IS_ELECTRON) {
   console.log(NETWORK_ID)
   DEFAULT_LUDOTHEQUE_DEF.id = APP_ID + '-' + NETWORK_ID;
 } else {
-  HC_APP_PORT = Number(process.env.HC_PORT);
-  HC_ADMIN_PORT = Number(process.env.ADMIN_PORT);
+  HC_APP_PORT = Number(process.env.HC_APP_PORT);
+  HC_ADMIN_PORT = Number(process.env.HC_ADMIN_PORT);
 }
 
 
@@ -64,24 +65,35 @@ export class LudothequeStandaloneApp extends HappElement {
     //console.log("<ludotheque-standalone-app> onSignal()", signal);
   }
 
+
   /** */
-  async firstUpdated() {
+  async happInitialized() {
+    console.log("happInitialized()")
+    /** Provide Context */
     new ContextProvider(this, cellContext, this.ludothequeDvm.cell);
     this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.hcl.toString());
+    /** Authorize all zome calls */
+    const adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
+    //console.log({ adminWs });
+    await this.hvm.authorizeAllZomeCalls(adminWs);
+    console.log("*** Zome call authorization complete");
+    /** Probe */
+    await this.hvm.probeAll();
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {
-      const ludoDnaHashB64 = this.hvm.getDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
+      const ludoDnaHashB64 = this.ludothequeDvm.cell.dnaHash;
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }
-    /* Done */
+
+    /** Done */
     this._loaded = true;
   }
 
 
   /** */
   render() {
-    console.log("<ludotheque-standalone-app> render()", this._loaded)
+    console.log("*** <ludotheque-standalone-app> render()", this._loaded)
     if (!this._loaded) {
       return html`<span>${msg('Loading')}...</span>`;
     }

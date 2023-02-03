@@ -1,5 +1,5 @@
 import {AdminWebsocket, AppWebsocket} from "@holochain/client";
-import {WeApplet, AppletRenderers, WeServices, InstalledAppletInfo} from "@lightningrodlabs/we-applet";
+import {WeApplet, AppletRenderers, WeServices, AppletInfo} from "@lightningrodlabs/we-applet";
 import {LudothequeStandaloneApp} from "@where/ludo-app";
 import {WhereApp} from "@where/app";
 
@@ -10,11 +10,11 @@ const whereApplet: WeApplet = {
     appWebsocket: AppWebsocket,
     adminWebsocket: AdminWebsocket,
     weServices: WeServices,
-    appletAppInfo: InstalledAppletInfo[]
+    appletAppInfo: AppletInfo[]
   ): Promise<AppletRenderers> {
     return {
       full(element: HTMLElement, registry: CustomElementRegistry) {
-        console.log("full()", appWebsocket.client.socket.url)
+        console.log("whereApplet.full()", appWebsocket.client.socket.url)
         /** Link to Font */
         const font = document.createElement('link');
         font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";
@@ -22,7 +22,7 @@ const whereApplet: WeApplet = {
         element.appendChild(font);
         /** <where-app> */
         registry.define("where-app", WhereApp);
-        const ludoApp = new WhereApp(appWebsocket, "where-applet", weServices.profilesStore);
+        const ludoApp = new WhereApp(appWebsocket, "where-applet");
         element.appendChild(ludoApp);
       },
       blocks: [],
@@ -37,7 +37,7 @@ const ludoApplet: WeApplet = {
     appWebsocket: AppWebsocket,
     adminWebsocket: AdminWebsocket,
     weServices: WeServices,
-    appletAppInfo: InstalledAppletInfo[]
+    appletAppInfo: AppletInfo[]
   ): Promise<AppletRenderers> {
     return {
       full(element: HTMLElement, registry: CustomElementRegistry) {

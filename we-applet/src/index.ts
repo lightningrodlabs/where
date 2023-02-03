@@ -1,6 +1,6 @@
 import {AdminWebsocket, AppWebsocket} from "@holochain/client";
 import {WeApplet, AppletRenderers, WeServices, AppletInfo} from "@lightningrodlabs/we-applet";
-import {LudothequeStandaloneApp} from "@where/ludo-app";
+import {LudothequeStandaloneApp} from "ludotheque";
 import {WhereApp} from "@where/app";
 
 
@@ -41,7 +41,7 @@ const ludoApplet: WeApplet = {
   ): Promise<AppletRenderers> {
     return {
       full(element: HTMLElement, registry: CustomElementRegistry) {
-        console.log("full()", appWebsocket.client.socket.url)
+        console.log("ludoApplet.full()", appWebsocket.client.socket.url)
         /** Link to Font */
         const font = document.createElement('link');
         font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";

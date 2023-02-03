@@ -1,15 +1,15 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
-import replace from "@rollup/plugin-replace";
+//import replace from "@rollup/plugin-replace";
 import copy from "rollup-plugin-copy";
 
-//import builtins from "rollup-plugin-node-builtins";
-//import globals from "rollup-plugin-node-globals";
+import builtins from "rollup-plugin-node-builtins";
+import globals from "rollup-plugin-node-globals";
 
 import babel from "@rollup/plugin-babel";
-import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
-import { terser } from "rollup-plugin-terser";
+//import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
+//import { terser } from "rollup-plugin-terser";
 
 //import pkg from "./package.json";
 
@@ -20,7 +20,7 @@ export default {
   input: "out-tsc/index.js",
   output: {
     format: "es",
-    dir: "dist",
+    dir: DIST_FOLDER,
     sourcemap: true,
   },
   watch: {
@@ -36,19 +36,13 @@ export default {
       browser: true,
       preferBuiltins: false,
     }),
-    replace({
-      "preventAssignment": true,
-      "process.env.NODE_ENV": '"production"',
-      "process.env.APP_DEV": `"${process.env.APP_DEV}"`,
-    }),
     typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
-    commonjs(),
     //builtins(),
     //globals(),
     /** Minify JS */
-    terser(),
+    //terser(),
     /** Bundle assets references via import.meta.url */
-    importMetaAssets(),
+    //importMetaAssets(),
     /** Compile JS to a lower language target */
     babel({
       exclude: /node_modules/,
@@ -89,5 +83,6 @@ export default {
         ],
       ],
     }),
+    commonjs(),
   ],
 };

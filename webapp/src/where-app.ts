@@ -60,27 +60,16 @@ export class WhereApp extends HappElement {
 
   static readonly HVM_DEF: HvmDef = DEFAULT_WHERE_DEF;
 
-
-  //@state() private _hvm!: HappViewModel;
-  //private _conductorAppProxy!: ConductorAppProxy;
-
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
   @state() private _ludoRoleCells!: CellsForRole;
-  //private _curLudoCellId?: CellId;
 
   @state() private _curLudoCloneId?: RoleName; // = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
 
 
   /** */
-  // constructor(port_or_socket?: number | AppWebsocket, appId?: InstalledAppId) {
-  //   super(port_or_socket ? port_or_socket : HC_APP_PORT, appId);
-  //   this.initializeHapp();
-  // }
-
   constructor(socket?: AppWebsocket, appId?: InstalledAppId) {
-    super(HC_APP_PORT);
-    //this.initializeHapp(socket, appId);
+    super(socket? socket : HC_APP_PORT, appId);
   }
 
 
@@ -144,85 +133,6 @@ export class WhereApp extends HappElement {
     /** Done */
     this._loaded = true;
   }
-
-  //
-  // /** */
-  // async initializeHapp(socket?: AppWebsocket, appId?: InstalledAppId) {
-  //   if (!socket) {
-  //     const wsUrl =`ws://localhost:${HC_APP_PORT}`
-  //     console.log("<where-app> Creating AppWebsocket with", wsUrl);
-  //     socket = await AppWebsocket.connect(wsUrl, 10 * 1000);
-  //   }
-  //
-  //   this._conductorAppProxy = await ConductorAppProxy.new(socket);
-  //
-  //   // const hcClient = new HolochainClient(socket); // This will recreate the sockets interal WsClient with a new signalCb... x_x
-  //   // hcClient.addSignalHandler((sig) => {
-  //   //   //console.log("<where-app> signalCb()", sig);
-  //   //   this.handleSignal(sig);
-  //   // })
-  //   this._conductorAppProxy.addSignalHandler(this.handleSignal);
-  //
-  //   const hvmDef = DEFAULT_WHERE_DEF;
-  //   if (appId) {hvmDef.id = appId};
-  //   const hvm = await HappViewModel.new(this, this._conductorAppProxy, hvmDef); // FIXME this can throw an error
-  //
-  //   /* Do this if not providing cellContext via <cell-context> */
-  //   //new ContextProvider(this, cellContext, this.whereDvm.installedCell)
-  //
-  //   /** Send Where dnaHash to electron */
-  //   if (IS_ELECTRON) {
-  //     const whereDnaHashB64 = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.dnaHash;
-  //     const ipc = window.require('electron').ipcRenderer;
-  //     let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
-  //   }
-  //
-  //   /** Grab ludo cells */
-  //   this._ludoRoleCells = await this._conductorAppProxy.fetchCells(hvmDef.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
-  //
-  //
-  //   /** ProfilesStore used by <create-profile> */
-  //   // if (!profilesStore) {
-  //   //   const whereCell = hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell;
-  //   //   const installedCell: InstalledCell = {
-  //   //     cell_id: whereCell.cell_id,
-  //   //     role_name: whereCell.name,
-  //   //   }
-  //   //   const whereClient = new CellClient(hcClient, installedCell);
-  //   //   const profilesService = new ProfilesService(whereClient, "zProfiles");
-  //   //   profilesStore = new ProfilesStore(profilesService, {
-  //   //     additionalFields: ['color'], //['color', 'lang'],
-  //   //     avatarMode: APP_DEV ? "avatar-optional" : "avatar-required"
-  //   //   })
-  //   // }
-  //   // console.log({profilesStore})
-  //   // new ContextProvider(this, profilesStoreContext, profilesStore);
-  //
-  //
-  //   await hvm.probeAll();
-  //   let profileZvm = (hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)! as WhereDvm).profilesZvm;
-  //   const me = await profileZvm.probeProfile(profileZvm.agentPubKey);
-  //   console.log({me})
-  //   if (me) {
-  //     this._hasStartingProfile = true;
-  //   }
-  //   /** Done. Trigger update */
-  //   this._hvm = hvm;
-  // }
-
-
-  /** */
-  // shouldUpdate() {
-  //   return !!this._hvm;
-  // }
-
-
-  /** */
-  // async updated() {
-  //   if (!APP_DEV && !this._lang) {
-  //     this.langDialogElem.open = true;
-  //   }
-  // }
 
 
   /** */

@@ -6,12 +6,12 @@
     <title>Where we-applet test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
-  <body style="margin:0px;">
+  <body style="margin:0px;background: #9bb791">
     <div id="container"></div>
 
     <script type="module">
-      import { ProfilesStore, ProfilesService } from "@holochain-open-dev/profiles";
-      import { ProfilesZomeMock } from "@holochain-open-dev/profiles/mocks";
+      //import { ProfilesStore, ProfilesService } from "@holochain-open-dev/profiles";
+      //import { ProfilesZomeMock } from "@holochain-open-dev/profiles/mocks";
       import { AppWebsocket, AdminWebsocket } from "@holochain/client";
       import Applet from "../out-tsc";
 
@@ -19,7 +19,7 @@
 
       /** */
       async function setup() {
-
+        console.log("we-applet demo setup()");
         console.log("setup()", process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT)
 
         const appWs = await AppWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`);
@@ -29,7 +29,7 @@
         const apps = await adminWs.listApps({});
         console.log("setup() apps", apps);
 
-        const appInfo = await appWs.appInfo({installed_app_id: "ludotheque-applet"});
+        const appInfo = await appWs.appInfo({installed_app_id: "where-applet"});
 
         console.log("setup() appInfo", appInfo);
 
@@ -37,9 +37,9 @@
           appWs,
           adminWs,
           {
-            profilesStore: new ProfilesStore(
-              new ProfilesService(new ProfilesZomeMock())
-            ),
+            // profilesStore: new ProfilesStore(
+            //   new ProfilesService(new ProfilesZomeMock())
+            // ),
           },
           [{ weInfo: { name: "Demo We Group", logoSrc: ""}, installedAppInfo: appInfo}]
         );

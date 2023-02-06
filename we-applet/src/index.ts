@@ -22,7 +22,7 @@ const whereApplet: WeApplet = {
         element.appendChild(font);
         /** <where-app> */
         registry.define("where-app", WhereApp);
-        const ludoApp = new WhereApp(appWebsocket, "where-applet");
+        const ludoApp = new WhereApp(appWebsocket, adminWebsocket, "where-applet");
         element.appendChild(ludoApp);
       },
       blocks: [],

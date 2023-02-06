@@ -68,8 +68,8 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  constructor(socket?: AppWebsocket, appId?: InstalledAppId) {
-    super(socket? socket : HC_APP_PORT, appId);
+  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, appId?: InstalledAppId) {
+    super(appWs? appWs : HC_APP_PORT, appId);
   }
 
 
@@ -103,10 +103,15 @@ export class WhereApp extends HappElement {
   async happInitialized() {
     console.log("happInitialized()")
     /** Authorize all zome calls */
-    const adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
-    //console.log({ adminWs });
-    await this.hvm.authorizeAllZomeCalls(adminWs);
-    console.log("*** Zome call authorization complete");
+    if (!this._adminWs) {
+      this._adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
+    }
+    if (this._adminWs) {
+      await this.hvm.authorizeAllZomeCalls(this._adminWs);
+      console.log("*** Zome call authorization complete");
+    } else {
+      console.warn("No adminWebsocket provided (Zome call authorization done)")
+    }
     /** Probe */
     await this.hvm.probeAll();
     /** Send dnaHash to electron */

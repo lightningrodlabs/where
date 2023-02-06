@@ -13,7 +13,7 @@
       //import { ProfilesStore, ProfilesService } from "@holochain-open-dev/profiles";
       //import { ProfilesZomeMock } from "@holochain-open-dev/profiles/mocks";
       import { AppWebsocket, AdminWebsocket } from "@holochain/client";
-      import Applet from "../out-tsc";
+      import Applet from "../dist";
 
       const container = document.getElementById("container");
 
@@ -23,24 +23,18 @@
         console.log("setup()", process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT)
 
         const appWs = await AppWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`);
-
         const adminWs = await AdminWebsocket.connect(`ws://localhost:${process.env.HC_ADMIN_PORT}`);
 
         const apps = await adminWs.listApps({});
         console.log("setup() apps", apps);
 
         const appInfo = await appWs.appInfo({installed_app_id: "where-applet"});
-
         console.log("setup() appInfo", appInfo);
 
         const renderers = await Applet.appletRenderers(
           appWs,
           adminWs,
-          {
-            // profilesStore: new ProfilesStore(
-            //   new ProfilesService(new ProfilesZomeMock())
-            // ),
-          },
+          {},
           [{ weInfo: { name: "Demo We Group", logoSrc: ""}, installedAppInfo: appInfo}]
         );
         renderers.full(container, window.customElements);

@@ -37,7 +37,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       # Checkout repo
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      # Set NPM shell (windows-only)
+      - name: Set NPM shell (windows-only)
+        if: ${{ runner.os == 'Windows' }}
+        shell: bash
+        run: |
+          npm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"
       # Download previously uploaded artifacts
       - uses: actions/download-artifact@master
         with:

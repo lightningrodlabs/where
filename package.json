@@ -1,5 +1,7 @@
 {
   "name"           : "where-dev",
+  "version"        : "0.2.0",
+  "hc-version"     : "0.1.0",
   "private"        : true,
   "workspaces"     : [
     "electron",
@@ -8,13 +10,24 @@
     "webapp.ludotheque",
     "webcomponents"
   ],
+  "config": {
+    "hc_version": "0.1.0",
+    "zits_version": "1.6.1",
+    "binpath": "bin"
+  },
   "scripts"        : {
-    "version"              : "hc --version && holochain --version && lair-keystore --version",
+    "install:submodules"  : "bash scripts/install-submodules.sh",
+    "install:rust"        : "bash submodules/hc-prebuilt/install-rust.sh",
+    "install:hash-zome"   : "bash submodules/hc-prebuilt/install-hash-zome.sh bin",
+    "install:hc"          : "bash submodules/hc-prebuilt/install-hc-cli.sh bin $(cat ./package.json | grep hc-version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')",
+    "install:zits"        : "cargo install zits --version 1.6.1",
+
+
+    "ci:version"           : "./bin/hc --version && holochain --version && lair-keystore --version",
     "ci:tsc"               : "tsc --version",
-    "postinstall"          : "bash scripts/copy-binaries.sh",
-    "ci:hc-install"        : "bash scripts/install-hc-tools.sh",
-    "install:hash-zome"    : "bash scripts/download-hash-zome.sh",
+    "version"              : "echo $npm_package_version",
     "hash-zome"            : "bash scripts/write-zome-hash.sh",
+
     "build:zome"           : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown && npm run hash-zome",
     "build:dna"            : "npm run build:zome && hc dna pack -o ./artifacts/where.dna dna/workdir/dna-where && hc dna pack -o ./artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
     "build:happ"           : "npm run build:dna && hc app pack -o ./artifacts/where.happ dna/workdir/happ-where && hc app pack -o ./artifacts/where-standalone.happ dna/workdir/happ-where-standalone && hc app pack -o ./artifacts/ludotheque.happ dna/workdir/happ-ludotheque && npm run copy:happ && bash scripts/ts-bindings.sh",
@@ -24,15 +37,18 @@
     "build:webui"          : "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest"        : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest:ludo"   : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
+
     "dev:components"       : "npm run build:watch -w webcomponents",
     "devtest"              : "npm run build:devtest && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp\" \"npm run start\"",
     "devtest:ludo"         : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp.ludotheque\" \"npm run start:ludotheque\"",
     "devtest:we"           : "npm run build:devtest && npm run devtest -w we-applet",
     "devtest:we:ludo"      : "npm run build:devtest:ludo && npm run devtest:ludo -w we-applet",
     "devtest:electron"     : "npm run build:devtest && npm run devtest -w electron",
+
     "network"              : "npm run build:happ && concurrently-repeat \"npm run start:proxied\"",
     "network-playground"   : "npm run build:happ && concurrently-repeat \"npm run start:playground\"",
     "network-mdns"         : "npm run build:happ && concurrently-repeat \"npm run start\"",
+
     "start:proxied"        : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ:proxied\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start"                : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start:ludotheque"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
@@ -42,6 +58,10 @@
     "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
     "start:happ:proxied"   : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
+
+    "update-version"      : "bash scripts/update-version-number.sh $(cat ./package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')",
+
+
     "playground"           : "run-singleton \"holochain-playground\"",
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",

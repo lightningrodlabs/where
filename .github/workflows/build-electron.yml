@@ -1,6 +1,7 @@
 name: test-workflow x64
 
-on: workflow_dispatch
+on:
+  workflow_call:
 
 env:
   WHERE_VERSION: 0.1.0

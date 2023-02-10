@@ -61,7 +61,7 @@
     "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip && bestzip artifacts/where-webapp-ui.zip webapp/dist/* && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir",
     "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip && bestzip artifacts/where-we_applet-ui.zip we-applet/dist/* && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
 
-    "update-version"       : "bash scripts/update-version-number.sh $npm_package_config_hc_version",
+    "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
 
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",

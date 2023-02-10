@@ -58,8 +58,8 @@
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
     "playground"           : "run-singleton \"holochain-playground\"",
 
-    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip && bestzip artifacts/where-webapp-ui.zip webapp/dist/* && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir",
-    "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip && bestzip artifacts/where-we_applet-ui.zip we-applet/dist/* && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
+    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip && cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir",
+    "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
 
     "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
 

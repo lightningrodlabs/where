@@ -9,7 +9,7 @@
     "build": "rm -rf dist && tsc && rollup -c",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
     "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "zip": "rm -rf ludotheque-web-ui.zip &&  cd dist && bestzip ../ludotheque-web-ui.zip *"
+    "zip": "rm -rf ludotheque-webapp-ui.zip &&  cd dist && bestzip ../ludotheque-webapp-ui.zip *"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

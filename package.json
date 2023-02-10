@@ -1,7 +1,11 @@
 {
   "name"           : "where-dev",
   "version"        : "0.2.0",
-  "hc-version"     : "0.1.0",
+  "config"         : {
+    "hc_version"   : "0.1.0",
+    "zits_version" : "1.6.1",
+    "bin"          : "bin"
+  },
   "private"        : true,
   "workspaces"     : [
     "electron",
@@ -10,31 +14,24 @@
     "webapp.ludotheque",
     "webcomponents"
   ],
-  "config": {
-    "hc_version": "0.1.0",
-    "zits_version": "1.6.1",
-    "binpath": "bin"
-  },
   "scripts"        : {
-    "install:submodules"  : "bash scripts/install-submodules.sh",
-    "install:rust"        : "bash submodules/hc-prebuilt/install-rust.sh",
-    "install:hash-zome"   : "bash submodules/hc-prebuilt/install-hash-zome.sh bin",
-    "install:hc"          : "bash submodules/hc-prebuilt/install-hc-cli.sh bin $(cat ./package.json | grep hc-version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')",
-    "install:zits"        : "cargo install zits --version 1.6.1",
+    "install:submodules"   : "bash scripts/install-submodules.sh $npm_package_config_hc_version",
+    "install:rust"         : "bash submodules/hc-prebuilt/install-rust.sh",
+    "install:hash-zome"    : "bash submodules/hc-prebuilt/install-hash-zome.sh $npm_package_config_bin",
+    "install:hc"           : "bash submodules/hc-prebuilt/install-hc-cli.sh $npm_package_config_bin $npm_package_config_hc_version",
+    "install:zits"         : "cargo install zits --version $npm_package_config_zits_version",
 
+    "version"              : "$npm_package_config_bin/hc --version & holochain --version & lair-keystore --version & tsc --version",
 
-    "ci:version"           : "./bin/hc --version && holochain --version && lair-keystore --version",
-    "ci:tsc"               : "tsc --version",
-    "version"              : "echo $npm_package_version",
-    "hash-zome"            : "bash scripts/write-zome-hash.sh",
+    "hash-zome"            : "bash scripts/write-zome-hash.sh $npm_package_config_bin",
 
     "build:zome"           : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown && npm run hash-zome",
-    "build:dna"            : "npm run build:zome && hc dna pack -o ./artifacts/where.dna dna/workdir/dna-where && hc dna pack -o ./artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
-    "build:happ"           : "npm run build:dna && hc app pack -o ./artifacts/where.happ dna/workdir/happ-where && hc app pack -o ./artifacts/where-standalone.happ dna/workdir/happ-where-standalone && hc app pack -o ./artifacts/ludotheque.happ dna/workdir/happ-ludotheque && npm run copy:happ && bash scripts/ts-bindings.sh",
+    "build:dna"            : "npm run build:zome && $npm_package_config_bin/hc dna pack -o ./artifacts/where.dna dna/workdir/dna-where && $npm_package_config_bin/hc dna pack -o ./artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
+    "build:happ"           : "npm run build:dna && $npm_package_config_bin/hc app pack -o ./artifacts/where.happ dna/workdir/happ-where && $npm_package_config_bin/hc app pack -o ./artifacts/where-standalone.happ dna/workdir/happ-where-standalone && $npm_package_config_bin/hc app pack -o ./artifacts/ludotheque.happ dna/workdir/happ-ludotheque && npm run copy:happ && bash scripts/ts-bindings.sh",
     "copy:happ"            : "cp artifacts/where.happ electron/bin && cp artifacts/ludotheque.happ electron/bin",
     "extract:localize"     : "npm run localize:extract -w webcomponents && npm run localize:extract -w webapp",
     "build:localize"       : "npm run localize:build -w webcomponents && npm run localize:build -w webapp",
-    "build:webui"          : "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
+    "build:webapp"         : "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest"        : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest:ludo"   : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
 
@@ -53,16 +50,19 @@
     "start"                : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start:ludotheque"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
     "start:playground"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run playground\" \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start-rerun"          : "cross-env HC_APP_PORT=8888 concurrently -k \"npm run build:watch -w webcomponents\" \"hc s run 0 -p 8888\" \"npm run start:ui -w webapp\"",
-    "start:happ"           : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ -a where --run=$HC_APP_PORT network mdns",
-    "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
-    "start:happ:proxied"   : "RUST_LOG=warn echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
+    "start-rerun"          : "cross-env HC_APP_PORT=8888 concurrently -k \"npm run build:watch -w webcomponents\" \"$npm_package_config_bin/hc s run 0 -p 8888\" \"npm run start:ui -w webapp\"",
+    "start:happ"           : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ -a where --run=$HC_APP_PORT network mdns",
+    "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
+    "start:happ:proxied"   : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
+
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
-
-    "update-version"      : "bash scripts/update-version-number.sh $(cat ./package.json | grep version | head -1 | awk -F: '{ print $2 }' | sed 's/[\",]//g' | tr -d '[[:space:]]')",
-
-
     "playground"           : "run-singleton \"holochain-playground\"",
+
+    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip && bestzip artifacts/where-webapp-ui.zip webapp/dist/* && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir",
+    "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip && bestzip artifacts/where-we_applet-ui.zip we-applet/dist/* && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
+
+    "update-version"       : "bash scripts/update-version-number.sh $npm_package_config_hc_version",
+
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",
     "clean:hc"             : "rm -rf .hc* && rm -rf we-applet/.hc*",

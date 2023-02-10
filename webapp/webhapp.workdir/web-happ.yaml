@@ -1,7 +1,7 @@
 ---
 manifest_version: "1"
-name: wWhere
+name: Where Official
 ui:
-  bundled: "../where-web-ui.zip"
+  bundled: "../../artifacts/where-webapp-ui.zip"
 happ_manifest:
-  bundled: "../artifacts/where.happ"
+  bundled: "../../artifacts/where.happ"

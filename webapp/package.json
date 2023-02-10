@@ -11,9 +11,7 @@
     "start:ui-old": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "start:ui": "web-dev-server --config ./web-dev-server.config.mjs",
     "localize:extract": "lit-localize extract",
-    "localize:build": "lit-localize build",
-    "zip": "rm -rf where-web-ui.zip && cd dist && bestzip ../where-web-ui.zip *",
-    "package": "npm run zip && hc web-app pack ./webhapp.workdir"
+    "localize:build": "lit-localize build"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

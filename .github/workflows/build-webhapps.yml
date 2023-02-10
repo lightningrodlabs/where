@@ -7,36 +7,44 @@ jobs:
   build-webhapps:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      # install hc tool
-      - name: Install hc tool and wasm target
-        shell: bash # important because this runs shell scripts
-        run: |
-          npm run ci:hc-install
-      # Hash Zome
-      - name: Hash Zome Install
-        run: |
-          npm run install:hash-zome
-      # build dna
-      - name: Build DNA
-        run: |
-          npm run build:happ
-      - name: Hash Zome
-        run: |
-          npm run hash-zome
-      # Setup npm
-      - name: Install nodejs dependencies
+      - uses: actions/checkout@v3
+      # Install npm dependencies
+      - name: Install npm dependencies
+        shell: bash
         run: |
           npm install
-      # Build web-ui
-      - name: Build web-ui
+      # Download submodules
+      - name: Download submodules
+        shell: bash
         run: |
-          npm run build:webui
+          npm run install:submodules
+      # install rust tools
+      - name: install rust tools
+        shell: bash
+        run: |
+          npm run install:rust
+      # install hc tool
+      - name: Install hc tool
+        shell: bash
+        run: |
+          npm run install:hc
+      # Install hash-zome
+      - name: Install hash-zome
+        run: |
+          npm run install:hash-zome
+      # Build happ
+      - name: Build happ
+        shell: bash
+        run: |
+          npm run build:happ
+      # Build webapp
+      - name: Build webapp
+        run: |
+          npm run build:webapp
       # Package web-happ
       - name: Package web-happ
         run: |
-          npm run zip -w webapp
-          npm run package -w webapp
+          npm run package:webapp
       # build we-applet
       - name: build we-applet
         shell: bash
@@ -45,13 +53,12 @@ jobs:
       # Package we-applet
       - name: Package we-applet
         shell: bash
-        run: |
-          npm run zip -w we-applet          
-          npm run package -w we-applet
+        run: |       
+          npm run package:we-applet
       # Regroup artifacts
       - name: Regroup artifacts
         run: |
-          mkdir artifacts
+          mkdir -p artifacts
           cp electron/bin/where_zome_hash.txt ./artifacts
           cp electron/bin/ludotheque_zome_hash.txt ./artifacts           
           cp target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm ./artifacts
@@ -59,11 +66,7 @@ jobs:
           cp target/wasm32-unknown-unknown/release/where_ludotheque_integrity_zome.wasm ./artifacts
           cp target/wasm32-unknown-unknown/release/where_ludotheque_zome.wasm ./artifacts
           cp target/wasm32-unknown-unknown/release/where_integrity_zome.wasm ./artifacts
-          cp target/wasm32-unknown-unknown/release/where_zome.wasm ./artifacts        
-          cp we-applet/where-we_applet-ui.zip ./artifacts
-          cp webapp/where-web-ui.zip ./artifacts           
-          cp webapp/webhapp.workdir/where.webhapp ./artifacts
-          cp we-applet/webhapp.workdir/where-we_applet.webhapp ./artifacts
+          cp target/wasm32-unknown-unknown/release/where_zome.wasm ./artifacts
       # List uploaded files
       - name: List uploaded files
         run: ls -R

@@ -2,114 +2,36 @@ name: test-workflow x64
 
 on: workflow_dispatch
 
-env:
-  WHERE_VERSION: 0.1.0
-  USE_HARD_LINKS: false
-
 jobs:
-  # Build the dna & happ
-  call-build-webhapps:
-    uses: ./.github/workflows/build-webhapps.yml
+  call-build-electron:
+    uses: ./.github/workflows/build-electron.yml
 
-  # upload the app package for each target os
-  build-binaries:
-    needs: call-build-webhapps
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-    runs-on: ${{ matrix.os }}
+  # upload the artifacts
+  upload-assets:
+    needs: call-build-electron
+    runs-on: ubuntu-latest
     steps:
-      # Checkout repo
       - uses: actions/checkout@v3
-      # Set NPM shell (windows-only)
-      - name: Set NPM shell (windows-only)
-        if: ${{ runner.os == 'Windows' }}
-        shell: bash
-        run: |
-          npm config set script-shell "C:\\Program Files\\git\\bin\\bash.exe"
-      # Check if exist
-      #- name: tsc
-      #   continue-on-error: true
-      #  run: |
-      #     tsc --version
       # Download previously uploaded artifacts
-      - uses: actions/download-artifact@master
+      - uses: actions/download-artifact@v3
         with:
           name: all-happ-artifact
-      # Dispatch artifacts
-      - name: Dispatch artifacts
-        run: |
-          cp ./where.happ ./electron/bin
-          cp ./where_zome_hash.txt ./electron/bin
-          cp ./ludotheque_zome_hash.txt ./electron/bin
-      # Setup npm
-      - name: Install nodejs dependencies
-        run: |
-          npm install
-          npm install electron-builder
-      # Build web-ui
-      - name: Build web-ui
-        run: |
-          npm run build:webui
-      # Build electron app
-      - name: Build electron app
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npm run build -w electron
-      # Dist Electron
-      - name: Dist Electron
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npm run dist:build -w electron
-      # List out-builder folder
-      - name: list out-builder folder
-        continue-on-error: true
-        run: ls -R
-        working-directory: electron/out-builder
-      # list bin folder
-      - name: list bin folder
-        continue-on-error: true
+          path: artifacts
+      # Display artifacts folder
+      - name: Display artifacts folder
         run: ls
-        working-directory: electron/bin
-      # upload binary for each platform
+        working-directory: artifacts
+      # upload all artifacts
       - name: upload binary (ubuntu only)
         if: ${{ runner.os == 'Linux' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: artifacts
         run: |
-          gh release upload "manual-release" "electron/out-builder/Where-$WHERE_VERSION.AppImage" --clobber
-          gh release upload "manual-release" "where-web-ui.zip" --clobber
-          gh release upload "manual-release" "where-we_applet-ui.zip" --clobber
-          gh release upload "manual-release" "where.webhapp" --clobber
-          gh release upload "manual-release" "where-we_applet.webhapp" --clobber          
-          gh release upload "manual-release" "where.happ" --clobber
-          gh release upload "manual-release" "where.dna" --clobber
-          gh release upload "manual-release" "ludotheque.dna" --clobber
-          gh release upload "manual-release" "where_zome.wasm" --clobber
-          gh release upload "manual-release" "where_integrity_zome.wasm" --clobber
-          gh release upload "manual-release" "where_ludotheque_zome.wasm" --clobber
-          gh release upload "manual-release" "where_ludotheque_integrity_zome.wasm" --clobber
-          gh release upload "manual-release" "where_ludotheque_zome.wasm" --clobber
-          gh release upload "manual-release" "where_playset_integrity_zome.wasm" --clobber          
-          gh release upload "manual-release" "where_playset_zome.wasm" --clobber
-      - name: upload binary (macos only)
-        if: ${{ runner.os == 'macOs' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release upload "manual-release" "electron/out-builder/Where-$WHERE_VERSION.dmg" --clobber
-      - name: upload binary (Windows only)
-        if: ${{ runner.os == 'Windows' }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release delete-asset "manual-release" "Where.Setup.$env:WHERE_VERSION.exe" -y          
-          gh release upload "manual-release" "electron/out-builder/Where.Setup.$env:WHERE_VERSION.exe" --clobber
+          rm -f *.blockmap
+          echo ludotheque
+          gh release upload "manual-release" ludotheque* --clobber          
+          echo place*
+          gh release upload "manual-release" place* --clobber
+          echo Place*
+          gh release upload "manual-release" Place* --clobber

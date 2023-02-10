@@ -2,6 +2,7 @@
 /.idea
 /.vscode
 
+
 ## system files
 .DS_Store
 
@@ -19,6 +20,12 @@ dna/*.txt
 
 
 release/
+artifacts/*
+submodules/**/*
+bin/
+
+*.map
+
 
 # Specific files
 Cargo.lock

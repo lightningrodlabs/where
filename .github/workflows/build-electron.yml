@@ -1,10 +1,9 @@
-name: test-workflow x64
+name: build-electron
 
 on:
   workflow_call:
 
 env:
-  WHERE_VERSION: 0.1.0
   USE_HARD_LINKS: false
 
 jobs:

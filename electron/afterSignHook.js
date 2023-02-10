@@ -21,18 +21,18 @@ module.exports = async function (params) {
     return
   }
 
-  console.log(`Notarizing ${appId} found at ${appPath}`)
-
-  try {
-    await electronNotarize.notarize({
-      appBundleId: appId,
-      appPath: appPath,
-      appleId: process.env.APPLE_ID_EMAIL,
-      appleIdPassword: process.env.APPLE_ID_PASSWORD,
-    })
-  } catch (error) {
-    console.error(error)
-  }
+  // console.log(`Notarizing ${appId} found at ${appPath}`)
+  //
+  // try {
+  //   await electronNotarize.notarize({
+  //     appBundleId: appId,
+  //     appPath: appPath,
+  //     appleId: process.env.APPLE_ID_EMAIL,
+  //     appleIdPassword: process.env.APPLE_ID_PASSWORD,
+  //   })
+  // } catch (error) {
+  //   console.error(error)
+  // }
 
   console.log(`Done notarizing ${appId}`)
 }

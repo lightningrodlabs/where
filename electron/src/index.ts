@@ -35,7 +35,7 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  IS_DEV, APP_DATA_PATH, ICON_FILEPATH, getAdminPort,
+  APP_DATA_PATH, ICON_FILEPATH, getAdminPort, IS_DEV,
 } from './constants'
 
 import {initApp, addUidToDisk} from "./init";

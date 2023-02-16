@@ -11,7 +11,7 @@ import {
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
-import {HC_ADMIN_PORT, HC_APP_PORT, IS_ELECTRON} from "./globals"
+import {HC_ADMIN_PORT, HC_APP_PORT, IS_ELECTRON, MY_ELECTRON_API} from "./globals"
 
 
 /**
@@ -87,8 +87,9 @@ export class WhereApp extends HappElement {
     if (IS_ELECTRON) {
       const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell.dnaHash;
       //let _reply = MY_ELECTRON_API.dnaHashSync(whereDnaHashB64);
-      const ipc = window.require('electron').ipcRenderer;
-      let _reply = ipc.sendSync('dnaHash', whereDnaHashB64);
+      //const ipc = window.require('electron').ipcRenderer;
+      //const ipc = window.require('electron').ipcRenderer;
+      let _reply = MY_ELECTRON_API.sendSync('dnaHash', whereDnaHashB64);
     }
 
     /** Grab ludo cells */

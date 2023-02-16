@@ -2,11 +2,11 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "module": "commonjs",
+    "resolveJsonModule": true,
     "outDir": "out-tsc",
+    "rootDir": "src"
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*.ts", "src/**/*.js"]
 //  , "references": [
 //    { "path": "../../electron-holochain/" }
 //  ]

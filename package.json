@@ -38,11 +38,12 @@
     "build:devtest:ludo"   : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
 
     "dev:components"       : "npm run build:watch -w webcomponents",
+
     "devtest"              : "npm run build:devtest && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp\" \"npm run start\"",
     "devtest:ludo"         : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp.ludotheque\" \"npm run start:ludotheque\"",
     "devtest:we"           : "npm run build:devtest && npm run devtest -w we-applet",
     "devtest:we:ludo"      : "npm run build:devtest:ludo && npm run devtest:ludo -w we-applet",
-    "devtest:electron"     : "npm run build:devtest && npm run devtest -w electron",
+    "devtest:electron"     : "npm run build -w webcomponents && npm run dist -w webapp && BUILD_MODE='dev' npm run devtest -w electron",
 
     "network"              : "npm run build:happ && concurrently-repeat \"npm run start:proxied\"",
     "network-playground"   : "npm run build:happ && concurrently-repeat \"npm run start:playground\"",
@@ -72,6 +73,7 @@
     "clean:hc"             : "rm -rf .hc* && rm -rf we-applet/.hc*",
     "clean:all"            : "npm run clean:hc && npm run clean:npm && npm run clean"
   },
+
   "devDependencies": {
     "concurrently"            : "^6.2.1",
     "concurrently-repeat"     : "^0.0.1",

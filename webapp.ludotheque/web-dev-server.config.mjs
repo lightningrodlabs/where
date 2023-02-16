@@ -9,6 +9,9 @@ const commonjs = fromRollup(rollupCommonjs);
 const builtins = fromRollup(rollupBuiltins);
 
 
+const BUILD_MODE = process.env.BUILD_MODE? JSON.stringify(process.env.BUILD_MODE) : 'prod';
+console.log("web-dev-server BUILD_MODE =", BUILD_MODE);
+
 /** Use Hot Module replacement by adding --hmr to the start command */
 const hmr = process.argv.includes('--hmr');
 
@@ -19,7 +22,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   nodeResolve: {
     preferBuiltins: false,
     browser: true,
-    exportConditions: ['browser', 'development'],
+    exportConditions: ['browser', BUILD_MODE === 'dev' ? 'development' : ''],
   },
 
   /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
@@ -34,7 +37,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
     replace({
       "preventAssignment": true,
       //'process.env.ENV': JSON.stringify(process.env.ENV),
-      'process.env.BUILD_MODE': JSON.stringify(process.env.HC_APP_PORT || 'prod'),
+      'process.env.BUILD_MODE': BUILD_MODE,
       'process.env.HC_APP_PORT': JSON.stringify(process.env.HC_APP_PORT || 8888),
       'process.env.HC_ADMIN_PORT': JSON.stringify(process.env.HC_ADMIN_PORT || 8889),
       '  COMB =': 'window.COMB =',

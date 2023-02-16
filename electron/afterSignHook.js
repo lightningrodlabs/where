@@ -21,6 +21,7 @@ module.exports = async function (params) {
     return
   }
 
+  // FIXME
   // console.log(`Notarizing ${appId} found at ${appPath}`)
   //
   // try {

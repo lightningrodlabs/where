@@ -1,10 +1,7 @@
 import * as path from "path";
 import {app} from "electron";
 
-
-/** APP SETUP */
-
-
+export const IS_DEV = !app.isPackaged;
 
 /** Debugging */
 export const DEVELOPMENT_UI_URL = path.join(__dirname, '../web')
@@ -33,6 +30,7 @@ export const SPLASH_FILE = path.join(__dirname, '../web/splashscreen.html')
 export const LINUX_ICON_FILE = path.join(__dirname, '../web/logo/icon512.png')
 export const ICON_FILEPATH = path.join(__dirname, "/logo/logo256.png")
 
+
 /** ADMIN */
 
 /** */
@@ -45,7 +43,6 @@ export async function getAdminPort(): Promise<number> {
 }
 
 import net, {AddressInfo} from "net"
-import {IS_DEV} from "@where/app/dist/globals";
 
 async function getPortFree() {
   console.log("debug", "getPortFree()")

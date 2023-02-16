@@ -8,7 +8,8 @@
   },
   "private"        : true,
   "workspaces"     : [
-    "webcomponents"
+    "webcomponents",
+    "webapp"
   ],
   "scripts"        : {
     "install:submodules"   : "bash scripts/install-submodules.sh $npm_package_config_hc_version",

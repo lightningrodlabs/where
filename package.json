@@ -10,7 +10,8 @@
   "workspaces"     : [
     "webcomponents",
     "webapp",
-    "we-applet"
+    "we-applet",
+    "webapp.ludotheque"
   ],
   "scripts"        : {
     "install:submodules"   : "bash scripts/install-submodules.sh $npm_package_config_hc_version",

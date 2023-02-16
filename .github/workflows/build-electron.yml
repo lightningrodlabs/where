@@ -50,7 +50,6 @@ jobs:
       - name: Install npm dependencies
         run: |
           npm install
-          npm install electron-builder
       # Build webapp
       - name: Build webapp
         run: |

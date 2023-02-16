@@ -10,7 +10,7 @@
     "devtest:ludo": "npm run build && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run start:happ:ludo\" \"npm run start:ui\"",
     "start:happ": "RUST_LOG=warn WASM_LOG=debug echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate ../artifacts/where.happ --run=$HC_APP_PORT -a where-applet network mdns",
     "start:happ:ludo": "RUST_LOG=warn WASM_LOG=debug echo \"pass\" | hc s --piped -f=$HC_ADMIN_PORT generate ../artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque-applet network mdns",
-    "start:ui": "concurrently -k --names tsc,dev-server \"npm run build:watch\" \"wds --config ./web-dev-server.config.mjs\""
+    "start:ui": "concurrently -k --names tsc,dev-server \"npm run build:watch\" \"wds --config web-dev-server.config.mjs\""
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

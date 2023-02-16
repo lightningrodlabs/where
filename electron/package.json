@@ -2,12 +2,19 @@
   "name": "where-app",
   "version": "0.2.0",
   "description": "A playground for group self-awareness",
+  "keywords": [
+    "Electron",
+    "Holochain"
+  ],
+  "author": "Harris-Braun Enterprises, LLC and contributors",
+  "license": "CAL-1.0",
+  "main": "out-tsc/index.js",
   "repository": {
     "type": "git",
     "url": "https://github.com/lightningrodlabs/where.git"
   },
-  "main": "out-tsc/index.js",
   "scripts": {
+    "postinstall": "electron-builder install-app-deps",
     "lint": "eslint --ext .ts .",
     "build": "tsc",
     "devtest": "tsc && electron .",
@@ -16,15 +23,9 @@
     "dist:linux": "electron-builder --linux tar.gz",
     "dist:linux-app": "electron-builder --linux AppImage"
   },
-  "keywords": [
-    "Electron",
-    "Holochain"
-  ],
-  "author": "Harris-Braun Enterprises, LLC and contributors",
-  "license": "CAL-1.0",
   "build": {
     "productName": "Where",
-    "afterSign": "./afterSignHook.js",
+    "afterSign": "afterSignHook.js",
     "appId": "com.harris-braun.where",
     "copyright": "© 2021-2023 Harris-Braun Enterprises, LLC",
     "asar": false,
@@ -35,14 +36,20 @@
       "node_modules/**/*",
       "package.json"
     ],
+    "directories": {
+      "buildResources": "web/logo",
+      "output": "out-builder"
+    },
+    "linux": {
+      "target": "AppImage"
+    },
+    "mac": {
+      "target": "dmg"
+    },
     "win": {
       "target": "NSIS",
       "icon": "web/logo/icon.ico",
       "artifactName": "${productName}.Setup.${version}.${ext}"
-    },
-    "directories": {
-      "buildResources": "web/logo",
-      "output": "out-builder"
     },
     "publish": {
       "provider": "github"

@@ -792,14 +792,14 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
         <sl-tab-panel id="spaces-panel" name="spaces">
           ${this.renderSpaces()}
         </sl-tab-panel>
-        <sl-tab-panel name="templates">
-          ${this.renderTemplates()}
-        </sl-tab-panel>
         <sl-tab-panel name="svg-markers">
           ${this.renderSvgMarkers()}
         </sl-tab-panel>
         <sl-tab-panel name="emoji-groups">
           ${this.renderEmojiGroups()}
+        </sl-tab-panel>
+        <sl-tab-panel name="templates">
+          ${this.renderTemplates()}
         </sl-tab-panel>
       </sl-tab-group>
     </div>

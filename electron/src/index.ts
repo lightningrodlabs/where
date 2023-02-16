@@ -89,7 +89,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   const options: Electron.BrowserWindowConstructorOptions = {
     height,
     width,
-    title: IS_DEV? "[DEBUG] " + title : title,
+    title: IS_DEV? "[DEV] " + title : title,
     show: false,
     backgroundColor: BACKGROUND_COLOR,
     /* Use these settings so that the ui can check paths */

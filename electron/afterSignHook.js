@@ -1,7 +1,7 @@
 require('dotenv').config()
 const fs = require('fs')
 const path = require('path')
-const electronNotarize = require('electron-notarize')
+//const electronNotarize = require('electron-notarize')
 
 module.exports = async function (params) {
   if (process.platform !== 'darwin') {

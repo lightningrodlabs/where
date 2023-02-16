@@ -1,12 +1,13 @@
 // import { hmrPlugin, presets } from '@open-wc/dev-server-hmr';
 import rollupReplace from '@rollup/plugin-replace';
-//import rollupCommonjs from '@rollup/plugin-commonjs';
+import rollupCommonjs from '@rollup/plugin-commonjs';
 import { fromRollup } from '@web/dev-server-rollup';
-//import rollupBuiltins from 'rollup-plugin-node-builtins';
+import rollupBuiltins from 'rollup-plugin-node-builtins';
 
 const replace = fromRollup(rollupReplace);
-//const commonjs = fromRollup(rollupCommonjs);
-//const builtins = fromRollup(rollupBuiltins);
+const commonjs = fromRollup(rollupCommonjs);
+const builtins = fromRollup(rollupBuiltins);
+
 
 /** Use Hot Module replacement by adding --hmr to the start command */
 const hmr = process.argv.includes('--hmr');
@@ -32,15 +33,15 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   plugins: [
     replace({
       "preventAssignment": true,
-      'process.env.ENV': JSON.stringify(process.env.ENV),
-      'process.env.APP_DEV': JSON.stringify(process.env.APP_DEV),
+      //'process.env.ENV': JSON.stringify(process.env.ENV),
+      'process.env.BUILD_MODE': JSON.stringify(process.env.HC_APP_PORT || 'prod'),
       'process.env.HC_APP_PORT': JSON.stringify(process.env.HC_APP_PORT || 8888),
       'process.env.HC_ADMIN_PORT': JSON.stringify(process.env.HC_ADMIN_PORT || 8889),
       '  COMB =': 'window.COMB =',
       delimiters: ['', ''],
     }),
-    //builtins(),
-    //commonjs({}),
+    builtins(),
+    commonjs({}),
 
     /** Use Hot Module Replacement by uncommenting. Requires @open-wc/dev-server-hmr plugin */
     // hmr && hmrPlugin({ exclude: ['**/*/node_modules/**/*'], presets: [presets.litElement] }),

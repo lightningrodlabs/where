@@ -5,11 +5,11 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "tsc": "tsc",
-    "build": "rm -rf dist && tsc && rollup -c && cd dist && cp -r * ../../electron/web",
+    "build": "rm -rf dist && tsc",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "start:ui-old": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "start:ui": "web-dev-server --config ./web-dev-server.config.mjs",
+    "dist": "npm run build && rollup -c rollup.config.js && cd dist && cp -r * ../../electron/web",
+    "start:ui": "cp index.html dist && concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
+    "start:ui-old": "web-dev-server --config ./web-dev-server.config.mjs",
     "localize:extract": "lit-localize extract",
     "localize:build": "lit-localize build"
   },

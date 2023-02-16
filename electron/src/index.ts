@@ -35,7 +35,7 @@ import {
   LINUX_ICON_FILE,
   SPLASH_FILE,
   MAIN_FILE,
-  IS_DEBUG, APP_DATA_PATH, ICON_FILEPATH, getAdminPort,
+  IS_DEV, APP_DATA_PATH, ICON_FILEPATH, getAdminPort,
 } from './constants'
 
 import {initApp, addUidToDisk} from "./init";
@@ -89,12 +89,13 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   const options: Electron.BrowserWindowConstructorOptions = {
     height,
     width,
-    title: IS_DEBUG? "[DEBUG] " + title : title,
+    title: IS_DEV? "[DEBUG] " + title : title,
     show: false,
     backgroundColor: BACKGROUND_COLOR,
-    // use these settings so that the ui can check paths
+    /* Use these settings so that the ui can check paths */
     webPreferences: {
-      contextIsolation: false,
+      preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
       nodeIntegration: true,
       devTools: true,
       webgl: false,
@@ -104,7 +105,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
   }
   let mainWindow = new BrowserWindow(options)
 
-  /** Things to setup at start */
+  /** Things to set up at startup */
   let { x, y } = g_userSettings.get('windowPosition');
   mainWindow.setPosition(x, y);
 
@@ -113,7 +114,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
     mainWindow.reload()
   })
 
-  if (IS_DEBUG) {
+  if (IS_DEV) {
     mainWindow.webContents.openDevTools();
   }
 

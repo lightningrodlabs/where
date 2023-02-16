@@ -8,6 +8,7 @@ const replace = fromRollup(rollupReplace);
 const commonjs = fromRollup(rollupCommonjs);
 const builtins = fromRollup(rollupBuiltins);
 
+
 /** Use Hot Module replacement by adding --hmr to the start command */
 const hmr = process.argv.includes("--hmr");
 
@@ -32,7 +33,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   plugins: [
     replace({
       "preventAssignment": true,
-      'process.env.APP_DEV': JSON.stringify(process.env.APP_DEV),
+      'process.env.BUILD_MODE': JSON.stringify(process.env.HC_APP_PORT || 'prod'),
       "process.env.HC_APP_PORT": JSON.stringify(process.env.HC_APP_PORT),
       "process.env.HC_ADMIN_PORT": JSON.stringify(process.env.HC_ADMIN_PORT) || undefined,
       delimiters: ["", ""],

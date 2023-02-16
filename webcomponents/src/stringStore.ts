@@ -10,7 +10,7 @@ export class StringStore {
   fr: Map<string, string>;
 
   constructor(opts?: any) {
-    console.warn("Constructing StringStore")
+    //console.warn("Constructing StringStore")
     this.database = new Map<string, Map<string, string>>();
     this.en = new Map<string, string>();
     this.fr = new Map<string, string>();

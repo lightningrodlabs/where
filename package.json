@@ -28,9 +28,11 @@
     "build:zome"           : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown && npm run hash-zome",
     "build:dna"            : "npm run build:zome && mkdir -p artifacts && $npm_package_config_bin/hc dna pack -o artifacts/where.dna dna/workdir/dna-where && $npm_package_config_bin/hc dna pack -o artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
     "build:happ"           : "npm run build:dna && $npm_package_config_bin/hc app pack -o artifacts/where.happ dna/workdir/happ-where && $npm_package_config_bin/hc app pack -o ./artifacts/where-standalone.happ dna/workdir/happ-where-standalone && $npm_package_config_bin/hc app pack -o ./artifacts/ludotheque.happ dna/workdir/happ-ludotheque && npm run copy:happ",
+
     "copy:happ"            : "cp artifacts/where.happ electron/bin && cp artifacts/ludotheque.happ electron/bin",
     "extract:localize"     : "npm run localize:extract -w webcomponents && npm run localize:extract -w webapp",
     "build:localize"       : "npm run localize:build -w webcomponents && npm run localize:build -w webapp",
+
     "build:webapp"         : "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest"        : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest:ludo"   : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
@@ -46,10 +48,12 @@
     "network-playground"   : "npm run build:happ && concurrently-repeat \"npm run start:playground\"",
     "network-mdns"         : "npm run build:happ && concurrently-repeat \"npm run start\"",
 
-    "start:proxied"        : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ:proxied\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start"                : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start:ludotheque"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
-    "start:playground"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) APP_DEV=true concurrently \"npm run playground\" \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "prodtest"             : "npm run dist -w webapp && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
+
+    "start:proxied"        : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run start:happ:proxied\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start"                : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start:ludotheque"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
+    "start:playground"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run playground\" \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start-rerun"          : "cross-env HC_APP_PORT=8888 concurrently -k \"npm run build:watch -w webcomponents\" \"$npm_package_config_bin/hc s run 0 -p 8888\" \"npm run start:ui -w webapp\"",
     "start:happ"           : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ -a where --run=$HC_APP_PORT network mdns",
     "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",

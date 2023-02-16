@@ -5,8 +5,8 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "tsc": "tsc",
-    "build": "rm -rf dist && tsc && rollup -c",
+    "tsc": "rm -rf dist && mkdir dist && cp index.html dist && tsc",
+    "build": "npm run tsc && rollup -c",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
     "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "zip": "rm -rf ludotheque-webapp-ui.zip &&  cd dist && bestzip ../ludotheque-webapp-ui.zip *"

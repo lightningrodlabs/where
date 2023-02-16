@@ -7,9 +7,9 @@ import {configureLocalization} from "@lit/localize";
 /** Merge templates */
 let templates_fr_fr: any = {templates: {...templates_app_fr_fr.templates, ...templates_webcomp_fr_fr.templates}};
 //let templates: any = templates_fr_fr!;
-console.log({templates_app_fr_fr})
-console.log({templates_webcomp_fr_fr})
-console.log({templates_fr_fr})
+// console.log({templates_app_fr_fr})
+// console.log({templates_webcomp_fr_fr})
+// console.log({templates_fr_fr})
 
 /** Setup templates */
 export const localizedTemplates = new Map([

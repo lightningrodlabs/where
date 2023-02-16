@@ -11,38 +11,7 @@ import {
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
-
-/** -- Globals -- */
-
-const APP_DEV = process.env.APP_DEV? process.env.APP_DEV : false;
-let HC_APP_PORT: number;
-let HC_ADMIN_PORT: number;
-/** override installed_app_id  when in Electron */
-//export const MY_ELECTRON_API = (window as any).myElectronAPI;
-//console.log("MY_ELECTRON_API = ", MY_ELECTRON_API);
-export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
-if (IS_ELECTRON) {
-  const APP_ID = 'main-app'
-  const searchParams = new URLSearchParams(window.location.search);
-  const urlPort = searchParams.get("APP");
-  if(!urlPort) {
-    console.error("Missing APP value in URL", window.location.search)
-  }
-  HC_APP_PORT = Number(urlPort);
-  const urlAdminPort = searchParams.get("ADMIN");
-  HC_ADMIN_PORT = Number(urlAdminPort);
-  const NETWORK_ID = searchParams.get("UID");
-  console.log(NETWORK_ID)
-  DEFAULT_WHERE_DEF.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
-} else {
-  HC_APP_PORT = Number(process.env.HC_APP_PORT);
-  HC_ADMIN_PORT = Number(process.env.HC_ADMIN_PORT);
-}
-
-console.log("APP_ID =", DEFAULT_WHERE_DEF.id)
-console.log("HC_APP_PORT", HC_APP_PORT);
-console.log("HC_ADMIN_PORT", HC_ADMIN_PORT);
-
+import {HC_ADMIN_PORT, HC_APP_PORT, IS_ELECTRON} from "./globals"
 
 
 /**

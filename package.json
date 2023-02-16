@@ -8,10 +8,6 @@
   },
   "private"        : true,
   "workspaces"     : [
-    "electron",
-    "we-applet",
-    "webapp",
-    "webapp.ludotheque",
     "webcomponents"
   ],
   "scripts"        : {

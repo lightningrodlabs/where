@@ -5,11 +5,10 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "tsc": "rm -rf dist && mkdir dist && cp index.html dist && tsc",
-    "build": "npm run tsc && rollup -c",
+    "build": "rm -rf dist && tsc",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "zip": "rm -rf ludotheque-webapp-ui.zip &&  cd dist && bestzip ../ludotheque-webapp-ui.zip *"
+    "dist": "npm run tsc && rollup -c",
+    "start:ui": "cp index.html dist && concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\""
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

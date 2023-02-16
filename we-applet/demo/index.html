@@ -19,8 +19,7 @@
 
       /** */
       async function setup() {
-        console.log("we-applet demo setup()");
-        console.log("setup()", process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT)
+        console.log("Index.html setup()", process.env.BUILD_MODE, process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT);
 
         const appWs = await AppWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`);
         const adminWs = await AdminWebsocket.connect(`ws://localhost:${process.env.HC_ADMIN_PORT}`);

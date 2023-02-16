@@ -11,6 +11,7 @@
     "webcomponents",
     "webapp",
     "we-applet",
+    "electron",
     "webapp.ludotheque"
   ],
   "scripts"        : {

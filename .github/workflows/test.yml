@@ -31,7 +31,7 @@ jobs:
           rm -f *.blockmap
           echo ludotheque
           gh release upload "manual-release" ludotheque* --clobber          
-          echo place*
+          echo where*
           gh release upload "manual-release" place* --clobber
-          echo Place*
+          echo Where*
           gh release upload "manual-release" Place* --clobber

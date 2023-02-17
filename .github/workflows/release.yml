@@ -35,6 +35,6 @@ jobs:
           echo ludotheque
           gh release upload "manual-release" ludotheque* --clobber          
           echo where*
-          gh release upload "${GITHUB_REF#refs/tags/}" place* --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" where* --clobber
           echo Where*
-          gh release upload "${GITHUB_REF#refs/tags/}" Place* --clobber
+          gh release upload "${GITHUB_REF#refs/tags/}" Where* --clobber

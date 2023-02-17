@@ -32,6 +32,6 @@ jobs:
           echo ludotheque
           gh release upload "manual-release" ludotheque* --clobber          
           echo where*
-          gh release upload "manual-release" place* --clobber
+          gh release upload "manual-release" where* --clobber
           echo Where*
-          gh release upload "manual-release" Place* --clobber
+          gh release upload "manual-release" Where* --clobber

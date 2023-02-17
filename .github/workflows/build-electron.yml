@@ -50,6 +50,11 @@ jobs:
       - name: Install npm dependencies
         run: |
           npm install
+      # Download submodules
+      - name: Download submodules
+        shell: bash
+        run: |
+          npm run install:submodules
       # Build webapp
       - name: Build webapp
         run: |

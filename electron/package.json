@@ -14,6 +14,7 @@
     "url": "https://github.com/lightningrodlabs/where.git"
   },
   "scripts": {
+    "app-install": "electron-builder install-app-deps",
     "build": "tsc",
     "devtest": "tsc && electron .",
     "dist:build": "electron-builder build",

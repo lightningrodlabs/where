@@ -33,7 +33,7 @@
     "extract:localize"     : "npm run localize:extract -w webcomponents && npm run localize:extract -w webapp",
     "build:localize"       : "npm run localize:build -w webcomponents && npm run localize:build -w webapp",
 
-    "build:webapp"         : "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
+    "build:webapp"         : "npm run build:localize && npm run build -w webcomponents && npm run dist -w webapp",
     "build:devtest"        : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp",
     "build:devtest:ludo"   : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
 
@@ -68,6 +68,8 @@
     "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
 
     "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
+
+    "dist:build"           : "bash submodules/hc-prebuilt/copy-binaries.sh electron/bin && cd electron && electron-builder build",
 
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",

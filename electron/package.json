@@ -14,7 +14,7 @@
     "url": "https://github.com/lightningrodlabs/where.git"
   },
   "scripts": {
-    "app-install": "electron-builder install-app-deps",
+    "postinstall": "electron-builder install-app-deps",
     "build": "tsc",
     "devtest": "tsc && electron .",
     "dist:build": "electron-builder build",
@@ -62,7 +62,15 @@
   "dependencies": {
     "@lightningrodlabs/electron-holochain": "0.6.1",
     "electron-prompt": "^1.7.0",
-    "electron-log": "^4.4.6",
-    "tslib": "^2.4.0"
+    "electron-log": "^4.4.8",
+    "tslib": "^2.4.0",
+    "command-exists": "^1.2.8",
+    "fix-path": "^2.1.0",
+    "lint": "^0.7.0",
+    "open": "^6.3.0",
+    "request": "^2.88.2",
+    "tree-kill": "^1.2.2",
+    "websocket": "^1.0.34",
+    "ws": "^8.5.0"
   }
 }

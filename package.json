@@ -69,7 +69,7 @@
 
     "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
 
-    "dist:build"           : "bash submodules/hc-prebuilt/copy-binaries.sh electron/bin && cd electron && electron-builder build",
+    "dist:electron"        : "bash submodules/hc-prebuilt/copy-binaries.sh electron/bin && cd electron && electron-builder build",
 
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",

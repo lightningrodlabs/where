@@ -392,7 +392,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._dvm.probeAll();
+    this._dvm.probeAll();
     await this.pingAllOthers();
   }
 

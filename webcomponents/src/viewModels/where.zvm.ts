@@ -23,12 +23,12 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async probeAll() {
-    console.log("whereZvm.probeAll()", this.perspective)
+  async probeAllInner() {
+    console.log("whereZvm.probeAllInner()", this.perspective)
     for (const spaceEh of Object.keys(this._manifests)) {
       const maybeManifest = await this.probeManifest(spaceEh); // TODO optimize
       if (!maybeManifest) continue;
-      console.log("whereZvm.probeAll()", maybeManifest)
+      console.log("whereZvm.probeAllInner()", maybeManifest)
       for (const sessionEh of Object.values(maybeManifest.sessionEhs)) {
         await this.probeSession(sessionEh); // TODO optimize
       }

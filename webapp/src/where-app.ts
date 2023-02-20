@@ -63,14 +63,16 @@ export class WhereApp extends HappElement {
 
   /** -- Methods -- */
 
+  /** */
   handleSignal(sig: AppSignal) {
     //console.log("<where-app> handleSignal()", sig);
     this.conductorAppProxy.onSignal(sig);
   }
 
+
   /** */
-  async happInitialized() {
-    console.log("happInitialized()")
+  async hvmConstructed() {
+    console.log("hvmConstructed()")
     /** Authorize all zome calls */
     if (!this._adminWs) {
       this._adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
@@ -81,8 +83,6 @@ export class WhereApp extends HappElement {
     } else {
       console.warn("No adminWebsocket provided (Zome call authorization done)")
     }
-    /** Probe */
-    await this.hvm.probeAll();
     /** Send dnaHash to electron */
     if (IS_ELECTRON) {
       const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell.dnaHash;
@@ -95,8 +95,19 @@ export class WhereApp extends HappElement {
     /** Grab ludo cells */
     this._ludoRoleCells = await this.conductorAppProxy.fetchCells(DEFAULT_WHERE_DEF.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
 
+  }
+
+
+  /** */
+  //async perspectiveInitializedOffline(): Promise<void> {}
+
+
+  /** */
+  async perspectiveInitializedOnline(): Promise<void> {
+    console.log("<where-app>.perspectiveInitializedOnline()");
     /** Load My profile */
     const maybeMyProfile = this.whereDvm.profilesZvm.perspective.profiles[this.whereDvm.cell.agentPubKey]
+    console.log("<where-app>.perspectiveInitializedOnline() maybeMyProfile", maybeMyProfile);
     if (maybeMyProfile) {
       const maybeLang = maybeMyProfile.fields['lang'];
       if (maybeLang) {
@@ -104,7 +115,6 @@ export class WhereApp extends HappElement {
       }
       this._hasStartingProfile = true;
     }
-
     /** Done */
     this._loaded = true;
   }
@@ -257,7 +267,7 @@ export class WhereApp extends HappElement {
     this.importingDialogElem.open = true;
     const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cell.id)
     console.log("handleImportRequest()", spaceEhs.length)
-    await this.whereDvm.playsetZvm.probeAll();
+    this.whereDvm.playsetZvm.probeAll();
     /** Create sessions for each space */
     for (const spaceEh of spaceEhs) {
       const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);

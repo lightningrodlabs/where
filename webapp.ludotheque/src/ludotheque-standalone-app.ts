@@ -67,8 +67,8 @@ export class LudothequeStandaloneApp extends HappElement {
 
 
   /** */
-  async happInitialized() {
-    console.log("happInitialized()")
+  async hvmConstructed() {
+    console.log("hvmConstructed()")
     /** Provide Context */
     new ContextProvider(this, cellContext, this.ludothequeDvm.cell);
     this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.hcl.toString());
@@ -77,8 +77,6 @@ export class LudothequeStandaloneApp extends HappElement {
     //console.log({ adminWs });
     await this.hvm.authorizeAllZomeCalls(adminWs);
     console.log("*** Zome call authorization complete");
-    /** Probe */
-    await this.hvm.probeAll();
     /* Send dnaHash to electron */
     if (IS_ELECTRON) {
       const ludoDnaHashB64 = this.ludothequeDvm.cell.dnaHash;
@@ -86,8 +84,17 @@ export class LudothequeStandaloneApp extends HappElement {
       const ipc = window.require('electron').ipcRenderer;
       let _reply = ipc.sendSync('dnaHash', ludoDnaHashB64);
     }
+  }
 
-    /** Done */
+
+  /** */
+  //async perspectiveInitializedOffline(): Promise<void> {}
+
+
+  /** */
+  async perspectiveInitializedOnline(): Promise<void> {
+    console.log("<ludo-app>.perspectiveInitializedOnline()");
+    this.hvm.probeAll();
     this._loaded = true;
   }
 

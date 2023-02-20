@@ -32,12 +32,19 @@ export class PlaysetZvm extends ZomeViewModel {
     return true;
   }
 
+
   /** */
-  async probeAll() {
+  async initializePerspectiveOnline(): Promise<void> {
     await this.probeSvgMarkers();
     await this.probeEmojiGroups();
     await this.probeTemplates();
     await this.probeSpaces();
+  }
+
+
+  /** */
+  probeAllInner() {
+    this.initializePerspectiveOnline();
   }
 
   /** -- Perspective -- */

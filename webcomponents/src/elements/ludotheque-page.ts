@@ -138,7 +138,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   private async init() {
     console.log("ludotheque-page.init() - START");
     /** Get latest public entries from DHT */
-    await this._dvm.probeAll();
+    this._dvm.probeAll();
     await this.probeInventory();
     const playsets = this._dvm.ludothequeZvm.perspective.playsets
     //const templates = this._templates.value;
@@ -278,9 +278,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
 
   /** */
-  async onRefresh() {
+  onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    await this._dvm.probeAll();
+    this._dvm.probeAll();
   }
 
   /** */

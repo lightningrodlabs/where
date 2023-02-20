@@ -217,12 +217,12 @@ export class WhereDvm extends DnaViewModel {
   /** -- Probing -- */
 
   /** */
-  async probeAll(): Promise<void> {
-    console.log(`${this.baseRoleName}.probeAll()...`)
-    await super.probeAll();
-    await this.probeAllPlays();
-    console.log(`${this.baseRoleName}.probeAll() Done.`);
-    console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
+  probeAllInner() {
+    console.log(`${this.baseRoleName}.probeAllInner()...`)
+    super.probeAllInner();
+    this.probeAllPlays(); // FIXME should be done some other moment after super.probeAllInner() finishes
+    console.log(`${this.baseRoleName}.probeAllInner() Done.`);
+    //console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
   }
 
 

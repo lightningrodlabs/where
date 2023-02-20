@@ -25,9 +25,15 @@ export class ProfilesZvm extends ZomeViewModel {
     return true;
   }
 
+
   /** */
-  async probeAll() {
+  async initializePerspectiveOnline(): Promise<void> {
     await this.probeAllProfiles();
+  }
+
+  /** */
+  probeAllInner() {
+    this.probeAllProfiles();
   }
 
   /** -- Perspective -- */

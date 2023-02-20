@@ -20,14 +20,23 @@ export class LudothequeZvm extends ZomeViewModel {
 
   /* */
   protected hasChanged(): boolean {
-    if (!this._previousPerspective) return true;
-    let hasChanged = JSON.stringify(this.perspective.playsets) !== JSON.stringify(this._previousPerspective.playsets)
+    if (!this._previousPerspective) {
+      return true;
+    }
+    let hasChanged = JSON.stringify(this.perspective.playsets) !== JSON.stringify((this._previousPerspective as LudothequePerspective).playsets)
     return hasChanged;
   }
 
+
   /** */
-  async probeAll() {
+  async initializePerspectiveOnline(): Promise<void> {
     await this.probePlaysets();
+  }
+
+
+  /** */
+  probeAllInner() {
+    this.probePlaysets();
   }
 
 

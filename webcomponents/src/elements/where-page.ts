@@ -5,7 +5,7 @@ import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import {
-  Button, Dialog, Drawer, Formfield,
+  Button, Drawer, Formfield,
   Icon, IconButton, IconButtonToggle,
   List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
@@ -71,13 +71,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   wherePerspective!: WherePerspective;
-  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  // playsetPerspective!: PlaysetPerspective;
-  // @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  // profilesPerspective!: ProfilesPerspective;
+
+  @property()
+  currentSpaceEh: null | EntryHashB64 = null;
 
 
   private _myProfile?: WhereProfile;
+
 
 
 
@@ -86,7 +86,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @state() private _canShowPeers: boolean = true;
   @state() private _neighborWidth: number = 150;
 
-  @state() private _currentSpaceEh: null | EntryHashB64 = null;
   @state() private _currentTemplateEh?: EntryHashB64;
 
   @state() private _initialized = false;
@@ -208,7 +207,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       this.pingAllOthers();
 
       /** Select first play if none is set */
-      if (!this._currentSpaceEh) {
+      if (!this.currentSpaceEh) {
         const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
         if (firstSpaceEh) {
           /*await*/ this.selectPlay(firstSpaceEh);
@@ -338,7 +337,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
 
     /** (This will trigger a render()) */
-    this._currentSpaceEh = spaceEh;
+    this.currentSpaceEh = spaceEh;
     this._currentTemplateEh = play.space.origin;
 
     // FIXME check if space has a current session?
@@ -357,11 +356,11 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** Hide Current play and select first available one */
   async archiveSpace() {
-    await this._dvm.whereZvm.hidePlay(this._currentSpaceEh!)
+    await this._dvm.whereZvm.hidePlay(this.currentSpaceEh!)
     /** Select first play */
     const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays)
     console.log({firstSpaceEh})
-    this._currentSpaceEh = firstSpaceEh
+    this.currentSpaceEh = firstSpaceEh
     this.requestUpdate()
   }
 
@@ -370,7 +369,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   async pingActiveOthers() {
     //if (this._currentSpaceEh) {
       console.log("Pinging All Others");
-      await this._dvm.pingPeers(this._currentSpaceEh, this._dvm.allCurrentOthers());
+      await this._dvm.pingPeers(this.currentSpaceEh, this._dvm.allCurrentOthers());
     //}
   }
 
@@ -379,7 +378,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //if (this._currentSpaceEh) {
     console.log("Pinging All Others");
     const agents = this._dvm.profilesZvm.getAgents();
-    await this._dvm.pingPeers(this._currentSpaceEh, agents);
+    await this._dvm.pingPeers(this.currentSpaceEh, agents);
     //}
   }
 
@@ -410,7 +409,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
   /** */
-  async openSpaceDialog(spaceEh?: EntryHashB64) {
+  async openPlayDialog(spaceEh?: EntryHashB64) {
     const maybePlay = spaceEh? this._dvm.getPlay(spaceEh) : undefined;
     this.playDialogElem.resetAllFields();
     this.playDialogElem.open(maybePlay);
@@ -462,10 +461,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   private async handleArchiveDialogClosing(e: any) {
     /** Check if current play has been archived */
-    if (e.detail.includes(this._currentSpaceEh)) {
+    if (e.detail.includes(this.currentSpaceEh)) {
       /** Select first visible play */
       const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
-      this._currentSpaceEh = firstSpaceEh;
+      this.currentSpaceEh = firstSpaceEh;
       this.requestUpdate();
     }
   }
@@ -499,7 +498,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         this.openTemplateDialog(this._currentTemplateEh)
         break;
       case "fork_space":
-        this.openSpaceDialog(this._currentSpaceEh? this._currentSpaceEh : undefined)
+        this.openPlayDialog(this.currentSpaceEh? this.currentSpaceEh : undefined)
         break;
       case "archive_space":
         this.archiveSpace()
@@ -512,8 +511,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
         break;
       case "export_space":
-        if (this._currentSpaceEh && this.ludoCellId) {
-          this._dvm.playsetZvm.exportPiece(this._currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
+        if (this.currentSpaceEh && this.ludoCellId) {
+          this._dvm.playsetZvm.exportPiece(this.currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
         } else {
           console.warn("No space or ludotheque cell to export to");
         }
@@ -577,7 +576,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("<where-page> render()", this._initialized, this._currentSpaceEh, this.selectedLudoCloneId);
+    console.log("<where-page> render()", this._initialized, this.currentSpaceEh, this.selectedLudoCloneId);
     if (!this._initialized) {
       return html`<span>${msg('Loading')}...</span>`;
     }
@@ -631,12 +630,12 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         if (!this._dvm.getVisibility(spaceEh)!) {
           return html ``;
         }
-        if (spaceEh == this._currentSpaceEh) {
+        if (spaceEh == this.currentSpaceEh) {
           spaceName = play.space.name;
         }
         const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         return html`
-          <mwc-list-item class="space-li" .selected=${spaceEh == this._currentSpaceEh} multipleGraphics twoline value="${spaceEh}" graphic="large">
+          <mwc-list-item class="space-li" .selected=${spaceEh == this.currentSpaceEh} multipleGraphics twoline value="${spaceEh}" graphic="large">
             <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>
@@ -662,7 +661,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     </mwc-list-item>
     <li divider role="separator"></li>
     </mwc-list>
-    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>${msg('Space')}</mwc-button>
+    <mwc-button icon="add_circle" @click=${() => this.openPlayDialog()}>${msg('Space')}</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>${msg('Template')}</mwc-button>
     <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>${msg('View Archives')}</mwc-button>
     <!-- <mwc-formfield label="View Archived">
@@ -678,16 +677,20 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   <!-- END DRAWER -->
   <div slot="appContent" style="flex: 1;">
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense>
+    <mwc-top-app-bar id="app-bar" dense centerTitle>
       <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
-      <div slot="title">Where: ${spaceName} | ${this.getCellName(this.selectedLudoCloneId)}</div>
+      <div slot="title">${spaceName}</div>
+      <mwc-icon-button id="exit-button" slot="actionItems" icon="meeting_room" @click=${() => {
+        //this.currentSpaceEh = null;
+        this.dispatchEvent(new CustomEvent('play-selected', { detail: null, bubbles: true, composed: true }));
+      }} ></mwc-icon-button>
       <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
       <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
         <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
       <mwc-icon-button id="where-menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
-                       .disabled=${!this._currentSpaceEh}></mwc-icon-button>
+                       .disabled=${!this.currentSpaceEh}></mwc-icon-button>
       <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
         <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="export_template" .disabled="${this.ludoCellId == null}"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
@@ -698,8 +701,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     </mwc-top-app-bar>
     <!-- APP BODY -->
     <div class="appBody">
-      ${this._currentSpaceEh ?
-        html`<where-space id="where-space" .currentSpaceEh=${this._currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
+      ${this.currentSpaceEh ?
+        html`<where-space id="where-space" .currentSpaceEh=${this.currentSpaceEh} @click=${this.handleSpaceClick} .neighborWidth="${this._neighborWidth}"></where-space>`
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">${msg('No space found')}</div>`}
       ${this._canShowPeers ?
       html`

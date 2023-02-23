@@ -1,6 +1,6 @@
 import { ScopedElementsMixin } from '@open-wc/scoped-elements';
 import {
-  Button, Dialog,
+  Button,
   Fab,
   IconButton,
   TextField,
@@ -50,6 +50,7 @@ export function resizeAndExport(img: HTMLImageElement) {
  */
 @localized()
 export class EditProfile extends ScopedElementsMixin(LitElement) {
+
   /**
    * The profile to be edited.
    */

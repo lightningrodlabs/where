@@ -1,17 +1,17 @@
 import {html, css} from "lit";
 import { state } from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
-import {Button, Card, Dialog} from "@scoped-elements/material-web";
+import {Button, Card, CircularProgress, Dialog} from "@scoped-elements/material-web";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
 import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
 import {
   LudothequePage, LudothequeDvm, WherePage, WhereDvm,
-  DEFAULT_WHERE_DEF, EditProfile
+  DEFAULT_WHERE_DEF, EditProfile, WhereDashboard, MY_ELECTRON_API, IS_ELECTRON
 } from "@where/elements";
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
-import {HC_ADMIN_PORT, HC_APP_PORT, IS_ELECTRON, MY_ELECTRON_API} from "./globals"
+import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
 
 
 /**
@@ -26,6 +26,8 @@ export class WhereApp extends HappElement {
   @state() private _canLudotheque = false;
   @state() private _hasStartingProfile = false;
   @state() private _lang?: string
+
+  @state() private _currentSpaceEh: null | EntryHashB64 = null;
 
   static readonly HVM_DEF: HvmDef = DEFAULT_WHERE_DEF;
 
@@ -153,30 +155,9 @@ export class WhereApp extends HappElement {
   /** */
   render() {
     console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
-
     if (!this._loaded) {
-      return html`Loading...`;
+      return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
     }
-
-    /** Select language */
-    // const lang = html`
-    //     <mwc-dialog id="lang-dialog"  heading="${msg('Choose language')}" scrimClickAction="" escapeKeyAction="">
-    //         <mwc-button
-    //                 slot="primaryAction"
-    //                 dialogAction="primaryAction"
-    //                 @click="${() => {setLocale('fr-fr');this._lang = 'fr-fr'}}" >
-    //             FR
-    //         </mwc-button>
-    //         <mwc-button
-    //                 slot="primaryAction"
-    //                 dialogAction="primaryAction"
-    //                 @click="${() => {setLocale('en'); this._lang = 'en'}}" >
-    //             EN
-    //         </mwc-button>
-    //     </mwc-dialog>
-    // `;
-
-    //.dvm="${this.ludothequeDvm}"
 
     /** Pages */
     const ludothequePage = html`
@@ -191,12 +172,24 @@ export class WhereApp extends HappElement {
 
     const wherePage = html`
         <cell-context .cell="${this.whereDvm.cell}">
-            <where-page 
+            ${this._currentSpaceEh? html`
+            <where-page
+                    .currentSpaceEh="${this._currentSpaceEh}"
                     .ludoRoleCells=${this._ludoRoleCells} 
                     .selectedLudoCloneId=${this._curLudoCloneId}
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
-            ></where-page>
+                    @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"
+                    @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
+            ></where-page>` :
+            html`<where-dashboard 
+                    .ludoRoleCells=${this._ludoRoleCells} 
+                    .selectedLudoCloneId=${this._curLudoCloneId}
+                    @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
+                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
+                    @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"                    
+                    @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
+            ></where-dashboard>`}
         </cell-context>
     `;
 
@@ -214,6 +207,7 @@ export class WhereApp extends HappElement {
         <div class="column"
              style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >
+          <h1 style="margin-bottom: 40px;justify-content: center;">Where</h1>            
           <div class="column" style="align-items: center;">
             <mwc-card>
               <div class="column" style="margin: 16px;">
@@ -295,6 +289,8 @@ export class WhereApp extends HappElement {
   static get scopedElements() {
     return {
       "where-page": WherePage,
+      "mwc-circular-progress": CircularProgress,
+      "where-dashboard": WhereDashboard,
       "ludotheque-page": LudothequePage,
       "mwc-dialog": Dialog,
       "mwc-button": Button,
@@ -309,6 +305,7 @@ export class WhereApp extends HappElement {
   static get styles() {
     return [
       css`
+       :host {} 
       .column {
         display: flex;
         flex-direction: column;

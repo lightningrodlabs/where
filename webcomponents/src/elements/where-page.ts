@@ -277,12 +277,21 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     return null;
   }
 
+  /** */
+  private anchorSpaceMenu() {
+    const menu = this.shadowRoot!.getElementById("space-menu") as Menu;
+    const div = this.shadowRoot!.getElementById("top-title") as any;
+    console.log("<where-page> space - Anchoring Menu to top button", menu, div)
+    if (menu && div) {
+      menu.anchor = div
+    }
+  }
 
   /** */
   private anchorLudothequeMenu() {
     const menu = this.shadowRoot!.getElementById("page-ludotheque-menu") as Menu;
     const button = this.shadowRoot!.getElementById("page-ludo-button") as IconButton;
-    console.log("<where-page> Anchoring Menu to top button", menu, button)
+    console.log("<where-page> ludo - Anchoring Menu to top button", menu, button)
     if (menu && button) {
       menu.anchor = button
     }
@@ -297,6 +306,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("<where-page> postInit()", topBar);
     topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
+    this.anchorSpaceMenu();
     this.anchorLudothequeMenu();
     /** Drawer */
     const container = this.drawerElem.parentNode!;
@@ -491,6 +501,25 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
+  /** */
+  openSpaceMenu() {
+    console.log("openSpaceMenu()")
+    const menu = this.shadowRoot!.getElementById("space-menu") as Menu;
+    menu.open = true;
+  }
+
+  /** */
+  onSpaceMenuSelected(e:any) {
+    const menu = e.currentTarget as Menu;
+    const selected = menu.selected as ListItem;
+    console.log("onSpaceMenuSelected", selected);
+    if (!selected) {
+      return;
+    }
+    this.currentSpaceEh = selected.value;
+    menu.open = false;
+  }
+
 
   /** */
   onLudothequeMenuSelected(e:any) {
@@ -674,7 +703,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         return html`
           <mwc-list-item class="space-li" .selected=${spaceEh == this.currentSpaceEh} multipleGraphics twoline value="${spaceEh}" graphic="large">
             <span>${play.space.name}</span>
-            <span slot="secondary">${template? template.name : 'unknown'}</span>
+              <!--<span slot="secondary">${template? template.name : 'unknown'}</span>-->
             <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
@@ -722,7 +751,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense centerTitle style="position: relative;">
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button> -->
-      <div slot="title">${spaceName}</div>
+      <div id="top-title" slot="title" style="cursor:pointer;" @click=${() => this.openSpaceMenu()}>
+        ${spaceName}
+        <mwc-icon id="space-menu-button">keyboard_arrow_down</mwc-icon>
+        <mwc-menu id="space-menu" @click=${this.onSpaceMenuSelected}>
+          ${playItems}
+        </mwc-menu>
+      </div>
       <mwc-icon-button id="exit-button" slot="navigationIcon" icon="meeting_room" @click=${() => {
         //this.currentSpaceEh = null;
         this.dispatchEvent(new CustomEvent('play-selected', { detail: null, bubbles: true, composed: true }));

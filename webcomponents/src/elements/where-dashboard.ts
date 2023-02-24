@@ -622,7 +622,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           /*--mdc-theme-secondary: white;*/
           /*--mdc-theme-on-secondary: black;*/
         }
-        
+
         @media (min-width: 640px) {
           main {
             max-width: none;

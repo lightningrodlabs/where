@@ -451,12 +451,12 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
-      ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
+      ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
       <mwc-icon-button-toggle slot="actionItems"  onIcon="handyman" offIcon="videogame_asset" @click=${() => this._canShowBuildView = !this._canShowBuildView}></mwc-icon-button-toggle>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
       <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
-           style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;">
+           style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
       </sl-avatar>
     </mwc-top-app-bar>
     <!-- APP BODY -->

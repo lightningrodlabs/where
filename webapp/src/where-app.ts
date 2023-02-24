@@ -39,6 +39,8 @@ export class WhereApp extends HappElement {
   @state() private _curLudoCloneId?: RoleName; // = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
 
 
+  @state() private _canShowBuildView = false;
+
   /** */
   constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, appId?: InstalledAppId) {
     super(appWs? appWs : HC_APP_PORT, appId);
@@ -175,17 +177,21 @@ export class WhereApp extends HappElement {
         <cell-context .cell="${this.whereDvm.cell}">
             ${this._currentSpaceEh? html`
             <where-page
-                    .currentSpaceEh="${this._currentSpaceEh}"
+                    .currentSpaceEh=${this._currentSpaceEh}
+                    .canShowBuildView=${this._canShowBuildView}
                     .ludoRoleCells=${this._ludoRoleCells} 
                     .selectedLudoCloneId=${this._curLudoCloneId}
+                    @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
                     @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"
                     @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
             ></where-page>` :
-            html`<where-dashboard 
+            html`<where-dashboard
+                    .canShowBuildView=${this._canShowBuildView}
                     .ludoRoleCells=${this._ludoRoleCells} 
                     .selectedLudoCloneId=${this._curLudoCloneId}
+                    @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"                    
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
                     @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"                    

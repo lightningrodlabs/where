@@ -5,7 +5,7 @@ import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
 import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import {
-  Button, Drawer, Formfield,
+  Button, Dialog, Drawer, Fab, Formfield,
   Icon, IconButton, IconButtonToggle,
   List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
@@ -30,6 +30,7 @@ import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {SignalPayload} from "../bindings/where.types";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
+import {BUILD_MODE} from "../globals";
 
 
 
@@ -66,22 +67,23 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property()
   selectedLudoCloneId?: CloneId;
 
+  @property()
+  currentSpaceEh: null | EntryHashB64 = null;
+
+  @property({ type: Boolean, attribute: 'canShowBuildView' })
+  canShowBuildView!: boolean;
+
 
   /** ViewModels */
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   wherePerspective!: WherePerspective;
 
-  @property()
-  currentSpaceEh: null | EntryHashB64 = null;
-
-
   private _myProfile?: WhereProfile;
 
 
-
-
   /** State */
+
 
   @state() private _canShowPeers: boolean = true;
   @state() private _neighborWidth: number = 150;
@@ -104,6 +106,11 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return this.ludoRoleCells!.provisioned.cell_id;
     }
     return maybeClone.cell_id;
+  }
+
+
+  get profileDialogElem(): Dialog {
+    return this.shadowRoot!.getElementById("where-profile-dialog") as Dialog;
   }
 
   get drawerElem() : Drawer {
@@ -227,7 +234,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (this._canPostInit && this.shadowRoot!.getElementById("app-bar")) {
       this.postInit();
     }
-    //this.anchorMenu();
+    //this.anchorLudothequeMenu()
 
     /* look for canvas in Plays and render them */
     for (let spaceEh in this.perspective.plays) {
@@ -272,10 +279,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  private anchorMenu() {
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
-    console.log("Anchoring Menu to top button", menu, button)
+  private anchorLudothequeMenu() {
+    const menu = this.shadowRoot!.getElementById("page-ludotheque-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("page-ludo-button") as IconButton;
+    console.log("<where-page> Anchoring Menu to top button", menu, button)
     if (menu && button) {
       menu.anchor = button
     }
@@ -290,7 +297,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("<where-page> postInit()", topBar);
     topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
-    this.anchorMenu()
+    this.anchorLudothequeMenu();
     /** Drawer */
     const container = this.drawerElem.parentNode!;
     container.addEventListener('MDCTopAppBar:nav', () => {
@@ -478,10 +485,41 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  openTopMenu() {
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
+  openLudothequeMenu() {
+    const menu = this.shadowRoot!.getElementById("page-ludotheque-menu") as Menu;
     menu.open = true;
   }
+
+
+  // /** */
+  // private showLudotheque(e?: any) {
+  //   console.log("showLudotheque()")
+  //   this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
+  // }
+
+
+  /** */
+  onLudothequeMenuSelected(e:any) {
+    const menu = e.currentTarget as Menu;
+    const selected = menu.selected as ListItem;
+    console.log("onLudothequeMenuSelected", selected);
+    if (!selected) {
+      return;
+    }
+    if (selected.value == "__new__") {
+      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
+      dialog.open();
+      return;
+    }
+    if (!selected.value) {
+      this.selectedLudoCloneId = undefined;
+    } else {
+      this.selectedLudoCloneId = selected.value;
+    }
+    console.log("setting this.selectedLudoCloneId to", this.selectedLudoCloneId)
+    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
+  }
+
 
 
   /** */
@@ -522,11 +560,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
   }
 
-  private showLudotheque(e?: any) {
-    console.log("showLudotheque()")
-    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
-  }
 
+  /** */
   async handleColorChange(e: any) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
     const color = e.target.lastValueEmitted;
@@ -534,34 +569,20 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     await this.setMyProfile(profile.nickname, profile.fields['avatar'], color)
   }
 
+
+  /** */
   private async handleSpaceClick(event: any) {
     await this.pingActiveOthers();
   }
 
+
+  /** */
   handleAvatarClicked(key: AgentPubKeyB64) {
     console.log("Avatar clicked: " + key)
     if (this.spaceElem) {
       this.spaceElem.soloAgent = key == this.spaceElem.soloAgent? null : key;
       this.requestUpdate();
     }
-  }
-
-
-  /** */
-  handleLudoSelect(e:any) {
-    const selector = this.shadowRoot!.getElementById("ludo-clone-select") as Select;
-    console.log("handleLudoSelect() called", JSON.stringify(selector.value), selector);
-    if (selector.value == "__new__") {
-      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
-      dialog.open();
-      return;
-    }
-    if (!selector.value) {
-      this.selectedLudoCloneId = undefined;
-    } else {
-      this.selectedLudoCloneId = selector.value;
-    }
-    console.log("setting this.selectedLudoCloneId to", this.selectedLudoCloneId)
   }
 
 
@@ -575,19 +596,34 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
+  onAvatarClicked() {
+    console.log("<where-page> onAvatarClicked()");
+    this.profileDialogElem.open = true;
+  }
+
+
+  /** */
+  private async onProfileEdited(profile: WhereProfile) {
+    await this._dvm.profilesZvm.updateMyProfile(profile);
+    this.profileDialogElem.open = false;
+    /** Make sure a redraw is triggered */
+    this._myProfile.fields.avatar = profile.fields.avatar;
+    this._myProfile.fields.color = profile.fields.color;
+    this.requestUpdate();
+  }
+
+
+  /** */
   render() {
     console.log("<where-page> render()", this._initialized, this.currentSpaceEh, this.selectedLudoCloneId);
     if (!this._initialized) {
-      return html`<span>${msg('Loading')}...</span>`;
+      return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
     }
 
     // DEBUG
     //console.log({WhereDnaPerspective: this.perspective})
     //console.log({PlaysetPerspective: this._dvm.playsetZvm.perspective})
 
-    // LOCALIZATION
-    //var userLang = navigator.language
-    //console.log({userLang})
 
     /* -- Grab things from the perspective -- */
 
@@ -613,15 +649,22 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
       );
     }
-    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${this.ludoRoleCells.provisioned.name}</mwc-list-item>`);
-    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add new')}...</mwc-list-item>`);
+    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${msg('Global')}</mwc-list-item>`);
+    ludoNamesLi.push(html`<li divider role="separator"></li>`);
+    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add')}...</mwc-list-item>`);
 
-    const ludoCloneSelect = html`
-      <mwc-select id="ludo-clone-select" required style="display:inline-flex;width:230px;" label="${msg('Ludotheque')}"
-                  @closing=${(e:any)=>{e.stopPropagation(); this.handleLudoSelect(e)}}>
-        ${ludoNamesLi}
-      </mwc-select>
-    `;
+
+    const old_men = html`
+      <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
+        <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_template" .disabled="${this.ludoCellId == null}"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_space"><span>${msg('Fork Space')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="export_space" .disabled="${this.ludoCellId == null}"><span>${msg('Share Space')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="archive_space"><span>${msg('Archive Space')}</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
+      </mwc-menu>`
+    ;
+
+
 
     /** Build play list */
     let spaceName = "<none>"
@@ -646,6 +689,12 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
     );
 
+    /** Fabs */
+    const fabs = this.canShowBuildView? html`
+      <mwc-fab id="create-fab" icon="add" style="" @click=${() => console.log("wtf")}></mwc-fab>
+      ` : html``;
+
+    /** Render all */
     return html`
 <!--  DRAWER -->
 <mwc-drawer type="dismissible" id="my-drawer" style="width: 100%">
@@ -677,27 +726,31 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   <!-- END DRAWER -->
   <div slot="appContent" style="flex: 1;">
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense centerTitle>
-      <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
+    <mwc-top-app-bar id="app-bar" dense centerTitle style="position: relative;">
+        <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button> -->
       <div slot="title">${spaceName}</div>
-      <mwc-icon-button id="exit-button" slot="actionItems" icon="meeting_room" @click=${() => {
+      <mwc-icon-button id="exit-button" slot="navigationIcon" icon="meeting_room" @click=${() => {
         //this.currentSpaceEh = null;
         this.dispatchEvent(new CustomEvent('play-selected', { detail: null, bubbles: true, composed: true }));
       }} ></mwc-icon-button>
-      <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
-      <mwc-icon-button-toggle slot="actionItems"  onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
-        <!-- <mwc-icon-button id="folks-button" slot="actionItems" icon="people_alt" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button> -->
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
-      <mwc-icon-button id="where-menu-button" slot="actionItems" icon="more_vert" @click=${() => this.openTopMenu()}
-                       .disabled=${!this.currentSpaceEh}></mwc-icon-button>
-      <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
-        <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_template" .disabled="${this.ludoCellId == null}"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="fork_space"><span>${msg('Fork Space')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="export_space" .disabled="${this.ludoCellId == null}"><span>${msg('Share Space')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="archive_space"><span>${msg('Archive Space')}</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
-      </mwc-menu>
+      <!-- ACTIONS MENU -->
+      ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
+      ${this.canShowBuildView?
+        html`<mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>`
+        : html``}
+
+        <mwc-icon-button id="page-ludo-button" slot="actionItems" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
+        <mwc-menu id="page-ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
+          ${ludoNamesLi}
+        </mwc-menu>
+      <mwc-icon-button-toggle slot="actionItems" onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
+      <mwc-icon-button-toggle slot="actionItems" .on="${this.canShowBuildView}" onIcon="handyman" offIcon="videogame_asset" @click=${() => {
+            this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: !this.canShowBuildView, bubbles: true, composed: true }));
+      }}
+      ></mwc-icon-button-toggle>
+      <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
+                 style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
+      </sl-avatar>
     </mwc-top-app-bar>
     <!-- APP BODY -->
     <div class="appBody">
@@ -708,10 +761,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       html`
         <where-peer-list id="where-peer-list" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;">
         </where-peer-list>
-        ${ludoCloneSelect}`
-    : html``}
-
+      ` : html``}
     </div>
+    ${fabs}
     <!-- DIALOGS -->
     <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
@@ -722,6 +774,15 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
                           @play-created=${this.onPlayCreated}>
       </where-play-dialog>
     `}
+    <mwc-dialog id="where-profile-dialog" hideActions heading="${msg('Edit Profile')}" >
+      <div class="column" style="margin: 16px;">
+        <edit-profile
+          .profile="${this._myProfile}"
+          .saveProfileLabel=${msg('Edit Profile')}
+          @save-profile=${(e: CustomEvent) => this.onProfileEdited(e.detail.profile)}
+        ></edit-profile>
+      </div>
+    </mwc-dialog>
   </div>
 </mwc-drawer>
 `;
@@ -730,19 +791,20 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   static get scopedElements() {
     return {
-      "mwc-menu": Menu,
-      "mwc-slider": Slider,
-      "mwc-switch": Switch,
+      "mwc-button": Button,
+      "mwc-icon": Icon,
+      "mwc-icon-button": IconButton,
+      "mwc-icon-button-toggle": IconButtonToggle,
       "mwc-drawer": Drawer,
       "mwc-top-app-bar": TopAppBar,
       "mwc-textfield": TextField,
       "mwc-select": Select,
       "mwc-list": List,
+      "mwc-fab": Fab,
       "mwc-list-item": ListItem,
-      "mwc-icon": Icon,
-      "mwc-icon-button": IconButton,
-      "mwc-icon-button-toggle": IconButtonToggle,
-      "mwc-button": Button,
+      "mwc-menu": Menu,
+      "mwc-slider": Slider,
+      "mwc-switch": Switch,
       "where-clone-ludo-dialog": WhereCloneLudoDialog,
       "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
@@ -799,6 +861,15 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
           margin-top: 2px;
           margin-bottom: 0px;
           display:flex;
+        }
+
+        mwc-fab {
+          position: fixed !important;
+          right: 30px;
+          bottom:30px;
+          --mdc-fab-box-shadow: 0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12);
+          /*--mdc-theme-secondary: white;*/
+          /*--mdc-theme-on-secondary: black;*/
         }
 
         mwc-textfield.rounded {

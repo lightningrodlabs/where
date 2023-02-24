@@ -65,6 +65,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property()
   selectedLudoCloneId?: CloneId;
 
+  @property({ type: Boolean, attribute: 'canShowBuildView' })
+  canShowBuildView!: boolean;
+
 
   /** ViewModels */
 
@@ -76,7 +79,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** State */
 
-  @state() private _canShowBuildView = false;
+
   @state() private _initialized = false;
   private _canPostInit = false;
 
@@ -168,6 +171,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (this._canPostInit && this.shadowRoot!.getElementById("app-bar")) {
       this.postInit();
     }
+    //this.anchorLudothequeMenu();
 
     /* look for canvas in Plays and render them */
     for (let spaceEh in this.perspective.plays) {
@@ -206,18 +210,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("<where-dashboard> postInit()", topBar);
     topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
-    this.anchorMenu()
-  }
-
-
-  /** */
-  private anchorMenu() {
-    const menu = this.shadowRoot!.getElementById("top-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("where-menu-button") as IconButton;
-    console.log("Anchoring Menu to top button", menu, button)
-    if (menu && button) {
-      menu.anchor = button
-    }
+    this.anchorLudothequeMenu()
   }
 
 
@@ -387,8 +380,48 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
+  openLudothequeMenu() {
+    const menu = this.shadowRoot!.getElementById("ludotheque-menu") as Menu;
+    menu.open = true;
+  }
+
+  /** */
+  private anchorLudothequeMenu() {
+    const menu = this.shadowRoot!.getElementById("ludotheque-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("ludo-button") as IconButton;
+    console.log("<where-dashboard> Anchoring Menu to top button", menu, button)
+    if (menu && button) {
+      menu.anchor = button
+    }
+  }
+
+
+  /** */
+  onLudothequeMenuSelected(e:any) {
+    const menu = e.currentTarget as Menu;
+    const selected = menu.selected as ListItem;
+    console.log("onLudothequeMenuSelected", selected);
+    if (!selected) {
+      return;
+    }
+    if (selected.value == "__new__") {
+      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
+      dialog.open();
+      return;
+    }
+    if (!selected.value) {
+      this.selectedLudoCloneId = undefined;
+    } else {
+      this.selectedLudoCloneId = selected.value;
+    }
+    console.log("setting this.selectedLudoCloneId to", this.selectedLudoCloneId)
+    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
+  }
+
+
+  /** */
   render() {
-    console.log("<where-dashboard> render()", this._initialized, this.selectedLudoCloneId);
+    console.log("<where-dashboard> render()", this._initialized, this.canShowBuildView, this.selectedLudoCloneId);
     if (!this._initialized) {
       return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
     }
@@ -404,28 +437,22 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /* -- Build elements -- */
 
-     /** build ludotheque list */
+    /** build ludotheque list */
     let ludoNamesLi: any[] = [];
     if (this.ludoRoleCells) {
       ludoNamesLi = Object.entries(this.ludoRoleCells!.clones).map(
         ([cloneId, cell]) => {
           return html`
-          <mwc-list-item class="ludo-clone-li" value="${cell.clone_id}" .selected=${this.selectedLudoCloneId == cell.clone_id}>
-            ${cell.name}
-          </mwc-list-item>
-        `;
+            <mwc-list-item class="ludo-clone-li" value="${cell.clone_id}" .selected=${this.selectedLudoCloneId == cell.clone_id}>
+              ${cell.name}
+            </mwc-list-item>
+          `;
         }
       );
     }
-    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${this.ludoRoleCells.provisioned.name}</mwc-list-item>`);
+    ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${msg('Global')}</mwc-list-item>`);
+    ludoNamesLi.push(html`<li divider role="separator"></li>`);
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add')}...</mwc-list-item>`);
-
-    const ludoCloneSelect = html`
-      <mwc-select id="ludo-clone-select" required style="display:inline-flex;width:230px;" label="${msg('Ludotheque')}"
-                  @closing=${(e:any)=>{e.stopPropagation(); this.onLudoSelect(e)}}>
-        ${ludoNamesLi}
-      </mwc-select>
-    `;
 
     /** Build play list */
     let spaceName = "<none>"
@@ -452,22 +479,29 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
       ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
-      <mwc-icon-button-toggle slot="actionItems"  onIcon="handyman" offIcon="videogame_asset" @click=${() => this._canShowBuildView = !this._canShowBuildView}></mwc-icon-button-toggle>
+      <mwc-icon-button-toggle .on="${this.canShowBuildView}" slot="actionItems"  onIcon="handyman" offIcon="videogame_asset" @click=${() => {
+        this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: !this.canShowBuildView, bubbles: true, composed: true }));
+      }}
+      ></mwc-icon-button-toggle>
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button slot="actionItems" icon="travel_explore" @click=${this.showLudotheque} .disabled="${this.ludoCellId == null}"></mwc-icon-button>
+      <mwc-icon-button id="ludo-button" slot="actionItems" icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
       <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
            style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
       </sl-avatar>
     </mwc-top-app-bar>
     <!-- APP BODY -->
     <div class="appBody">
-      ${this._canShowBuildView? html`<mwc-fab id="plus-fab" icon="add" @click=${() => this.openPlayDialog()}></mwc-fab>` : html``}
+      ${this.canShowBuildView? html`<mwc-fab id="plus-fab" icon="add" @click=${() => this.openPlayDialog()}></mwc-fab>` : html``}
       <!-- FIXME Grid of spaces -->
       <!-- SPACE LIST -->
       <mwc-list id="play-list" activatable @selected=${this.handlePlaySelected}>
         ${playItems}
       </mwc-list>
     </div>
+    <!-- MENUS -->
+    <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
+      ${ludoNamesLi}
+    </mwc-menu>
     <!-- DIALOGS -->
     <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>

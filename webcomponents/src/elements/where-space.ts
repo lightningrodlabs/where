@@ -78,7 +78,6 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** Getters */
 
-  @query('#reset-fab') resetFab!: Fab;
   @query('#plus-fab') plusFab!: Fab;
   @query('#minus-fab') minusFab!: Fab;
   @query('#hide-here-fab') hideFab!: Fab;
@@ -795,7 +794,6 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** */
   private async postInit() {
-    await this.initFab(this.resetFab);
     await this.initFab(this.plusFab);
     await this.initFab(this.minusFab);
     await this.initFab(this.hideFab);
@@ -828,8 +826,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
                   @input=${(e:any) => this.handleZoomSlider(e.target.value)} value="${zoomValue}">
       </mwc-slider>
       <mwc-fab mini id="plus-fab" icon="add" style="left:120px;top:0px;" @click=${() => this.updateZoom(0.05)}></mwc-fab>
-      <mwc-fab mini id="reset-fab" icon="wrong_location" style="left:160px;top:0px;" @click=${() => this.resetMyLocations()}></mwc-fab>
-      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:200px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
+      <mwc-fab mini id="hide-here-fab" icon="visibility" style="left:160px;top:0px;" @click=${() => this.toggleHideHere()}></mwc-fab>
     `;
 
     /** Default render if no plays found */

@@ -879,7 +879,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       sharedStyles,
       css`
         :host {
-          /*margin: 10px;*/
+          background: #ecebee;
+          height: 100vh;
+          display: block;
         }
 
         sl-tab-panel {

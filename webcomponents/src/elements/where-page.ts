@@ -763,7 +763,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       sharedStyles,
       css`
         :host {
-          /*margin: 10px;*/
+          background: #ecebee;
+          height: 100vh;
+          display: block;
         }
 
         .mdc-drawer__header {

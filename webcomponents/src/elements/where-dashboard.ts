@@ -542,7 +542,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       sharedStyles,
       css`
         :host {
-          /*margin: 10px;*/
+          background: #ecebee;
+          height: 100vh;
+          display: block;
         }
 
         .column {
@@ -565,13 +567,13 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           width: 100%;
           margin-top: 2px;
           margin-bottom: 0px;
-          display:flex;
+          display: flex;
         }
 
         mwc-textfield.rounded {
           --mdc-shape-small: 20px;
           width: 7em;
-          margin-top:10px;
+          margin-top: 10px;
         }
 
         mwc-textfield label {

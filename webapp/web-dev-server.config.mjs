@@ -32,7 +32,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   rootDir: '../',
 
   /** Set appIndex to enable SPA routing */
-  appIndex: './dist/index.html',
+  appIndex: './index.html',
 
 
   plugins: [

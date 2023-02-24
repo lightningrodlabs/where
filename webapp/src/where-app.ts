@@ -12,6 +12,7 @@ import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
 import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
+import {SlCard} from "@scoped-elements/shoelace";
 
 
 /**
@@ -207,20 +208,18 @@ export class WhereApp extends HappElement {
         <div class="column"
              style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >
-          <h1 style="margin-bottom: 40px;justify-content: center;">Where</h1>            
+          <h1 style="font-family: arial;color: #5804A8;"><img src="logo.svg" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/> Where</h1>            
           <div class="column" style="align-items: center;">
-            <mwc-card>
-              <div class="column" style="margin: 16px;">
-                <span class="title" style="margin-bottom: 24px; align-self: flex-start">
+            <sl-card style="box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;">
+                <div class="title" style="margin-bottom: 24px; align-self: flex-start">
                   ${msg('Create Profile')}
-                </span>
+                </div>
                   <edit-profile
                           .saveProfileLabel=${msg('Create Profile')}
                           @save-profile=${(e: CustomEvent) => this.createMyProfile(e.detail.profile)}
                           @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}
                   ></edit-profile>
-              </div>
-            </mwc-card>
+            </sl-card>
             </div>
         </div>`;
 
@@ -296,7 +295,7 @@ export class WhereApp extends HappElement {
       "mwc-button": Button,
       "cell-context": CellContext,
       "edit-profile": EditProfile,
-      'mwc-card': Card,
+      'sl-card': SlCard,
     };
   }
 
@@ -305,15 +304,23 @@ export class WhereApp extends HappElement {
   static get styles() {
     return [
       css`
-       :host {} 
-      .column {
-        display: flex;
-        flex-direction: column;
-      }
+        :host {
+          background: #f7f6f8;
+          display: block;
+          height: 100vh;
+        }
+
+        .column {
+          display: flex;
+          flex-direction: column;
+        }
+
         .title {
           font-size: 20px;
         }
+
       `,
+
     ];
   }
 }

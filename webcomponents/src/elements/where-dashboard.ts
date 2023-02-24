@@ -614,6 +614,15 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           padding: 0px;
         }
 
+        mwc-fab {
+          position: fixed !important;
+          right: 30px;
+          bottom:30px;
+          --mdc-fab-box-shadow: 0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12);
+          /*--mdc-theme-secondary: white;*/
+          /*--mdc-theme-on-secondary: black;*/
+        }
+        
         @media (min-width: 640px) {
           main {
             max-width: none;

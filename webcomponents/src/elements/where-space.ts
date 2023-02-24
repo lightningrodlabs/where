@@ -625,12 +625,6 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   /** */
-  async resetMyLocations() {
-    await this._dvm.deleteAllMyLocations(this.currentSpaceEh!);
-  }
-
-
-  /** */
   toggleHideHere() {
     if (this.hideFab.icon === 'visibility') {
       this.hideFab.icon = 'visibility_off'

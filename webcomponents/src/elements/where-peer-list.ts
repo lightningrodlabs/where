@@ -16,7 +16,7 @@ import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
-import {AgentPubKeyB64, decodeHashFromBase64} from "@holochain/client";
+import {AgentPubKeyB64, decodeHashFromBase64, encodeHashToBase64} from "@holochain/client";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 
 
@@ -75,6 +75,13 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //console.log(e.detail)
     this.soloAgent = key == this.soloAgent? null : key;
     //this.requestUpdate();
+  }
+
+
+  /** */
+  handleClickDeleteMyLocations() {
+    console.log("handleClickDeleteMyLocations()")
+    this.dispatchEvent(new CustomEvent('delete-locations-requested', { detail: null, bubbles: true, composed: true }));
   }
 
 
@@ -145,8 +152,10 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
                      style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;">
           </sl-avatar>
           <sl-badge class="avatar-badge" type="${this.determineAgentStatus(keyB64)}" pill></sl-badge>
-          <span
-            style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">${profile.nickname}</span>
+          <span style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">
+            ${profile.nickname}
+          </span>
+          ${keyB64 == this._dvm.cell.agentPubKey? html`<mwc-icon-button icon="wrong_location" style="margin-top: -5px;" @click=${() => this.handleClickDeleteMyLocations()}></mwc-icon-button>` : html``}
         </li>`
     })
 
@@ -181,7 +190,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
       <sl-input id="filter-field" placeholder=${g_stringStore.get("filter")} clearable size="small" pill @input=${() =>this.requestUpdate()} @sl-clear=${() =>this.requestUpdate()}>
         <mwc-icon style="color:gray;" slot="prefix">search</mwc-icon>
       </sl-input>
-      <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch>
+      <!-- <mwc-switch id="folks-switch" @click=${() => this.toggleView()}></mwc-switch> -->
       <div class="folks">
         ${this.canShowTable? peers : peer_list}
       </div>
@@ -205,6 +214,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   static get scopedElements() {
     return {
+      'mwc-circular-progress': CircularProgress,
       "mwc-menu": Menu,
       "mwc-slider": Slider,
       "mwc-switch": Switch,
@@ -220,7 +230,6 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
       'sl-tooltip': SlTooltip,
       'sl-badge': SlBadge,
       'sl-input': SlInput,
-      'mwc-circular-progress': CircularProgress,
     };
   }
 
@@ -236,7 +245,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
         #filter-field {
           width:150px;
-          margin-left:3px;
+          margin-left:8px;
           /*display:inline-block;*/
         }
 
@@ -252,7 +261,8 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
         .folks {
           /*background-color: red;*/
           overflow-y: auto;
-          margin-left:5px;
+          margin-left: 5px;
+          margin-top: 10px;
         }
 
         .folk-row {

@@ -460,10 +460,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-  // handleCloneLudoDialogClosing(e:any) {
-  //   const cloneName = e.detail as String;
-  // }
-  //
+  /** */
+  async resetMyLocations() {
+    await this._dvm.deleteAllMyLocations(this.currentSpaceEh!);
+  }
 
   /** */
   private async handleArchiveDialogClosing(e: any) {
@@ -490,12 +490,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     menu.open = true;
   }
 
-
-  // /** */
-  // private showLudotheque(e?: any) {
-  //   console.log("showLudotheque()")
-  //   this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
-  // }
 
 
   /** */
@@ -759,8 +753,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       : html`<div class="surface" style="width: 300px; height: 300px;max-width: 300px; max-height: 300px;">${msg('No space found')}</div>`}
       ${this._canShowPeers ?
       html`
-        <where-peer-list id="where-peer-list" @avatar-clicked=${(e:any) => this.handleAvatarClicked(e.detail)} style="margin-top:1px;">
-        </where-peer-list>
+        <where-peer-list id="where-peer-list" style="margin-top:1px;"
+                         @avatar-clicked=${(e) => this.handleAvatarClicked(e.detail)}
+                         @delete-locations-requested=${() => this.resetMyLocations()}
+        ></where-peer-list>
       ` : html``}
     </div>
     ${fabs}

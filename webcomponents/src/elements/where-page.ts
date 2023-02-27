@@ -234,8 +234,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (this._canPostInit && this.shadowRoot!.getElementById("app-bar")) {
       this.postInit();
     }
-    //this.anchorLudothequeMenu()
-    //this.anchorSpaceMenu()
 
     /* look for canvas in Plays and render them */
     for (let spaceEh in this.perspective.plays) {
@@ -276,6 +274,17 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
     }
     return null;
+  }
+
+
+  /** */
+  private anchorCreateMenu() {
+    const menu = this.shadowRoot!.getElementById("create-menu") as Menu;
+    const div = this.shadowRoot!.getElementById("create-fab") as any;
+    console.log("<where-page> create - Anchoring Menu to top button", menu, div)
+    if (menu && div) {
+      menu.anchor = div
+    }
   }
 
   /** */
@@ -320,6 +329,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     this.anchorSpaceMenu();
     this.anchorLudothequeMenu();
     this.anchorExportMenu();
+    this.anchorCreateMenu();
     /** Drawer */
     const container = this.drawerElem.parentNode!;
     container.addEventListener('MDCTopAppBar:nav', () => {
@@ -501,6 +511,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
+  openCreateMenu() {
+    const menu = this.shadowRoot!.getElementById("create-menu") as Menu;
+    menu.open = true;
+  }
+
+
+  /** */
   openLudothequeMenu() {
     const menu = this.shadowRoot!.getElementById("page-ludotheque-menu") as Menu;
     menu.open = true;
@@ -589,22 +606,28 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       case "fork_space":
         this.openPlayDialog(this.currentSpaceEh? this.currentSpaceEh : undefined)
         break;
-      case "archive_space":
-        this.archiveSpace()
+      case "create_template":
+        this.openTemplateDialog(undefined)
         break;
-      case "export_template":
-        if (this._currentTemplateEh && this.ludoCellId) {
-          this._dvm.playsetZvm.exportPiece(this._currentTemplateEh!, PlaysetEntryType.Template, this.ludoCellId!)
-        } else {
-          console.warn("No template or ludotheque cell to export to");
-        }
+      case "create_space":
+        this.openPlayDialog( undefined)
         break;
-      case "export_space":
-        if (this.currentSpaceEh && this.ludoCellId) {
-          this._dvm.playsetZvm.exportPiece(this.currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
-        } else {
-          console.warn("No space or ludotheque cell to export to");
-        }
+      // case "archive_space":
+      //   this.archiveSpace()
+      //   break;
+      // case "export_template":
+      //   if (this._currentTemplateEh && this.ludoCellId) {
+      //     this._dvm.playsetZvm.exportPiece(this._currentTemplateEh!, PlaysetEntryType.Template, this.ludoCellId!)
+      //   } else {
+      //     console.warn("No template or ludotheque cell to export to");
+      //   }
+      //   break;
+      // case "export_space":
+      //   if (this.currentSpaceEh && this.ludoCellId) {
+      //     this._dvm.playsetZvm.exportPiece(this.currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
+      //   } else {
+      //     console.warn("No space or ludotheque cell to export to");
+      //   }
         break;
       default:
         break;
@@ -711,13 +734,18 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add')}...</mwc-list-item>`);
 
 
-    const old_men = html`
-      <mwc-menu id="top-menu" corner="BOTTOM_LEFT" @click=${this.handleMenuSelect}>
-        <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+    /*
         <mwc-list-item graphic="icon" value="export_template" .disabled="${this.ludoCellId == null}"><span>${msg('Share Template')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
-        <mwc-list-item graphic="icon" value="fork_space"><span>${msg('Fork Space')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="export_space" .disabled="${this.ludoCellId == null}"><span>${msg('Share Space')}</span><mwc-icon slot="graphic">cloud_upload</mwc-icon></mwc-list-item>
         <mwc-list-item graphic="icon" value="archive_space"><span>${msg('Archive Space')}</span><mwc-icon slot="graphic">delete</mwc-icon></mwc-list-item>
+     */
+    const create_menu = html`
+      <mwc-menu id="create-menu" fixed @click=${this.handleMenuSelect}>
+        <mwc-list-item graphic="icon" value="fork_template"><span>${msg('Fork Template')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="fork_space"><span>${msg('Fork Space')}</span><mwc-icon slot="graphic">fork_right</mwc-icon></mwc-list-item>
+        <li divider role="separator"></li>
+        <mwc-list-item graphic="icon" value="create_template"><span>${msg('New Template')}</span><mwc-icon slot="graphic">add</mwc-icon></mwc-list-item>
+        <mwc-list-item graphic="icon" value="create_space"><span>${msg('New Space')}</span><mwc-icon slot="graphic">add</mwc-icon></mwc-list-item>
       </mwc-menu>`
     ;
 
@@ -748,7 +776,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /** Fabs */
     const fabs = this.canShowBuildView? html`
-      <mwc-fab id="create-fab" icon="add" style="" @click=${() => this.openPlayDialog()}></mwc-fab>
+      <mwc-fab id="create-fab" icon="add" style="" @click=${() => this.openCreateMenu()}></mwc-fab>
+      ${create_menu}
       ` : html``;
 
     /** Render all */

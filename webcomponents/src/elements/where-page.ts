@@ -750,7 +750,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     ;
 
 
-
     /** Build play list */
     let spaceName = "<none>"
     const playItems = Object.entries(this.perspective.plays).map(

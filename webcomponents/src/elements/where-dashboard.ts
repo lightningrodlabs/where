@@ -2,12 +2,12 @@ import {css, html} from "lit";
 import {property, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
+import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
 import {
   Button, CircularProgress, Dialog, Drawer, Fab, Formfield,
   Icon, IconButton, IconButtonToggle,
   List, ListItem, Menu, Select,
-  Slider, Switch, TextField, TopAppBar,
+  Slider, Switch, TextField, TopAppBar, TopAppBarFixed,
 } from "@scoped-elements/material-web";
 
 import {CellId, EntryHashB64} from "@holochain/client";
@@ -81,7 +81,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   @state() private _initialized = false;
-  private _canPostInit = false;
+  @state() private _canPostInit = false;
 
 
   /** Getters */
@@ -210,7 +210,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("<where-dashboard> postInit()", topBar);
     topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
     /** Menu */
-    this.anchorLudothequeMenu()
+    this.anchorLudothequeMenu();
   }
 
 
@@ -256,13 +256,14 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  private async handlePlaySelected(e: any): Promise<void> {
-    const index = e.detail.index;
-    if (index < 0) {
-      return;
-    }
-    const value = this.playListElem.items[index].value;
-    await this.selectPlay(value);
+  private async handlePlaySelected(eh: EntryHashB64): Promise<void> {
+    console.log("handlePlaySelected()", eh)
+    // const index = e.detail.index;
+    // if (index < 0) {
+    //   return;
+    // }
+    // const value = this.playListElem.items[index].value;
+    await this.selectPlay(eh);
   }
 
 
@@ -302,21 +303,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   private async handleArchiveDialogClosing(e: any) {
-    /** Check if current play has been archived */
-    // if (e.detail.includes(this._currentSpaceEh)) {
-    //   /** Select first visible play */
-    //   const firstSpaceEh = this.getFirstVisiblePlay(this.perspective.plays);
-    //   this._currentSpaceEh = firstSpaceEh;
-    //   this.requestUpdate();
-    // }
-  }
-
-
-  /** */
-  handleViewArchiveSwitch(e: any) {
-    // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
-    // this.canViewArchive = e.originalTarget.checked;
-    // this.requestUpdate()
+    this.requestUpdate();
   }
 
 
@@ -454,29 +441,39 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     ludoNamesLi.push(html`<li divider role="separator"></li>`);
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add')}...</mwc-list-item>`);
 
-    /** Build play list */
-    let spaceName = "<none>"
-    const playItems = Object.entries(this.perspective.plays).map(
+    /** Build space/play list */
+    const playVisibles = Object.entries(this.perspective.plays).map(
       ([spaceEh, play]) => {
         if (!this._dvm.getVisibility(spaceEh)!) {
           return html ``;
         }
-        const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
+        //const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
+        const r = play.space.surface.size.x / play.space.surface.size.y;
         return html`
-          <mwc-list-item class="space-li" multipleGraphics twoline value="${spaceEh}" graphic="large">
+          <sl-card class="card-image" style="cursor: pointer" @click=${() => this.handlePlaySelected(spaceEh)}>
+            <span slot="image">${renderSurface(play.space.surface, play.space.name, 290, 200)}</span>
+            <b>${play.space.name}</b>
+          </sl-card>
+          `
+      }
+    );
+
+    /*
+              <mwc-list-item class="space-li" multipleGraphics twoline value="${spaceEh}" graphic="large">
             <span>${play.space.name}</span>
             <span slot="secondary">${template? template.name : 'unknown'}</span>
             <span slot="graphic" style="width:75px;">${renderSurface(play.space.surface, play.space.name, 70, 56)}</span>
               <!-- <mwc-icon slot="graphic">folder</mwc-icon>-->
               <!-- <mwc-icon-button slot="meta" icon="info" @click=${() => this.onRefresh()}></mwc-icon-button> -->
           </mwc-list-item>
-          `
-      }
-    );
+
+                  <mwc-list id="play-list" activatable @selected=${this.handlePlaySelected}>
+      </mwc-list
+     */
 
     return html`
     <!-- TOP APP BAR -->
-    <mwc-top-app-bar id="app-bar" dense centerTitle>
+    <mwc-top-app-bar-fixed id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
       ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
@@ -498,25 +495,25 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
            style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
       </sl-avatar>
-    </mwc-top-app-bar>
+    </mwc-top-app-bar-fixed>
     <!-- APP BODY -->
     <div class="appBody">
-      ${this.canShowBuildView? html`<mwc-fab id="plus-fab" icon="add" @click=${() => this.openPlayDialog()}></mwc-fab>` : html``}
+      ${this.canShowBuildView? html`
+        <mwc-fab id="archive-fab" icon="archive" @click=${() => this.openArchiveDialog()}></mwc-fab>
+        <mwc-fab id="add-fab" icon="add" @click=${() => this.openPlayDialog()}></mwc-fab>
+      ` : html``}
       <!-- FIXME Grid of spaces -->
       <!-- SPACE LIST -->
-      ${playItems.length == 0 ? html`
+      ${playVisibles.length == 0 ? html`
           <div style="font-size:32px;margin-top:20px;">
             ${msg('Create a new space in build mode')} <mwc-icon>handyman</mwc-icon>
             <br/>
             ${msg('or, import spaces from ludotheque')} <mwc-icon>travel_explore</mwc-icon>
           </div>
       ` : html`
-      <mwc-list id="play-list" activatable @selected=${this.handlePlaySelected}>
-        ${playItems}
-      </mwc-list>
+        ${playVisibles}
       `}
     </div>
-    <mwc-button id="archive-button" icon="archive" @click=${() => this.openArchiveDialog()}>${msg('View Archives')}</mwc-button>
     <!-- DIALOGS -->
     <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
@@ -569,6 +566,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "mwc-slider": Slider,
       "mwc-switch": Switch,
       "mwc-top-app-bar": TopAppBar,
+      "mwc-top-app-bar-fixed": TopAppBarFixed,
       "mwc-textfield": TextField,
       "mwc-select": Select,
       "where-clone-ludo-dialog": WhereCloneLudoDialog,
@@ -579,6 +577,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "where-peer-list": WherePeerList,
       "mwc-formfield": Formfield,
       'sl-avatar': SlAvatar,
+      'sl-card': SlCard,
       'sl-tooltip': SlTooltip,
       'sl-color-picker': SlColorPicker,
       'sl-badge': SlBadge,
@@ -596,16 +595,34 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           display: block;
         }
 
+        .card-image {
+          /*width: 300px;*/
+          /*height: 250px;*/
+          /*display: flex;*/
+          /*justify-content: center;*/
+        }
+
+        .card-image::part(image) {
+          background: rgb(233, 225, 240);
+          margin:5px;
+          border: 1px solid rgb(233, 225, 240);
+        }
+
+        .card-image::part(base) {
+          background: #ffffff;
+          box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+        }
+
+        .card-image::part(body) {
+          /*background: rgba(229, 222, 248, 0.52);*/
+          text-align: center;
+        }
+
         .column {
           display: flex;
           flex-direction: column;
         }
 
-
-        mwc-top-app-bar {
-          /**--mdc-theme-primary: #00ffbb;*/
-          /**--mdc-theme-on-primary: black;*/
-        }
 
         #app-bar {
           /*margin-top: -15px;*/
@@ -614,10 +631,13 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
         .appBody {
           width: 100%;
-          margin-top: 2px;
-          margin-bottom: 0px;
+          margin-top: 3px;
           display: flex;
-          justify-content: center;
+          justify-content: space-evenly;
+          flex-direction: row;
+          flex-wrap: wrap;
+          align-content: space-around;
+          gap: 20px 10px;
         }
 
         mwc-textfield.rounded {
@@ -630,10 +650,19 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           padding: 0px;
         }
 
-        mwc-fab {
+        #archive-fab {
           position: fixed !important;
           right: 30px;
-          bottom:30px;
+          bottom: 100px;
+          --mdc-fab-box-shadow: 0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12);
+          /*--mdc-theme-secondary: white;*/
+          /*--mdc-theme-on-secondary: black;*/
+        }
+
+        #add-fab {
+          position: fixed !important;
+          right: 30px;
+          bottom: 30px;
           --mdc-fab-box-shadow: 0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12);
           /*--mdc-theme-secondary: white;*/
           /*--mdc-theme-on-secondary: black;*/

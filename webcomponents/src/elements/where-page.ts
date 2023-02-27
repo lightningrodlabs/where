@@ -235,6 +235,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       this.postInit();
     }
     //this.anchorLudothequeMenu()
+    //this.anchorSpaceMenu()
 
     /* look for canvas in Plays and render them */
     for (let spaceEh in this.perspective.plays) {
@@ -280,7 +281,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   private anchorSpaceMenu() {
     const menu = this.shadowRoot!.getElementById("space-menu") as Menu;
-    const div = this.shadowRoot!.getElementById("top-title") as any;
+    const div = this.shadowRoot!.getElementById("space-menu-button") as any;
     console.log("<where-page> space - Anchoring Menu to top button", menu, div)
     if (menu && div) {
       menu.anchor = div
@@ -297,6 +298,16 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
   }
 
+  /** */
+  private anchorExportMenu() {
+    const menu = this.shadowRoot!.getElementById("export-menu") as Menu;
+    const div = this.shadowRoot!.getElementById("export-button") as any;
+    console.log("<where-page> export - Anchoring Menu to top button", menu, div)
+    if (menu && div) {
+      menu.anchor = div
+    }
+  }
+
 
   /** */
   private postInit() {
@@ -308,6 +319,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     /** Menu */
     this.anchorSpaceMenu();
     this.anchorLudothequeMenu();
+    this.anchorExportMenu();
     /** Drawer */
     const container = this.drawerElem.parentNode!;
     container.addEventListener('MDCTopAppBar:nav', () => {
@@ -317,6 +329,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       // menuButton.style.marginRight = margin;
       this._neighborWidth = (this.drawerElem.open? 256 : 0) + (this._canShowPeers? 150 : 0);
     });
+    this.requestUpdate()
   }
 
 
@@ -486,13 +499,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     }
   }
 
-  /** */
-  handleViewArchiveSwitch(e: any) {
-    // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
-    // this.canViewArchive = e.originalTarget.checked;
-    // this.requestUpdate()
-  }
-
 
   /** */
   openLudothequeMenu() {
@@ -500,10 +506,16 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     menu.open = true;
   }
 
+  /** */
+  openExportMenu() {
+    const menu = this.shadowRoot!.getElementById("export-menu") as Menu;
+    menu.open = true;
+  }
 
   /** */
   openSpaceMenu() {
     console.log("openSpaceMenu()")
+    this.anchorSpaceMenu();
     const menu = this.shadowRoot!.getElementById("space-menu") as Menu;
     menu.open = true;
   }
@@ -521,11 +533,28 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
+
+  /** */
+  onExportMenuSelected(e:any) {
+    const menu = e.currentTarget as Menu;
+    const selected = menu.selected as ListItem;
+    console.log("onExportMenuSelected()", selected);
+    if (!selected || !selected.value) {
+      return;
+    }
+    if (this.currentSpaceEh && this.ludoCellId) {
+      this._dvm.playsetZvm.exportPiece(this.currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
+    } else {
+      console.warn("No space or ludotheque cell to export to");
+    }
+  }
+
+
   /** */
   onLudothequeMenuSelected(e:any) {
     const menu = e.currentTarget as Menu;
     const selected = menu.selected as ListItem;
-    console.log("onLudothequeMenuSelected", selected);
+    console.log("onLudothequeMenuSelected()", selected);
     if (!selected) {
       return;
     }
@@ -542,7 +571,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("setting this.selectedLudoCloneId to", this.selectedLudoCloneId)
     this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
   }
-
 
 
   /** */
@@ -672,7 +700,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
       );
     }
+    if (ludoNamesLi.length > 0) {
+      ludoNamesLi.push(html`<li divider role="separator"></li>`);
+    }
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${msg('Global')}</mwc-list-item>`);
+
+    //let LudoConnectLi: any[] = []//JSON.parse(JSON.stringify(ludoNamesLi));
+    //ludoNamesLi.forEach(val => LudoConnectLi.push(Object.assign({}, val)));
     ludoNamesLi.push(html`<li divider role="separator"></li>`);
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add')}...</mwc-list-item>`);
 
@@ -714,7 +748,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /** Fabs */
     const fabs = this.canShowBuildView? html`
-      <mwc-fab id="create-fab" icon="add" style="" @click=${() => console.log("wtf")}></mwc-fab>
+      <mwc-fab id="create-fab" icon="add" style="" @click=${() => this.openPlayDialog()}></mwc-fab>
       ` : html``;
 
     /** Render all */
@@ -733,13 +767,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     </mwc-list-item>
     <li divider role="separator"></li>
     </mwc-list>
-    <mwc-button icon="add_circle" @click=${() => this.openPlayDialog()}>${msg('Space')}</mwc-button>
     <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>${msg('Template')}</mwc-button>
-    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>${msg('View Archives')}</mwc-button>
-    <!-- <mwc-formfield label="View Archived">
-      <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
-    </mwc-formfield> -->
-
     <!-- SPACE LIST -->
     <mwc-list id="play-list" activatable @selected=${this.handlePlaySelected}>
       ${playItems}
@@ -750,14 +778,14 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   <div slot="appContent" style="flex: 1;">
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense centerTitle style="position: relative;">
-        <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button> -->
+      <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button> -->
       <div id="top-title" slot="title" style="cursor:pointer;" @click=${() => this.openSpaceMenu()}>
         ${spaceName}
         <mwc-icon id="space-menu-button">keyboard_arrow_down</mwc-icon>
-        <mwc-menu id="space-menu" @click=${this.onSpaceMenuSelected}>
-          ${playItems}
-        </mwc-menu>
       </div>
+      <mwc-menu id="space-menu" absolute x="0" y="30" @click=${this.onSpaceMenuSelected}>
+        ${playItems}
+      </mwc-menu>
       <mwc-icon-button id="exit-button" slot="navigationIcon" icon="meeting_room" @click=${() => {
         //this.currentSpaceEh = null;
         this.dispatchEvent(new CustomEvent('play-selected', { detail: null, bubbles: true, composed: true }));
@@ -767,16 +795,28 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       ${this.canShowBuildView?
         html`<mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>`
         : html``}
-
-        <mwc-icon-button id="page-ludo-button" slot="actionItems" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
+      <div style="position: relative" slot="actionItems">
+        <mwc-icon-button id="export-button" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="backup" @click=${() => this.openExportMenu()}></mwc-icon-button>
+        <mwc-menu id="export-menu" corner="BOTTOM_LEFT" @click=${this.onExportMenuSelected}>
+          ${ludoNamesLi}
+        </mwc-menu>
+      </div>
+      <div style="position: relative" slot="actionItems">
+        <mwc-icon-button id="page-ludo-button" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
         <mwc-menu id="page-ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
           ${ludoNamesLi}
         </mwc-menu>
+      </div>
       <mwc-icon-button-toggle slot="actionItems" onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
-      <mwc-icon-button-toggle slot="actionItems" .on="${this.canShowBuildView}" onIcon="handyman" offIcon="videogame_asset" @click=${() => {
-            this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: !this.canShowBuildView, bubbles: true, composed: true }));
-      }}
-      ></mwc-icon-button-toggle>
+      ${this.canShowBuildView? html`
+      <mwc-icon-button slot="actionItems"  icon="handyman" @click=${() => {
+        this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: false, bubbles: true, composed: true }));
+      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
+      ` : html`
+        <mwc-icon-button slot="actionItems"  icon="videogame_asset" @click=${() => {
+        this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: true, bubbles: true, composed: true }));
+      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
+      `}
       <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
                  style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
       </sl-avatar>

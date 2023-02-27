@@ -388,7 +388,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   private anchorLudothequeMenu() {
     const menu = this.shadowRoot!.getElementById("ludotheque-menu") as Menu;
-    const button = this.shadowRoot!.getElementById("ludo-button") as IconButton;
+    const button = this.shadowRoot!.getElementById("ludo-button") as any;
     console.log("<where-dashboard> Anchoring Menu to top button", menu, button)
     if (menu && button) {
       menu.anchor = button
@@ -479,17 +479,22 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
       ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
+      <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <div style="position: relative" slot="actionItems">
+        <mwc-icon-button id="ludo-button"  icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
+        <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
+          ${ludoNamesLi}
+        </mwc-menu>
+      </div>
       ${this.canShowBuildView? html`
       <mwc-icon-button slot="actionItems"  icon="handyman" @click=${() => {
         this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: false, bubbles: true, composed: true }));
       }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
       ` : html`
         <mwc-icon-button slot="actionItems"  icon="videogame_asset" @click=${() => {
-          this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: true, bubbles: true, composed: true }));
-        }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
+        this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: true, bubbles: true, composed: true }));
+      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
       `}
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      <mwc-icon-button id="ludo-button" slot="actionItems" icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
       <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
            style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
       </sl-avatar>
@@ -500,7 +505,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       <!-- FIXME Grid of spaces -->
       <!-- SPACE LIST -->
       ${playItems.length == 0 ? html`
-          <div style="font-size:32px">
+          <div style="font-size:32px;margin-top:20px;">
             ${msg('Create a new space in build mode')} <mwc-icon>handyman</mwc-icon>
             <br/>
             ${msg('or, import spaces from ludotheque')} <mwc-icon>travel_explore</mwc-icon>
@@ -511,10 +516,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       </mwc-list>
       `}
     </div>
-    <!-- MENUS -->
-    <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
-      ${ludoNamesLi}
-    </mwc-menu>
+    <mwc-button id="archive-button" icon="archive" @click=${() => this.openArchiveDialog()}>${msg('View Archives')}</mwc-button>
     <!-- DIALOGS -->
     <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>

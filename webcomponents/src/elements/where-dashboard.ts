@@ -288,15 +288,12 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const selected = menu.selected as ListItem;
     console.log("onLudothequeMenuSelected", selected);
     if (!selected) {
+      console.warn("No value selected during onLudothequeMenuSelected()");
       return;
     }
     if (selected.value == "__new__") {
       const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
       dialog.open();
-      return;
-    }
-    if (!selected.value) {
-      console.warn("No value selected during onLudothequeMenuSelected()");
       return;
     }
     this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: selected.value, bubbles: true, composed: true }));
@@ -362,9 +359,11 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar-fixed id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
       ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this._dvm.dumpLogs()} ></mwc-icon-button>` : html``}
+      ${this.canShowBuildView? html`
       <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <div style="position: relative" slot="actionItems">
         <mwc-icon-button id="ludo-button"  icon="travel_explore" @click=${() => this.ludoMenuElem.open = true}></mwc-icon-button>
+      `: html``}
         <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
           ${ludoNamesLi}
         </mwc-menu>

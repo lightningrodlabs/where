@@ -331,6 +331,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
       );
     }
+    if (ludoNamesLi.length > 0) {
+      ludoNamesLi.push(html`<li divider role="separator"></li>`);
+    }
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="${null}">${msg('Global')}</mwc-list-item>`);
     ludoNamesLi.push(html`<li divider role="separator"></li>`);
     ludoNamesLi.push(html`<mwc-list-item class="ludo-clone-li" value="__new__">${msg('Add')}...</mwc-list-item>`);
@@ -359,11 +362,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <mwc-top-app-bar-fixed id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
       ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this._dvm.dumpLogs()} ></mwc-icon-button>` : html``}
-      ${this.canShowBuildView? html`
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      <mwc-icon-button id="pull-button" style="display:${this.canShowBuildView? "inline-flex": "none"}"  slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       <div style="position: relative" slot="actionItems">
-        <mwc-icon-button id="ludo-button"  icon="travel_explore" @click=${() => this.ludoMenuElem.open = true}></mwc-icon-button>
-      `: html``}
+        <mwc-icon-button id="ludo-button"  style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.ludoMenuElem.open = true}></mwc-icon-button>
         <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
           ${ludoNamesLi}
         </mwc-menu>

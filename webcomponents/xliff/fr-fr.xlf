@@ -372,11 +372,7 @@
 </trans-unit>
 <trans-unit id="sd0708e73abeba67c">
   <source>Sync with network</source>
-  <target>Synchronizer avec le réseau</target>
-</trans-unit>
-<trans-unit id="s3814488d22f039fa">
-  <source>Go to ludotheque</source>
-  <target>Aller à la bibliothèque</target>
+  <target>Synchroniser avec le réseau</target>
 </trans-unit>
 <trans-unit id="s79e0c8c32cb4f180">
   <source>Change mode</source>
@@ -392,7 +388,7 @@
 </trans-unit>
 <trans-unit id="s385f65764850e47a">
   <source>You can create or import a space from build mode</source>
-  <target>Vous pouvez créer ou importer un espace à bartir du mode Construction</target>
+  <target>Vous pouvez créer ou importer un espace à partir du mode Construction</target>
 </trans-unit>
 <trans-unit id="s8641b6c3688a0cec">
   <source>Edit Profile</source>
@@ -410,10 +406,6 @@
   <source>Back to home</source>
   <target>Retour</target>
 </trans-unit>
-<trans-unit id="s9f4d17cf1120c098">
-  <source>Export space to ludotheque</source>
-  <target>Exporter l'espace vers la Bibliothèque</target>
-</trans-unit>
 <trans-unit id="s352719d86112de9a">
   <source>Help</source>
   <target>Aide</target>
@@ -427,8 +419,8 @@
   <target>Clicker sur l'image pour placer un emplacement.</target>
 </trans-unit>
 <trans-unit id="sb33618c0875ca307">
-  <source>You can move your Locations with drag &amp; drop.</source>
-  <target>Vous pouvez déplacer vos Emplacements en faisant un glisser &amp; déposer.</target>
+  <source>You can move your Locations with drag'n drop.</source>
+  <target>Vous pouvez déplacer vos Emplacements en faisant un glisser-déposer.</target>
 </trans-unit>
 <trans-unit id="s3cf26a2a8162cbc6">
   <source>You can also zoom on the image with the mousewheel.</source>
@@ -437,6 +429,14 @@
 <trans-unit id="sc32a8cb4e5c86ca2">
   <source>Exit library</source>
   <target>Quitter la Bibliothèque</target>
+</trans-unit>
+<trans-unit id="s45cdb8a4aedf6c45">
+  <source>Export space to Library</source>
+  <target>Exporter l'espace vers une Bibliothèque</target>
+</trans-unit>
+<trans-unit id="sb736dbefa4802f4b">
+  <source>Go to Library</source>
+  <target>Aller à la Bibliothèque</target>
 </trans-unit>
 </body>
 </file>

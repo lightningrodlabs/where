@@ -385,7 +385,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         <mwc-icon-button id="pull-button" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       </sl-tooltip>
       <div style="position: relative" slot="actionItems">
-        <sl-tooltip content=${msg('Go to ludotheque')} placement="bottom" distance="4">
+        <sl-tooltip content=${msg('Go to Library')} placement="bottom" distance="4">
         <mwc-icon-button id="ludo-button"  style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.ludoMenuElem.open = true}></mwc-icon-button>
         </sl-tooltip>
         <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>

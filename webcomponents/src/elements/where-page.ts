@@ -839,7 +839,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
           </sl-tooltip>
         ` : html``}
       <div style="position: relative" slot="actionItems">
-        <sl-tooltip content=${msg('Export space to ludotheque')} placement="bottom" distance="4">
+        <sl-tooltip content=${msg('Export space to Library')} placement="bottom" distance="4">
             <mwc-icon-button id="export-button" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="backup" @click=${() => this.openExportMenu()}></mwc-icon-button>
         </sl-tooltip>
         <mwc-menu id="export-menu" corner="BOTTOM_LEFT" @click=${this.onExportMenuSelected}>
@@ -847,7 +847,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         </mwc-menu>
       </div>
       <div style="position: relative" slot="actionItems">
-        <sl-tooltip content=${msg('Go to ludotheque')} placement="bottom" distance="4">
+        <sl-tooltip content=${msg('Go to Library')} placement="bottom" distance="4">
             <mwc-icon-button id="page-ludo-button" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.openLudothequeMenu()}></mwc-icon-button>
         </sl-tooltip>
         <mwc-menu id="page-ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>

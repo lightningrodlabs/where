@@ -1,7 +1,7 @@
 import {html, css} from "lit";
 import { state } from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
-import {Button, Card, CircularProgress, Dialog} from "@scoped-elements/material-web";
+import {Button, CircularProgress, Dialog} from "@scoped-elements/material-web";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
 import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
 import {
@@ -60,10 +60,6 @@ export class WhereApp extends HappElement {
   get importingDialogElem() : Dialog {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
   }
-
-  // get langDialogElem() : Dialog {
-  //   return this.shadowRoot!.getElementById("lang-dialog") as Dialog;
-  // }
 
 
   /** -- Methods -- */
@@ -179,8 +175,7 @@ export class WhereApp extends HappElement {
             <where-page
                     .currentSpaceEh=${this._currentSpaceEh}
                     .canShowBuildView=${this._canShowBuildView}
-                    .ludoRoleCells=${this._ludoRoleCells} 
-                    .selectedLudoCloneId=${this._curLudoCloneId}
+                    .ludoRoleCells=${this._ludoRoleCells}
                     @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
@@ -189,9 +184,8 @@ export class WhereApp extends HappElement {
             ></where-page>` :
             html`<where-dashboard
                     .canShowBuildView=${this._canShowBuildView}
-                    .ludoRoleCells=${this._ludoRoleCells} 
-                    .selectedLudoCloneId=${this._curLudoCloneId}
-                    @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"                    
+                    .ludoRoleCells=${this._ludoRoleCells}
+                    @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"     
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
                     @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
                     @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"                    
@@ -254,19 +248,19 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  private async handleImportRequest(e: any) {
-    console.log("handleImportRequest() : " + JSON.stringify(e.detail))
-    this._currentPlaysetEh = e.detail;
+  private async handleImportRequest(event: CustomEvent<EntryHashB64>) {
+    console.log("handleImportRequest() : " + JSON.stringify(event.detail))
+    this._currentPlaysetEh = event.detail;
     if(!this._currentPlaysetEh) {
-      console.warn("this._currentPlaysetEh is null can't import")
+      console.warn("handleImportRequest aborted. Missing entryHash value in event detail.");
       return;
     }
 
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh!, this.whereDvm.cell.id)
+    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh, this.whereDvm.cell.id)
     console.log("handleImportRequest()", spaceEhs.length)
-    this.whereDvm.playsetZvm.probeAll();
+    await this.whereDvm.playsetZvm.ProbePlaysets();
     /** Create sessions for each space */
     for (const spaceEh of spaceEhs) {
       const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);
@@ -281,7 +275,7 @@ export class WhereApp extends HappElement {
         await this.whereDvm.constructNewPlay(space, space!.meta.sessionLabels);
       }
     }
-    /** Wait for completion */
+    /** Wait a minimum amount of time before closing dialog */
     while(Date.now() - startTime < 500) {
       //console.log(Date.now() - startTime)
       await delay(20);

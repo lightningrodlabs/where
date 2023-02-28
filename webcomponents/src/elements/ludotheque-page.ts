@@ -822,7 +822,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   private importPlayset(eh: EntryHashB64) {
     console.log("importPlayset() in " + encodeHashToBase64(this.whereCellId![0]) + " | " + eh)
-    this.dispatchEvent(new CustomEvent('import-playset-requested', { detail: eh, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent<EntryHashB64>('import-playset-requested', { detail: eh, bubbles: true, composed: true }));
   }
 
   async openPlaysetDialog(eh?: any) {

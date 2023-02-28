@@ -4,7 +4,7 @@ import {cellContext, HappElement} from "@ddd-qc/lit-happ";
 import {DEFAULT_LUDOTHEQUE_DEF, DEFAULT_WHERE_DEF, LudothequeDvm, LudothequePage, WhereDvm} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
-import {AdminWebsocket, AppSignal, AppWebsocket, InstalledAppId} from "@holochain/client";
+import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId} from "@holochain/client";
 import {setLocale} from "@where/app";
 
 /** Localization */
@@ -112,7 +112,7 @@ export class LudothequeStandaloneApp extends HappElement {
 
 
   /** */
-  private async handleImportRequest(e: any) {
+  private async handleImportRequest(e: CustomEvent<EntryHashB64>) {
     console.log("handleImportRequest() : " + JSON.stringify(e.detail))
   }
 

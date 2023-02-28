@@ -12,7 +12,7 @@ import {
 
 import {EntryHashB64} from "@holochain/client";
 
-import {CloneId, DnaElement} from "@ddd-qc/lit-happ";
+import {DnaElement} from "@ddd-qc/lit-happ";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 
@@ -127,8 +127,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** After first render only */
   async firstUpdated() {
     console.log("<where-dashboard> firstUpdated()");
-    /** Get latest public entries from DHT */
-    this._dvm.probeAll();
+    await this._dvm.probeAllPlays();
     /** Done */
     this._initialized = true
     this._canPostInit = true;
@@ -286,7 +285,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   onLudothequeMenuSelected(e:any) {
     const menu = e.currentTarget as Menu;
     const selected = menu.selected as ListItem;
-    console.log("onLudothequeMenuSelected", selected);
+    console.log("onLudothequeMenuSelected()", selected);
     if (!selected) {
       console.warn("No value selected during onLudothequeMenuSelected()");
       return;
@@ -302,7 +301,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("<where-dashboard> render()", this._initialized, this.canShowBuildView);
+    console.log("<where-dashboard> render()", this._initialized, this.canShowBuildView, this._dvm);
     if (!this._initialized) {
       return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
     }
@@ -392,9 +391,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       <!-- SPACE LIST -->
       ${playVisibles.length == 0 ? html`
           <div style="font-size:32px;margin-top:20px;">
-            ${msg('Create a new space in build mode')} <mwc-icon>handyman</mwc-icon>
-            <br/>
-            ${msg('or, import spaces from ludotheque')} <mwc-icon>travel_explore</mwc-icon>
+            ${msg('No spaces found.')}
+            <br/><br/>
+            ${msg('You can create or import a space from build mode')}: <mwc-icon>videogame_asset</mwc-icon> <mwc-icon>east</mwc-icon> <mwc-icon>handyman</mwc-icon>
           </div>
       ` : html`
         ${playVisibles}
@@ -469,6 +468,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       'sl-badge': SlBadge,
     };
   }
+
 
   /** */
   static get styles() {

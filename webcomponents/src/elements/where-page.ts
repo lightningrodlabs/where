@@ -11,7 +11,7 @@ import {
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 
-import {AgentPubKeyB64, CellId, EntryHashB64} from "@holochain/client";
+import {AgentPubKeyB64, CellId, EntryHashB64, RoleName} from "@holochain/client";
 
 import {delay, renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
@@ -65,9 +65,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   ludoRoleCells: CellsForRole | null = null;
 
   @property()
-  selectedLudoCloneId?: CloneId;
-
-  @property()
   currentSpaceEh: null | EntryHashB64 = null;
 
   @property({ type: Boolean, attribute: 'canShowBuildView' })
@@ -95,19 +92,6 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** Getters */
-
-  get ludoCellId(): CellId {
-    //console.log("get ludoCellId() called", this.ludoRoleCells);
-    if (!this.selectedLudoCloneId) {
-      return this.ludoRoleCells!.provisioned.cell_id;
-    }
-    const maybeClone = this.ludoRoleCells!.clones[this.selectedLudoCloneId];
-    if (!maybeClone) {
-      return this.ludoRoleCells!.provisioned.cell_id;
-    }
-    return maybeClone.cell_id;
-  }
-
 
   get profileDialogElem(): Dialog {
     return this.shadowRoot!.getElementById("where-profile-dialog") as Dialog;
@@ -210,7 +194,9 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
 
     /** Get latest public entries from DHT */
-    /*await*/ this._dvm.probeAll()//.then(() => {
+    /*await*/
+    //this._dvm.probeAll()
+    //.then(() => {
       this.pingAllOthers();
 
       /** Select first play if none is set */
@@ -556,11 +542,20 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const menu = e.currentTarget as Menu;
     const selected = menu.selected as ListItem;
     console.log("onExportMenuSelected()", selected);
-    if (!selected || !selected.value) {
+    if (!selected) {
       return;
     }
-    if (this.currentSpaceEh && this.ludoCellId) {
-      this._dvm.playsetZvm.exportPiece(this.currentSpaceEh, PlaysetEntryType.Space, this.ludoCellId!)
+    if (selected.value == "__new__") {
+      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
+      dialog.open();
+      return;
+    }
+    const ludoCloneId = selected.value
+      ? this.ludoRoleCells.clones[selected.value].cell_id
+      : this.ludoRoleCells.provisioned.cell_id;
+
+    if (this.currentSpaceEh) {
+      this._dvm.playsetZvm.exportPiece(this.currentSpaceEh, PlaysetEntryType.Space, ludoCloneId);
     } else {
       console.warn("No space or ludotheque cell to export to");
     }
@@ -580,13 +575,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       dialog.open();
       return;
     }
-    if (!selected.value) {
-      this.selectedLudoCloneId = undefined;
-    } else {
-      this.selectedLudoCloneId = selected.value;
-    }
-    console.log("setting this.selectedLudoCloneId to", this.selectedLudoCloneId)
-    this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: this.selectedLudoCloneId, bubbles: true, composed: true }));
+    this.dispatchEvent(new CustomEvent<string>('show-ludotheque', { detail: selected.value, bubbles: true, composed: true }));
   }
 
 
@@ -689,7 +678,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   render() {
-    console.log("<where-page> render()", this._initialized, this.currentSpaceEh, this.selectedLudoCloneId);
+    console.log("<where-page> render()", this._initialized, this.currentSpaceEh);
     if (!this._initialized) {
       return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
     }
@@ -716,7 +705,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       ludoNamesLi = Object.entries(this.ludoRoleCells!.clones).map(
         ([cloneId, cell]) => {
           return html`
-          <mwc-list-item class="ludo-clone-li" value="${cell.clone_id}" .selected=${this.selectedLudoCloneId == cell.clone_id}>
+          <mwc-list-item class="ludo-clone-li" value="${cell.clone_id}">
             ${cell.name}
           </mwc-list-item>
         `;

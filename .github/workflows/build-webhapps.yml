@@ -58,7 +58,6 @@ jobs:
       # Regroup artifacts
       - name: Regroup artifacts
         run: |
-          mkdir -p artifacts
           cp electron/bin/where_zome_hash.txt ./artifacts
           cp electron/bin/ludotheque_zome_hash.txt ./artifacts           
           cp target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm ./artifacts
@@ -67,6 +66,8 @@ jobs:
           cp target/wasm32-unknown-unknown/release/where_ludotheque_zome.wasm ./artifacts
           cp target/wasm32-unknown-unknown/release/where_integrity_zome.wasm ./artifacts
           cp target/wasm32-unknown-unknown/release/where_zome.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/profiles_zome.wasm ./artifacts
+          cp target/wasm32-unknown-unknown/release/profiles_integrity_zome.wasm ./artifacts
       # List uploaded files
       - name: List uploaded files
         run: ls -R

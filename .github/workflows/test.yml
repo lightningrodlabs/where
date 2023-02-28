@@ -35,3 +35,6 @@ jobs:
           gh release upload "manual-release" where* --clobber
           echo Where*
           gh release upload "manual-release" Where* --clobber
+          echo profiles*
+          gh release upload "manual-release" profiles_zome.wasm --clobber          
+          gh release upload "manual-release" profiles_integrity_zome.wasm --clobber

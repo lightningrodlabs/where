@@ -15,6 +15,7 @@
     "webapp.ludotheque"
   ],
   "scripts"        : {
+    "postinstall"          : "mkdir -p artifacts",
     "install:submodules"   : "bash scripts/install-submodules.sh $npm_package_config_hc_version",
     "install:rust"         : "bash submodules/hc-prebuilt/install-rust.sh",
     "install:hash-zome"    : "bash submodules/hc-prebuilt/install-hash-zome.sh $npm_package_config_bin",

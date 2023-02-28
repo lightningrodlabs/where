@@ -31,6 +31,7 @@ import {SignalPayload} from "../bindings/where.types";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 import {BUILD_MODE, IS_DEV} from "../globals";
+import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 
 
 
@@ -92,6 +93,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** Getters */
+
+  get playInfoDialogElem(): WherePlayInfoDialog {
+    return this.shadowRoot!.getElementById("play-info-dialog") as WherePlayInfoDialog;
+  }
 
   get helpDialogElem(): Dialog {
     return this.shadowRoot!.getElementById("help-dialog") as Dialog;
@@ -423,6 +428,14 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("refresh: Pulling data from DHT")
     this._dvm.probeAll();
     await this.pingAllOthers();
+  }
+
+
+  /** */
+  async openPlayInfoDialog(play: Play) {
+    const dialog = this.playInfoDialogElem;
+    const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
+    dialog.open(play, template);
   }
 
 
@@ -800,9 +813,14 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar id="app-bar" dense centerTitle style="position: relative;">
       <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button> -->
-      <div id="top-title" slot="title" style="cursor:pointer;" @click=${() => this.openSpaceMenu()}>
-        ${spaceName}
-        <mwc-icon id="space-menu-button">keyboard_arrow_down</mwc-icon>
+      <div id="top-title" slot="title" style="cursor:pointer;" >
+        <mwc-icon style="cursor: pointer;vertical-align: middle; padding-right:10px;"
+                  @click=${() => {const play = this._dvm.getPlay(this.currentSpaceEh); this.openPlayInfoDialog(play)}}
+        >info</mwc-icon>
+        <span @click=${() => this.openSpaceMenu()}>
+            ${spaceName}
+            <mwc-icon id="space-menu-button" style="vertical-align: sub" >keyboard_arrow_down</mwc-icon>
+        </span>
       </div>
       <mwc-menu id="space-menu" absolute x="0" y="30" @click=${this.onSpaceMenuSelected}>
         ${playItems}
@@ -875,6 +893,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     </div>
     ${fabs}
     <!-- DIALOGS -->
+    <where-play-info-dialog id="play-info-dialog"></where-play-info-dialog>
     <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" @template-created=${this.onTemplateCreated}></where-template-dialog>
@@ -928,6 +947,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
+      "where-play-info-dialog" : WherePlayInfoDialog,
       "where-space": WhereSpace,
       "where-peer-list": WherePeerList,
       "mwc-formfield": Formfield,
@@ -950,7 +970,12 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
 
         .mdc-drawer__header {
-          display:none;
+          display: none;
+        }
+
+        #where-space {
+          /*border: 1px solid rgb(208, 174, 238);*/
+          background: white;
         }
 
         mwc-top-app-bar {
@@ -979,13 +1004,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
           width: 100%;
           margin-top: 2px;
           margin-bottom: 0px;
-          display:flex;
+          display: flex;
         }
 
         mwc-fab {
           position: fixed !important;
           right: 30px;
-          bottom:30px;
+          bottom: 30px;
           --mdc-fab-box-shadow: 0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12);
           /*--mdc-theme-secondary: white;*/
           /*--mdc-theme-on-secondary: black;*/
@@ -994,7 +1019,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         mwc-textfield.rounded {
           --mdc-shape-small: 20px;
           width: 7em;
-          margin-top:10px;
+          margin-top: 10px;
         }
 
         mwc-textfield label {

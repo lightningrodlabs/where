@@ -14,7 +14,7 @@ import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
 import {Space} from "../bindings/playset.types";
 import {Message, MessageType, PlacementSession, SignalPayload} from "../bindings/where.types";
-import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb, InstalledAppId} from "@holochain/client";
+import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
 
 
 /** */

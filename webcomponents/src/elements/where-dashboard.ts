@@ -30,8 +30,9 @@ import {Template} from "../bindings/playset.types";
 
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
+import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 import {SignalPayload} from "../bindings/where.types";
-import {BUILD_MODE, IS_DEV} from "../globals";
+import {IS_DEV} from "../globals";
 
 
 /** Styles for top-app-bar */
@@ -66,6 +67,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   canShowBuildView!: boolean;
 
 
+  private _curSpaceEh: EntryHashB64;
+
   /** ViewModels */
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
@@ -96,6 +99,10 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   get archiveDialogElem(): WhereArchiveDialog {
     return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
+  }
+
+  get playInfoDialogElem(): WherePlayInfoDialog {
+    return this.shadowRoot!.getElementById("play-info-dialog") as WherePlayInfoDialog;
   }
 
   get playDialogElem() : WherePlayDialog {
@@ -298,6 +305,12 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: selected.value, bubbles: true, composed: true }));
   }
 
+  async openPlayInfoDialog(play: Play) {
+    const dialog = this.playInfoDialogElem;
+    const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
+    dialog.open(play, template);
+  }
+
 
   /** */
   render() {
@@ -346,9 +359,12 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         //const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         const r = play.space.surface.size.x / play.space.surface.size.y;
         return html`
-          <sl-card class="card-image" @click=${() => this.selectPlay(spaceEh)}>
-            <span slot="image">${renderSurface(play.space.surface, play.space.name, 290, 200)}</span>
-            <b>${play.space.name}</b>
+          <sl-card class="card-image" >
+            <span slot="image" @click=${() => this.selectPlay(spaceEh)}>${renderSurface(play.space.surface, play.space.name, 290, 200)}</span>
+            <b >${play.space.name}</b>
+            <mwc-icon class="info-icon" style="cursor: pointer;"
+                      @click=${() => {const play = this._dvm.getPlay(spaceEh); this.openPlayInfoDialog(play)}}
+            >info</mwc-icon>
           </sl-card>
           `
       }
@@ -413,6 +429,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       `}
     </div>
     <!-- DIALOGS -->
+    <where-play-info-dialog id="play-info-dialog"></where-play-info-dialog>
     <where-clone-ludo-dialog id="clone-ludo-dialog"></where-clone-ludo-dialog>
     <where-archive-dialog id="archive-dialog" @archive-updated="${this.handleArchiveDialogClosing}"></where-archive-dialog>
     <where-template-dialog id="template-dialog" @template-created=${this.onTemplateCreated}></where-template-dialog>
@@ -471,6 +488,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,
+      "where-play-info-dialog" : WherePlayInfoDialog,
       "where-space": WhereSpace,
       "where-peer-list": WherePeerList,
       "mwc-formfield": Formfield,
@@ -494,13 +512,21 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           display: block;
         }
 
+        .info-icon {
+          color: rgb(164, 182, 223);
+          /*--mdc-icon-size: 22px;*/
+          margin-left: 5px;
+          vertical-align: middle;
+        }
+
         .card-image {
-          cursor: pointer;
+          /*cursor: pointer;*/
         }
 
         .card-image::part(image) {
+          cursor: pointer;
           background: rgb(233, 225, 240);
-          margin:5px;
+          margin: 5px;
           border: 1px solid rgb(233, 225, 240);
         }
 

@@ -61,7 +61,6 @@ export class WhereApp extends HappElement {
     return this.shadowRoot!.getElementById("importing-dialog") as Dialog;
   }
 
-
   /** -- Methods -- */
 
   /** */

@@ -218,37 +218,17 @@
   <source>Archived Spaces</source>
   <target>Espaces archivés</target>
 </trans-unit>
-<trans-unit id="s032cd9f1245d3645">
-  <source>Space</source>
-  <target>Espace</target>
-</trans-unit>
 <trans-unit id="se47baf2fd16b9d2b">
   <source>Template</source>
   <target>Gabarit</target>
-</trans-unit>
-<trans-unit id="s6d7a41a35df1a54f">
-  <source>View Archives</source>
-  <target>Voir Archives</target>
 </trans-unit>
 <trans-unit id="s358f6f77b722a7e1">
   <source>Fork Template</source>
   <target>Dupliquer Gabarit</target>
 </trans-unit>
-<trans-unit id="s4cd8f160c8d795f2">
-  <source>Share Template</source>
-  <target>Partager Gabarit</target>
-</trans-unit>
 <trans-unit id="s91eecf33e20f9bdf">
   <source>Fork Space</source>
   <target>Dupliquer Espace</target>
-</trans-unit>
-<trans-unit id="s6ec6b87b13795e2e">
-  <source>Share Space</source>
-  <target>Partager Espace</target>
-</trans-unit>
-<trans-unit id="secc24b676b5f972b">
-  <source>Archive Space</source>
-  <target>Archiver Espace</target>
 </trans-unit>
 <trans-unit id="s18ed119d4617c5f3">
   <source>Subset</source>
@@ -374,13 +354,89 @@
   <source>Connect to Ludotheque</source>
   <target>Se connecter à la ludothèque</target>
 </trans-unit>
-<trans-unit id="sb8d4135f655b3dfb">
-  <source>Ludotheque</source>
-  <target>Ludothèque</target>
+<trans-unit id="se331e458925ce0e4">
+  <source>Remove all my locations</source>
+  <target>Enlever tous mes emplacements</target>
 </trans-unit>
-<trans-unit id="s3c226dc60c81707a">
-  <source>Add new</source>
+<trans-unit id="seafd940016af008b">
+  <source>Space Info</source>
+  <target>Information</target>
+</trans-unit>
+<trans-unit id="s681c086b8f7afcae">
+  <source>Global</source>
+  <target>Globale</target>
+</trans-unit>
+<trans-unit id="sf9aee319a006c9b4">
+  <source>Add</source>
   <target>Ajouter</target>
+</trans-unit>
+<trans-unit id="sd0708e73abeba67c">
+  <source>Sync with network</source>
+  <target>Synchronizer avec le réseau</target>
+</trans-unit>
+<trans-unit id="s3814488d22f039fa">
+  <source>Go to ludotheque</source>
+  <target>Aller à la bibliothèque</target>
+</trans-unit>
+<trans-unit id="s79e0c8c32cb4f180">
+  <source>Change mode</source>
+  <target>Changer de mode</target>
+</trans-unit>
+<trans-unit id="sb061ff5a347a296e">
+  <source>Profile</source>
+  <target>Profile</target>
+</trans-unit>
+<trans-unit id="sbbacb85c209f4871">
+  <source>No spaces found.</source>
+  <target>Aucun espace trouvé.</target>
+</trans-unit>
+<trans-unit id="s385f65764850e47a">
+  <source>You can create or import a space from build mode</source>
+  <target>Vous pouvez créer ou importer un espace à bartir du mode Construction</target>
+</trans-unit>
+<trans-unit id="s8641b6c3688a0cec">
+  <source>Edit Profile</source>
+  <target>Modifier Profile</target>
+</trans-unit>
+<trans-unit id="scc9105809d3f3491">
+  <source>New Template</source>
+  <target>Nouveau Gabarit</target>
+</trans-unit>
+<trans-unit id="see3bbbbc73ff910f">
+  <source>New Space</source>
+  <target>Nouvel Espace</target>
+</trans-unit>
+<trans-unit id="s8590b1e8ca7e8402">
+  <source>Back to home</source>
+  <target>Retour</target>
+</trans-unit>
+<trans-unit id="s9f4d17cf1120c098">
+  <source>Export space to ludotheque</source>
+  <target>Exporter l'espace vers la Bibliothèque</target>
+</trans-unit>
+<trans-unit id="s352719d86112de9a">
+  <source>Help</source>
+  <target>Aide</target>
+</trans-unit>
+<trans-unit id="s988ca080dc63320f">
+  <source>Show / hide peer list</source>
+  <target>Afficher la liste des pairs</target>
+</trans-unit>
+<trans-unit id="s6ad6f70f55805a55">
+  <source>Click somewhere on the image to place your Location.</source>
+  <target>Clicker sur l'image pour placer un emplacement.</target>
+</trans-unit>
+<trans-unit id="sb33618c0875ca307">
+  <source>You can move your Locations with drag &amp; drop.</source>
+  <target>Vous pouvez déplacer vos Emplacements en faisant un glisser &amp; déposer.</target>
+</trans-unit>
+<trans-unit id="s3cf26a2a8162cbc6">
+  <source>You can also zoom on the image with the mousewheel.</source>
+  <target>Vous pouvez également zoomer sur l'image à l'aide de la molette de souris.</target>
+</trans-unit>
+<trans-unit id="sc32a8cb4e5c86ca2">
+  <source>Exit library</source>
+  <target>Quitter la Bibliothèque</target>
 </trans-unit>
 </body>
 </file>

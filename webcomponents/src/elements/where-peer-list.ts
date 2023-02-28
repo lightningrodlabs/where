@@ -155,7 +155,11 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
           <span style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">
             ${profile.nickname}
           </span>
-          ${keyB64 == this._dvm.cell.agentPubKey? html`<mwc-icon-button icon="wrong_location" style="margin-top: -5px;" @click=${() => this.handleClickDeleteMyLocations()}></mwc-icon-button>` : html``}
+          ${keyB64 == this._dvm.cell.agentPubKey? html`
+            <sl-tooltip content=${msg('Erase my locations')} placement="bottom" hoist>
+              <mwc-icon-button icon="wrong_location" style="margin-top: -5px;" @click=${() => this.handleClickDeleteMyLocations()}></mwc-icon-button>
+            </sl-tooltip>
+          ` : html``}
         </li>`
     })
 

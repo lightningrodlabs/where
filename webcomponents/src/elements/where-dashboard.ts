@@ -31,7 +31,7 @@ import {Template} from "../bindings/playset.types";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {SignalPayload} from "../bindings/where.types";
-import {BUILD_MODE} from "../globals";
+import {BUILD_MODE, IS_DEV} from "../globals";
 
 
 /** Styles for top-app-bar */
@@ -360,26 +360,38 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     <!-- TOP APP BAR -->
     <mwc-top-app-bar-fixed id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
-      ${BUILD_MODE? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this._dvm.dumpLogs()} ></mwc-icon-button>` : html``}
-      <mwc-icon-button id="pull-button" style="display:${this.canShowBuildView? "inline-flex": "none"}"  slot="actionItems" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      ${IS_DEV? html`
+        <sl-tooltip slot="navigationIcon" content="Dump logs" placement="bottom" distance="4">
+            <mwc-icon-button id="dump-signals-button" icon="bug_report" @click=${() => this._dvm.dumpLogs()} ></mwc-icon-button>
+        </sl-tooltip>
+      ` : html``}
+      <sl-tooltip slot="actionItems" content=${msg('Sync with network')} placement="bottom" distance="4">
+        <mwc-icon-button id="pull-button" style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      </sl-tooltip>
       <div style="position: relative" slot="actionItems">
+        <sl-tooltip content=${msg('Go to ludotheque')} placement="bottom" distance="4">
         <mwc-icon-button id="ludo-button"  style="display:${this.canShowBuildView? "inline-flex": "none"}" icon="travel_explore" @click=${() => this.ludoMenuElem.open = true}></mwc-icon-button>
+        </sl-tooltip>
         <mwc-menu id="ludotheque-menu" corner="BOTTOM_LEFT" @click=${this.onLudothequeMenuSelected}>
           ${ludoNamesLi}
         </mwc-menu>
       </div>
       ${this.canShowBuildView? html`
-      <mwc-icon-button slot="actionItems"  icon="handyman" @click=${() => {
+        <sl-tooltip slot="actionItems" content=${msg('Change mode')} placement="bottom" distance="4">
+      <mwc-icon-button icon="handyman" @click=${() => {
         this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: false, bubbles: true, composed: true }));
-      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
+      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button></sl-tooltip>
       ` : html`
-        <mwc-icon-button slot="actionItems"  icon="videogame_asset" @click=${() => {
+        <sl-tooltip slot="actionItems" content=${msg('Change mode')} placement="bottom" distance="4">
+        <mwc-icon-button icon="videogame_asset" @click=${() => {
         this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: true, bubbles: true, composed: true }));
-      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button>
+      }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button></sl-tooltip>
       `}
-      <sl-avatar id="avatar" slot="actionItems" @click="${(_e) => this.profileDialogElem.open = true}" .image=${this._myProfile.fields.avatar}
-           style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
-      </sl-avatar>
+      <sl-tooltip slot="actionItems" content=${msg('Edit Profile')} placement="bottom-end" distance="4">
+        <sl-avatar id="avatar" @click="${(_e) => this.profileDialogElem.open = true}" .image=${this._myProfile.fields.avatar}
+             style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
+        </sl-avatar>
+      </sl-tooltip>
     </mwc-top-app-bar-fixed>
     <!-- APP BODY -->
     <div class="appBody">

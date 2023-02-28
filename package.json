@@ -62,9 +62,12 @@
     "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
     "start:happ:proxied"   : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
 
+    "start:launcher"       : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mdns",
+
+
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
 
-    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir",
+    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cp webapp/logo.svg webapp/dist && cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
     "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
 
     "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",

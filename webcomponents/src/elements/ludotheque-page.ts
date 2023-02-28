@@ -24,6 +24,7 @@ import {countInventory} from "../viewModels/playset.zvm";
 import {PlaysetEntry, PlaysetEntryType} from "../bindings/playset.types";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 import {DnaElement} from "@ddd-qc/lit-happ";
+import {IS_DEV} from "../globals";
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -170,20 +171,21 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     console.log("ludotheque-page.init() - DONE");
   }
 
+  /** */
+  private anchorCreateMenu() {
+    const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
+    const button = this.shadowRoot!.getElementById("add-fab") as any;
+    console.log("<ludotheque> Anchoring Menu to top button", menu, button)
+    if (menu && button) {
+      menu.anchor = button
+    }
+  }
+
 
   /** */
   async updated(changedProperties: any) {
     if (this._canPostInit) {
-      /** Anchor Menu */
-      const menu = this.shadowRoot!.getElementById("add-menu") as Menu;
-      const button = this.shadowRoot!.getElementById("add-menu-button") as IconButton;
-      console.log("Ludo: Anchoring Menu to top button", menu, button)
-      if (menu && button) {
-        menu.anchor = button
-        console.log({menu})
-        this._canPostInit = false;
-        this.requestUpdate()
-      }
+      this.anchorCreateMenu();
     }
     await this.probeInventory();
   }
@@ -762,10 +764,20 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     <mwc-top-app-bar id="app-bar" dense>
         <!-- <mwc-icon-button icon="menu" slot="navigationIcon"></mwc-icon-button>
         <mwc-icon>library_books</mwc-icon>-->
-      <div slot="title">${msg('Library')}: ${this._dvm.cell.name}</div>
+      <div slot="title">${msg('Library')}: ${this._dvm.cell.name === "dLudotheque"? msg("Global") : this._dvm.cell.name}</div>
 
-      <mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>
-      <mwc-icon-button id="add-menu-button" slot="actionItems" icon="add" @click=${() => this.openAddMenu()}></mwc-icon-button>
+      ${IS_DEV? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
+      <sl-tooltip slot="actionItems" content="${msg('Sync with network')}"  placement="bottom-end" distance="4">
+        <mwc-icon-button id="pull-button" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
+      </sl-tooltip>
+      ${this.whereCellId === null? html`` : html`
+        <sl-tooltip slot="actionItems" content="${msg('Exit library')}" placement="bottom-end" distance="4">
+        <mwc-icon-button id="menu-button" icon="exit_to_app" @click=${() => this.exitLudotheque()}></mwc-icon-button>
+          </sl-tooltip>`}
+    </mwc-top-app-bar>
+    <!-- APP BODY -->
+    <div class="appBody">
+      <mwc-fab id="add-fab" icon="add" @click=${() => this.openAddMenu()}></mwc-fab>
       <mwc-menu id="add-menu" absolute x="0" y="0" corner="BOTTOM_LEFT" @click=${this.handleAddMenuSelect}>
         <mwc-list-item value="add_playset"><span>${msg('Add Playset')}</span></mwc-list-item>
         <mwc-list-item value="add_space"><span>${msg('Add Space')}</span></mwc-list-item>
@@ -773,12 +785,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
         <mwc-list-item value="add_svgMarker"><span>${msg('Add SvgMarker')}</span></mwc-list-item>
         <mwc-list-item value="add_emojiGroup"><span>${msg('Add EmojiGroup')}</span></mwc-list-item>
       </mwc-menu>
-      <mwc-icon-button id="pull-button" slot="actionItems" icon="autorenew" @click=${() => this.onRefresh()} ></mwc-icon-button>
-      ${this.whereCellId === null? html`` : html`<mwc-icon-button id="menu-button" slot="actionItems" icon="exit_to_app" @click=${() => this.exitLudotheque()}
-      ></mwc-icon-button>`}
-    </mwc-top-app-bar>
-    <!-- APP BODY -->
-    <div class="appBody">
       <sl-tab-group id="body-tab-group">
         ${this._canCreatePlayset? html`` : html`<sl-tab id="playsets-tab" slot="nav" panel="playsets">${msg('Playsets')}</sl-tab>`}
         <sl-tab id="spaces-tab" slot="nav" panel="spaces">${msg('Spaces')}</sl-tab>
@@ -970,6 +976,15 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
           margin-top: 2px;
           margin-bottom: 0px;
           display: flex;
+        }
+
+        mwc-fab {
+          position: fixed !important;
+          right: 30px;
+          bottom: 30px;
+          --mdc-fab-box-shadow: 0px 7px 8px -4px rgba(0, 0, 0, 0.2), 0px 12px 17px 2px rgba(0, 0, 0, 0.14), 0px 5px 22px 4px rgba(0, 0, 0, 0.12);
+          --mdc-theme-secondary: #ef9439;
+          --mdc-theme-on-secondary: black;
         }
 
         mwc-textfield.rounded {

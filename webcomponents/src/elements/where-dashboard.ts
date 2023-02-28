@@ -387,7 +387,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: true, bubbles: true, composed: true }));
       }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button></sl-tooltip>
       `}
-      <sl-tooltip slot="actionItems" content=${msg('Edit Profile')} placement="bottom-end" distance="4">
+      <sl-tooltip slot="actionItems" placement="bottom-end" distance="4">
+        <div slot="content"><strong>${msg('Profile')}</strong><br/>${this._myProfile.nickname}</div>
         <sl-avatar id="avatar" @click="${(_e) => this.profileDialogElem.open = true}" .image=${this._myProfile.fields.avatar}
              style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
         </sl-avatar>

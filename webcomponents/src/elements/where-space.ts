@@ -591,7 +591,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
       if (this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
-        maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Delete</button>`
+        maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Remove</button>`
         if (this.canEditLocation(play)) {
           maybeEditBtn = html`<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
         }

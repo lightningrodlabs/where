@@ -11,7 +11,7 @@ import {
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 
-import {AgentPubKeyB64, CellId, EntryHashB64, RoleName} from "@holochain/client";
+import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 import {delay, renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
@@ -92,6 +92,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** Getters */
+
+  get helpDialogElem(): Dialog {
+    return this.shadowRoot!.getElementById("help-dialog") as Dialog;
+  }
 
   get profileDialogElem(): Dialog {
     return this.shadowRoot!.getElementById("where-profile-dialog") as Dialog;
@@ -832,8 +836,11 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
           ${ludoNamesLi}
         </mwc-menu>
       </div>
+      <sl-tooltip slot="actionItems" content=${msg('Help')} placement="bottom" distance="4">
+        <mwc-icon-button onIcon="person_off" icon="help" @click=${() => this.helpDialogElem.open = true}></mwc-icon-button>
+      </sl-tooltip>
       <sl-tooltip slot="actionItems" content=${msg('Show / hide peer list')} placement="bottom" distance="4">
-      <mwc-icon-button-toggle onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
+        <mwc-icon-button-toggle onIcon="person_off" offIcon="person" @click=${() => this._canShowPeers = !this._canShowPeers}></mwc-icon-button-toggle>
       </sl-tooltip>
       ${this.canShowBuildView? html`
         <sl-tooltip slot="actionItems" content=${msg('Change mode')} placement="bottom" distance="4">
@@ -846,7 +853,8 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         this.dispatchEvent(new CustomEvent('canShowBuildView-set', { detail: true, bubbles: true, composed: true }));
       }}><mwc-icon>keyboard_arrow_down</mwc-icon></mwc-icon-button></sl-tooltip>
       `}
-      <sl-tooltip slot="actionItems" content=${msg('Edit Profile')} placement="bottom-end" distance="4">
+      <sl-tooltip slot="actionItems" placement="bottom-end" distance="4">
+        <div slot="content"><strong>${msg('Profile')}</strong><br/>${this._myProfile.nickname}</div>
         <sl-avatar id="avatar" @click="${(_e) => this.onAvatarClicked()}" .image=${this._myProfile.fields.avatar}
                    style="background-color:${this._myProfile.fields.color};border: ${this._myProfile.fields.color} 1px solid;cursor: pointer;">
         </sl-avatar>
@@ -883,6 +891,15 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
           .saveProfileLabel=${msg('Edit Profile')}
           @save-profile=${(e: CustomEvent) => this.onProfileEdited(e.detail.profile)}
         ></edit-profile>
+      </div>
+    </mwc-dialog>
+    <mwc-dialog id="help-dialog" hideActions heading="${msg('Help')}" >
+      <div class="column" style="margin: 16px;">
+        ${msg('Click somewhere on the image to place your Location.')}
+        <br/>
+        ${msg('You can move your Locations with drag & drop.')}
+        <br/>
+        ${msg('You can also zoom on the image with the mousewheel.')}
       </div>
     </mwc-dialog>
   </div>

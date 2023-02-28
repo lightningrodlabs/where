@@ -148,15 +148,17 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
       return html`
         <li class="folk" style="opacity: ${opacity};">
-          <sl-avatar id=${key} @click="${this.handleClickAvatar}" .image=${profile.fields.avatar}
-                     style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;">
-          </sl-avatar>
-          <sl-badge class="avatar-badge" type="${this.determineAgentStatus(keyB64)}" pill></sl-badge>
-          <span style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">
-            ${profile.nickname}
+          <span @click="${this.handleClickAvatar}">
+            <sl-avatar id=${key}  .image=${profile.fields.avatar}
+                       style="background-color:${profile.fields.color};border: ${profile.fields.color} 1px solid;">
+            </sl-avatar>
+            <sl-badge class="avatar-badge" type="${this.determineAgentStatus(keyB64)}" pill></sl-badge>
+            <span style="color:${profile.fields['color']};margin-left:4px;font-size:16px;font-weight:bold;-webkit-text-stroke:0.1px black;">
+              ${profile.nickname}
+            </span>
           </span>
           ${keyB64 == this._dvm.cell.agentPubKey? html`
-            <sl-tooltip content=${msg('Erase my locations')} placement="bottom" hoist>
+            <sl-tooltip content=${msg('Remove all my locations')} placement="bottom" hoist>
               <mwc-icon-button icon="wrong_location" style="margin-top: -5px;" @click=${() => this.handleClickDeleteMyLocations()}></mwc-icon-button>
             </sl-tooltip>
           ` : html``}

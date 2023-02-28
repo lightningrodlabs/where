@@ -803,7 +803,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       <mwc-menu id="space-menu" absolute x="0" y="30" @click=${this.onSpaceMenuSelected}>
         ${playItems}
       </mwc-menu>
-      <mwc-icon-button id="exit-button" slot="navigationIcon" icon="logout" style="transform: rotate(180deg) scaleY(-1);" @click=${() => {
+      <mwc-icon-button id="exit-button" slot="navigationIcon" icon="arrow_back" @click=${() => {
         //this.currentSpaceEh = null;
         this.dispatchEvent(new CustomEvent('play-selected', { detail: null, bubbles: true, composed: true }));
       }} ></mwc-icon-button>

@@ -1,6 +1,5 @@
 import {
   LocationInfo,
-  PlacementSessionMat,
   Play,
   dematerializeHere,
   Coord,
@@ -8,14 +7,14 @@ import {
   WhereLocation,
   dematerializeSession, HereInfo,
 } from "./where.perspective";
-import {DnaViewModel} from "@ddd-qc/lit-happ";
+import {DnaViewModel, ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {ProfilesZvm} from "./profiles.zvm";
 import {Space} from "../bindings/playset.types";
 import {Message, MessageType, PlacementSession, SignalPayload} from "../bindings/where.types";
-import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
+import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb, InstalledAppId} from "@holochain/client";
 
 
 /** */
@@ -209,18 +208,25 @@ export class WhereDvm extends DnaViewModel {
         if (!lastPingTime) return false;
         return (currentTime - lastPingTime) < 5 * 60; // 5 minutes
       });
-    console.log({keysB64})
-    return keysB64
+    console.log({keysB64});
+    return keysB64;
   }
 
 
   /** -- Probing -- */
 
+  zvmChanged(zvm: ZomeViewModel): void {
+    console.log("whereDvm.zvmChanged()", zvm.zomeName);
+    if (zvm.zomeName !== this.playsetZvm.zomeName) {
+      return;
+    }
+    this.probeAllPlays();
+  }
+
   /** */
   probeAllInner() {
-    console.log(`${this.baseRoleName}.probeAllInner()...`)
+    console.log(`${this.baseRoleName}.probeAllInner()...`);
     super.probeAllInner();
-    this.probeAllPlays(); // FIXME should be done some other moment after super.probeAllInner() finishes
     console.log(`${this.baseRoleName}.probeAllInner() Done.`);
     //console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
   }

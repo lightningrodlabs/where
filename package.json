@@ -89,7 +89,7 @@
   },
   "dependencies"   : {
     "@ddd-qc/cell-proxy": "0.14.2",
-    "@ddd-qc/lit-happ"  : "0.14.2",
+    "@ddd-qc/lit-happ"  : "0.15.0",
     "@holochain/client" : "0.12.0"
   },
   "engines": {

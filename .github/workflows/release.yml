@@ -38,3 +38,6 @@ jobs:
           gh release upload "${GITHUB_REF#refs/tags/}" where* --clobber
           echo Where*
           gh release upload "${GITHUB_REF#refs/tags/}" Where* --clobber
+          echo profiles*
+          gh release upload "${GITHUB_REF#refs/tags/}" profiles_zome.wasm --clobber          
+          gh release upload "${GITHUB_REF#refs/tags/}" profiles_integrity_zome.wasm --clobber

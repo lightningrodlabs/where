@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "dist": "npm run build && rollup -c rollup.config.js && cd dist && cp -r * ../../electron/web",
+    "dist": "npm run build && rollup -c rollup.config.js && cp logo.svg dist && cd dist && cp -r * ../../electron/web",
     "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "start:ui-old": "web-dev-server --config ./web-dev-server.config.mjs",
     "localize:extract": "lit-localize extract",

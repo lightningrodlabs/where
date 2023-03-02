@@ -16,6 +16,7 @@
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
     "build": "tsc",
+    "help": "electron --help",
     "devtest": "npm run build && electron .",
     "dist:win": "electron-builder --win",
     "dist:linux": "electron-builder --linux tar.gz",

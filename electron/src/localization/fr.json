@@ -1,0 +1,18 @@
+{
+  "Network": "Réseau",
+  "About": "À propos",
+  "Help": "Aide",
+  "File": "Fichier",
+  "Report bug / issue": "Rapporter un bug",
+  "Join new Network": "Rejoindre un nouveau réseau",
+  "Switch Network": "Changer de réseau",
+  "Select Network": "Changer de réseau",
+  "Choose network": "Choix de réseau",
+  "Network Access Key": "Clé d'accès de réseau",
+  "Tray / Untray": "Ouvrir / Fermer",
+  "Quit": "Quitter",
+  "Exit": "Quitter",
+  "Tooling for group self-awareness on holochain from Lightning Rod Labs": "Outil pour aider les groupes à prendre conscience d'eux-même, créé par Lightning Rod Labs",
+  "cancel": "Annuler",
+  "of": "de"
+}

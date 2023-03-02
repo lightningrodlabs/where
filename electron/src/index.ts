@@ -29,6 +29,12 @@ import {
 import { electronLogger, log } from './logger'
 import  { loadUserSettings } from './userSettings'
 
+/** Global Localization service. Loaded on app 'ready' event */
+let i18n;
+/** Test french */
+//app.commandLine.appendSwitch('lang', 'fr')
+
+
 import {
   BACKGROUND_COLOR,
   DEVELOPMENT_UI_URL,
@@ -135,7 +141,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
     log('info', "new-window ; open: " + url)
     shell.openExternal(url).then(_r => {});
   })
-  /** once its ready to show, show */
+  /** once it's ready to show, show */
   mainWindow.once('ready-to-show', () => {
     mainWindow.show()
   })
@@ -232,7 +238,7 @@ const createSplashWindow = (): BrowserWindow => {
     //splashWindow.webContents.openDevTools();
     splashWindow.loadURL(`${DEVELOPMENT_UI_URL}/splashscreen.html`)
   }
-  /** once its ready to show, show */
+  /** once it's ready to show, show */
   splashWindow.once('ready-to-show', () => {
     splashWindow.show()
   })
@@ -247,7 +253,9 @@ const createSplashWindow = (): BrowserWindow => {
  */
 app.on('ready', async () => {
   log('debug', "ELECTRON READY - " + __dirname)
-  const splashWindow = createSplashWindow()
+  i18n = new(require('./localization/i18n'));
+  Menu.setApplicationMenu(Menu.buildFromTemplate(mainMenuTemplate()));
+  const splashWindow = createSplashWindow();
   /** Load user settings */
   g_userSettings = loadUserSettings(1920, 1080);
   /** init app */
@@ -281,7 +289,7 @@ app.on('ready', async () => {
   /** Create sys tray */
   create_tray();
   g_tray.setToolTip('Where v' + app.getVersion());
-  const menu = Menu.buildFromTemplate(trayMenuTemplate);
+  const menu = Menu.buildFromTemplate(trayMenuTemplate());
   g_tray.setContextMenu(menu);
 
   /** Start holochain and main window */
@@ -450,11 +458,12 @@ ipc.on('dnaHash', (event, dnaHash) => {
  */
 async function promptUid(canExitOnCancel: boolean, parentBrowserWindow: BrowserWindow) {
   let r = await prompt({
-    title: 'Where: Join new Network',
+    title: 'Where: ' + i18n.msg('Join new Network'),
     height: 180,
     width: 500,
     alwaysOnTop: true,
-    label: 'Network Access Key:',
+    label:  i18n.msg('Network Access Key') + ':',
+    buttonLabels: {ok: i18n.msg('OK'), cancel: i18n.msg('cancel')},
     value: g_uid,
     inputAttrs: {
       minlength: "2",
@@ -497,11 +506,12 @@ async function promptUidSelect(canExitOnCancel) {
     selectOptions[uid] = uid;
   }
   let r = await prompt({
-    title: 'Select network',
+    title: i18n.msg('Select network'),
     height: 180,
     width: 300,
     alwaysOnTop: true,
-    label: 'Choose network:',
+    label: i18n.msg('Choose network') + ':',
+    buttonLabels: {ok: i18n.msg('OK'), cancel: i18n.msg('cancel')},
     value: g_uid,
     type: 'select',
     selectOptions,
@@ -525,11 +535,11 @@ async function showAbout() {
   log("info", `[${g_runner_version}] DNA hash of "${g_uid}": ${g_dnaHash}\n`)
   await dialog.showMessageBoxSync(g_mainWindow, {
     //width: 900,
-    title: `About ${app.getName()}`,
+    title: i18n.msg('About'),
     message: `${app.getName()} - v${app.getVersion()}`,
-    detail: `Tooling for group self-awareness on holochain from Lightning Rod Labs\n\n`
+    detail: i18n.msg("Tooling for group self-awareness on holochain from Lightning Rod Labs") + "\n\n"
       // + `Zome hash:\n${DNA_HASH}\n\n`
-      + `DNA hash of "${g_uid}":\n${g_dnaHash}\n\n`
+      + "DNA hash " + i18n.msg("of") + ` "${g_uid}":\n${g_dnaHash}\n\n`
       + '' + g_runner_version + ''
       //+ '' + g_lair_version
       + `\n`,
@@ -618,73 +628,74 @@ async function restart() {
  * In this file you can include the rest of your app's specific main process code.
  * You can also put them in separate files and require them here.
  */
-const networkMenuTemplate: Array<MenuItemConstructorOptions> = [
-  {
-    id: 'join-network',
-    label: 'Join new Network',
-    click: async function (menuItem, browserWindow, _event) {
-      let changed = await promptUid(false, g_mainWindow);
-      if (changed) {
-        await restart()
-      }
+function networkMenuTemplate(): Array<MenuItemConstructorOptions> {
+  return [
+    {
+      id: 'join-network',
+      label: i18n.msg('Join new Network'),
+      click: async function (menuItem, browserWindow, _event) {
+        let changed = await promptUid(false, g_mainWindow);
+        if (changed) {
+          await restart()
+        }
+      },
     },
-  },
-  {
-    id: 'switch-network',
-    label: 'Switch Network',
-    click: async function (menuItem, _browserWindow, _event) {
-      let changed = await promptUidSelect(false);
-      if (changed) {
-        await restart()
-      }
+    {
+      id: 'switch-network',
+      label: i18n.msg('Switch Network'),
+      click: async function (menuItem, _browserWindow, _event) {
+        let changed = await promptUidSelect(false);
+        if (changed) {
+          await restart()
+        }
+      },
     },
-  },
-  // {
-  //   type: 'separator'
-  // },
-  // {
-  //   label: 'Change Network type',
-  //   click: async function (menuItem, _browserWindow, _event) {
-  //     // let changed = await promptNetworkType(false);
-  //     // let menu = Menu.getApplicationMenu();
-  //     // menu.getMenuItemById('join-network').enabled = !g_canMdns;
-  //     // menu.getMenuItemById('switch-network').enabled = !g_canMdns;
-  //     // menu.getMenuItemById('change-bootstrap').enabled = !g_canMdns;
-  //     // if (changed) {
-  //     //   await startConductorAndLoadPage(true);
-  //     // }
-  //   },
-  // },
-  // {
-  //   id: 'change-bootstrap',
-  //   label: 'Change Bootstrap Server',
-  //   click: async function (menuItem, _browserWindow, _event) {
-  //     // let changed = await promptBootstrapUrl(false);
-  //     // if (changed) {
-  //     //   await startConductorAndLoadPage(true);
-  //     // }
-  //   }
-  // },
-  // {
-  //   label: 'Change Proxy Server',
-  //   click: async function (menuItem, _browserWindow, _event) {
-  //     // const prevCanProxy = g_canProxy;
-  //     // let canProxy = await promptCanProxy();
-  //     // const proxyChanged = prevCanProxy !== canProxy;
-  //     // if (canProxy) {
-  //     //   let changed = await promptProxyUrl(false);
-  //     //   if(changed || proxyChanged) {
-  //     //     await startConductorAndLoadPage(true);
-  //     //   }
-  //     // } else  {
-  //     //   if(proxyChanged) {
-  //     //     await startConductorAndLoadPage(true);
-  //     //   }
-  //     // }
-  //   }
-  // },
-];
-
+    // {
+    //   type: 'separator'
+    // },
+    // {
+    //   label: 'Change Network type',
+    //   click: async function (menuItem, _browserWindow, _event) {
+    //     // let changed = await promptNetworkType(false);
+    //     // let menu = Menu.getApplicationMenu();
+    //     // menu.getMenuItemById('join-network').enabled = !g_canMdns;
+    //     // menu.getMenuItemById('switch-network').enabled = !g_canMdns;
+    //     // menu.getMenuItemById('change-bootstrap').enabled = !g_canMdns;
+    //     // if (changed) {
+    //     //   await startConductorAndLoadPage(true);
+    //     // }
+    //   },
+    // },
+    // {
+    //   id: 'change-bootstrap',
+    //   label: 'Change Bootstrap Server',
+    //   click: async function (menuItem, _browserWindow, _event) {
+    //     // let changed = await promptBootstrapUrl(false);
+    //     // if (changed) {
+    //     //   await startConductorAndLoadPage(true);
+    //     // }
+    //   }
+    // },
+    // {
+    //   label: 'Change Proxy Server',
+    //   click: async function (menuItem, _browserWindow, _event) {
+    //     // const prevCanProxy = g_canProxy;
+    //     // let canProxy = await promptCanProxy();
+    //     // const proxyChanged = prevCanProxy !== canProxy;
+    //     // if (canProxy) {
+    //     //   let changed = await promptProxyUrl(false);
+    //     //   if(changed || proxyChanged) {
+    //     //     await startConductorAndLoadPage(true);
+    //     //   }
+    //     // } else  {
+    //     //   if(proxyChanged) {
+    //     //     await startConductorAndLoadPage(true);
+    //     //   }
+    //     // }
+    //   }
+    // },
+  ];
+}
 
 const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
   // {
@@ -727,96 +738,101 @@ const debugMenuTemplate: Array<MenuItemConstructorOptions> = [
 /**
  *
  */
-export const mainMenuTemplate: Array<MenuItemConstructorOptions> = [
-  {
-    label: 'File', submenu: [
-      // {
-      //   label:`Check for Update`,
-      //   click: function (menuItem, _browserWindow, _event) {
-      //   //checkForUpdates(this);
-      //   }
-      // },
-      {
-        label: 'Quit',
-        role: 'quit',
-        //accelerator: 'Command+Q',
-        // click: async function (menuItem, _browserWindow, _event) {
-        //   let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
-        //   if (dontConfirmOnExit) {
-        //     app.quit();
-        //   } else {
-        //     let canExit = await confirmExit();
-        //     if (canExit) {
-        //       app.quit();
-        //     }
+function mainMenuTemplate(): Array<MenuItemConstructorOptions> {
+  return [
+    {
+      label: i18n.msg('File'), submenu: [
+        // {
+        //   label:`Check for Update`,
+        //   click: function (menuItem, _browserWindow, _event) {
+        //   //checkForUpdates(this);
         //   }
         // },
-      },
-    ],
-  },
-  {
-    label: 'Network',
-    submenu: networkMenuTemplate,
-  },
-  // {
-  //   label: 'Options',
-  //   submenu: optionsMenuTemplate,
-  // },
-  {
-    label: 'Debug',
-    submenu: debugMenuTemplate,
-  },
-  {
-    label: 'Help', submenu: [{
-      label: 'Report bug / issue',
-      click: function (menuItem, _browserWindow, _event) {
-        shell.openExternal(`https://github.com/lightningrodlabs/where/issues/new`)
-      }
-    },
-      {
-        type: 'separator'
-      },
-      {
-        label: 'About',
-        //accelerator: 'Command+A',
-        click: async function (menuItem, _browserWindow, _event) {
-          await showAbout();
+        {
+          label: i18n.msg('Quit'),
+          role: 'quit',
+          //accelerator: 'Command+Q',
+          // click: async function (menuItem, _browserWindow, _event) {
+          //   let dontConfirmOnExit = g_settingsStore.get("dontConfirmOnExit");
+          //   if (dontConfirmOnExit) {
+          //     app.quit();
+          //   } else {
+          //     let canExit = await confirmExit();
+          //     if (canExit) {
+          //       app.quit();
+          //     }
+          //   }
+          // },
         },
-      },],
-  },
-];
-
+      ],
+    },
+    {
+      label: i18n.msg('Network'),
+      submenu: networkMenuTemplate(),
+    },
+    // {
+    //   label: 'Options',
+    //   submenu: optionsMenuTemplate,
+    // },
+    {
+      label: 'Debug',
+      submenu: debugMenuTemplate,
+    },
+    {
+      label: i18n.msg('Help'), submenu: [{
+        label: i18n.msg('Report bug / issue'),
+        click: function (menuItem, _browserWindow, _event) {
+          shell.openExternal(`https://github.com/lightningrodlabs/where/issues/new`)
+        }
+      },
+        {
+          type: 'separator'
+        },
+        {
+          label: i18n.msg('About'),
+          //accelerator: 'Command+A',
+          click: async function (menuItem, _browserWindow, _event) {
+            await showAbout();
+          },
+        },],
+    },
+  ];
+}
 
 /**
  *
  */
-const trayMenuTemplate: Array<MenuItemConstructorOptions> = [
-  { label: 'Tray / Untray', click: function (menuItem, _browserWindow, _event) {
-      g_mainWindow.isVisible()? g_mainWindow.hide() : g_mainWindow.show();
-    }
-  },
-  {
-    label: 'Switch network',
-    click: async function (menuItem, _browserWindow, _event) {
-      let changed = await promptUidSelect(false);
-      if(changed) {
-        await restart()
+function trayMenuTemplate(): Array<MenuItemConstructorOptions> {
+  return [
+    {
+      label: i18n.msg('Tray / Untray'), click: function (menuItem, _browserWindow, _event) {
+        g_mainWindow.isVisible() ? g_mainWindow.hide() : g_mainWindow.show();
       }
-    }
-  },
-  //{ label: 'Debug', submenu: debugMenuTemplate },
-  { type: 'separator' },
-  { label: 'About', click: async function (menuItem, _browserWindow, _event) { await showAbout(); } },
-  { type: 'separator' },
-  { label: 'Exit', role: 'quit' }
-];
-
+    },
+    {
+      label: i18n.msg('Switch Network'),
+      click: async function (menuItem, _browserWindow, _event) {
+        let changed = await promptUidSelect(false);
+        if (changed) {
+          await restart()
+        }
+      }
+    },
+    //{ label: 'Debug', submenu: debugMenuTemplate },
+    {type: 'separator'},
+    {
+      label: i18n.msg('About'), click: async function (menuItem, _browserWindow, _event) {
+        await showAbout();
+      }
+    },
+    {type: 'separator'},
+    {label: i18n.msg('Exit'), role: 'quit'}
+  ];
+}
 
 /**************************************************************************************************
  * FINALIZE
  *************************************************************************************************/
-
-Menu.setApplicationMenu(Menu.buildFromTemplate(mainMenuTemplate));
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // if (require('electron-squirrel-startup')) {

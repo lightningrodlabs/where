@@ -154,7 +154,11 @@ export class WhereApp extends HappElement {
   render() {
     console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
     if (!this._loaded) {
-      return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
+      return html`        
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <mwc-circular-progress indeterminate></mwc-circular-progress>
+      </div>
+      `;
     }
 
     /** Pages */

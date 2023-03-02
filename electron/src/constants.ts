@@ -3,7 +3,7 @@ import {app} from "electron";
 
 /** Build Mode */
 
-export const IS_PACKAGED = app.isPackaged;
+//export const IS_PACKAGED = app.isPackaged;
 export const IS_DEV = process.env.BUILD_MODE? process.env.BUILD_MODE == 'dev' : false;
 export const DEVELOPMENT_UI_URL = path.join(__dirname, '../web')
 //export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../web')
@@ -17,9 +17,8 @@ export const COMMUNITY_PROXY_URL =
 export const DNA_VERSION_FILENAME = "dna_version.txt";
 export const RUNNING_ZOME_HASH_FILEPATH = 'bin/where_zome_hash.txt';
 export const MAIN_APP_ID = 'main-app'
-export const APP_DATA_PATH = IS_PACKAGED
-  ? path.join(__dirname, '../../.dev-app-data')
-  : path.join(app.getPath('appData'), 'where')
+export const APP_DATA_PATH = /*IS_PACKAGED ? path.join(__dirname, '../../.dev-app-data') : */
+  path.join(app.getPath('appData'), 'where')
 export const USER_DATA_PATH = path.join(APP_DATA_PATH, 'users');
 
 

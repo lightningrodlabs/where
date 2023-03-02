@@ -75,6 +75,9 @@
 
     "dist:electron"        : "bash submodules/hc-prebuilt/copy-binaries.sh electron/bin && cd electron && electron-builder build",
 
+    "dl-test-release"     : "rm -rf release & mkdir -p release & gh release download manual-release -D release -R lightningrodlabs/where",
+
+
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",
     "clean:hc"             : "rm -rf .hc* && rm -rf we-applet/.hc*",

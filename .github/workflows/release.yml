@@ -33,7 +33,7 @@ jobs:
         run: |
           rm -f *.blockmap
           echo ludotheque
-          gh release upload "manual-release" ludotheque* --clobber          
+          gh release upload "${GITHUB_REF#refs/tags/}" ludotheque* --clobber          
           echo where*
           gh release upload "${GITHUB_REF#refs/tags/}" where* --clobber
           echo Where*

@@ -33,7 +33,7 @@ export function stateSignalToText(state: StateSignal): StateSignalText {
   }
 }
 
-const whereDnaPath = app.isPackaged
+const DNA_PATH = app.isPackaged
   ? path.join(app.getAppPath(), '../app/bin/where.happ')
   : path.join(app.getAppPath(), '../artifacts/where.happ')
 
@@ -64,7 +64,7 @@ const BINARY_PATHS: PathOptions | undefined = app.isPackaged
  */
 async function createHolochainOptions(uid: string, storagePath: string): Promise<ElectronHolochainOptions> {
   const options:  ElectronHolochainOptions = {
-    happPath: whereDnaPath,
+    happPath: DNA_PATH,
     datastorePath: path.join(storagePath, 'databases-' + app.getVersion()),
     keystorePath: path.join(storagePath, 'keystore-' + app.getVersion()),
     appId: MAIN_APP_ID + '-' + uid,
@@ -79,4 +79,4 @@ async function createHolochainOptions(uid: string, storagePath: string): Promise
   return options;
 }
 
-export { whereDnaPath, BINARY_PATHS, createHolochainOptions }
+export { DNA_PATH, BINARY_PATHS, createHolochainOptions }

@@ -95,6 +95,7 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
     this._color = this.profile?.fields['color'];
 
     this._lang = this.profile?.fields['lang'];
+    if (!this._lang) this._lang = 'en';
 
     this._nicknameField.validityTransform = (newValue: string) => {
       this.requestUpdate();
@@ -330,9 +331,9 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
 
             <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
                 <span style="font-size:18px;padding-right:10px;">${msg('Language')}:</span>
-                <sl-radio-group id="langRadioGroup" label=${msg('Language')} name="a" value="en" @click="${this.handleLangChange}">
-                    <sl-radio value="en">🇬🇧</sl-radio>
-                    <sl-radio id="frBtn" value="fr-fr">🇫🇷</sl-radio>
+                <sl-radio-group id="langRadioGroup" label=${msg('Language')} @click="${this.handleLangChange}">
+                    <sl-radio value="en" .checked="${this._lang == 'en'}">🇬🇧</sl-radio>
+                    <sl-radio id="frBtn" value="fr-fr" .checked="${this._lang == 'fr-fr'}">🇫🇷</sl-radio>
                 </sl-radio-group>
             </div>
 

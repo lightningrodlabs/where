@@ -13,7 +13,7 @@ import {
 
 import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
-import {delay, renderSurface} from "../sharedRender";
+import {renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
 import {WherePeerList} from "./where-peer-list";
 import {WhereSpace} from "./where-space";
@@ -24,13 +24,13 @@ import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetEntryType, Template} from "../bindings/playset.types";
-import {CloneId, DnaElement} from "@ddd-qc/lit-happ";
+import {CloneId, delay, DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {SignalPayload} from "../bindings/where.types";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
-import {BUILD_MODE, IS_DEV} from "../globals";
+import {IS_DEV} from "../globals";
 import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 
 
@@ -707,7 +707,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /* -- Grab things from the perspective -- */
 
-    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.cell.agentPubKey);
+    this._myProfile = this._dvm.profilesZvm.getMyProfile();
 
 
     /* -- Build elements -- */

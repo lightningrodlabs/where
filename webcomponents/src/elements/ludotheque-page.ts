@@ -10,7 +10,7 @@ import {
   Button, CheckListItem, CircularProgress, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
-import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
+import {renderSurface, renderSvgMarker} from "../sharedRender";
 import {publishExamplePlayset} from "../examples";
 import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {CellId, encodeHashToBase64, EntryHashB64} from "@holochain/client";
@@ -23,7 +23,7 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PlaysetEntry, PlaysetEntryType} from "../bindings/playset.types";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {DnaElement} from "@ddd-qc/lit-happ";
+import {delay, DnaElement} from "@ddd-qc/lit-happ";
 import {IS_DEV} from "../globals";
 
 /** Styles for top-app-bar */

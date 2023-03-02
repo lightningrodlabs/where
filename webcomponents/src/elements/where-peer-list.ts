@@ -16,7 +16,7 @@ import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {ProfilesPerspective} from "../viewModels/profiles.zvm";
 import {WhereProfile} from "../viewModels/profiles.proxy";
-import {AgentPubKeyB64, decodeHashFromBase64, encodeHashToBase64} from "@holochain/client";
+import {AgentPubKeyB64, decodeHashFromBase64} from "@holochain/client";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 
 

@@ -1,7 +1,7 @@
-import {css, html, LitElement} from "lit";
+import {css, html} from "lit";
 import {property, query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
+import {EMOJI_WIDTH, renderMarker, renderMarkerTypePreview, renderSvgMarker, renderUiItems} from "../sharedRender";
 import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
   TextArea, TextField
 } from "@scoped-elements/material-web";
@@ -522,28 +522,6 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   }
 
 
-  /** */
-  renderMarkerTypePreview(markerType: MarkerType) {
-    let locMeta: LocationMeta = defaultLocationMeta();
-    locMeta.markerType = markerType;
-    locMeta.img = this.currentProfile? this.currentProfile!.fields.avatar : "42";
-    switch (markerType) {
-      case MarkerType.EmojiGroup:
-        locMeta.emoji = "⚽️";
-        break
-      case MarkerType.AnyEmoji:
-        locMeta.emoji = "😀";
-        break
-      case MarkerType.SingleEmoji:
-      default:
-        locMeta.emoji = "♥️";
-        break;
-    }
-    locMeta.color = this.currentProfile? this.currentProfile!.fields.color : "blue";
-    locMeta.authorName = this.currentProfile? this.currentProfile!.nickname : "(none)";
-    return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
-  }
-
 
   /** */
   renderSurfacePreview() {
@@ -897,13 +875,13 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   <sl-tab-panel name="locations">
     <h4 style="margin-top:15px;margin-bottom:10px;">${msg('Marker')}</h4>
     <mwc-select label="${msg('Type')}" id="marker-select" required @closing=${(e:any)=>{e.stopPropagation(); this.handleMarkerTypeSelect(e)}}>
-      <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">${msg('Avatar')} ${this.renderMarkerTypePreview(MarkerType.Avatar)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.Initials]}">${msg('Initials')} ${this.renderMarkerTypePreview(MarkerType.Initials)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">${msg('Colored SVG')} ${this.renderMarkerTypePreview(MarkerType.SvgMarker)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">${msg('Predefined Emoji')} ${this.renderMarkerTypePreview(MarkerType.SingleEmoji)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">${msg('Emoji subset')} ${this.renderMarkerTypePreview(MarkerType.EmojiGroup)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">${msg('Any Emoji')} ${this.renderMarkerTypePreview(MarkerType.AnyEmoji)}</mwc-list-item>
-      <mwc-list-item value="${MarkerType[MarkerType.Tag]}">${msg('Tag')} ${this.renderMarkerTypePreview(MarkerType.Tag)}</mwc-list-item>
+      <mwc-list-item selected value="${MarkerType[MarkerType.Avatar]}">${msg('Avatar')} ${renderMarkerTypePreview(MarkerType.Avatar, this.currentProfile)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.Initials]}">${msg('Initials')} ${renderMarkerTypePreview(MarkerType.Initials, this.currentProfile)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.SvgMarker]}">${msg('Colored SVG')} ${renderMarkerTypePreview(MarkerType.SvgMarker, this.currentProfile)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.SingleEmoji]}">${msg('Predefined Emoji')} ${renderMarkerTypePreview(MarkerType.SingleEmoji, this.currentProfile)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.EmojiGroup]}">${msg('Emoji subset')} ${renderMarkerTypePreview(MarkerType.EmojiGroup, this.currentProfile)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.AnyEmoji]}">${msg('Any Emoji')} ${renderMarkerTypePreview(MarkerType.AnyEmoji, this.currentProfile)}</mwc-list-item>
+      <mwc-list-item value="${MarkerType[MarkerType.Tag]}">${msg('Tag')} ${renderMarkerTypePreview(MarkerType.Tag, this.currentProfile)}</mwc-list-item>
     </mwc-select>
     ${maybeMarkerTypeItems}
     <mwc-formfield label="${msg('Allow multiple markers per user')}" style="margin-top:10px">

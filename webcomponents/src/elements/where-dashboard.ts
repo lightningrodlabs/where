@@ -12,11 +12,11 @@ import {
 
 import {EntryHashB64} from "@holochain/client";
 
-import {DnaElement} from "@ddd-qc/lit-happ";
+import {delay, DnaElement} from "@ddd-qc/lit-happ";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 
-import {delay, renderSurface} from "../sharedRender";
+import {renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
 import {WherePeerList} from "./where-peer-list";
 import {WhereSpace} from "./where-space";

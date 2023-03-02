@@ -49,6 +49,8 @@ export class ProfilesZvm extends ZomeViewModel {
   private _profiles: Record<string, WhereProfile> = {};
 
 
+  getMyProfile(): WhereProfile { return this._profiles[this.cell.agentPubKey] }
+
   getProfile(eh: EntryHashB64): WhereProfile | undefined {return this._profiles[eh]}
 
   getAgents(): AgentPubKeyB64[] { return Object.keys(this._profiles)}

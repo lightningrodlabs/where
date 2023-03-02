@@ -1,15 +1,19 @@
 import {html, svg} from "lit";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {MarkerType, UiItem} from "./viewModels/playset.perspective";
-import {LocationMeta} from "./viewModels/where.perspective";
+import {MarkerType, SpaceMeta, UiItem} from "./viewModels/playset.perspective";
+import {defaultLocationMeta, LocationMeta} from "./viewModels/where.perspective";
+import {WhereProfile} from "./viewModels/profiles.proxy";
+import {MarkerPiece} from "./bindings/playset.types";
 
 export const MARKER_WIDTH = 40;
 export const EMOJI_WIDTH  = 32;
 
-export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
+//export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 
-function getInitials(nickname: string): string {
+
+/** */
+export function getInitials(nickname: string): string {
   const names = nickname.split(' ');
   let initials = names[0].substring(0, 1).toUpperCase();
   if (names.length > 1) {
@@ -20,6 +24,8 @@ function getInitials(nickname: string): string {
   return initials;
 }
 
+
+/** */
 export function renderUiItems(ui: UiItem[], zx: number, zy: number) {
   let uiItems = html``
   try {
@@ -44,6 +50,7 @@ export function renderUiItems(ui: UiItem[], zx: number, zy: number) {
 }
 
 
+/** */
 export function renderMarker(locMeta: LocationMeta, isMe: boolean) {
   let marker;
   const classes = isMe? "me" : "";
@@ -82,9 +89,33 @@ export function renderMarker(locMeta: LocationMeta, isMe: boolean) {
   return marker;
 }
 
-/**
- *
- */
+
+
+/** */
+export function renderMarkerTypePreview(markerType: MarkerType, profile?: WhereProfile) {
+  let locMeta: LocationMeta = defaultLocationMeta();
+  locMeta.markerType = markerType;
+  locMeta.img = profile? profile.fields.avatar : "42";
+  switch (markerType) {
+    case MarkerType.EmojiGroup:
+      locMeta.emoji = "⚽️";
+      break
+    case MarkerType.AnyEmoji:
+      locMeta.emoji = "😀";
+      break
+    case MarkerType.SingleEmoji:
+    default:
+      locMeta.emoji = "♥️";
+      break;
+  }
+  locMeta.color = profile? profile.fields.color : "blue";
+  locMeta.authorName = profile? profile.nickname : "(none)";
+  return html `<div id="marker-preview" class="location-marker">${renderMarker(locMeta, false)}</div>`
+}
+
+
+
+/** */
 export function renderSurface(surface: any, name: string, w: number, h: number) {
   //html
   if (surface.html) {
@@ -109,6 +140,8 @@ export function renderSurface(surface: any, name: string, w: number, h: number) 
             style="border:1px solid #2278da;">`
 }
 
+
+/** */
 export function renderSvgMarker(svgStr: string, color: string) {
   if (svgStr === "") {
     return html``
@@ -135,6 +168,8 @@ export function renderSvgMarker(svgStr: string, color: string) {
   return preview
 }
 
+
+/** */
 function render_pin(color: string) {
   return svg`
 <svg xmlns="http://www.w3.org/2000/svg" width="${MARKER_WIDTH}px"

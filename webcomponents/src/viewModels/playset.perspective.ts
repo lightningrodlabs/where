@@ -46,13 +46,13 @@ export enum MarkerType {
 }
 
 export const markerTypeNames = [
-  "AnyEmoji",
+  "Any Emoji",
   "Avatar",
   "Initials",
-  "SingleEmoji",
-  "SvgMarker",
-  "EmojiGroup",
-  "Tag",
+  "Single Emoji",
+  "SVG Marker",
+  "Emoji Group",
+  "Tags",
 ];
 
 export enum TemplateType {

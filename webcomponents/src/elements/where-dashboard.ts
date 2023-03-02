@@ -316,7 +316,11 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   render() {
     console.log("<where-dashboard> render()", this._initialized, this.canShowBuildView, this._dvm);
     if (!this._initialized) {
-      return html`<mwc-circular-progress indeterminate></mwc-circular-progress>`;
+      return html`
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+            <mwc-circular-progress indeterminate></mwc-circular-progress>
+        </div>
+      `;
     }
 
     // DEBUG

@@ -7,7 +7,7 @@ import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
 import {
-  Button, CheckListItem, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
+  Button, CheckListItem, CircularProgress, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 import {delay, renderSurface, renderSvgMarker} from "../sharedRender";
@@ -678,7 +678,11 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     console.log("ludotheque-page render(), ", this._initialized)
 
     if (!this._initialized) {
-      return html`<span>${msg('Loading')}...</span>`;
+      return html`
+        <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+          <mwc-circular-progress indeterminate></mwc-circular-progress>
+        </div>
+      `;
     }
 
     console.log({PlaysetPerspective: this.playsetPerspective})
@@ -877,6 +881,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-tooltip': SlTooltip,
+      "mwc-circular-progress": CircularProgress,
     };
   }
 

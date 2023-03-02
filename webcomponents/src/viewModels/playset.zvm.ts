@@ -203,11 +203,12 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async exportPiece(pieceEh: EntryHashB64, pieceType: PlaysetEntryType, cellId: CellId) : Promise<void> {
+  async exportPiece(pieceEh: EntryHashB64, pieceType: PlaysetEntryType, cellId: CellId): Promise<EntryHashB64[]> {
     if (pieceType == PlaysetEntryType.Space) {
       return this.zomeProxy.exportSpace({spaceEh: pieceEh, cellId});
     }
-    return this.zomeProxy.exportPiece({pieceEh, pieceTypeName: pieceType, cellId});
+    this.zomeProxy.exportPiece({pieceEh, pieceTypeName: pieceType, cellId});
+    return [];
   }
 
 

@@ -23,11 +23,11 @@ fn import_piece(ImportPieceInput{piece_entry, piece_type_name}: ImportPieceInput
   }
   /// Import depending on type
   match piece_type_name.as_str() {
-    "template" => {
+    "Template" => {
       let template = Template::try_from(piece_entry)?;
       create_template(template)?;
     },
-    "space" => {
+    "Space" => {
       let space = Space::try_from(piece_entry)?;
       create_space(space)?;
     },

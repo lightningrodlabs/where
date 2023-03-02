@@ -66,7 +66,11 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
     description: "",
     unicodes: ["♈️", "♉️", "♊️", "♋️", "♌️", "♍️", "♎️", "♏️", "♐️", "♑️", "♒️", "♓️"]
   });
-
+  const _voteEh = await playsetZvm.publishEmojiGroupEntry({
+    name: "Vote",
+    description: "",
+    unicodes: ["✔", "❌"]
+  });
 
   /** SVG Markers */
   console.log("SVG Markers...")
@@ -86,9 +90,11 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
 
   let spaceList: Array<HoloHashedB64<SpaceMat>> = new Array();
 
-  const publishSpace = async (zvm: PlaysetZvm, space: SpaceMat) => {
+  const publishSpace = async (zvm: PlaysetZvm, space: SpaceMat, blockList?: boolean) => {
     const hash = await zvm.publishSpace(space);
-    spaceList.push({hash, content: space})
+    if(!blockList) {
+      spaceList.push({hash, content: space})
+    }
   }
 
 
@@ -223,7 +229,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       markerType: MarkerType.SvgMarker, singleEmoji: "",
       multi: true, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
-    }});
+    }}, true);
 
   /** Playset */
   const playsetEntry = await createPlayset("Demo Playset", spaceList);

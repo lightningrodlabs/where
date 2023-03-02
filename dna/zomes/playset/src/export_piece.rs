@@ -16,10 +16,10 @@ pub struct ExportPieceInput {
 
 #[hdk_extern]
 pub fn export_piece(input: ExportPieceInput) -> ExternResult<()> {
-  if input.piece_type_name == "space" {
+  if input.piece_type_name == "Space" {
     return zome_error!("space piece should be exported with 'export_space()' zome function");
   }
-  if input.piece_type_name != "template"
+  if input.piece_type_name != "Template"
     && input.piece_type_name != "SvgMarker"
     && input.piece_type_name != "EmojiGroup" {
     return zome_error!("unknown piece type: '{}'", input.piece_type_name);

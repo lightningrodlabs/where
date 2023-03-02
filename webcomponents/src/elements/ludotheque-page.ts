@@ -4,7 +4,6 @@ import {sharedStyles} from "../sharedStyles";
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
-import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
 import {
   Button, CheckListItem, CircularProgress, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
@@ -69,7 +68,8 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   @state() private _currentPlaysetEh: null | EntryHashB64 = null;
   //@state() private _currentTemplateEh: null| EntryHashB64 = null;
 
-  @state() private _inventory: Inventory | null = null;
+  @property() whereInventory: Inventory;
+  @state() private _ludoInventory: Inventory | null = null;
 
   @state() private _initialized: boolean = false;
   private _canPostInit: boolean = false;
@@ -110,11 +110,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   get tabElem(): SlTabGroup {
     return this.shadowRoot!.getElementById("body-tab-group") as SlTabGroup;
   }
-
-  // get archiveDialogElem() : WhereArchiveDialog {
-  //   return this.shadowRoot!.getElementById("archive-dialog") as WhereArchiveDialog;
-  // }
-  //
 
   // get playListElem(): List {
   //   return this.shadowRoot!.getElementById("play-list") as List;
@@ -195,30 +190,57 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   private async probeInventory() {
     const inventory = await this._dvm.playsetZvm.probeInventory();
     const nextCount = countInventory(inventory);
-    if (!this._inventory || nextCount > countInventory(this._inventory)) {
-      this._inventory = inventory;
+    if (!this._ludoInventory || nextCount > countInventory(this._ludoInventory)) {
+      this._ludoInventory = inventory;
     }
   }
 
 
   /** */
-  hasPiece(eh: EntryHashB64, type: PlaysetEntryType): boolean {
-    if (!this._inventory) {
-      console.warn("No localInventory found")
+  whereAddPiece(eh: EntryHashB64, type: PlaysetEntryType) {
+    if (!this.whereInventory) {
+      console.warn("No local Inventory found")
       return false;
     }
     switch(type) {
       case PlaysetEntryType.Template:
-        return this._inventory!.templates.includes(eh);
+        this.whereInventory!.templates.push(eh);
         break;
       case PlaysetEntryType.SvgMarker:
-        return this._inventory!.svgMarkers.includes(eh);
+        this.whereInventory!.svgMarkers.push(eh);
         break;
       case PlaysetEntryType.EmojiGroup:
-        return this._inventory!.emojiGroups.includes(eh);
+        this.whereInventory!.emojiGroups.push(eh);
         break;
       case PlaysetEntryType.Space:
-        return this._inventory!.spaces.includes(eh);
+        this.whereInventory!.spaces.push(eh);
+        break;
+      default:
+        console.warn("Unknown piece type: " + type)
+        break;
+    }
+    return false;
+  }
+
+
+  /** */
+  whereHasPiece(eh: EntryHashB64, type: PlaysetEntryType): boolean {
+    if (!this.whereInventory) {
+      console.warn("No local Inventory found")
+      return false;
+    }
+    switch(type) {
+      case PlaysetEntryType.Template:
+        return this.whereInventory!.templates.includes(eh);
+        break;
+      case PlaysetEntryType.SvgMarker:
+        return this.whereInventory!.svgMarkers.includes(eh);
+        break;
+      case PlaysetEntryType.EmojiGroup:
+        return this.whereInventory!.emojiGroups.includes(eh);
+        break;
+      case PlaysetEntryType.Space:
+        return this.whereInventory!.spaces.includes(eh);
         break;
       default:
         console.warn("Unknown piece type: " + type)
@@ -289,12 +311,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   async openTemplateDialog(templateEh?: any) {
     this.templateDialogElem.clearAllFields();
     this.templateDialogElem.open(templateEh);
-  }
-
-
-  /** */
-  async openArchiveDialog() {
-   //this.archiveDialogElem.open();
   }
 
 
@@ -511,7 +527,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
           </h4>
           <div slot="footer">
             <sl-rating></sl-rating>
-            <mwc-button id="primary-action-button" .disabled="${!this.whereCellId}" raised dense slot="primaryAction" @click=${(e:any) => this.importPlayset(key)}>${msg('Import')}</mwc-button>
+            <mwc-button id="primary-action-button" .disabled="${!this.whereCellId}" raised dense slot="primaryAction" @click=${() => this.importPlayset(key)}>${msg('Import')}</mwc-button>
           </div>
         </sl-card>
         `
@@ -526,14 +542,25 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
 
   /** */
-  private renderPieceIcon(key: string, type: PlaysetEntryType) {
-    //console.log({whereCellId: this.whereCellId})
-    const hasPiece = this.hasPiece(key, type);
+  private renderPieceIcon(pieceEh: EntryHashB64, type: PlaysetEntryType) {
+    //console.log({spaces: this._ludoInventory!.spaces})
+    const hasPiece = this.whereHasPiece(pieceEh, type);
     return hasPiece
       ? html `<mwc-icon class="piece-icon-button done-icon-button" slot="meta">done</mwc-icon>`
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
-                               @click=${() => this._dvm.playsetZvm.exportPiece(key, type, this.whereCellId!)}
+                               @click=${async () => {
+                                 const otherPieces = await this._dvm.playsetZvm.exportPiece(pieceEh, type, this.whereCellId!);
+                                 this.whereAddPiece(pieceEh, type);
+                                 if (otherPieces.length > 0) {
+                                   this.whereAddPiece(otherPieces[0], PlaysetEntryType.Template);
+                                 }
+                                 // FIXME dont know type
+                                 // if (otherPieces.length > 1) {
+                                 //   this.whereAddPiece(otherPieces[1], PlaysetEntryType.SvgMarker or EmojiGroup);
+                                 // }
+                                 this.requestUpdate();
+      }}
         ></mwc-icon-button>
       `;
   }
@@ -675,7 +702,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
    *
    */
   render() {
-    console.log("ludotheque-page render(), ", this._initialized)
+    console.log("ludotheque-page render(), ", this._initialized, this.whereInventory)
 
     if (!this._initialized) {
       return html`
@@ -738,16 +765,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       </mwc-list-item>
         <li divider role="separator"></li>
     </mwc-list>
-      <!--<mwc-button icon="add_circle" @click=${() => this.openPlaysetDialog()}>Playset</mwc-button>
-    <mwc-button icon="add_circle" @click=${() => this.openSpaceDialog()}>Space</mwc-button>
-    <mwc-button icon="add_circle" @click=${() => this.openTemplateDialog()}>Template</mwc-button>
-    <mwc-button icon="archive" @click=${() => this.openArchiveDialog()}>View Archives</mwc-button>-->
-    <!-- <mwc-formfield label="View Archived">
-      <mwc-switch @click=${this.handleViewArchiveSwitch}></mwc-switch>
-    </mwc-formfield>
-    <mwc-list id="playset-list">
-      playsetItems
-    </mwc-list>-->
     <h4 style="margin-top:0px;margin-left:10px;">${msg('Description')}</h4>
     <div style="margin-left:20px;">
           <!--<div>      Spaces: ${this._currentPlayset?.spaces.length}</div>
@@ -877,7 +894,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       "where-svg-marker-dialog" : WhereSvgMarkerDialog,
       "where-emoji-group-dialog" : WhereEmojiGroupDialog,
       "where-space-dialog" : WhereSpaceDialog,
-      "where-archive-dialog" : WhereArchiveDialog,
       "where-space": WhereSpace,
       "mwc-formfield": Formfield,
       'sl-tooltip': SlTooltip,
@@ -930,6 +946,12 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
         .card-header sl-icon-button {
           font-size: var(--sl-font-size-medium);
         }
+
+        .card-header::part(base) {
+          background: #ffffff;
+          box-shadow: rgba(0, 0, 0, 0.12) 0px 1px 3px, rgba(0, 0, 0, 0.24) 0px 1px 2px;
+        }
+
 
         .card-footer {
           max-width: 300px;

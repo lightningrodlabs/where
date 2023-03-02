@@ -59,8 +59,8 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   /* - Surface */
   @query('#template-field')
   _templateField!: Select;
-  @query('#width-field')
-  _widthField!: TextField;
+  // @query('#width-field')
+  // _widthField!: TextField;
   @query('#height-field')
   _heightField!: TextField;
   @query('#ui-field')
@@ -84,6 +84,11 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   _canModifyPastChk!: Checkbox;
   @query('#stop-labels-field')
   _sessionLabelsField!: TextField;
+
+
+  get widthFieldElem() : TextField {
+    return this.shadowRoot!.getElementById("width-field") as TextField;
+  }
 
   get tagChkLabel() : Formfield {
     return this.shadowRoot!.getElementById("tag-chk-lbl") as Formfield;
@@ -141,7 +146,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
     this._nameField.value = msg('Fork of') + ' ' + originalPlay.space.name;
     this._templateField.value = originalPlay.space.origin;
-    this._widthField.value = originalPlay.space.surface.size.x;
+    this.widthFieldElem.value = originalPlay.space.surface.size.x;
     this._heightField.value = originalPlay.space.surface.size.y;
     this._uiField.value = originalPlay.space.meta.ui ? JSON.stringify(originalPlay.space.meta!.ui) : "[\n]";
     // - Markers
@@ -248,15 +253,15 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     /** General Tab */
     // nameField
     let isGeneralValid = this._nameField.validity.valid
-    isGeneralValid &&= this._widthField.validity.valid
+    isGeneralValid &&= this.widthFieldElem.validity.valid
     isGeneralValid &&= this._heightField.validity.valid
 
     if (!this._nameField.validity.valid) {
       this._nameField.reportValidity()
     }
     // width & height fields
-    if (!this._widthField.validity.valid) {
-      this._widthField.reportValidity()
+    if (!this.widthFieldElem.validity.valid) {
+      this.widthFieldElem.reportValidity()
     }
     if (!this._heightField.validity.valid) {
       this._heightField.reportValidity()
@@ -352,6 +357,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   }
 
 
+  /** */
   resetAllFields(canResetName?: boolean) {
 
     let generalTab = this.shadowRoot!.getElementById("general-tab") as SlTab;
@@ -375,7 +381,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
       // console.log('field ' + placeholder + ' - ' + field.value)
       field.value = ''
     }
-    this._widthField.value = ''
+    this.widthFieldElem.value = ''
     this._heightField.value = ''
     this._uiField.value = '[]'
     // - Marker
@@ -449,8 +455,8 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     if (surface.canvas) surface.canvas = code;
 
     /** Size */
-    if (this._widthField) {
-      const x = this._widthField.value;
+    if (this.widthFieldElem) {
+      const x = this.widthFieldElem.value;
       const y = this._heightField.value;
       //console.log({x})
       surface.size = {x, y}
@@ -470,7 +476,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
     /** -- Check size -- */
     if (surface.size && this._useTemplateSize) {
-      this._widthField.value = surface.size.x;
+      this.widthFieldElem.value = surface.size.x;
       this._heightField.value = surface.size.y;
     }
 
@@ -512,7 +518,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
       let img = new Image();
       img.onload = async () => {
         console.log( img.naturalWidth +' '+ img.naturalHeight );
-        this._widthField.value = JSON.stringify(img.naturalWidth);
+        this.widthFieldElem.value = JSON.stringify(img.naturalWidth);
         this._heightField.value = JSON.stringify(img.naturalHeight);
       };
       img.src = imgComp.value;

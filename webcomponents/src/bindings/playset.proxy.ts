@@ -141,7 +141,7 @@ export class PlaysetProxy extends ZomeProxy {
     return this.call('export_piece', input);
   }
 
-  async exportSpace(input: ExportSpaceInput): Promise<void> {
+  async exportSpace(input: ExportSpaceInput): Promise<EntryHashB64[]> {
     return this.call('export_space', input);
   }
 

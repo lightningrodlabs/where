@@ -19,7 +19,7 @@ fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPla
   /* Export each template */
   for eh in playset.templates {
     let entry = get_entry_from_eh(eh.into())?;
-    export_piece_inner("template", entry, destination_cell_id.clone())?;
+    export_piece_inner("Template", entry, destination_cell_id.clone())?;
   }
   /* Export each svg marker */
   for eh in playset.svg_markers {
@@ -34,7 +34,7 @@ fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPla
   /* Export each space */
   for spaceEh in playset.spaces.clone() {
     let space_entry = get_entry_from_eh(spaceEh.into())?;
-    export_piece_inner("space", space_entry, destination_cell_id.clone())?;
+    export_piece_inner("Space", space_entry, destination_cell_id.clone())?;
   }
   /* Done */
   Ok(playset.spaces)

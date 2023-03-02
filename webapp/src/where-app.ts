@@ -13,6 +13,7 @@ import {setLocale} from "./localization";
 
 import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
 import {SlCard} from "@scoped-elements/shoelace";
+import {Inventory} from "@where/elements/dist/viewModels/playset.perspective";
 
 
 /**
@@ -35,11 +36,15 @@ export class WhereApp extends HappElement {
   private _currentPlaysetEh: null | EntryHashB64 = null;
 
   @state() private _ludoRoleCells!: CellsForRole;
-
   @state() private _curLudoCloneId?: RoleName; // = LudothequeDvm.DEFAULT_BASE_ROLE_NAME;
 
 
+  private _whereInventory: Inventory | null = null;
+
+
   @state() private _canShowBuildView = false;
+
+
 
   /** */
   constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, appId?: InstalledAppId) {
@@ -115,6 +120,9 @@ export class WhereApp extends HappElement {
       }
       this._hasStartingProfile = true;
     }
+
+    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
+
     /** Done */
     this._loaded = true;
   }
@@ -135,6 +143,7 @@ export class WhereApp extends HappElement {
     } else {
       this._curLudoCloneId = undefined;
     }
+    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
     this._canLudotheque = true;
   }
 
@@ -165,6 +174,7 @@ export class WhereApp extends HappElement {
     const ludothequePage = html`
         <cell-context .cell="${this.ludothequeDvm.cell}">
                   <ludotheque-page examples
+                                   .whereInventory="${this._whereInventory}"
                                    .whereCellId=${this.whereDvm.cell.id}
                                    @import-playset-requested="${this.handleImportRequest}"
                                    @exit="${() => this._canLudotheque = false}"
@@ -278,12 +288,16 @@ export class WhereApp extends HappElement {
         await this.whereDvm.constructNewPlay(space, space!.meta.sessionLabels);
       }
     }
+
+    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
+
     /** Wait a minimum amount of time before closing dialog */
     while(Date.now() - startTime < 500) {
       //console.log(Date.now() - startTime)
       await delay(20);
     }
     this.importingDialogElem.open = false;
+    this.requestUpdate();
   }
 
 

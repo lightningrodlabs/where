@@ -137,6 +137,12 @@ export interface ExportSpaceInput {
   spaceEh: EntryHashB64
 }
 
+export interface ExportSpaceOutput {
+  template: EntryHashB64
+  maybeSvg?: EntryHashB64
+  maybeEmojiGroup?: EntryHashB64
+}
+
 export interface GetInventoryOutput {
   templates: EntryHashB64[]
   svgMarkers: EntryHashB64[]

@@ -550,15 +550,14 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
                                @click=${async () => {
-                                 const otherPieces = await this._dvm.playsetZvm.exportPiece(pieceEh, type, this.whereCellId!);
+                                 const exportOutput = await this._dvm.playsetZvm.exportPiece(pieceEh, type, this.whereCellId!);
                                  this.whereAddPiece(pieceEh, type);
-                                 if (otherPieces.length > 0) {
-                                   this.whereAddPiece(otherPieces[0], PlaysetEntryType.Template);
+                                 /** Add dependencies */
+                                 if (exportOutput) {
+                                   this.whereAddPiece(exportOutput.template, PlaysetEntryType.Template);
+                                   if (exportOutput.maybeSvg) this.whereAddPiece(exportOutput.maybeSvg, PlaysetEntryType.SvgMarker);
+                                   if (exportOutput.maybeEmojiGroup) this.whereAddPiece(exportOutput.maybeEmojiGroup, PlaysetEntryType.EmojiGroup);
                                  }
-                                 // FIXME dont know type
-                                 // if (otherPieces.length > 1) {
-                                 //   this.whereAddPiece(otherPieces[1], PlaysetEntryType.SvgMarker or EmojiGroup);
-                                 // }
                                  this.requestUpdate();
       }}
         ></mwc-icon-button>

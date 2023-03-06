@@ -1,5 +1,6 @@
 import {CellId, EntryHashB64} from "@holochain/client";
-import {EmojiGroup, GetInventoryOutput, PlaysetEntryType, Space, SvgMarker, Template
+import {
+  EmojiGroup, ExportSpaceOutput, GetInventoryOutput, PlaysetEntryType, Space, SvgMarker, Template
 } from "../bindings/playset.types";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetProxy} from "../bindings/playset.proxy";
@@ -203,12 +204,12 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async exportPiece(pieceEh: EntryHashB64, pieceType: PlaysetEntryType, cellId: CellId): Promise<EntryHashB64[]> {
+  async exportPiece(pieceEh: EntryHashB64, pieceType: PlaysetEntryType, cellId: CellId): Promise<ExportSpaceOutput | null> {
     if (pieceType == PlaysetEntryType.Space) {
       return this.zomeProxy.exportSpace({spaceEh: pieceEh, cellId});
     }
     this.zomeProxy.exportPiece({pieceEh, pieceTypeName: pieceType, cellId});
-    return [];
+    return null;
   }
 
 

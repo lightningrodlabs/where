@@ -234,6 +234,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** For each known space, look for an up-to-date Play, otherwise construct it? */
   async probeAllPlays() : Promise<Record<string, Play>> {
+    console.log("whereDvm.probeAllPlays()");
     const spaces = this.playsetZvm.perspective.spaces;
     for (const spaceEh of Object.keys(spaces)) {
       const play = await this.probePlay(spaceEh);

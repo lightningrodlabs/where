@@ -176,6 +176,7 @@ export class WhereApp extends HappElement {
                   <ludotheque-page examples
                                    .whereInventory="${this._whereInventory}"
                                    .whereCellId=${this.whereDvm.cell.id}
+                                   @space-exported="${this.handleSpaceExported}"
                                    @import-playset-requested="${this.handleImportRequest}"
                                    @exit="${() => this._canLudotheque = false}"
                   ></ludotheque-page>
@@ -260,6 +261,32 @@ export class WhereApp extends HappElement {
   }
 
 
+  /** Create sessions for each space */
+  private async importSpaces(spaceEhs: EntryHashB64[]) {
+    for (const spaceEh of spaceEhs) {
+      const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);
+      //console.log("importSpaces().loop", spaceEh, space)
+      if (!space) {
+        console.warn("importSpaces() did not find spaceEh", spaceEh);
+        continue;
+      }
+      if (space.meta.sessionCount == 0) {
+        await this.whereDvm.constructNewPlay(space);
+      } else {
+        await this.whereDvm.constructNewPlay(space, space!.meta.sessionLabels);
+      }
+    }
+  }
+
+
+  /** */
+  private async handleSpaceExported(event: CustomEvent<EntryHashB64>) {
+    console.log("handleSpaceExported() : " + event.detail);
+    await this.whereDvm.playsetZvm.ProbePlaysets();
+    await this.importSpaces([event.detail]);
+  }
+
+
   /** */
   private async handleImportRequest(event: CustomEvent<EntryHashB64>) {
     console.log("handleImportRequest() : " + JSON.stringify(event.detail))
@@ -274,20 +301,8 @@ export class WhereApp extends HappElement {
     const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh, this.whereDvm.cell.id)
     console.log("handleImportRequest()", spaceEhs.length)
     await this.whereDvm.playsetZvm.ProbePlaysets();
-    /** Create sessions for each space */
-    for (const spaceEh of spaceEhs) {
-      const space = await this.whereDvm.playsetZvm.getSpace(spaceEh);
-      console.log("handleImportRequest().loop", spaceEh, space)
-      if (!space) {
-        console.warn("handleImportRequest() did not find spaceEh", spaceEh);
-        continue;
-      }
-      if (space.meta.sessionCount == 0) {
-        await this.whereDvm.constructNewPlay(space);
-      } else {
-        await this.whereDvm.constructNewPlay(space, space!.meta.sessionLabels);
-      }
-    }
+
+    await this.importSpaces(spaceEhs);
 
     this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
 

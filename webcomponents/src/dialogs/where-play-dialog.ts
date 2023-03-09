@@ -475,7 +475,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     let surface: any = JSON.parse(this._currentTemplate.surface);
 
     /** -- Check size -- */
-    if (surface.size && this._useTemplateSize) {
+    if (surface.size && this._useTemplateSize && this._heightField) {
       this.widthFieldElem.value = surface.size.x;
       this._heightField.value = surface.size.y;
     }

@@ -50,11 +50,11 @@ export class WhereZvm extends ZomeViewModel {
   /** SpaceEh -> Play */
   //private _plays: Dictionary<Play> = {};
   /** SpaceEh -> PlayManifest */
-  private _manifests: Record<string, PlayManifest> = {};
+  private _manifests: Record<EntryHashB64, PlayManifest> = {};
   /** SpaceEh -> sessionEh */
   //private _currentSessions: Dictionary<EntryHashB64> = {};
   /** SessionEh -> PlacementSession */
-  private _sessions: Record<string, PlacementSessionMat> = {};
+  private _sessions: Record<EntryHashB64, PlacementSessionMat> = {};
   /* SessionEh -> [locations] */
   //private _locations: Dictionary<LocationInfo[]> = {};
 

@@ -550,13 +550,17 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       : html `
         <mwc-icon-button class="piece-icon-button import-icon-button" slot="meta" icon="download_for_offline"
                                @click=${async () => {
+                                 console.log("Download peice")
                                  const exportOutput = await this._dvm.playsetZvm.exportPiece(pieceEh, type, this.whereCellId!);
                                  this.whereAddPiece(pieceEh, type);
-                                 /** Add dependencies */
+                                 /** Also export dependencies if any */
                                  if (exportOutput) {
                                    this.whereAddPiece(exportOutput.template, PlaysetEntryType.Template);
                                    if (exportOutput.maybeSvg) this.whereAddPiece(exportOutput.maybeSvg, PlaysetEntryType.SvgMarker);
                                    if (exportOutput.maybeEmojiGroup) this.whereAddPiece(exportOutput.maybeEmojiGroup, PlaysetEntryType.EmojiGroup);
+                                 }
+                                 if (type == PlaysetEntryType.Space) {
+                                   this.dispatchEvent(new CustomEvent<EntryHashB64>('space-exported', { detail: pieceEh, bubbles: true, composed: true }));
                                  }
                                  this.requestUpdate();
       }}

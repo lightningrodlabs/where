@@ -149,9 +149,9 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  async onAddLudoClone(cloneName: string) {
-    console.log("onAddLudoClone()", cloneName);
-    const cellDef = { modifiers: {network_seed: cloneName}, cloneName: cloneName}
+  async onAddLudoClone(uuid: string, cloneName?: string) {
+    console.log("onAddLudoClone()", uuid, cloneName);
+    const cellDef = { modifiers: {network_seed: uuid}, cloneName: cloneName}
     const [_cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
     this._ludoRoleCells = await this.conductorAppProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
     this._curLudoCloneId = dvm.cell.cloneId;
@@ -192,7 +192,7 @@ export class WhereApp extends HappElement {
                     .ludoRoleCells=${this._ludoRoleCells}
                     @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
-                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
+                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail.uuid, e.detail.cloneName)}}"
                     @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"
                     @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
             ></where-page>` :
@@ -201,7 +201,7 @@ export class WhereApp extends HappElement {
                     .ludoRoleCells=${this._ludoRoleCells}
                     @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"     
                     @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
-                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail)}}"
+                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail.uuid, e.detail.cloneName)}}"
                     @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"                    
                     @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
             ></where-dashboard>`}

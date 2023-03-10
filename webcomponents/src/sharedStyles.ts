@@ -7,6 +7,10 @@ export const sharedStyles = css`
     --mdc-theme-secondary: #feeae6;
   }
 
+  mwc-textfield {
+    padding-top:10px;
+  }
+
   .column {
     display: flex;
     flex-direction: column;

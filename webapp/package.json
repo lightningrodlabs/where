@@ -33,6 +33,7 @@
     "run-singleton-cli": "^0.0.5"
   },
   "dependencies": {
+    "uuid": "^9.0.0",
     "@holochain-open-dev/core-types": "0.6.3",
     "@where/elements": "file:../webcomponents",
     "@open-wc/scoped-elements": "^2.1.1",

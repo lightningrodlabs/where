@@ -6,7 +6,7 @@ import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
 import {
-  Button, CheckListItem, CircularProgress, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
+  Button, CheckListItem, CircularProgress, Dialog, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
   Slider, Switch, TextField, TopAppBar,
 } from "@scoped-elements/material-web";
 import {renderSurface, renderSvgMarker} from "../sharedRender";
@@ -794,6 +794,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       <sl-tooltip slot="actionItems" content="${msg('Sync with network')}"  placement="bottom-end" distance="4">
         <mwc-icon-button id="pull-button" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       </sl-tooltip>
+      <sl-tooltip slot="actionItems" content="${msg('Share Library')}"  placement="bottom-end" distance="4">
+        <mwc-icon-button id="pull-button" icon="share" @click=${() => this.handleShare()} ></mwc-icon-button>
+      </sl-tooltip>
       ${this.whereCellId === null? html`` : html`
         <sl-tooltip slot="actionItems" content="${msg('Exit library')}" placement="bottom-end" distance="4">
         <mwc-icon-button id="menu-button" icon="exit_to_app" @click=${() => this.exitLudotheque()}></mwc-icon-button>
@@ -840,11 +843,30 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
     <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
     <where-space-dialog id="space-dialog" @space-created=${this.handleSpaceDialogClosing}></where-space-dialog>
+    <mwc-dialog id="show-code-dialog" heading="${msg('Library UUID')}" @opened=${this.requestUpdate()}>
+      <mwc-textfield outlined helperPersistent helper="${this.cell.dnaHash}" .value="${this.cell.dnaModifiers.network_seed}" style="min-width: 500px;" type="text" id="show-uuid-field" label="UUID"></mwc-textfield>
+      <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleShareOk}>${msg('ok')}</mwc-button>
+    </mwc-dialog>
   </div>
 </mwc-drawer>
 `;
   }
 
+
+  private handleShare(e?: any) {
+    console.log("handleShare()")
+    const dialog = this.shadowRoot.getElementById("show-code-dialog") as Dialog;
+    dialog.open = true;
+  }
+
+  private handleShareOk(e?: any) {
+    console.log("handleShareOk()")
+    const dialog = this.shadowRoot.getElementById("show-code-dialog") as Dialog;
+    dialog.close();
+  }
+
+
+  /** */
   private exitLudotheque(e?: any) {
     console.log("exitLudotheque()")
     this.dispatchEvent(new CustomEvent('exit', { detail: {}, bubbles: true, composed: true }));

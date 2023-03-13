@@ -29,7 +29,8 @@ import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {Template} from "../bindings/playset.types";
 
 import {WhereProfile} from "../viewModels/profiles.proxy";
-import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
+//import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
+import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
 import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 import {SignalPayload} from "../bindings/where.types";
 import {IS_DEV} from "../globals";
@@ -298,7 +299,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return;
     }
     if (selected.value == "__new__") {
-      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
+      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereLudoDialog;
       dialog.open();
       return;
     }
@@ -488,7 +489,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "mwc-top-app-bar-fixed": TopAppBarFixed,
       "mwc-textfield": TextField,
       "mwc-select": Select,
-      "where-clone-ludo-dialog": WhereCloneLudoDialog,
+      "where-clone-ludo-dialog": WhereLudoDialog,
       "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,

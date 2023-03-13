@@ -26,7 +26,8 @@ import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetEntryType, Template} from "../bindings/playset.types";
 import {CloneId, delay, DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
-import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
+//import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
+import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
 import {SignalPayload} from "../bindings/where.types";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
@@ -563,7 +564,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return;
     }
     if (selected.value == "__new__") {
-      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
+      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereLudoDialog;
       dialog.open();
       return;
     }
@@ -588,7 +589,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       return;
     }
     if (selected.value == "__new__") {
-      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereCloneLudoDialog;
+      const dialog = this.shadowRoot!.getElementById("clone-ludo-dialog") as WhereLudoDialog;
       dialog.open();
       return;
     }
@@ -943,7 +944,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       "mwc-menu": Menu,
       "mwc-slider": Slider,
       "mwc-switch": Switch,
-      "where-clone-ludo-dialog": WhereCloneLudoDialog,
+      "where-clone-ludo-dialog": WhereLudoDialog,
       "where-play-dialog" : WherePlayDialog,
       "where-template-dialog" : WhereTemplateDialog,
       "where-archive-dialog" : WhereArchiveDialog,

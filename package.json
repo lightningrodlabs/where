@@ -1,6 +1,6 @@
 {
   "name"           : "where-dev",
-  "version"        : "0.2.0",
+  "version"        : "0.2.1",
   "config"         : {
     "hc_version"   : "0.1.0",
     "zits_version" : "1.6.1",

@@ -8,7 +8,7 @@
     "build": "rm -rf dist && tsc",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
     "dist": "npm run tsc && rollup -c",
-    "start:ui": "cp index.html dist && concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\""
+    "start:ui": "cp -v index.html dist && concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\""
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",

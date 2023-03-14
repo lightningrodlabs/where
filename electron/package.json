@@ -15,7 +15,8 @@
   },
   "scripts": {
     "postinstall": "electron-builder install-app-deps",
-    "build": "tsc",
+    "import-webapp": "cp -v -r ../webapp/dist/* web",
+    "build": "npm run import-webapp && tsc",
     "help": "electron --help",
     "devtest": "npm run build && electron .",
     "dist:win": "electron-builder --win",

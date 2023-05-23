@@ -152,6 +152,9 @@ export type LudothequeEntry =
 /** List of all link kinds handled by this Zome */
 export type LudothequeLinkType =
   | {All: null};
+export enum LudothequeLinkTypeType {
+	All = 'All',
+}
 
 /** Playset Entry */
 export interface Playset {

@@ -17,9 +17,9 @@ edition = "2021"
 
 [workspace.dependencies]
 serde = { version = "1.0", default-features = false }
-hdi = { version = "0.2.0", default-features = false }
-hdk = { version = "0.1.0", default-features = false }
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "beta.1.0" }
+hdi = { version = "0.2.2", default-features = false }
+hdk = { version = "0.1.2", default-features = false }
+zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "hdk-1.2" }
 
 
 [profile.dev]

@@ -225,6 +225,10 @@ export type WhereEntry =
 /** List of all link kinds handled by this Zome */
 export type WhereLinkType =
   | {All: null} | {Hide: null};
+export enum WhereLinkTypeType {
+	All = 'All',
+	Hide = 'Hide',
+}
 
 export interface PlacementSession {
   name: string

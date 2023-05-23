@@ -404,7 +404,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   async pingActiveOthers() {
     //if (this._currentSpaceEh) {
-      console.log("Pinging All Others");
+      console.log("Pinging All Active");
       await this._dvm.pingPeers(this.currentSpaceEh, this._dvm.allCurrentOthers());
     //}
   }

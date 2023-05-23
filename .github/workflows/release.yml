@@ -8,6 +8,7 @@ on:
 jobs:
   call-build-electron:
     uses: ./.github/workflows/build-electron.yml
+    secrets: inherit
 
   # upload the artifacts
   upload-assets:

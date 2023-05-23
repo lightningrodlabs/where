@@ -5,7 +5,9 @@ import {ZomeName, FunctionName} from '@holochain/client';
 
 /** Array of all zome function names in "playset" */
 export const playsetFunctionNames: FunctionName[] = [
-	"entry_defs",
+	"entry_defs", 
+	"get_zome_info", 
+	"get_dna_info",
 	"export_piece",
 	"export_space",
 	"get_inventory",
@@ -26,7 +28,7 @@ export const playsetFunctionNames: FunctionName[] = [
 
 /** Generate tuple array of function names with given zomeName */
 export function generatePlaysetZomeFunctionsArray(zomeName: ZomeName): [ZomeName, FunctionName][] {
-   let fns: [ZomeName, FunctionName][] = [];
+   const fns: [ZomeName, FunctionName][] = [];
    for (const fn of playsetFunctionNames) {
       fns.push([zomeName, fn]);
    }

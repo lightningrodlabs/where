@@ -1,25 +1,31 @@
 import {html, css} from "lit";
-import { state } from "lit/decorators.js";
+import { state, customElement } from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
-import {Button, CircularProgress, Dialog} from "@scoped-elements/material-web";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
 import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
 import {
-  LudothequePage, LudothequeDvm, WherePage, WhereDvm,
-  DEFAULT_WHERE_DEF, EditProfile, WhereDashboard, MY_ELECTRON_API, IS_ELECTRON
+  LudothequeDvm, WhereDvm,
+  DEFAULT_WHERE_DEF, MY_ELECTRON_API, IS_ELECTRON
 } from "@where/elements";
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
 import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
-import {SlCard} from "@scoped-elements/shoelace";
 import {Inventory} from "@where/elements/dist/viewModels/playset.perspective";
+
+import {SlCard} from "@shoelace-style/shoelace";
+
+import "@material/mwc-circular-progress";
+import "@material/mwc-button";
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
 
 
 /**
  *
  */
 @localized()
+@customElement("where-app")
 export class WhereApp extends HappElement {
 
   @state() private _loaded = false;
@@ -47,8 +53,11 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, appId?: InstalledAppId) {
+  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId) {
     super(appWs? appWs : HC_APP_PORT, appId);
+    if (_canAuthorizeZfns == undefined) {
+      this._canAuthorizeZfns = true;
+    }
   }
 
 
@@ -77,16 +86,22 @@ export class WhereApp extends HappElement {
 
   /** */
   async hvmConstructed() {
-    console.log("hvmConstructed()")
+    console.log("hvmConstructed()", this._adminWs, this._canAuthorizeZfns)
     /** Authorize all zome calls */
-    if (!this._adminWs) {
+    if (!this._adminWs && this._canAuthorizeZfns) {
       this._adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
+      console.log("hvmConstructed() connect called", this._adminWs);
     }
-    if (this._adminWs) {
+    if (this._adminWs && this._canAuthorizeZfns) {
       await this.hvm.authorizeAllZomeCalls(this._adminWs);
       console.log("*** Zome call authorization complete");
     } else {
-      console.warn("No adminWebsocket provided (Zome call authorization done)")
+      if (!this._canAuthorizeZfns) {
+        console.warn("No adminWebsocket provided (Zome call authorization done)")
+      } else {
+        console.log("Zome call authorization done externally")
+
+      }
     }
     /** Send dnaHash to electron */
     if (IS_ELECTRON) {
@@ -316,20 +331,20 @@ export class WhereApp extends HappElement {
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "where-page": WherePage,
-      "mwc-circular-progress": CircularProgress,
-      "where-dashboard": WhereDashboard,
-      "ludotheque-page": LudothequePage,
-      "mwc-dialog": Dialog,
-      "mwc-button": Button,
-      "cell-context": CellContext,
-      "edit-profile": EditProfile,
-      'sl-card': SlCard,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "where-page": WherePage,
+  //     "mwc-circular-progress": CircularProgress,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-button": Button,
+  //     "where-dashboard": WhereDashboard,
+  //     "ludotheque-page": LudothequePage,
+  //     "cell-context": CellContext,
+  //     "edit-profile": EditProfile,
+  //     'sl-card': SlCard,
+  //   };
+  // }
 
 
   /** */

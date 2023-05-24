@@ -2,8 +2,6 @@ import {css, html, LitElement} from "lit";
 import {query, state, property} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Button, Dialog, Formfield, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import parser from "fast-xml-parser";
 import {prefix_canvas} from "../templates";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
@@ -11,6 +9,26 @@ import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import { localized, msg } from '@lit/localize';
 import {TemplateType} from "../viewModels/playset.perspective";
 import {Template} from "../bindings/playset.types";
+
+
+import "@material/mwc-circular-progress";
+import "@material/mwc-icon/mwc-icon";
+import "@material/mwc-list";
+import "@material/mwc-icon-button";
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-menu";
+import "@material/mwc-drawer";
+import "@material/mwc-textfield";
+import "@material/mwc-textarea";
+import "@material/mwc-dialog";
+import "@material/mwc-select";
+import "@material/mwc-button";
+import "@material/mwc-formfield";
+
+import {TextField} from "@material/mwc-textfield";
+import {TextArea} from "@material/mwc-textarea";
+import {Select} from "@material/mwc-select";
+import {Dialog} from "@material/mwc-dialog";
 
 
 /** */
@@ -39,7 +57,7 @@ function isValidXml(input: string) {
 
 /** @element where-template-dialog */
 @localized()
-export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
+export class WhereTemplateDialog extends LitElement {
 
   /** -- Fields -- */
 
@@ -282,17 +300,19 @@ export class WhereTemplateDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  static get scopedElements() {
-    return {
-      "mwc-select": Select,
-      "mwc-list-item": ListItem,
-      "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-textarea": TextArea,
-      "mwc-formfield": Formfield,
-    };
-  }
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-select": Select,
+  //     "mwc-list-item": ListItem,
+  //     "mwc-button": Button,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "mwc-textarea": TextArea,
+  //     "mwc-formfield": Formfield,
+  //   };
+  // }
+
+
   static get styles() {
     return [
       sharedStyles,

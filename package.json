@@ -95,9 +95,9 @@
     "typescript"              : "^4.9.0"
   },
   "dependencies"   : {
-    "@ddd-qc/cell-proxy": "0.14.2",
-    "@ddd-qc/lit-happ"  : "0.15.0",
-    "@holochain/client" : "0.12.0"
+    "@ddd-qc/cell-proxy": "0.17.0",
+    "@ddd-qc/lit-happ"  : "0.17.0",
+    "@holochain/client" : "0.14.1"
   },
   "engines": {
     "npm": ">=7.0.0"

@@ -180,22 +180,22 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       subMap,
     }});
 
-  subMap = new Map([["ImageUrl","https://i1.wp.com/www.pedrosolorzano.com/wp-content/uploads/2019/08/blobtreepedro.jpg"]]) as Map<string, string>;
-  await publishSpace( playsetZvm, {
-    name: "Blob Tree",
-    origin: mapEh,
-    surface: {
-      html: generate_surface(map2D_template_html, subMap),
-      size: {x: 650, y: 920},
-    },
-    maybeMarkerPiece: {emojiGroup: heartsEh},
-    meta: {
-      sessionCount: 0, canModifyPast: true, sessionLabels: [],
-      ui: [{box:{left:10,top:45,width:170,height:20},style:"padding:10px;background-color:#fffffffa;border-radius:10px;border:2px solid violet;font-size:large;",content:"How are you feeling?"}],
-      markerType: MarkerType.EmojiGroup, singleEmoji: "",
-      multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
-      subMap,
-    }});
+  // subMap = new Map([["ImageUrl","https://i1.wp.com/www.pedrosolorzano.com/wp-content/uploads/2019/08/blobtreepedro.jpg"]]) as Map<string, string>;
+  // await publishSpace( playsetZvm, {
+  //   name: "Blob Tree",
+  //   origin: mapEh,
+  //   surface: {
+  //     html: generate_surface(map2D_template_html, subMap),
+  //     size: {x: 650, y: 920},
+  //   },
+  //   maybeMarkerPiece: {emojiGroup: heartsEh},
+  //   meta: {
+  //     sessionCount: 0, canModifyPast: true, sessionLabels: [],
+  //     ui: [{box:{left:10,top:45,width:170,height:20},style:"padding:10px;background-color:#fffffffa;border-radius:10px;border:2px solid violet;font-size:large;",content:"How are you feeling?"}],
+  //     markerType: MarkerType.EmojiGroup, singleEmoji: "",
+  //     multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
+  //     subMap,
+  //   }});
 
   subMap = new Map([["ImageUrl","https://upload.wikimedia.org/wikipedia/commons/2/2c/Johari_Window.PNG"]]) as Map<string, string>;
   await publishSpace( playsetZvm, {

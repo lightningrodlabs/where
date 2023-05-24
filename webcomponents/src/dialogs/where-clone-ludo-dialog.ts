@@ -1,14 +1,18 @@
 import {html, css, LitElement} from "lit";
 import { state } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
-import {Dialog, Button, TextField} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
 
+
+import "@material/mwc-list";
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
+import "@material/mwc-textfield";
+import {TextField} from "@material/mwc-textfield";
 
 /** @element where-clone-ludo-dialog */
 @localized()
-export class WhereCloneLudoDialog extends ScopedElementsMixin(LitElement) {
+export class WhereCloneLudoDialog extends LitElement {
 
   private _uuid?: string;
 
@@ -161,14 +165,14 @@ export class WhereCloneLudoDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-button": Button,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "mwc-button": Button,
+  //   };
+  // }
 
 
   /** */

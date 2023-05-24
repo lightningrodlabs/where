@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
-    "target": "es2018",
-    "module": "esnext",
+    "target": "es2020",
+    "module": "es6",
     "moduleResolution": "node",
     "checkJs": false,
     "allowJs": true,
     "noEmitOnError": true,
-    "lib": ["es2017", "dom"],
+    "lib": ["es2020", "dom"],
     "strict": false,
-    "esModuleInterop": true,
+    "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
     "importHelpers": true,

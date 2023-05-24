@@ -1,12 +1,10 @@
 import {css, html} from "lit";
-import {property, query, state} from "lit/decorators.js";
+import {property, query, state, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
-import {Button, Dialog, TextField, Fab, Slider, Tab, TabBar, CircularProgress} from "@scoped-elements/material-web";
 import {unsafeSVG} from 'lit/directives/unsafe-svg.js';
 import {unsafeHTML} from 'lit/directives/unsafe-html.js';
 import 'emoji-picker-element';
-import {SlAvatar} from "@scoped-elements/shoelace";
 import {prefix_canvas} from "../templates";
 import {localized, msg} from '@lit/localize';
 import {Coord, LocationInfo, LocOptions, Play, WhereLocation, WherePerspective} from "../viewModels/where.perspective";
@@ -16,6 +14,33 @@ import {MarkerType} from "../viewModels/playset.perspective";
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
+
+import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlInput, SlTooltip} from "@shoelace-style/shoelace";
+
+import "@material/mwc-drawer";
+import "@material/mwc-top-app-bar";
+import "@material/mwc-menu";
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-list";
+import "@material/mwc-dialog";
+import "@material/mwc-slider";
+import "@material/mwc-switch";
+import "@material/mwc-select";
+import "@material/mwc-list/mwc-check-list-item";
+import "@material/mwc-icon";
+import "@material/mwc-formfield";
+import "@material/mwc-circular-progress";
+import "@material/mwc-icon-button";
+import "@material/mwc-top-app-bar-fixed";
+import "@material/mwc-button";
+import "@material/mwc-fab";
+import "@material/mwc-icon-button-toggle";
+import "@material/mwc-textfield";
+import "@material/mwc-tab-bar";
+import {TabBar} from "@material/mwc-tab-bar";
+import {TextField} from "@material/mwc-textfield";
+import {Fab} from "@material/mwc-fab";
+import {Dialog} from "@material/mwc-dialog";
 
 
 // // Canvas Animation experiment
@@ -42,6 +67,7 @@ import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 /** @element where-space */
 @localized()
+@customElement("where-space")
 export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   constructor() {
     super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
@@ -917,21 +943,21 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "sl-avatar": SlAvatar,
-      "mwc-slider": Slider,
-      "mwc-fab": Fab,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-button": Button,
-      "mwc-tab": Tab,
-      "mwc-tab-bar": TabBar,
-      "emoji-picker": customElements.get('emoji-picker'),
-      'mwc-circular-progress': CircularProgress,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "sl-avatar": SlAvatar,
+  //     "mwc-slider": Slider,
+  //     "mwc-fab": Fab,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "mwc-button": Button,
+  //     "mwc-tab": Tab,
+  //     "mwc-tab-bar": TabBar,
+  //     "emoji-picker": customElements.get('emoji-picker'),
+  //     'mwc-circular-progress': CircularProgress,
+  //   };
+  // }
 
 
   /** */

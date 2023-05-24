@@ -1,18 +1,21 @@
-import { ScopedElementsMixin } from '@open-wc/scoped-elements';
-import {
-  Button,
-  Fab,
-  IconButton,
-  TextField,
-} from '@scoped-elements/material-web';
-import {SlAvatar, SlColorPicker, SlRadio, SlRadioGroup} from '@scoped-elements/shoelace';
 import { html, css, LitElement } from 'lit';
-import { property, query, state } from 'lit/decorators.js';
+import { property, query, state, customElement } from 'lit/decorators.js';
 import { localized, msg, str } from '@lit/localize';
 import {WhereProfile} from "../viewModels/profiles.proxy";
 
+import "@material/mwc-textfield";
+import {TextField} from "@material/mwc-textfield";
+import "@material/mwc-button";
+import "@material/mwc-icon-button";
+import "@material/mwc-fab";
 
-// Crop the image and return a base64 bytes string of its content
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
+import "@shoelace-style/shoelace/dist/components/radio/radio.js"
+import "@shoelace-style/shoelace/dist/components/radio-group/radio-group.js"
+
+
+/** Crop the image and return a base64 bytes string of its content */
 export function resizeAndExport(img: HTMLImageElement) {
   const MAX_WIDTH = 300;
   const MAX_HEIGHT = 300;
@@ -44,12 +47,14 @@ export function resizeAndExport(img: HTMLImageElement) {
 }
 
 
+
 /**
  * @element edit-profile
  * @fires save-profile - Fired when the save profile button is clicked
  */
 @localized()
-export class EditProfile extends ScopedElementsMixin(LitElement) {
+@customElement("edit-profile")
+export class EditProfile extends LitElement {
 
   /**
    * The profile to be edited.
@@ -365,21 +370,6 @@ export class EditProfile extends ScopedElementsMixin(LitElement) {
     `;
   }
 
-  /**
-   * @ignore
-   */
-  static get scopedElements() {
-    return {
-      'mwc-textfield': TextField,
-      'mwc-button': Button,
-      'mwc-fab': Fab,
-      'mwc-icon-button': IconButton,
-      'sl-radio-group': SlRadioGroup,
-      'sl-radio': SlRadio,
-      'sl-avatar': SlAvatar,
-      'sl-color-picker': SlColorPicker,
-    };
-  }
 
   static styles = [css`
 

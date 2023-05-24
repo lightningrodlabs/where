@@ -7,37 +7,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
   <body style="margin:0px;background: #9bb791">
-    <div id="container"></div>
+    <!-- <div id="container"></div> -->
 
     <script type="module">
-      //import { ProfilesStore, ProfilesService } from "@holochain-open-dev/profiles";
-      //import { ProfilesZomeMock } from "@holochain-open-dev/profiles/mocks";
-      import { AppWebsocket, AdminWebsocket } from "@holochain/client";
+      import { AppAgentWebsocket } from '@holochain/client';
+      import { fakeEntryHash } from '@holochain-open-dev/utils';
+      import { ProfilesClient } from '@holochain-open-dev/profiles';
+      import { ProfilesZomeMock } from "@holochain-open-dev/profiles/dist/mocks.js";
+      import { weServicesMock } from "@lightningrodlabs/we-applet/dist/mocks.js";
+
       import Applet from "../dist";
 
-      const container = document.getElementById("container");
+      //const container = document.getElementById("container");
 
       /** */
       async function setup() {
         console.log("Index.html setup()", process.env.BUILD_MODE, process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT);
 
-        const appWs = await AppWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`);
-        const adminWs = await AdminWebsocket.connect(`ws://localhost:${process.env.HC_ADMIN_PORT}`);
+        const appWs = await AppAgentWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`, "where-applet");
+        //const appWs = await AppAgentWebsocket.connect(``, '');
 
-        const apps = await adminWs.listApps({});
-        console.log("setup() apps", apps);
+        //const adminWs = await AdminWebsocket.connect(`ws://localhost:${process.env.HC_ADMIN_PORT}`);
+        // const apps = await adminWs.listApps({});
+        // console.log("setup() apps", apps);
 
         const appInfo = await appWs.appInfo({installed_app_id: "where-applet"});
         console.log("setup() appInfo", appInfo);
+        console.log("setup() Applet", Applet);
 
-        const renderers = await Applet.appletRenderers(
+        const renderers = await Applet.appletViews(
           appWs,
-          adminWs,
-          {},
-          [{ weInfo: { name: "Demo We Group", logoSrc: ""}, installedAppInfo: appInfo}]
+                fakeEntryHash(), //adminWs,
+                new ProfilesClient(new ProfilesZomeMock()),
+                weServicesMock, // [{ weInfo: { name: "Demo We Group", logoSrc: ""}, installedAppInfo: appInfo}]
         );
-        renderers.full(container, window.customElements);
+        renderers.main(document.body); // container, window.customElements
       }
+
       setup();
     </script>
   </body>

@@ -40,7 +40,7 @@ export default {
       browser: true,
       preferBuiltins: false,
     }),
-    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    //typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     //builtins(),
     //globals(),
     /** Minify JS */

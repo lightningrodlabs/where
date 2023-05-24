@@ -1,14 +1,16 @@
-import { state, property } from "lit/decorators.js";
+import { state, property, customElement } from "lit/decorators.js";
 import { html } from "lit";
 import {cellContext, HappElement} from "@ddd-qc/lit-happ";
-import {DEFAULT_LUDOTHEQUE_DEF, DEFAULT_WHERE_DEF, LudothequeDvm, LudothequePage, WhereDvm} from "@where/elements";
+import {DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId} from "@holochain/client";
-import {setLocale} from "@where/app";
+
+
+
 
 /** Localization */
-
+//import {setLocale} from "@where/app";
 //setLocale('fr-fr');
 
 
@@ -45,6 +47,7 @@ console.log("HC_ADMIN_PORT", HC_ADMIN_PORT);
 /**
  *
  */
+@customElement("ludotheque-standalone-app")
 export class LudothequeStandaloneApp extends HappElement {
 
   /** Ctor */
@@ -116,11 +119,4 @@ export class LudothequeStandaloneApp extends HappElement {
     console.log("handleImportRequest() : " + JSON.stringify(e.detail))
   }
 
-
-  /** */
-  static get scopedElements() {
-    return {
-      "ludotheque-page": LudothequePage,
-    };
-  }
 }

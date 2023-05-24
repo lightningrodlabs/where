@@ -1,13 +1,24 @@
 import {css, html} from "lit";
 import {query, state, property} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {Button, Dialog, IconButton, ListItem, Select, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {localized, msg} from '@lit/localize';
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {PlaysetPerspective} from "../viewModels/playset.perspective";
 import {ZomeElement} from "@ddd-qc/lit-happ";
 import {EmojiGroup} from "../bindings/playset.types";
+
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
+import "@material/mwc-button";
+import "@material/mwc-textfield";
+import "@material/mwc-icon-button";
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-select";
+import "@material/mwc-button";
+import "@material/mwc-icon-button";
+import "@material/mwc-textfield";
+import {TextField} from "@material/mwc-textfield";
 
 
 /** @element where-emoji-group */
@@ -193,18 +204,18 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "mwc-select": Select,
-      "mwc-list-item": ListItem,
-      "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "emoji-picker": customElements.get('emoji-picker'),
-      "mwc-icon-button": IconButton,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-select": Select,
+  //     "mwc-list-item": ListItem,
+  //     "mwc-button": Button,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "emoji-picker": customElements.get('emoji-picker'),
+  //     "mwc-icon-button": IconButton,
+  //   };
+  // }
 
 //--font-family: "Apple SvgMarker AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto SvgMarker AnyEmoji","EmojiOne SvgMarker","Android AnyEmoji",sans-serif
 

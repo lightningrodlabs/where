@@ -1,15 +1,8 @@
 import {css, html} from "lit";
-import {property, state} from "lit/decorators.js";
+import {property, state, customElement} from "lit/decorators.js";
 
 import randomColor from "randomcolor";
 import {sharedStyles} from "../sharedStyles";
-import {SlAvatar, SlBadge, SlColorPicker, SlTooltip} from '@scoped-elements/shoelace';
-import {
-  Button, Dialog, Drawer, Fab, Formfield,
-  Icon, IconButton, IconButtonToggle,
-  List, ListItem, Menu, Select,
-  Slider, Switch, TextField, TopAppBar,
-} from "@scoped-elements/material-web";
 
 import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
@@ -34,6 +27,33 @@ import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 import {IS_DEV} from "../globals";
 import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 
+import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlTooltip} from "@shoelace-style/shoelace";
+
+import "@material/mwc-drawer";
+import {Drawer} from "@material/mwc-drawer";
+import "@material/mwc-top-app-bar";
+import {TopAppBar} from "@material/mwc-top-app-bar";
+import "@material/mwc-menu";
+import {Menu} from "@material/mwc-menu";
+import "@material/mwc-list/mwc-list-item";
+import {ListItem} from "@material/mwc-list/mwc-list-item";
+import "@material/mwc-list";
+import {List} from "@material/mwc-list";
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
+import "@material/mwc-slider";
+import "@material/mwc-switch";
+import "@material/mwc-select";
+import "@material/mwc-list/mwc-check-list-item";
+import "@material/mwc-icon";
+import "@material/mwc-formfield";
+import "@material/mwc-circular-progress";
+import {IconButton} from "@material/mwc-icon-button";
+import "@material/mwc-top-app-bar-fixed";
+import "@material/mwc-button";
+import "@material/mwc-fab";
+import "@material/mwc-icon-button-toggle";
+import "@material/mwc-textfield";
 
 
 /** Styles for top-app-bar */
@@ -54,6 +74,7 @@ tmpl.innerHTML = `
 
 /** @element where-page */
 @localized()
+@customElement("where-page")
 export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
     super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
@@ -927,37 +948,37 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 `;
   }
 
-  /** */
-  static get scopedElements() {
-    return {
-      "mwc-button": Button,
-      "mwc-icon": Icon,
-      "mwc-icon-button": IconButton,
-      "mwc-icon-button-toggle": IconButtonToggle,
-      "mwc-drawer": Drawer,
-      "mwc-top-app-bar": TopAppBar,
-      "mwc-textfield": TextField,
-      "mwc-select": Select,
-      "mwc-list": List,
-      "mwc-fab": Fab,
-      "mwc-list-item": ListItem,
-      "mwc-menu": Menu,
-      "mwc-slider": Slider,
-      "mwc-switch": Switch,
-      "where-clone-ludo-dialog": WhereLudoDialog,
-      "where-play-dialog" : WherePlayDialog,
-      "where-template-dialog" : WhereTemplateDialog,
-      "where-archive-dialog" : WhereArchiveDialog,
-      "where-play-info-dialog" : WherePlayInfoDialog,
-      "where-space": WhereSpace,
-      "where-peer-list": WherePeerList,
-      "mwc-formfield": Formfield,
-      'sl-avatar': SlAvatar,
-      'sl-tooltip': SlTooltip,
-      'sl-color-picker': SlColorPicker,
-      'sl-badge': SlBadge,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-button": Button,
+  //     "mwc-icon": Icon,
+  //     "mwc-icon-button": IconButton,
+  //     "mwc-icon-button-toggle": IconButtonToggle,
+  //     "mwc-drawer": Drawer,
+  //     "mwc-top-app-bar": TopAppBar,
+  //     "mwc-textfield": TextField,
+  //     "mwc-select": Select,
+  //     "mwc-list": List,
+  //     "mwc-fab": Fab,
+  //     "mwc-list-item": ListItem,
+  //     "mwc-menu": Menu,
+  //     "mwc-slider": Slider,
+  //     "mwc-switch": Switch,
+  //     "where-clone-ludo-dialog": WhereLudoDialog,
+  //     "where-play-dialog" : WherePlayDialog,
+  //     "where-template-dialog" : WhereTemplateDialog,
+  //     "where-archive-dialog" : WhereArchiveDialog,
+  //     "where-play-info-dialog" : WherePlayInfoDialog,
+  //     "where-space": WhereSpace,
+  //     "where-peer-list": WherePeerList,
+  //     "mwc-formfield": Formfield,
+  //     'sl-avatar': SlAvatar,
+  //     'sl-tooltip': SlTooltip,
+  //     'sl-color-picker': SlColorPicker,
+  //     'sl-badge': SlBadge,
+  //   };
+  // }
 
   /** */
   static get styles() {

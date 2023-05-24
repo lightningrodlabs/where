@@ -2,16 +2,26 @@ import {css, html, LitElement} from "lit";
 import {query, state} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Button, Dialog, Formfield, ListItem, TextArea, TextField} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
 import {Coord} from "../viewModels/where.perspective";
 import {Playset} from "../bindings/ludotheque.types";
 
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-button";
+import "@material/mwc-formfield";
+import "@material/mwc-textarea";
+import "@material/mwc-textarea";
+import "@material/mwc-dialog";
+
+import {TextField} from "@material/mwc-textfield";
+import {TextArea} from "@material/mwc-textarea";
+import {Dialog} from "@material/mwc-dialog";
+
+
 
 /** @element where-playset-dialog */
 @localized()
-export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
+export class WherePlaysetDialog extends LitElement {
 
   @state() size : Coord = {x:0,y:0};
 
@@ -116,17 +126,17 @@ export class WherePlaysetDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "mwc-list-item": ListItem,
-      "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-textarea": TextArea,
-      "mwc-formfield": Formfield,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-list-item": ListItem,
+  //     "mwc-button": Button,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "mwc-textarea": TextArea,
+  //     "mwc-formfield": Formfield,
+  //   };
+  // }
 
   /** */
   static get styles() {

@@ -2,12 +2,10 @@ import {css, html} from "lit";
 import {property, query, state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {EMOJI_WIDTH, renderMarker, renderMarkerTypePreview, renderSvgMarker, renderUiItems} from "../sharedRender";
-import {Button, Checkbox, Dialog, Formfield, IconButton, ListItem, Radio, Select, Tab, TabBar,
-  TextArea, TextField
-} from "@scoped-elements/material-web";
+
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
-import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@scoped-elements/shoelace";
+
 import {prefix_canvas} from "../templates";
 import {WhereEmojiGroupDialog} from "./where-emoji-group-dialog";
 import {WhereEmojiDialog} from "./where-emoji-dialog";
@@ -24,6 +22,29 @@ import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {EntryHashB64} from "@holochain/client";
+
+import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@shoelace-style/shoelace";
+
+import "@material/mwc-select";
+import "@material/mwc-checkbox";
+import "@material/mwc-textarea";
+import "@material/mwc-formfield";
+import "@material/mwc-radio";
+import "@material/mwc-dialog";
+import "@material/mwc-textfield";
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-button";
+import "@material/mwc-icon-button";
+import "@material/mwc-tab";
+import "@material/mwc-tab-bar";
+
+import {Select} from "@material/mwc-select";
+import {Checkbox} from "@material/mwc-checkbox";
+import {TextArea} from "@material/mwc-textarea";
+import {Formfield} from "@material/mwc-formfield";
+import {Radio} from "@material/mwc-radio";
+import {Dialog} from "@material/mwc-dialog";
+import {TextField} from "@material/mwc-textfield";
 
 
 /**
@@ -371,7 +392,8 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
     // set first tab
     let tabGroup = this.shadowRoot!.getElementById("space-tab-group") as SlTabGroup;
-    tabGroup.setActiveTab(generalTab);
+    //tabGroup.setActiveTab(generalTab);
+    tabGroup.show("general-tab"); // FIXME might not work
 
     if (canResetName === undefined || canResetName) this._nameField.value = ''
     this._currentMeta = defaultSpaceMeta()
@@ -995,31 +1017,31 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     svgMarkerField.select(svgMarkerField.children.length - 1);
   }
 
-  /** */
-  static get scopedElements() {
-    return {
-      'sl-avatar': SlAvatar,
-      'sl-tab-group': SlTabGroup,
-      'sl-tab': SlTab,
-      'sl-tab-panel': SlTabPanel,
-      "mwc-select": Select,
-      "mwc-list-item": ListItem,
-      "mwc-button": Button,
-      "mwc-icon-button": IconButton,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-textarea": TextArea,
-      "mwc-formfield": Formfield,
-      "mwc-checkbox": Checkbox,
-      "mwc-radio": Radio,
-      "mwc-tab": Tab,
-      "mwc-tab-bar": TabBar,
-      "where-emoji-group-dialog" : WhereEmojiGroupDialog,
-      "where-emoji-dialog" : WhereEmojiDialog,
-      "where-svg-marker-dialog" : WhereSvgMarkerDialog,
-      "emoji-picker": customElements.get('emoji-picker'),
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     'sl-avatar': SlAvatar,
+  //     'sl-tab-group': SlTabGroup,
+  //     'sl-tab': SlTab,
+  //     'sl-tab-panel': SlTabPanel,
+  //     "mwc-select": Select,
+  //     "mwc-list-item": ListItem,
+  //     "mwc-button": Button,
+  //     "mwc-icon-button": IconButton,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "mwc-textarea": TextArea,
+  //     "mwc-formfield": Formfield,
+  //     "mwc-checkbox": Checkbox,
+  //     "mwc-radio": Radio,
+  //     "mwc-tab": Tab,
+  //     "mwc-tab-bar": TabBar,
+  //     "where-emoji-group-dialog" : WhereEmojiGroupDialog,
+  //     "where-emoji-dialog" : WhereEmojiDialog,
+  //     "where-svg-marker-dialog" : WhereSvgMarkerDialog,
+  //     "emoji-picker": customElements.get('emoji-picker'),
+  //   };
+  // }
 
   /** */
   static get styles() {

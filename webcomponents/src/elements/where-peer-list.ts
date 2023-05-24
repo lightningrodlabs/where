@@ -1,13 +1,6 @@
 import { html, css } from "lit";
-import { property, state } from "lit/decorators.js";
+import { property, state, customElement } from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
-import {SlAvatar, SlBadge, SlInput, SlTooltip} from '@scoped-elements/shoelace';
-import {
-  ListItem,
-  Select,
-  IconButton,
-  Button, TextField, List, Icon, Switch, Slider, Menu, IconButtonToggle, CircularProgress,
-} from "@scoped-elements/material-web";
 
 import { sharedStyles } from "../sharedStyles";
 import {MARKER_WIDTH} from "../sharedRender";
@@ -19,9 +12,35 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 import {AgentPubKeyB64, decodeHashFromBase64} from "@holochain/client";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 
+import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlInput, SlTooltip} from "@shoelace-style/shoelace";
+
+import {TextField} from "@material/mwc-textfield";
+
+import "@material/mwc-drawer";
+import "@material/mwc-top-app-bar";
+import "@material/mwc-menu";
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-list";
+import "@material/mwc-dialog";
+import "@material/mwc-slider";
+import "@material/mwc-switch";
+import "@material/mwc-select";
+import "@material/mwc-list/mwc-check-list-item";
+import "@material/mwc-icon";
+import "@material/mwc-formfield";
+import "@material/mwc-circular-progress";
+import "@material/mwc-icon-button";
+import "@material/mwc-top-app-bar-fixed";
+import "@material/mwc-button";
+import "@material/mwc-fab";
+import "@material/mwc-icon-button-toggle";
+import "@material/mwc-textfield";
+
+
 
 /** @element where-peer-list */
 @localized()
+@customElement("where-peer-list")
 export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
     super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
@@ -217,27 +236,27 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      'mwc-circular-progress': CircularProgress,
-      "mwc-menu": Menu,
-      "mwc-slider": Slider,
-      "mwc-switch": Switch,
-      "mwc-textfield": TextField,
-      "mwc-select": Select,
-      "mwc-list": List,
-      "mwc-list-item": ListItem,
-      "mwc-icon": Icon,
-      "mwc-icon-button": IconButton,
-      "mwc-icon-button-toggle": IconButtonToggle,
-      "mwc-button": Button,
-      'sl-avatar': SlAvatar,
-      'sl-tooltip': SlTooltip,
-      'sl-badge': SlBadge,
-      'sl-input': SlInput,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     'mwc-circular-progress': CircularProgress,
+  //     "mwc-menu": Menu,
+  //     "mwc-slider": Slider,
+  //     "mwc-switch": Switch,
+  //     "mwc-textfield": TextField,
+  //     "mwc-select": Select,
+  //     "mwc-list": List,
+  //     "mwc-list-item": ListItem,
+  //     "mwc-icon": Icon,
+  //     "mwc-icon-button": IconButton,
+  //     "mwc-icon-button-toggle": IconButtonToggle,
+  //     "mwc-button": Button,
+  //     'sl-avatar': SlAvatar,
+  //     'sl-tooltip': SlTooltip,
+  //     'sl-badge': SlBadge,
+  //     'sl-input': SlInput,
+  //   };
+  // }
 
 
   /** */

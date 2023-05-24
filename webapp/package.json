@@ -35,11 +35,13 @@
   "dependencies": {
     "@holochain-open-dev/core-types": "0.6.3",
     "@where/elements": "file:../webcomponents",
-    "@open-wc/scoped-elements": "^2.1.1",
-    "@scoped-elements/shoelace": "0.0.8",
-    "@scoped-elements/material-web": "^0.0.19",
-    "@lit-labs/context": "^0.1.2",
+    "@material/mwc-button": "^0.25.3",
+    "@material/mwc-circular-progress": "^0.25.3",
+    "@material/mwc-circular-progress-four-color": "^0.25.3",
+    "@material/mwc-dialog": "^0.25.3",
+    "@shoelace-style/shoelace": "^2.3.0",
+    "@lit-labs/context": "0.2.0",
     "@lit/localize": "^0.11.2",
-    "lit": "^2.3.0"
+    "lit": "2.6.0"
   }
 }

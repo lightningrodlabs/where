@@ -2,17 +2,26 @@ import {css, html, LitElement} from "lit";
 import {query, state, property} from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Button, Dialog, IconButton, ListItem, Select, TextArea, TextField} from "@scoped-elements/material-web";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
 import {SvgMarker} from "../bindings/playset.types";
+
+import "@material/mwc-textfield";
+import "@material/mwc-textarea";
+import "@material/mwc-dialog";
+import {TextField} from "@material/mwc-textfield";
+import {TextArea} from "@material/mwc-textarea";
+import {Dialog} from "@material/mwc-dialog";
+import "@material/mwc-select";
+import "@scoped-elements/material-web";
+import "@material/mwc-button";
+import "@material/mwc-icon-button";
 
 
 /**
  * @element where-svg-marker-dialog
  */
 @localized()
-export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
+export class WhereSvgMarkerDialog extends LitElement {
 
   @state() private _currentSvg: string = "";
 
@@ -163,18 +172,18 @@ export class WhereSvgMarkerDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "mwc-select": Select,
-      "mwc-list-item": ListItem,
-      "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "mwc-icon-button": IconButton,
-      "mwc-textarea": TextArea,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-select": Select,
+  //     "mwc-list-item": ListItem,
+  //     "mwc-button": Button,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "mwc-icon-button": IconButton,
+  //     "mwc-textarea": TextArea,
+  //   };
+  // }
 
 
   /** */

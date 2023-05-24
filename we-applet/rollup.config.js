@@ -31,12 +31,13 @@ export default {
     copy({
       targets: [{ src: "icon.png", dest: DIST_FOLDER }],
     }),
+    // FIXME: removed because of ed25519 issue
     /** Resolve bare module imports */
     nodeResolve({
       browser: true,
       preferBuiltins: false,
     }),
-    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    //typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     //builtins(),
     //globals(),
     /** Minify JS */

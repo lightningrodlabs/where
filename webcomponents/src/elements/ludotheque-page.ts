@@ -1,29 +1,59 @@
 import {css, html} from "lit";
-import {property, state} from "lit/decorators.js";
+import {property, state, customElement} from "lit/decorators.js";
+import { localized, msg } from '@lit/localize';
+import {CellId, encodeHashToBase64, EntryHashB64} from "@holochain/client";
+
 import {sharedStyles} from "../sharedStyles";
-import {WhereSpace} from "./where-space";
-import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
-import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
-import {SlCard, SlRating, SlTab, SlTabGroup, SlTabPanel, SlTooltip} from '@scoped-elements/shoelace';
-import {
-  Button, CheckListItem, CircularProgress, Dialog, Drawer, Formfield, Icon, IconButton, List, ListItem, Menu, Select,
-  Slider, Switch, TextField, TopAppBar,
-} from "@scoped-elements/material-web";
 import {renderSurface, renderSvgMarker} from "../sharedRender";
 import {publishExamplePlayset} from "../examples";
-import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
-import {CellId, encodeHashToBase64, EntryHashB64} from "@holochain/client";
-import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
-import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
-import { localized, msg } from '@lit/localize';
 import {LudothequePerspective} from "../viewModels/ludotheque.zvm";
 import {Playset} from "../bindings/ludotheque.types";
 import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
-import {PlaysetEntry, PlaysetEntryType} from "../bindings/playset.types";
+import {PlaysetEntryType} from "../bindings/playset.types";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
 import {delay, DnaElement} from "@ddd-qc/lit-happ";
 import {IS_DEV} from "../globals";
+
+import {WhereSpace} from "./where-space";
+import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
+import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
+import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
+import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
+import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
+
+import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
+import "@shoelace-style/shoelace/dist/components/spinner/spinner.js";
+import "@shoelace-style/shoelace/dist/components/input/input.js";
+
+import "@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js";
+import SlTabGroup from "@shoelace-style/shoelace/dist/components/tab-group/tab-group.js";
+import "@shoelace-style/shoelace/dist/components/tab/tab.js";
+import "@shoelace-style/shoelace/dist/components/card/card.js";
+import "@shoelace-style/shoelace/dist/components/rating/rating.js";
+
+import "@material/mwc-circular-progress";
+import "@material/mwc-icon/mwc-icon";
+import "@material/mwc-list";
+import "@material/mwc-icon-button";
+import "@material/mwc-dialog";
+import "@material/mwc-list";
+import "@material/mwc-list/mwc-list-item";
+import "@material/mwc-menu";
+import "@material/mwc-top-app-bar";
+import "@material/mwc-drawer";
+import "@material/mwc-icon/mwc-icon";
+
+import {Drawer} from "@material/mwc-drawer";
+import {TopAppBar} from "@material/mwc-top-app-bar";
+import {Menu} from "@material/mwc-menu";
+import {ListItem} from "@material/mwc-list/mwc-list-item";
+import {List} from "@material/mwc-list";
+import {Dialog} from "@material/mwc-dialog";
+import {IconButton} from "@material/mwc-icon-button";
+
+
+
 
 /** Styles for top-app-bar */
 const tmpl = document.createElement('template');
@@ -43,6 +73,7 @@ tmpl.innerHTML = `
  * @element ludotheque-page
  */
 @localized()
+@customElement("ludotheque-page")
 export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   constructor() {
     super(LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
@@ -99,12 +130,12 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
-  get drawerElem() : Drawer {
-    return this.shadowRoot!.getElementById("playset-drawer") as Drawer;
-  }
-
   get spaceElem(): WhereSpace {
     return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+  }
+
+  get drawerElem() : Drawer {
+    return this.shadowRoot!.getElementById("playset-drawer") as Drawer;
   }
 
   get tabElem(): SlTabGroup {
@@ -126,7 +157,11 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     await this.init();
     /** add custom styles to TopAppBar */
     const topBar = this.shadowRoot!.getElementById("app-bar") as TopAppBar;
-    topBar.shadowRoot!.appendChild(tmpl.content.cloneNode(true));
+    if (topBar && topBar.shadowRoot) {
+      topBar.shadowRoot.appendChild(tmpl.content.cloneNode(true));
+    } else {
+      console.warn("TopAppBar not found")
+    }
   }
 
 
@@ -498,7 +533,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   handleViewArchiveSwitch(e: any) {
     // console.log("handleViewArchiveSwitch: " + e.originalTarget.checked)
     // this.canViewArchive = e.originalTarget.checked;
-    // this.requestUpdate()
+    // this.requestUpdate();
   }
 
 
@@ -710,7 +745,10 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     if (!this._initialized) {
       return html`
         <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
-          <mwc-circular-progress indeterminate></mwc-circular-progress>
+          <!-- <mwc-circular-progress indeterminate></mwc-circular-progress> -->
+          <sl-tooltip content="${msg('Share Library')}"  placement="bottom-end" distance="4">
+            <sl-spinner style="font-size: 3rem;"></sl-spinner>
+          </sl-tooltip>
         </div>
       `;
     }
@@ -878,53 +916,11 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   }
 
   async openPlaysetDialog(eh?: any) {
+    console.log("openPlaysetDialog()", this.playsetDialogElem);
     this.playsetDialogElem.clearAllFields();
     this.playsetDialogElem.open(eh);
   }
 
-  // private async handleTabSelected(e: any) {
-  //   console.log("handleTabSelected: " + e.detail)
-  //   this._activeIndex = e.detail.index;
-  //   //const selectedSessionEh = this._sessions[e.detail.index];
-  //   //this._store.updateCurrentSession(this.currentSpaceEh!, selectedSessionEh);
-  //   this.requestUpdate();
-  // }
-
-
-  static get scopedElements() {
-    return {
-      "mwc-menu": Menu,
-      "mwc-slider": Slider,
-      "mwc-switch": Switch,
-      "mwc-drawer": Drawer,
-      "mwc-top-app-bar": TopAppBar,
-      "mwc-textfield": TextField,
-      "mwc-select": Select,
-      "mwc-list": List,
-      "mwc-list-item": ListItem,
-      "mwc-check-list-item": CheckListItem,
-      "mwc-icon": Icon,
-      "mwc-icon-button": IconButton,
-      "mwc-button": Button,
-      "sl-card": SlCard,
-      //"sl-icon": SlIcon,
-      //"sl-icon-button": SlIconButton,
-      //"sl-button": SlButton,
-      "sl-rating": SlRating,
-      'sl-tab-group': SlTabGroup,
-      'sl-tab': SlTab,
-      'sl-tab-panel': SlTabPanel,
-      "where-playset-dialog" : WherePlaysetDialog,
-      "where-template-dialog" : WhereTemplateDialog,
-      "where-svg-marker-dialog" : WhereSvgMarkerDialog,
-      "where-emoji-group-dialog" : WhereEmojiGroupDialog,
-      "where-space-dialog" : WhereSpaceDialog,
-      "where-space": WhereSpace,
-      "mwc-formfield": Formfield,
-      'sl-tooltip': SlTooltip,
-      "mwc-circular-progress": CircularProgress,
-    };
-  }
 
   static get styles() {
     return [

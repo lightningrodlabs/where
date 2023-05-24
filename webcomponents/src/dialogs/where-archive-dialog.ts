@@ -1,11 +1,14 @@
 import { html, css } from "lit";
 import { state, query } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
-import {Dialog, Button, CheckListItem, List} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 
+import "@material/mwc-list";
+import {List} from "@material/mwc-list";
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
 
 /** @element where-archive-dialog */
 @localized()
@@ -84,15 +87,15 @@ export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm
   }
 
 
-  /** */
-  static get scopedElements() {
-    return {
-      "mwc-dialog": Dialog,
-      "mwc-check-list-item": CheckListItem,
-      "mwc-list": List,
-      "mwc-button": Button,
-    };
-  }
+  // /** */
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-dialog": Dialog,
+  //     "mwc-check-list-item": CheckListItem,
+  //     "mwc-list": List,
+  //     "mwc-button": Button,
+  //   };
+  // }
 
 
   /** */

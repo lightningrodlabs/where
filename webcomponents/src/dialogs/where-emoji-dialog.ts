@@ -1,17 +1,22 @@
 import {css, html, LitElement} from "lit";
 import {state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {ScopedElementsMixin} from "@open-wc/scoped-elements";
-import {Button, Dialog, IconButton, TextField} from "@scoped-elements/material-web";
 import {Picker} from "emoji-picker-element";
 import {EMOJI_WIDTH} from "../sharedRender";
 import { localized, msg } from '@lit/localize';
+
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
+import "@material/mwc-button";
+import "@material/mwc-textfield";
+import "@material/mwc-icon-button";
+
 
 /**
  * @element where-emoji-dialog
  */
 @localized()
-export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
+export class WhereEmojiDialog extends LitElement {
 
   @state() private _currentEmoji: string = '';
   private _emojiToPreload?: string;
@@ -110,15 +115,15 @@ export class WhereEmojiDialog extends ScopedElementsMixin(LitElement) {
   }
 
 
-  static get scopedElements() {
-    return {
-      "mwc-button": Button,
-      "mwc-dialog": Dialog,
-      "mwc-textfield": TextField,
-      "emoji-picker": customElements.get('emoji-picker'),
-      "mwc-icon-button": IconButton,
-    };
-  }
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-button": Button,
+  //     "mwc-dialog": Dialog,
+  //     "mwc-textfield": TextField,
+  //     "emoji-picker": customElements.get('emoji-picker'),
+  //     "mwc-icon-button": IconButton,
+  //   };
+  // }
 
 
   static get styles() {

@@ -1,15 +1,19 @@
 import {css, html, LitElement} from "lit";
 import {state} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
-import {Button, Dialog} from "@scoped-elements/material-web";
 import { localized, msg } from '@lit/localize';
 import {Play} from "../viewModels/where.perspective";
 import {MarkerPiece, MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg, Template} from "../bindings/playset.types";
 import {MarkerType, markerTypeNames, SpaceMeta} from "../viewModels/playset.perspective";
-import {getInitials, renderMarker, renderMarkerTypePreview, renderSvgMarker} from "../sharedRender";
+import {getInitials, renderSvgMarker} from "../sharedRender";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
+
+
+import "@material/mwc-button";
+import "@material/mwc-dialog";
+import {Dialog} from "@material/mwc-dialog";
 
 
 /**
@@ -145,12 +149,12 @@ export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDv
   }
 
 
-  static get scopedElements() {
-    return {
-      "mwc-dialog": Dialog,
-      "mwc-button": Button,
-    };
-  }
+  // static get scopedElements() {
+  //   return {
+  //     "mwc-dialog": Dialog,
+  //     "mwc-button": Button,
+  //   };
+  // }
 
 
   static get styles() {

@@ -2,16 +2,20 @@
 <html lang="en-GB">
   <head>
     <meta charset="utf-8" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
+    <!-- <link rel="stylesheet" href="/shoelace/dist/themes/light.css" /> -->
     <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
       rel="stylesheet"
+      media="(prefers-color-scheme:light)"
+      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.4.0/dist/themes/light.css"
     />
   </head>
   <body style="margin:0px;">
     <where-app></where-app>
     <script type="module">
       import { WhereApp } from "./";
-      customElements.define("where-app", WhereApp);
+      //import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
+      //setBasePath('shoelace');
     </script>
   </body>
 </html>

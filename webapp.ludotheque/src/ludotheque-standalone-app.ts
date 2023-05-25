@@ -7,8 +7,6 @@ import {ContextProvider} from "@lit-labs/context";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId} from "@holochain/client";
 
 
-
-
 /** Localization */
 //import {setLocale} from "@where/app";
 //setLocale('fr-fr');

@@ -1,5 +1,5 @@
 import {css, html, LitElement} from "lit";
-import {query, state, property} from "lit/decorators.js";
+import {query, state, property, customElement} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
 import parser from "fast-xml-parser";
@@ -55,8 +55,11 @@ function isValidXml(input: string) {
 }
 
 
-/** @element where-template-dialog */
+/**
+ * @element
+ */
 @localized()
+@customElement("where-template-dialog")
 export class WhereTemplateDialog extends LitElement {
 
   /** -- Fields -- */

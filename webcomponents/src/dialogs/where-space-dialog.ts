@@ -1,5 +1,5 @@
 import {css, html} from "lit";
-import {query, state} from "lit/decorators.js";
+import {query, state, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {EMOJI_WIDTH, renderMarker, renderSvgMarker, renderUiItems} from "../sharedRender";
 import {unsafeHTML} from "lit/directives/unsafe-html.js";
@@ -20,7 +20,12 @@ import {ZomeElement} from "@ddd-qc/lit-happ";
 import {defaultLocationMeta, LocationMeta} from "../viewModels/where.perspective";
 import {EntryHashB64} from "@holochain/client";
 
-import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@shoelace-style/shoelace";
+import {SlTab, SlTabGroup} from "@shoelace-style/shoelace";
+
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/tab/tab.js";
+import "@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js";
+import "@shoelace-style/shoelace/dist/components/tab-group/tab-group.js";
 
 import "@material/mwc-textfield";
 import "@material/mwc-select";
@@ -29,7 +34,6 @@ import "@material/mwc-checkbox";
 import "@material/mwc-formfield";
 import "@material/mwc-dialog";
 import "@material/mwc-radio";
-import "@scoped-elements/material-web";
 import "@material/mwc-button";
 import "@material/mwc-icon-button";
 import "@material/mwc-tab";
@@ -47,6 +51,7 @@ import {Radio} from "@material/mwc-radio";
  * @element where-space-dialog
  */
 @localized()
+@customElement("where-space-dialog")
 export class WhereSpaceDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
     super(PlaysetZvm.DEFAULT_ZOME_NAME);

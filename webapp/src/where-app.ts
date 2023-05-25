@@ -13,7 +13,7 @@ import {setLocale} from "./localization";
 import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
 import {Inventory} from "@where/elements/dist/viewModels/playset.perspective";
 
-import {SlCard} from "@shoelace-style/shoelace";
+import "@shoelace-style/shoelace/dist/components/card/card.js";
 
 import "@material/mwc-circular-progress";
 import "@material/mwc-button";

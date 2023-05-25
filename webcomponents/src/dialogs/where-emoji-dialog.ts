@@ -1,5 +1,5 @@
 import {css, html, LitElement} from "lit";
-import {state} from "lit/decorators.js";
+import {state, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {Picker} from "emoji-picker-element";
 import {EMOJI_WIDTH} from "../sharedRender";
@@ -13,9 +13,10 @@ import "@material/mwc-icon-button";
 
 
 /**
- * @element where-emoji-dialog
+ * @element
  */
 @localized()
+@customElement("where-emoji-dialog")
 export class WhereEmojiDialog extends LitElement {
 
   @state() private _currentEmoji: string = '';

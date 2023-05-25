@@ -29,7 +29,11 @@ import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 import {SignalPayload} from "../bindings/where.types";
 import {IS_DEV} from "../globals";
 
-import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlTooltip} from "@shoelace-style/shoelace";
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/badge/badge.js"
+import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
+import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
+import "@shoelace-style/shoelace/dist/components/card/card.js";
 
 import "@material/mwc-drawer";
 import "@material/mwc-top-app-bar";

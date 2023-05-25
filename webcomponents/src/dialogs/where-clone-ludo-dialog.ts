@@ -1,5 +1,5 @@
 import {html, css, LitElement} from "lit";
-import { state } from "lit/decorators.js";
+import { state, customElement } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
 import { localized, msg } from '@lit/localize';
 
@@ -10,8 +10,12 @@ import {Dialog} from "@material/mwc-dialog";
 import "@material/mwc-textfield";
 import {TextField} from "@material/mwc-textfield";
 
-/** @element where-clone-ludo-dialog */
+
+/**
+ * @element
+ */
 @localized()
+@customElement("where-clone-ludo-dialog")
 export class WhereCloneLudoDialog extends LitElement {
 
   private _uuid?: string;

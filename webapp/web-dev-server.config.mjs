@@ -3,11 +3,12 @@ import rollupReplace from '@rollup/plugin-replace';
 import rollupCommonjs from '@rollup/plugin-commonjs';
 import { fromRollup } from '@web/dev-server-rollup';
 import rollupBuiltins from 'rollup-plugin-node-builtins';
+import rollupCss from 'rollup-plugin-css-only';
 
 const replace = fromRollup(rollupReplace);
 const commonjs = fromRollup(rollupCommonjs);
 const builtins = fromRollup(rollupBuiltins);
-
+const css = fromRollup(rollupCss);
 
 const BUILD_MODE = process.env.BUILD_MODE? JSON.stringify(process.env.BUILD_MODE) : 'prod';
 console.log("web-dev-server BUILD_MODE =", BUILD_MODE);
@@ -47,7 +48,9 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
     }),
     builtins(),
     commonjs({}),
-
+    // css({
+    //   output: 'bundle.css'
+    // }),
     /** Use Hot Module Replacement by uncommenting. Requires @open-wc/dev-server-hmr plugin */
     // hmr && hmrPlugin({ exclude: ['**/*/node_modules/**/*'], presets: [presets.litElement] }),
   ],

@@ -60,16 +60,19 @@
     "start:playground"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run playground\" \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
     "start-rerun"          : "cross-env HC_APP_PORT=8888 concurrently -k \"npm run build:watch -w webcomponents\" \"$npm_package_config_bin/hc s run 0 -p 8888\" \"npm run start:ui -w webapp\"",
     "start:happ"           : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ -a where --run=$HC_APP_PORT network mdns",
+    "start:launcher"       : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mdns",
+
     "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mdns",
     "start:happ:proxied"   : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap-staging.holo.host/ quic -p=kitsune-proxy://SYVd4CF3BdJ4DS7KwLLgeU3_DbHoZ34Y-qroZ79DOs8/kitsune-quic/h/165.22.32.11/p/5779/--",
 
-    "start:launcher"       : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mdns",
+    "launch"               : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mdns",
+    "launch:we"            : "echo pass | hc-launch --piped -n 1 artifacts/where-we_applet.webhapp network mdns",
 
 
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
 
-    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cp -v webapp/logo.svg webapp/dist && cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
-    "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir",
+    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
+    "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir -o artifacts/where-we_applet.webhapp",
 
     "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
 
@@ -97,7 +100,8 @@
   "dependencies"   : {
     "@ddd-qc/cell-proxy": "0.17.0",
     "@ddd-qc/lit-happ"  : "0.17.0",
-    "@holochain/client" : "0.14.1"
+    "@holochain/client" : "0.14.1",
+    "@shoelace-style/shoelace": "^2.4.0"
   },
   "engines": {
     "npm": ">=7.0.0"

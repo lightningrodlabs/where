@@ -1,8 +1,8 @@
 import {css, html, LitElement} from "lit";
-import {query, state} from "lit/decorators.js";
+import {query, state, customElement} from "lit/decorators.js";
 
 import {sharedStyles} from "../sharedStyles";
-import { localized, msg } from '@lit/localize';
+import {localized, msg} from '@lit/localize';
 import {Coord} from "../viewModels/where.perspective";
 import {Playset} from "../bindings/ludotheque.types";
 
@@ -18,9 +18,11 @@ import {TextArea} from "@material/mwc-textarea";
 import {Dialog} from "@material/mwc-dialog";
 
 
-
-/** @element where-playset-dialog */
+/**
+ *
+ */
 @localized()
+@customElement("where-playset-dialog")
 export class WherePlaysetDialog extends LitElement {
 
   @state() size : Coord = {x:0,y:0};
@@ -38,12 +40,12 @@ export class WherePlaysetDialog extends LitElement {
   /** -- Methods -- */
 
   /** preload fields with current template values */
-  loadPreset() {
+  loadPreset(): void {
     this._nameField.value = msg('Fork of') + ' ' + this._playsetToPreload!.name;
     this._descriptionField.value = this._playsetToPreload!.description;
   }
 
-  open(playset?: Playset) {
+  open(playset?: Playset): void {
     this._playsetToPreload = playset;
     const dialog = this.shadowRoot!.getElementById("playset-inner-dialog") as Dialog
     dialog.open = true
@@ -51,13 +53,13 @@ export class WherePlaysetDialog extends LitElement {
 
 
   /** */
-  clearAllFields() {
+  clearAllFields(): void {
     this._nameField.value = "";
     this._descriptionField.value = "";
   }
 
   /** */
-  private isValid() {
+  private isValid(): boolean {
     let isValid: boolean = true;
     // Check name
     if (this._nameField) {
@@ -111,6 +113,7 @@ export class WherePlaysetDialog extends LitElement {
 
   /** */
   render() {
+    console.log("<where-playset-dialog>.render()")
     return html`
 <mwc-dialog id="playset-inner-dialog" heading="${msg('New Playset')}" @opened=${this.handleDialogOpened}>
   <mwc-textfield dialogInitialFocus type="text"

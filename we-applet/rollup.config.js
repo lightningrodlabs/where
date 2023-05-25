@@ -29,7 +29,11 @@ export default {
   external: [],
   plugins: [
     copy({
-      targets: [{ src: "icon.png", dest: DIST_FOLDER }],
+      targets: [
+        { src: "icon.png", dest: DIST_FOLDER },
+        { src: "../webapp/logo.svg", dest: DIST_FOLDER },
+        { src: "../node_modules/@shoelace-style/shoelace/dist/themes/light.css", dest: DIST_FOLDER, rename: "styles.css" },
+      ],
     }),
     // FIXME: removed because of ed25519 issue
     /** Resolve bare module imports */

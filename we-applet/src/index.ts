@@ -27,7 +27,7 @@ function appletViews(
       // render(sillyTemplate, element);
 
       const agentWs = client as AppAgentWebsocket;
-      console.log("whereApplet..main()", client)
+      console.log("whereApplet.main()", client, agentWs.appWebsocket)
       /** Link to Font */
       const font = document.createElement('link');
       font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";

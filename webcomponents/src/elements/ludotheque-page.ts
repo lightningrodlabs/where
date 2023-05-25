@@ -1,5 +1,5 @@
 import {css, html} from "lit";
-import {property, state, customElement} from "lit/decorators.js";
+import {property, state, query, customElement} from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
 import {CellId, encodeHashToBase64, EntryHashB64} from "@holochain/client";
 
@@ -22,19 +22,21 @@ import {WherePlaysetDialog} from "../dialogs/where-playset-dialog";
 import {WhereSvgMarkerDialog} from "../dialogs/where-svg-marker-dialog";
 import {WhereEmojiGroupDialog} from "../dialogs/where-emoji-group-dialog";
 
+import {SlTabGroup} from "@shoelace-style/shoelace";
+
+
 import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
 import "@shoelace-style/shoelace/dist/components/spinner/spinner.js";
 import "@shoelace-style/shoelace/dist/components/input/input.js";
-
-import "@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js";
-import SlTabGroup from "@shoelace-style/shoelace/dist/components/tab-group/tab-group.js";
 import "@shoelace-style/shoelace/dist/components/tab/tab.js";
+import "@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js";
+import "@shoelace-style/shoelace/dist/components/tab-group/tab-group.js";
+//import SlTabGroup from "@shoelace-style/shoelace/dist/components/tab-group/tab-group.js";
 import "@shoelace-style/shoelace/dist/components/card/card.js";
 import "@shoelace-style/shoelace/dist/components/rating/rating.js";
 
 import "@material/mwc-circular-progress";
 import "@material/mwc-icon/mwc-icon";
-import "@material/mwc-list";
 import "@material/mwc-icon-button";
 import "@material/mwc-dialog";
 import "@material/mwc-list";
@@ -43,6 +45,8 @@ import "@material/mwc-menu";
 import "@material/mwc-top-app-bar";
 import "@material/mwc-drawer";
 import "@material/mwc-icon/mwc-icon";
+import "@material/mwc-textarea";
+import "@material/mwc-button";
 
 import {Drawer} from "@material/mwc-drawer";
 import {TopAppBar} from "@material/mwc-top-app-bar";
@@ -51,6 +55,7 @@ import {ListItem} from "@material/mwc-list/mwc-list-item";
 import {List} from "@material/mwc-list";
 import {Dialog} from "@material/mwc-dialog";
 import {IconButton} from "@material/mwc-icon-button";
+
 
 
 
@@ -111,35 +116,39 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   /** -- Getters -- */
 
   get emojiGroupDialogElem() : WhereEmojiGroupDialog {
-    return this.shadowRoot!.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
+    return this.shadowRoot.getElementById("emoji-group-dialog") as WhereEmojiGroupDialog;
   }
 
   get svgMarkerDialogElem() : WhereSvgMarkerDialog {
-    return this.shadowRoot!.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
+    return this.shadowRoot.getElementById("svg-marker-dialog") as WhereSvgMarkerDialog;
   }
 
   get templateDialogElem() : WhereTemplateDialog {
-    return this.shadowRoot!.getElementById("template-dialog") as WhereTemplateDialog;
+    return this.shadowRoot.getElementById("template-dialog") as WhereTemplateDialog;
   }
 
   get playsetDialogElem() : WherePlaysetDialog {
-    return this.shadowRoot!.getElementById("playset-dialog") as WherePlaysetDialog;
+    return this.shadowRoot.getElementById("playset-dialog") as WherePlaysetDialog;
   }
 
+  // @query('#playset-dialog')
+  // playsetDialogElem!: WherePlaysetDialog;
+
+
   get spaceDialogElem() : WhereSpaceDialog {
-    return this.shadowRoot!.getElementById("space-dialog") as WhereSpaceDialog;
+    return this.shadowRoot.getElementById("space-dialog") as WhereSpaceDialog;
   }
 
   get spaceElem(): WhereSpace {
-    return this.shadowRoot!.getElementById("where-space") as WhereSpace;
+    return this.shadowRoot.getElementById("where-space") as WhereSpace;
   }
 
   get drawerElem() : Drawer {
-    return this.shadowRoot!.getElementById("playset-drawer") as Drawer;
+    return this.shadowRoot.getElementById("playset-drawer") as Drawer;
   }
 
   get tabElem(): SlTabGroup {
-    return this.shadowRoot!.getElementById("body-tab-group") as SlTabGroup;
+    return this.shadowRoot.getElementById("body-tab-group") as SlTabGroup;
   }
 
   // get playListElem(): List {
@@ -539,6 +548,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** */
   private renderPlaysets() {
+    console.debug("renderPlaysets()", this._dvm.ludothequeZvm.perspective)
     const items = Object.entries(this._dvm.ludothequeZvm.perspective.playsets).map(
       ([key, playset]) => {
         // return html`
@@ -546,7 +556,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
         //     <span>${playset.name} (${playset.spaces.length})</span>
         //     <span slot="secondary">${playset.description}</span>
         //   </mwc-list-item>
-        //   `
+        //   `;
         return html`
         <sl-card class="card-header">
         <div slot="header">
@@ -745,10 +755,10 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     if (!this._initialized) {
       return html`
         <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
-          <!-- <mwc-circular-progress indeterminate></mwc-circular-progress> -->
-          <sl-tooltip content="${msg('Share Library')}"  placement="bottom-end" distance="4">
+          <mwc-circular-progress indeterminate></mwc-circular-progress>
+            <!-- <sl-tooltip content="${msg('Share Library')}"  placement="bottom-end" distance="4">
             <sl-spinner style="font-size: 3rem;"></sl-spinner>
-          </sl-tooltip>
+          </sl-tooltip>-->
         </div>
       `;
     }
@@ -875,9 +885,6 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
       </sl-tab-group>
     </div>
     <!-- DIALOGS -->
-    <where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
-    <where-template-dialog id="template-dialog" @template-created=${(e:any) => console.log(e.detail)}
-    ></where-template-dialog>
     <where-emoji-group-dialog id="emoji-group-dialog" @emoji-group-added=${(e:any) => console.log(e.detail)}></where-emoji-group-dialog>
     <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
     <where-space-dialog id="space-dialog" @space-created=${this.handleSpaceDialogClosing}></where-space-dialog>
@@ -887,6 +894,10 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     </mwc-dialog>
   </div>
 </mwc-drawer>
+<where-playset-dialog id="playset-dialog" @playset-added="${this.handlePlaysetDialogClosing}"></where-playset-dialog>
+<where-template-dialog id="template-dialog" @template-created=${(e:any) => console.log(e.detail)}></where-template-dialog>
+
+<toto></toto>
 `;
   }
 
@@ -916,12 +927,13 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   }
 
   async openPlaysetDialog(eh?: any) {
-    console.log("openPlaysetDialog()", this.playsetDialogElem);
+    console.log("openPlaysetDialog()", this.playsetDialogElem.clearAllFields);
     this.playsetDialogElem.clearAllFields();
     this.playsetDialogElem.open(eh);
   }
 
 
+  /** */
   static get styles() {
     return [
       sharedStyles,

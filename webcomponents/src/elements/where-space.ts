@@ -15,7 +15,12 @@ import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
-import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlInput, SlTooltip} from "@shoelace-style/shoelace";
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/badge/badge.js"
+import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
+import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
+import "@shoelace-style/shoelace/dist/components/card/card.js";
+import "@shoelace-style/shoelace/dist/components/input/input.js";
 
 import "@material/mwc-drawer";
 import "@material/mwc-top-app-bar";
@@ -37,6 +42,7 @@ import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import "@material/mwc-tab-bar";
+
 import {TabBar} from "@material/mwc-tab-bar";
 import {TextField} from "@material/mwc-textfield";
 import {Fab} from "@material/mwc-fab";

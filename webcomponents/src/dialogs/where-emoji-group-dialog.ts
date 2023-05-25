@@ -1,5 +1,5 @@
 import {css, html} from "lit";
-import {query, state, property} from "lit/decorators.js";
+import {query, state, property, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {Picker} from "emoji-picker-element";
 import {localized, msg} from '@lit/localize';
@@ -21,8 +21,11 @@ import "@material/mwc-textfield";
 import {TextField} from "@material/mwc-textfield";
 
 
-/** @element where-emoji-group */
+/**
+ *  @element
+ */
 @localized()
+@customElement("where-emoji-group-dialog")
 export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
     super(PlaysetZvm.DEFAULT_ZOME_NAME);

@@ -1,5 +1,5 @@
 import {css, html, LitElement} from "lit";
-import {query, state, property} from "lit/decorators.js";
+import {query, state, property, customElement} from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
 import {sharedStyles} from "../sharedStyles";
 import {MARKER_WIDTH, renderSvgMarker} from "../sharedRender";
@@ -12,15 +12,15 @@ import {TextField} from "@material/mwc-textfield";
 import {TextArea} from "@material/mwc-textarea";
 import {Dialog} from "@material/mwc-dialog";
 import "@material/mwc-select";
-import "@scoped-elements/material-web";
 import "@material/mwc-button";
 import "@material/mwc-icon-button";
 
 
 /**
- * @element where-svg-marker-dialog
+ * @element
  */
 @localized()
+@customElement("where-svg-marker-dialog")
 export class WhereSvgMarkerDialog extends LitElement {
 
   @state() private _currentSvg: string = "";

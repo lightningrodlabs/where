@@ -1,5 +1,5 @@
 import { html, css } from "lit";
-import { state, query } from "lit/decorators.js";
+import { state, query, customElement } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
 import { localized, msg } from '@lit/localize';
 import {DnaElement} from "@ddd-qc/lit-happ";
@@ -10,8 +10,12 @@ import {List} from "@material/mwc-list";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
 
-/** @element where-archive-dialog */
+
+/**
+ * @element
+ */
 @localized()
+@customElement("where-archive-dialog")
 export class WhereArchiveDialog extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
     super(WhereDvm.DEFAULT_BASE_ROLE_NAME);

@@ -5,12 +5,14 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>Where we-applet test</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="../dist/styles.css" rel="stylesheet" />
   </head>
   <body style="margin:0px;background: #9bb791">
     <!-- <div id="container"></div> -->
 
     <script type="module">
-      import { AppAgentWebsocket } from '@holochain/client';
+      //import '@shoelace-style/shoelace/dist/themes/light.css';
+      import { AppAgentWebsocket, AppWebsocket } from '@holochain/client';
       import { fakeEntryHash } from '@holochain-open-dev/utils';
       import { ProfilesClient } from '@holochain-open-dev/profiles';
       import { ProfilesZomeMock } from "@holochain-open-dev/profiles/dist/mocks.js";
@@ -24,8 +26,10 @@
       async function setup() {
         console.log("Index.html setup()", process.env.BUILD_MODE, process.env.HC_APP_PORT, process.env.HC_ADMIN_PORT);
 
-        const appWs = await AppAgentWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`, "where-applet");
+        //const appWs = await AppAgentWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`, "where-applet");
         //const appWs = await AppAgentWebsocket.connect(``, '');
+        const appWs = await AppWebsocket.connect(`ws://localhost:${process.env.HC_APP_PORT}`);
+
 
         //const adminWs = await AdminWebsocket.connect(`ws://localhost:${process.env.HC_ADMIN_PORT}`);
         // const apps = await adminWs.listApps({});

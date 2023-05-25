@@ -1,5 +1,5 @@
 import {css, html} from "lit";
-import {property, query, state} from "lit/decorators.js";
+import {property, query, state, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {EMOJI_WIDTH, renderMarker, renderMarkerTypePreview, renderSvgMarker, renderUiItems} from "../sharedRender";
 
@@ -13,17 +13,19 @@ import {Picker} from "emoji-picker-element";
 import {WhereSvgMarkerDialog} from "./where-svg-marker-dialog";
 import { localized, msg } from '@lit/localize';
 import {MarkerPieceVariantEmojiGroup, MarkerPiece, SvgMarker, MarkerPieceVariantSvg, Template} from "../bindings/playset.types";
-import {
-  defaultLocationMeta,
-  LocationMeta, Play,
-} from "../viewModels/where.perspective";
+import {Play} from "../viewModels/where.perspective";
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 import {EntryHashB64} from "@holochain/client";
 
-import {SlAvatar, SlTab, SlTabGroup, SlTabPanel} from "@shoelace-style/shoelace";
+import {SlTab, SlTabGroup} from "@shoelace-style/shoelace";
+
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/tab/tab.js";
+import "@shoelace-style/shoelace/dist/components/tab-panel/tab-panel.js";
+import "@shoelace-style/shoelace/dist/components/tab-group/tab-group.js";
 
 import "@material/mwc-select";
 import "@material/mwc-checkbox";
@@ -51,6 +53,7 @@ import {TextField} from "@material/mwc-textfield";
  * @element where-play-dialog
  */
 @localized()
+@customElement("where-play-dialog")
 export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm> {
   constructor() {
     super(PlaysetZvm.DEFAULT_ZOME_NAME);

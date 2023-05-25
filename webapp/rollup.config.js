@@ -1,17 +1,19 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
-import typescript from "@rollup/plugin-typescript";
+//import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
 //import replace from "@rollup/plugin-replace";
 //import builtins from "rollup-plugin-node-builtins";
 //import globals from "rollup-plugin-node-globals";
-
 import babel from "@rollup/plugin-babel";
 import html from "@web/rollup-plugin-html";
+import css from 'rollup-plugin-css-only';
+import copy from "rollup-plugin-copy";
 //import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 //import { terser } from "rollup-plugin-terser";
-//import { generateSW } from "rollup-plugin-workbox";
+
 //import path from "path";
 //const pkg = require("./package.json");
+
 
 const DIST_FOLDER = "dist"
 
@@ -28,6 +30,7 @@ export default {
     clearScreen: false,
   },
   //external: [],
+
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
@@ -87,20 +90,22 @@ export default {
         ],
       ],
     }),
-    /** Create and inject a service worker */
-    // generateSW({
-    //   globIgnores: ["polyfills/*.js", "nomodule-*.js"],
-    //   navigateFallback: "/index.html",
-    //   // where to output the generated sw
-    //   swDest: path.join(DIST_FOLDER, "sw.js"),
-    //   // directory to match patterns against to be precached
-    //   globDirectory: path.join(DIST_FOLDER),
-    //   // cache any html js and css by default
-    //   globPatterns: ["**/*.{html,js,css,webmanifest}"],
-    //   skipWaiting: true,
-    //   clientsClaim: true,
-    //   runtimeCaching: [{ urlPattern: "polyfills/*.js", handler: "CacheFirst" }],
-    // }),
+    /** */
     commonjs(),
+    copy({
+      copyOnce: true,
+      targets: [
+        { src: "logo.svg", dest: DIST_FOLDER },
+        {
+          src: '../node_modules/@shoelace-style/shoelace/dist/assets',
+          dest: 'dist/shoelace',
+        },
+        { src: "../node_modules/@shoelace-style/shoelace/dist/themes/light.css", dest: DIST_FOLDER, rename: "styles.css" }
+      ],
+    }),
+    /** Bundle styles into dist/bundle.css */
+    css({
+      output: 'bundle.css'
+    }),
   ],
 };

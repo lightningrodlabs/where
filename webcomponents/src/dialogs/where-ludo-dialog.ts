@@ -1,5 +1,5 @@
 import {html, css, LitElement} from "lit";
-import { state } from "lit/decorators.js";
+import { state, customElement } from "lit/decorators.js";
 import { sharedStyles } from "../sharedStyles";
 import { localized, msg } from '@lit/localize';
 
@@ -10,8 +10,10 @@ import {TextField} from "@material/mwc-textfield";
 import "@material/mwc-button";
 
 
-/** @element where-ludo-dialog */
+/**
+ * @element */
 @localized()
+@customElement("where-ludo-dialog")
 export class WhereLudoDialog extends LitElement {
 
   /** */

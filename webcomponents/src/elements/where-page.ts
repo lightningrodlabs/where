@@ -8,11 +8,7 @@ import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 import {renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
-import {WherePeerList} from "./where-peer-list";
-import {WhereSpace} from "./where-space";
-import {WherePlayDialog} from "../dialogs/where-play-dialog";
-import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
-import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
+
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
@@ -20,14 +16,25 @@ import {PlaysetEntryType, Template} from "../bindings/playset.types";
 import {CloneId, delay, DnaElement} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
-import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
+
 import {SignalPayload} from "../bindings/where.types";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 import {IS_DEV} from "../globals";
-import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 
-import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlTooltip} from "@shoelace-style/shoelace";
+import {WherePeerList} from "./where-peer-list";
+import {WhereSpace} from "./where-space";
+import {WherePlayDialog} from "../dialogs/where-play-dialog";
+import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
+import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
+import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
+import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
+
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/badge/badge.js"
+import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
+import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
+import "@shoelace-style/shoelace/dist/components/card/card.js";
 
 import "@material/mwc-drawer";
 import {Drawer} from "@material/mwc-drawer";

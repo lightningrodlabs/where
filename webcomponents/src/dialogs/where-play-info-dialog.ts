@@ -1,5 +1,5 @@
 import {css, html, LitElement} from "lit";
-import {state} from "lit/decorators.js";
+import {state, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import { localized, msg } from '@lit/localize';
 import {Play} from "../viewModels/where.perspective";
@@ -20,6 +20,7 @@ import {Dialog} from "@material/mwc-dialog";
  * @element where-emoji-dialog
  */
 @localized()
+@customElement("where-play-info-dialog")
 export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDvm> {
   constructor() {
     super(WhereDvm.DEFAULT_BASE_ROLE_NAME);

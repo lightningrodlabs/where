@@ -12,7 +12,12 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 import {AgentPubKeyB64, decodeHashFromBase64} from "@holochain/client";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 
-import {SlAvatar, SlBadge, SlCard, SlColorPicker, SlInput, SlTooltip} from "@shoelace-style/shoelace";
+import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
+import "@shoelace-style/shoelace/dist/components/badge/badge.js"
+import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
+import "@shoelace-style/shoelace/dist/components/tooltip/tooltip.js";
+import "@shoelace-style/shoelace/dist/components/card/card.js";
+import "@shoelace-style/shoelace/dist/components/input/input.js";
 
 import {TextField} from "@material/mwc-textfield";
 

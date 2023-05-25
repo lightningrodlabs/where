@@ -96,6 +96,7 @@ export default {
       copyOnce: true,
       targets: [
         { src: "logo.svg", dest: DIST_FOLDER },
+        { src: "favicon.ico", dest: DIST_FOLDER },
         {
           src: '../node_modules/@shoelace-style/shoelace/dist/assets',
           dest: 'dist/shoelace',

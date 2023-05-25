@@ -1,11 +1,10 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
 import typescript from "@rollup/plugin-typescript";
-import commonjs from "@rollup/plugin-commonjs";
 //import replace from "@rollup/plugin-replace";
+//import builtins from "rollup-plugin-node-builtins";
+//import globals from "rollup-plugin-node-globals";
+import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
-
-import builtins from "rollup-plugin-node-builtins";
-import globals from "rollup-plugin-node-globals";
 
 import babel from "@rollup/plugin-babel";
 //import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
@@ -31,11 +30,11 @@ export default {
     copy({
       targets: [
         { src: "icon.png", dest: DIST_FOLDER },
+        { src: "../webapp/favicon.ico", dest: DIST_FOLDER },
         { src: "../webapp/logo.svg", dest: DIST_FOLDER },
         { src: "../node_modules/@shoelace-style/shoelace/dist/themes/light.css", dest: DIST_FOLDER, rename: "styles.css" },
       ],
     }),
-    // FIXME: removed because of ed25519 issue
     /** Resolve bare module imports */
     nodeResolve({
       browser: true,

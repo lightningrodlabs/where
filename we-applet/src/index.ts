@@ -1,31 +1,32 @@
-import {AdminWebsocket, AppAgentClient, AppAgentWebsocket, AppWebsocket, CellType, EntryHash} from "@holochain/client";
-import {WeApplet, WeServices, AppletInfo, AppletViews, CrossAppletViews} from "@lightningrodlabs/we-applet";
+import {
+  AdminWebsocket,
+  AppAgentClient,
+  AppAgentWebsocket,
+  encodeHashToBase64,
+  EntryHash,
+} from "@holochain/client";
+import {WeApplet, WeServices, AppletViews, CrossAppletViews, Hrl} from "@lightningrodlabs/we-applet";
 //import {LudothequeStandaloneApp} from "ludotheque";
 import {WhereApp} from "@where/app";
 import {render, html} from "lit";
 
 import "@holochain-open-dev/profiles/dist/elements/profiles-context.js";
 import {ProfilesClient} from "@holochain-open-dev/profiles";
+import {PlaysetProxy} from "@where/elements/dist/bindings/playset.proxy";
+import {asCellProxy} from "./we-utils";
+
+import "@where/elements";
 
 
 /** */
 function appletViews(
   client: AppAgentClient,
-  _appletId: EntryHash,
+  _weAppletId: EntryHash,
   profilesClient: ProfilesClient,
   weServices: WeServices
 ): AppletViews {
   return {
     main: (element) => {
-      // const sillyTemplate =  html`
-      //       <we-services-context .services=${weServices}>
-      //         <profiles-context .store=${new ProfilesStore(profilesClient)}>
-      //           <applet-main></applet-main>
-      //       </profiles-context>
-      //     </we-services-context>
-      //     `;
-      // render(sillyTemplate, element);
-
       const agentWs = client as AppAgentWebsocket;
       console.log("whereApplet.main()", client, agentWs.appWebsocket)
       /** Link to Font */
@@ -39,7 +40,36 @@ function appletViews(
       element.appendChild(app);
     },
     blocks: {},
-    entries: {},
+    entries: {
+      rWhere: {
+        playset_integrity: {
+          space: {
+            info: async (hrl: Hrl) => {
+              const cellProxy = await asCellProxy(client, hrl, "where-applet", "rWhere");
+              const proxy: PlaysetProxy = new PlaysetProxy(cellProxy);
+              const space = await proxy.getSpace(encodeHashToBase64(hrl[1]));
+              if (!space) {
+                return;
+              }
+              return {
+                icon_src: "",
+                name: space.name,
+              };
+            },
+            view: async (element, hrl: Hrl, context) => {
+              const cellProxy = await asCellProxy(client, hrl, "where-applet", "rWhere");
+              const proxy: PlaysetProxy = new PlaysetProxy(cellProxy);
+              const spaceElem = html`
+                  <div>Before where-space custom element</div>
+                  <where-space .currentSpaceEh=${encodeHashToBase64(hrl[1])}></where-space>
+                  <div>After where-space custom element</div>
+              `;
+              render(spaceElem, element);
+            },
+          },
+        }
+      }
+    },
   };
 }
 

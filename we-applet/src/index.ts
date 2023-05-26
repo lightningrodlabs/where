@@ -57,8 +57,8 @@ function appletViews(
               };
             },
             view: async (element, hrl: Hrl, context) => {
-              const cellProxy = await asCellProxy(client, hrl, "where-applet", "rWhere");
-              const proxy: PlaysetProxy = new PlaysetProxy(cellProxy);
+              //const cellProxy = await asCellProxy(client, hrl, "where-applet", "rWhere");
+              //const proxy: PlaysetProxy = new PlaysetProxy(cellProxy);
               const spaceElem = html`
                   <div>Before where-space custom element</div>
                   <where-space .currentSpaceEh=${encodeHashToBase64(hrl[1])}></where-space>

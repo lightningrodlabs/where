@@ -54,7 +54,7 @@ jobs:
       - name: Package we-applet
         shell: bash
         run: |       
-          npm run package:we-applet
+          npm run package:we
       # Regroup artifacts
       - name: Regroup artifacts
         run: |

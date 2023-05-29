@@ -2,7 +2,7 @@
   "name"           : "where-dev",
   "version"        : "0.2.2",
   "config"         : {
-    "hc_version"   : "0.1.3",
+    "hc_version"   : "0.1.0",
     "zits_version" : "1.8.0",
     "bin"          : "bin"
   },
@@ -72,7 +72,7 @@
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
 
     "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
-    "package:we-applet"    : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir -o artifacts/where-we_applet.webhapp",
+    "package:we"           : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir -o artifacts/where-we_applet.webhapp",
 
     "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
 

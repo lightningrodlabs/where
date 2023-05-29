@@ -1,9 +1,9 @@
 {
   "name"           : "where-dev",
-  "version"        : "0.2.1",
+  "version"        : "0.2.2",
   "config"         : {
-    "hc_version"   : "0.1.0",
-    "zits_version" : "1.6.1",
+    "hc_version"   : "0.1.3",
+    "zits_version" : "1.8.0",
     "bin"          : "bin"
   },
   "private"        : true,

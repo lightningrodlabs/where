@@ -5,7 +5,7 @@ import {
   encodeHashToBase64,
   EntryHash,
 } from "@holochain/client";
-import {WeApplet, WeServices, AppletViews, CrossAppletViews, Hrl} from "@lightningrodlabs/we-applet";
+import {WeApplet, WeServices, AppletViews, CrossAppletViews, Hrl, AttachmentType} from "@lightningrodlabs/we-applet";
 //import {LudothequeStandaloneApp} from "ludotheque";
 import {WhereApp} from "@where/app";
 import {render, html} from "lit";
@@ -19,24 +19,26 @@ import "@where/elements";
 
 
 /** */
-function appletViews(
+export async function appletViews(
   client: AppAgentClient,
-  _weAppletId: EntryHash,
+  thisAppletId: EntryHash,
   profilesClient: ProfilesClient,
   weServices: WeServices
-): AppletViews {
+): Promise<AppletViews> {
   return {
-    main: (element) => {
-      const agentWs = client as AppAgentWebsocket;
-      console.log("whereApplet.main()", client, agentWs.appWebsocket)
+    main: async (element) => {
       /** Link to Font */
       const font = document.createElement('link');
       font.href = "https://fonts.googleapis.com/css?family=Material+Icons&display=block";
       font.rel = "stylesheet";
       element.appendChild(font);
+      /** Determine profilesAppInfo */
+      let profilesAppInfo = await profilesClient.client.appInfo();
+      console.log("profilesAppInfo", profilesAppInfo, profilesClient.roleName);
       /** <where-app> */
-      //registry.define("where-app", WhereApp);
-      const app = new WhereApp(agentWs.appWebsocket, undefined, true, "where-applet");
+      const agentWs = client as AppAgentWebsocket;
+      console.log("whereApplet.main()", client, agentWs.appWebsocket)
+      const app = new WhereApp(agentWs.appWebsocket, undefined, false, "where-applet");
       element.appendChild(app);
     },
     blocks: {},
@@ -75,10 +77,10 @@ function appletViews(
 
 
 /** */
-function crossAppletViews(
-  applets: ReadonlyMap<EntryHash, {profilesClient: ProfilesClient; appletClient: AppAgentClient}>, // Segmented by groupId
-  weServices: WeServices
-): CrossAppletViews {
+export async function crossAppletViews(
+  applets: ReadonlyMap<EntryHash, { profilesClient: ProfilesClient; appletClient: AppAgentClient }>, // Segmented by groupId
+  weServices: WeServices,
+): Promise<CrossAppletViews> {
   return {
     main: (element) => {},
     blocks: {},
@@ -91,10 +93,9 @@ function crossAppletViews(
 const whereApplet: WeApplet = {
   appletViews,
   crossAppletViews,
-  attachmentTypes: async (appletClient: AppAgentClient) => {return {} },
-  search: async (appletClient: AppAgentClient, filter: string) => {
-    return []
-  },
+  attachmentTypes: async (appletClient: AppAgentClient, appletId: EntryHash, weServices: WeServices) => { return {} },
+  search: async (appletClient: AppAgentClient, appletId: EntryHash, weServices: WeServices, searchFilter: string) => {return []},
+
 };
 
 

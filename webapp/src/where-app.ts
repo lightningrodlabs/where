@@ -80,7 +80,7 @@ export class WhereApp extends HappElement {
   /** */
   handleSignal(sig: AppSignal) {
     //console.log("<where-app> handleSignal()", sig);
-    this.conductorAppProxy.onSignal(sig);
+    this.appProxy.onSignal(sig);
   }
 
 
@@ -113,7 +113,7 @@ export class WhereApp extends HappElement {
     }
 
     /** Grab ludo cells */
-    this._ludoRoleCells = await this.conductorAppProxy.fetchCells(DEFAULT_WHERE_DEF.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    this._ludoRoleCells = await this.appProxy.fetchCells(DEFAULT_WHERE_DEF.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
 
   }
 
@@ -168,7 +168,7 @@ export class WhereApp extends HappElement {
     console.log("onAddLudoClone()", uuid, cloneName);
     const cellDef = { modifiers: {network_seed: uuid}, cloneName: cloneName}
     const [_cloneIndex, dvm] = await this.hvm.cloneDvm(LudothequeDvm.DEFAULT_BASE_ROLE_NAME, cellDef);
-    this._ludoRoleCells = await this.conductorAppProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
+    this._ludoRoleCells = await this.appProxy.fetchCells(this.hvm.appId, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
     this._curLudoCloneId = dvm.cell.cloneId;
     console.log("Ludotheque clone created:", dvm.hcl.toString(), dvm.cell.name, this._curLudoCloneId);
   }

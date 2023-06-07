@@ -98,9 +98,10 @@
     "typescript"              : "^4.9.0"
   },
   "dependencies"   : {
-    "@ddd-qc/cell-proxy": "0.17.0",
-    "@ddd-qc/lit-happ"  : "0.17.0",
+    "@ddd-qc/cell-proxy": "0.18.2",
+    "@ddd-qc/lit-happ"  : "0.18.2",
     "@holochain/client" : "0.14.1",
+    "@lightningrodlabs/we-applet": "0.6.1",
     "@shoelace-style/shoelace": "^2.4.0"
   },
   "engines": {

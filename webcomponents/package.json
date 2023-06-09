@@ -1,6 +1,6 @@
 {
   "name": "@where/elements",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
@@ -22,6 +22,7 @@
     "watch-cli": "^0.2.3"
   },
   "dependencies": {
+    "@lightningrodlabs/we-applet": "0.6.1",
     "@material/mwc-button": "^0.25.3",
     "@material/mwc-checkbox": "^0.25.3",
     "@material/mwc-circular-progress": "^0.25.3",

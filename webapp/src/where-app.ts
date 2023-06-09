@@ -260,6 +260,8 @@ export class WhereApp extends HappElement {
     //             ${page}
     //         </profile-prompt>`;
 
+
+    /** Display all attachment-types */
     let attachments = [html``];
     if (this._weServices) {
       for (const [appletId, dict] of this._weServices.attachmentTypes.entries()) {

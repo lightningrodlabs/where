@@ -1,10 +1,12 @@
 import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
+import {consume} from "@lit-labs/context";
+
+import {AttachmentType, Hrl, WeServices, weServicesContext} from "@lightningrodlabs/we-applet";
 
 import {sharedStyles} from "../sharedStyles";
 
-
-import {EntryHashB64} from "@holochain/client";
+import {decodeHashFromBase64, encodeHashToBase64, EntryHash, EntryHashB64} from "@holochain/client";
 
 import {delay, DnaElement} from "@ddd-qc/lit-happ";
 import {Dictionary} from "@ddd-qc/cell-proxy";
@@ -57,6 +59,8 @@ import "@material/mwc-button";
 import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
+import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
+
 
 
 /** Styles for top-app-bar */
@@ -92,7 +96,10 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   canShowBuildView!: boolean;
 
 
-  private _curSpaceEh: EntryHashB64;
+  @consume({ context: weServicesContext, subscribe: true })
+  weServices: WeServices;
+
+
 
   /** ViewModels */
 
@@ -106,6 +113,13 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   @state() private _initialized = false;
   @state() private _canPostInit = false;
+
+  private _curSpaceEh: EntryHashB64;
+
+
+  /** We specific */
+  private _appInfoMap: Dictionary<AppletInfo> = {};
+  private _threadAttachmentType?: AttachmentType;
 
 
   /** Getters */
@@ -160,6 +174,19 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   async firstUpdated() {
     console.log("<where-dashboard> firstUpdated()");
     await this._dvm.probeAllPlays();
+    /**  Fill AppInfo cache */
+    if (this.weServices) {
+      const appletIds = [];
+      for (const appletId of this.weServices.attachmentTypes.keys()) {
+        const appletIdB64 = encodeHashToBase64(appletId);
+        const maybeAppInfo = this._appInfoMap[appletIdB64];
+        if (!maybeAppInfo) {
+          appletIds.push(appletId);
+        }
+      };
+      this.fetchAppInfo(appletIds);
+    }
+
     /** Done */
     this._initialized = true
     this._canPostInit = true;
@@ -330,10 +357,61 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     this.dispatchEvent(new CustomEvent('show-ludotheque', { detail: selected.value, bubbles: true, composed: true }));
   }
 
+
+  /** */
   async openPlayInfoDialog(play: Play) {
     const dialog = this.playInfoDialogElem;
     const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
     dialog.open(play, template);
+  }
+
+
+
+
+
+  /** Search for Threads attachmentType in based on _appInfoMap */
+  getThreadAttachment(): AttachmentType | undefined {
+    if (this._threadAttachmentType) {
+      return this._threadAttachmentType;
+    }
+    let threadsAppletId = undefined;
+    for (const [appletId, appInfo] of Object.entries(this._appInfoMap)) {
+      if (appInfo.appletName == "Threads") {
+        threadsAppletId = appletId;
+        break;
+      }
+    }
+    if (!threadsAppletId) {
+      console.warn("Did not find Threads applet");
+      return undefined;
+    }
+    for (const [appletId, atts] of this.weServices.attachmentTypes.entries()) {
+      if (encodeHashToBase64(appletId) == threadsAppletId) {
+        const att = atts['thread'];
+        return att;
+      }
+    }
+    console.warn("Did not find 'thread' attachmentType in Threads applet");
+    return undefined;
+  }
+
+
+  /** */
+  async fetchAppInfo(appletIds: EntryHash[]) {
+    console.log("fetchAppInfo()", appletIds.length);
+    for (const appletId of appletIds) {
+      this._appInfoMap[encodeHashToBase64(appletId)] = await this.weServices.appletInfo(appletId);
+    }
+    this.requestUpdate();
+  }
+
+
+  /** */
+  canComment(): boolean {
+    if (!this.weServices) {
+      return false;
+    }
+    return !!this.getThreadAttachment();
   }
 
 
@@ -385,6 +463,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         if (!this._dvm.getVisibility(spaceEh)!) {
           return html ``;
         }
+        console.log("canComment", this.canComment());
         //const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         const r = play.space.surface.size.x / play.space.surface.size.y;
         return html`
@@ -394,6 +473,18 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
             <mwc-icon class="info-icon" style="cursor: pointer;"
                       @click=${() => {const play = this._dvm.getPlay(spaceEh); this.openPlayInfoDialog(play)}}
             >info</mwc-icon>
+            <mwc-icon class="info-icon" style="cursor:pointer; display:${this.canComment()? 'inline-block' : 'none'};"
+                      @click=${ async () => {
+                        const att = this.getThreadAttachment();
+                        if (!att) {
+                          console.error("Thread attachmentType not found");
+                        }
+                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+                        const res = await att.create(spaceHrl);
+                        console.log("Create/Open Thread result:", res);
+                        this.weServices.openViews.openHrl(res.hrl, res.context);
+                      }}
+            >question_answer</mwc-icon>
           </sl-card>
           `
       }
@@ -483,6 +574,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   //  @lang-selected=${(e: CustomEvent) => {console.log("<where-dashboard> set lang", e.detail); setLocale(e.detail)}}
 
+
+  /** */
   private async onProfileEdited(profile: WhereProfile) {
     await this._dvm.profilesZvm.updateMyProfile(profile);
     this.profileDialogElem.open = false;
@@ -491,43 +584,6 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     this._myProfile.fields.color = profile.fields.color;
     this.requestUpdate();
   }
-
-  //
-  // /** */
-  // static get scopedElements() {
-  //   return {
-  //     "mwc-button": Button,
-  //     "mwc-circular-progress": CircularProgress,
-  //     "mwc-dialog": Dialog,
-  //     "mwc-drawer": Drawer,
-  //     "mwc-fab": Fab,
-  //     "mwc-icon": Icon,
-  //     "mwc-icon-button": IconButton,
-  //     "mwc-icon-button-toggle": IconButtonToggle,
-  //     "mwc-list": List,
-  //     "mwc-list-item": ListItem,
-  //     "mwc-menu": Menu,
-  //     "mwc-slider": Slider,
-  //     "mwc-switch": Switch,
-  //     "mwc-top-app-bar": TopAppBar,
-  //     "mwc-top-app-bar-fixed": TopAppBarFixed,
-  //     "mwc-textfield": TextField,
-  //     "mwc-select": Select,
-  //     "where-clone-ludo-dialog": WhereLudoDialog,
-  //     "where-play-dialog" : WherePlayDialog,
-  //     "where-template-dialog" : WhereTemplateDialog,
-  //     "where-archive-dialog" : WhereArchiveDialog,
-  //     "where-play-info-dialog" : WherePlayInfoDialog,
-  //     "where-space": WhereSpace,
-  //     "where-peer-list": WherePeerList,
-  //     "mwc-formfield": Formfield,
-  //     'sl-avatar': SlAvatar,
-  //     'sl-card': SlCard,
-  //     'sl-tooltip': SlTooltip,
-  //     'sl-color-picker': SlColorPicker,
-  //     'sl-badge': SlBadge,
-  //   };
-  // }
 
 
   /** */

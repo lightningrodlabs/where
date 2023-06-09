@@ -39,7 +39,7 @@ console.log("BUILD_MODE =", BUILD_MODE)
 console.log("IS_ELECTRON =", IS_ELECTRON);
 
 /** Remove console.log() in PROD */
-if (BUILD_MODE === 'prod') {
-  console.log("console.log() disabled");
-  console.log = () => {};
-}
+// if (BUILD_MODE === 'prod') {
+//   console.log("console.log() disabled");
+//   console.log = () => {};
+// }

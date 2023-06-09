@@ -374,21 +374,24 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (this._threadAttachmentType) {
       return this._threadAttachmentType;
     }
-    let threadsAppletId = undefined;
-    for (const [appletId, appInfo] of Object.entries(this._appInfoMap)) {
-      if (appInfo.appletName == "Threads") {
-        threadsAppletId = appletId;
-        break;
-      }
-    }
-    if (!threadsAppletId) {
-      console.warn("Did not find Threads applet");
-      return undefined;
-    }
+    // let threadsAppletId = undefined;
+    // for (const [appletId, appInfo] of Object.entries(this._appInfoMap)) {
+    //   if (appInfo.appletName == "Threads") {
+    //     threadsAppletId = appletId;
+    //     break;
+    //   }
+    // }
+    // if (!threadsAppletId) {
+    //   console.warn("Did not find Threads applet");
+    //   return undefined;
+    // }
     for (const [appletId, atts] of this.weServices.attachmentTypes.entries()) {
-      if (encodeHashToBase64(appletId) == threadsAppletId) {
-        const att = atts['thread'];
-        return att;
+      //if (encodeHashToBase64(appletId) == threadsAppletId) {
+      for (const [attName, att] of Object.entries(atts)) {
+        if (attName == "thread") {
+          this._threadAttachmentType = att;
+          return att;
+        }
       }
     }
     console.warn("Did not find 'thread' attachmentType in Threads applet");

@@ -56,7 +56,7 @@ console.log("HC_ADMIN_PORT =", HC_ADMIN_PORT);
 
 
 /** Remove console.log() in PROD */
-if (BUILD_MODE === 'prod') {
-  console.log("console.log() disabled");
-  console.log = () => {};
-}
+// if (BUILD_MODE === 'prod') {
+//   console.log("console.log() disabled");
+//   console.log = () => {};
+// }

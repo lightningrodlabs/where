@@ -39,7 +39,7 @@ export async function appletViews(
       /** <where-app> */
       const agentWs = client as AppAgentWebsocket;
       console.log("whereApplet.main()", client, agentWs.appWebsocket)
-      const app = new WhereApp(agentWs.appWebsocket, undefined, false, mainAppInfo.installed_app_id);
+      const app = new WhereApp(agentWs.appWebsocket, undefined, false, mainAppInfo.installed_app_id, weServices, thisAppletId);
       element.appendChild(app);
     },
     blocks: {},
@@ -94,12 +94,28 @@ export async function crossAppletViews(
 const whereApplet: WeApplet = {
   appletViews,
   crossAppletViews,
-  attachmentTypes: async (appletClient: AppAgentClient, appletId: EntryHash, weServices: WeServices) => { return {} },
+  attachmentTypes,
   search: async (appletClient: AppAgentClient, appletId: EntryHash, weServices: WeServices, searchFilter: string) => {return []},
 
 };
 
 
+/** */
+export async function attachmentTypes(appletClient: AppAgentClient, appletId: EntryHash, weServices: WeServices): Promise<Record<string, AttachmentType>> {
+  const appInfo = await appletClient.appInfo();
+  return {
+    space: {
+      label: "Space",
+      icon_src: "",
+      async create(attachToHrl: Hrl) {
+        return {
+          hrl: undefined,
+          context: {},
+        };
+      }
+    }
+  }
+}
 
 // /** */
 // const whereApplet: WeApplet = {

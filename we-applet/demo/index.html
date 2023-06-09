@@ -19,31 +19,34 @@
 
       import Applet from "../dist";
 
-      const appletId = fakeEntryHash();
+      const whereDemoAppletId = await fakeEntryHash();
 
-      function createMockWeServices() {
-
+      async function createMockWeServices() {
         /** */
-
-        const appletIdB64 = encodeHashToBase64(appletId);
+        const whereDemoAppletIdB64 = encodeHashToBase64(whereDemoAppletId);
         const myWeServicesMock = weServicesMock;
 
         myWeServicesMock.appletInfo = async (appletId) => {
           const appletIdB64 = encodeHashToBase64(appletId);
           console.log("myWeServicesMock.appletInfo()", appletIdB64, appletIdB64);
-          if (appletIdB64 == appletIdB64) {
+          if (appletIdB64 == whereDemoAppletIdB64) {
             return {
               appletBundleId: await fakeEntryHash(),
-              appletName: "Demo Applet",
+              appletName: "Where Demo Applet",
               groupIds: [await fakeDnaHash()],
             }
           }
-          return undefined;
+          return {
+            appletBundleId: await fakeEntryHash(),
+            appletName: "Any Demo Applet",
+            groupIds: [await fakeDnaHash()],
+          }
+          ;
         };
 
         myWeServicesMock.entryInfo = async (hrl) => {
           return {
-            appletId: appletId,
+            appletId,
             entryInfo: {
               icon_src: "",
               name: "demo:" + encodeHashToBase64(hrl[1]),
@@ -51,10 +54,24 @@
           }
         }
 
+        const fakeThreadsAppletId = await fakeEntryHash();
+        const fakeThreadsAttachmentTypes = {
+          thread: {
+            label: "Thread", icon_src: "", async create(attachToHrl) {
+              return {
+                hrl: undefined,
+                context: {},
+              };
+            }
+          }}
+        myWeServicesMock.attachmentTypes = new Map();
+        myWeServicesMock.attachmentTypes.set(fakeThreadsAppletId, fakeThreadsAttachmentTypes);
+
+        /** Done */
         return myWeServicesMock;
       }
 
-      const mockWeServices = createMockWeServices();
+      const mockWeServices = await createMockWeServices();
 
 
       /** */
@@ -94,7 +111,7 @@
         /** */
         const renderers = await Applet.appletViews(
                 appAgentWs,
-                appletId,
+                whereDemoAppletId,
                 new ProfilesClient(mockProfilesZome, mockProfilesZome.roleName),
                  // new ProfilesClient(new ProfilesZomeMock()),
                 mockWeServices,

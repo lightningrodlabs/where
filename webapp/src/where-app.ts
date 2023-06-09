@@ -1,8 +1,16 @@
 import {html, css} from "lit";
 import { state, customElement } from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
-import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId, RoleName} from "@holochain/client";
-import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef} from "@ddd-qc/lit-happ";
+import {
+  AdminWebsocket, AppInfo,
+  AppSignal,
+  AppWebsocket, encodeHashToBase64,
+  EntryHash,
+  EntryHashB64,
+  InstalledAppId,
+  RoleName
+} from "@holochain/client";
+import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef, Dictionary} from "@ddd-qc/lit-happ";
 import {
   LudothequeDvm, WhereDvm,
   DEFAULT_WHERE_DEF, MY_ELECTRON_API, IS_ELECTRON
@@ -19,6 +27,9 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
+import {WeServices, weServicesContext} from "@lightningrodlabs/we-applet";
+import {ContextProvider} from "@lit-labs/context";
+import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 
 
 /**
@@ -50,13 +61,30 @@ export class WhereApp extends HappElement {
 
   @state() private _canShowBuildView = false;
 
+  protected _weProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+
+
+  private _appInfoMap: Dictionary<AppletInfo> = {};
 
 
   /** */
-  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId) {
+  async fetchAppInfo(appletIds: EntryHash[]) {
+    for (const appletId of appletIds) {
+      this._appInfoMap[encodeHashToBase64(appletId)] = await this._weServices.appletInfo(appletId);
+    }
+    this.requestUpdate();
+  }
+
+
+  /** */
+  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId, private _weServices?: WeServices, public appletId?: EntryHash) {
     super(appWs? appWs : HC_APP_PORT, appId);
     if (_canAuthorizeZfns == undefined) {
       this._canAuthorizeZfns = true;
+    }
+    if (_weServices) {
+      console.log(`\t\tProviding context "${weServicesContext}" | in host `, this);
+      this._weProvider = new ContextProvider(this, weServicesContext, _weServices);
     }
   }
 
@@ -232,8 +260,29 @@ export class WhereApp extends HappElement {
     //             ${page}
     //         </profile-prompt>`;
 
+    let attachments = [html``];
+    if (this._weServices) {
+      for (const [appletId, dict] of this._weServices.attachmentTypes.entries()) {
+        const appletIdB64 = encodeHashToBase64(appletId)
+        console.log("appletId", appletIdB64);
+        console.log("dict", dict);
+        const maybeAppInfo = this._appInfoMap[appletIdB64];
+        if (maybeAppInfo) {
+          for (const v of Object.values(dict)) {
+            const templ = html`
+                <div>${maybeAppInfo.appletName}: ${v.label}</div>`;
+            attachments.push(templ);
+          }
+        } else {
+          this.fetchAppInfo([appletId]);
+        }
+      };
+    }
+
+
 
     const createProfile = html `
+        ${attachments}
         <div class="column"
              style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >

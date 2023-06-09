@@ -355,6 +355,7 @@ export class WhereApp extends HappElement {
           background: #f7f6f8;
           display: block;
           height: 100vh;
+          width: inherit;
         }
 
         .column {

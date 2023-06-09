@@ -25,6 +25,7 @@ export async function appletViews(
   profilesClient: ProfilesClient,
   weServices: WeServices
 ): Promise<AppletViews> {
+  const mainAppInfo = await client.appInfo();
   return {
     main: async (element) => {
       /** Link to Font */
@@ -38,7 +39,7 @@ export async function appletViews(
       /** <where-app> */
       const agentWs = client as AppAgentWebsocket;
       console.log("whereApplet.main()", client, agentWs.appWebsocket)
-      const app = new WhereApp(agentWs.appWebsocket, undefined, false, "where-applet");
+      const app = new WhereApp(agentWs.appWebsocket, undefined, false, mainAppInfo.installed_app_id);
       element.appendChild(app);
     },
     blocks: {},
@@ -47,7 +48,7 @@ export async function appletViews(
         playset_integrity: {
           space: {
             info: async (hrl: Hrl) => {
-              const cellProxy = await asCellProxy(client, hrl, "where-applet", "rWhere");
+              const cellProxy = await asCellProxy(client, hrl, mainAppInfo.installed_app_id, "rWhere");
               const proxy: PlaysetProxy = new PlaysetProxy(cellProxy);
               const space = await proxy.getSpace(encodeHashToBase64(hrl[1]));
               if (!space) {

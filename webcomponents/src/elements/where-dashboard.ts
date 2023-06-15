@@ -366,11 +366,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-
-
-
   /** Search for Threads attachmentType in based on _appInfoMap */
-  getThreadAttachment(): AttachmentType | undefined {
+  getThreadAttachmentType(): AttachmentType | undefined {
     if (this._threadAttachmentType) {
       return this._threadAttachmentType;
     }
@@ -394,7 +391,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
       }
     }
-    console.warn("Did not find 'thread' attachmentType in Threads applet");
+    console.warn("Did not find 'thread' attachmentType in Threads WeServices");
     return undefined;
   }
 
@@ -414,7 +411,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     if (!this.weServices) {
       return false;
     }
-    return !!this.getThreadAttachment();
+    return !!this.getThreadAttachmentType();
   }
 
 
@@ -478,12 +475,12 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
             >info</mwc-icon>
             <mwc-icon class="info-icon" style="cursor:pointer; display:${this.canComment()? 'inline-block' : 'none'};"
                       @click=${ async () => {
-                        const att = this.getThreadAttachment();
-                        if (!att) {
+                        const attType = this.getThreadAttachmentType();
+                        if (!attType) {
                           console.error("Thread attachmentType not found");
                         }
                         const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                        const res = await att.create(spaceHrl);
+                        const res = await attType.create(spaceHrl);
                         console.log("Create/Open Thread result:", res);
                         this.weServices.openViews.openHrl(res.hrl, {}/*res.context*/);
                       }}

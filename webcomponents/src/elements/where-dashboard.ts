@@ -482,7 +482,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                         const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
                         const res = await attType.create(spaceHrl);
                         console.log("Create/Open Thread result:", res);
-                        this.weServices.openViews.openHrl(res.hrl, {}/*res.context*/);
+                        res.context.subjectType = 'space';
+                        //res.context.subjectName = play.space.name;
+                        this.weServices.openViews.openHrl(res.hrl, res.context);
                       }}
             >question_answer</mwc-icon>
           </sl-card>

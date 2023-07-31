@@ -17,10 +17,9 @@ edition = "2021"
 
 [workspace.dependencies]
 serde = { version = "1.0", default-features = false }
-hdi = { version = "0.2.1", default-features = false }
-hdk = { version = "0.1.1", default-features = false }
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "hdk-1.1" }
-holochain_integrity_types = { version = "=0.1.1" } # needed because of broken deps in hdk-1.1
+hdi = { version = "0.3.1", default-features = false }
+hdk = { version = "0.2.1", default-features = false }
+zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "hdk-2.1" }
 
 
 [profile.dev]

@@ -8,10 +8,15 @@
     <link href="../dist/styles.css" rel="stylesheet" />
   </head>
   <body style="margin:0px;background: #9bb791">
-    <!-- <div id="container"></div> -->
-
+  <script type="module">
+    console.log("Waiting for Shoelace...")
+    await Promise.allSettled([
+      customElements.whenDefined('sl-tab'),
+      //customElements.whenDefined('sl-tab-group')
+    ]);
+    console.log("Shoelace READY!");
+  </script>
     <script type="module">
-      //import '@shoelace-style/shoelace/dist/themes/light.css';
       import { AppAgentWebsocket, AdminWebsocket, encodeHashToBase64,  fakeDnaHash, fakeEntryHash} from '@holochain/client';
       import { ProfilesClient } from '@holochain-open-dev/profiles';
       import { ProfilesZomeMock } from "@holochain-open-dev/profiles/dist/mocks.js";
@@ -106,19 +111,19 @@
         //console.log("mock agentId", mockProfilesZome.myPubKey);
         mockProfilesZome.myPubKey = whereCellId[1];
         //console.log("mock agentId", encodeHashToBase64(mockProfilesZome.myPubKey));
-        mockProfilesZome.create_profile({nickname: "Bobby Joe", fields: {}})
+        mockProfilesZome.create_profile({nickname: "Alex", fields: {}})
 
         /** */
         const renderers = await Applet.appletViews(
                 appAgentWs,
                 whereDemoAppletId,
                 new ProfilesClient(mockProfilesZome, mockProfilesZome.roleName),
-                 // new ProfilesClient(new ProfilesZomeMock()),
                 mockWeServices,
         );
-        renderers.main(document.body); // container, window.customElements
+        renderers.main(document.body);
       }
 
+      /** Run it */
       setup();
     </script>
   </body>

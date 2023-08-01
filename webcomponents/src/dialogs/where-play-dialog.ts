@@ -1020,31 +1020,6 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     svgMarkerField.select(svgMarkerField.children.length - 1);
   }
 
-  // /** */
-  // static get scopedElements() {
-  //   return {
-  //     'sl-avatar': SlAvatar,
-  //     'sl-tab-group': SlTabGroup,
-  //     'sl-tab': SlTab,
-  //     'sl-tab-panel': SlTabPanel,
-  //     "mwc-select": Select,
-  //     "mwc-list-item": ListItem,
-  //     "mwc-button": Button,
-  //     "mwc-icon-button": IconButton,
-  //     "mwc-dialog": Dialog,
-  //     "mwc-textfield": TextField,
-  //     "mwc-textarea": TextArea,
-  //     "mwc-formfield": Formfield,
-  //     "mwc-checkbox": Checkbox,
-  //     "mwc-radio": Radio,
-  //     "mwc-tab": Tab,
-  //     "mwc-tab-bar": TabBar,
-  //     "where-emoji-group-dialog" : WhereEmojiGroupDialog,
-  //     "where-emoji-dialog" : WhereEmojiDialog,
-  //     "where-svg-marker-dialog" : WhereSvgMarkerDialog,
-  //     "emoji-picker": customElements.get('emoji-picker'),
-  //   };
-  // }
 
   /** */
   static get styles() {

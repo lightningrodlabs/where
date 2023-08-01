@@ -1,5 +1,5 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
-import typescript from "@rollup/plugin-typescript";
+//import typescript from "@rollup/plugin-typescript";
 //import replace from "@rollup/plugin-replace";
 //import builtins from "rollup-plugin-node-builtins";
 //import globals from "rollup-plugin-node-globals";
@@ -32,6 +32,7 @@ export default {
         { src: "icon.png", dest: DIST_FOLDER },
         { src: "../webapp/favicon.ico", dest: DIST_FOLDER },
         { src: "../webapp/logo.svg", dest: DIST_FOLDER },
+        { src: "../webapp/logo.svg", dest: "demo" },
         { src: "../node_modules/@shoelace-style/shoelace/dist/themes/light.css", dest: DIST_FOLDER, rename: "styles.css" },
       ],
     }),

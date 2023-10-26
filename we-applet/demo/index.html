@@ -26,56 +26,6 @@
 
       const whereDemoAppletId = await fakeEntryHash();
 
-      async function createMockWeServices() {
-        /** */
-        const whereDemoAppletIdB64 = encodeHashToBase64(whereDemoAppletId);
-        const myWeServicesMock = weServicesMock;
-
-        myWeServicesMock.appletInfo = async (appletId) => {
-          const appletIdB64 = encodeHashToBase64(appletId);
-          console.log("myWeServicesMock.appletInfo()", appletIdB64, appletIdB64);
-          if (appletIdB64 == whereDemoAppletIdB64) {
-            return {
-              appletBundleId: await fakeEntryHash(),
-              appletName: "Where Demo Applet",
-              groupIds: [await fakeDnaHash()],
-            }
-          }
-          return {
-            appletBundleId: await fakeEntryHash(),
-            appletName: "FakeThreads",
-            groupIds: [await fakeDnaHash()],
-          }
-          ;
-        };
-
-        myWeServicesMock.entryInfo = async (hrl) => {
-          return {
-            appletId,
-            entryInfo: {
-              icon_src: "",
-              name: "demo:" + encodeHashToBase64(hrl[1]),
-            }
-          }
-        }
-
-        const fakeThreadsAppletId = await fakeEntryHash();
-        const fakeThreadsAttachmentTypes = {
-          thread: {
-            label: "Thread", icon_src: "", async create(attachToHrl) {
-              return {
-                hrl: undefined,
-                context: {},
-              };
-            }
-          }}
-        myWeServicesMock.attachmentTypes = new Map();
-        myWeServicesMock.attachmentTypes.set(fakeThreadsAppletId, fakeThreadsAttachmentTypes);
-
-        /** Done */
-        return myWeServicesMock;
-      }
-
       const mockWeServices = await createMockWeServices();
 
 

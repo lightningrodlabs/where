@@ -32,24 +32,24 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   // esbuildTarget: 'auto'
 
   /** Set appIndex to enable SPA routing */
-  appIndex: "./demo/index.html",
+  appIndex: "./index.html",
   rootDir: '../',
   clearTerminalOnReload: false,
 
   plugins: [
+    /** FIXME: does not copy for unknown reason */
+    copy({
+      copyOnce: true,
+      targets: [
+        { src: "../webapp/logo.svg", dest: "./" },
+      ],
+    }),
     replace({
       "preventAssignment": true,
       'process.env.BUILD_MODE': BUILD_MODE,
       "process.env.HC_APP_PORT": JSON.stringify(process.env.HC_APP_PORT),
       "process.env.HC_ADMIN_PORT": JSON.stringify(process.env.HC_ADMIN_PORT) || undefined,
       delimiters: ["", ""],
-    }),
-    /** FIXME: does not copy for unknown reason */
-    copy({
-      copyOnce: true,
-      targets: [
-        { src: "../webapp/logo.svg", dest: "demo" },
-      ],
     }),
     builtins(),
     commonjs(),

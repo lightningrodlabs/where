@@ -80,7 +80,7 @@
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
 
     "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
-    "package:we"           : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir -o artifacts/where-we_applet.webhapp",
+    "package:we"           : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir -o artifacts/where-we_applet.webhapp && npm run cp:we",
     "dist:we"              : "npm run dist -w we-applet && npm run package:we",
     "cp:we"                : "cp artifacts/where-we_applet.webhapp $npm_package_config_we_test_folder/testing-applets",
 

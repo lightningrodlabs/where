@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="Description" content="Where we-applet" />
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet"/>
+    <link href="../node_modules/@shoelace-style/shoelace/dist/themes/light.css" rel="stylesheet"/>
+    <base href="." />
+    <title>Where we-applet</title>
+  </head>
+
+  <body style="margin: 0px;">
+  <!-- Wait for Shoelace script -->
+    <script type="module">
+      console.log("Waiting for Shoelace...")
+      await Promise.allSettled([
+        customElements.whenDefined('sl-tab'),
+        //customElements.whenDefined('sl-tab-group')
+      ]);
+      console.log("Shoelace READY!");
+    </script>
+    <!-- main script -->
+    <script type="module">
+      console.log("Where we-applet index.html START");
+      import whereAPI from "./out-tsc";
+      console.log("Imported whereAPI");
+      const happElem = await whereAPI.setup(whereAPI.createWhereApplet, whereAPI.whereNames, whereAPI.createWhereWeServicesMock);
+      document.body.append(happElem);
+    </script>
+  </body>
+</html>

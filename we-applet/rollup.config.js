@@ -1,12 +1,14 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
 //import typescript from "@rollup/plugin-typescript";
 //import replace from "@rollup/plugin-replace";
-//import builtins from "rollup-plugin-node-builtins";
+import builtins from "rollup-plugin-node-builtins";
 //import globals from "rollup-plugin-node-globals";
 import commonjs from "@rollup/plugin-commonjs";
 import copy from "rollup-plugin-copy";
 
 import babel from "@rollup/plugin-babel";
+import html from "@web/rollup-plugin-html";
+
 //import { importMetaAssets } from "@web/rollup-plugin-import-meta-assets";
 //import { terser } from "rollup-plugin-terser";
 
@@ -16,11 +18,13 @@ const DIST_FOLDER = "dist"
 
 
 export default {
-  input: "out-tsc/index.js",
+  input: "index.html",
   output: {
+    entryFileNames: "index.js",
+    //chunkFileNames: "[hash].js",
+    assetFileNames: "assets[extname]",
     format: "es",
     dir: DIST_FOLDER,
-    sourcemap: true,
   },
   watch: {
     clearScreen: false,
@@ -34,15 +38,17 @@ export default {
         { src: "../webapp/logo.svg", dest: DIST_FOLDER },
         { src: "../webapp/logo.svg", dest: "demo" },
         { src: "../node_modules/@shoelace-style/shoelace/dist/themes/light.css", dest: DIST_FOLDER, rename: "styles.css" },
+        { src: '../node_modules/@shoelace-style/shoelace/dist/assets', dest: DIST_FOLDER }
       ],
     }),
+    html({}),
     /** Resolve bare module imports */
     nodeResolve({
       browser: true,
       preferBuiltins: false,
     }),
     //typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
-    //builtins(),
+    builtins(),
     //globals(),
     /** Minify JS */
     //terser(),

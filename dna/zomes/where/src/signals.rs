@@ -45,7 +45,7 @@ impl SignalPayload {
 #[hdk_extern]
 fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
     let sig: SignalPayload = signal.decode().unwrap();
-    debug!("Received signal {:?}", sig);
+    debug!("Received signal from {:?}", sig.from);
     Ok(emit_signal(&sig)?)
 }
 
@@ -64,7 +64,7 @@ fn notify_peers(input: NotifyInput) -> ExternResult<()> {
     for a in input.peers.clone() {
         peers.push(a.into())
     }
-    debug!("Sending signal {:?} to {:?}", input.signal, input.peers);
+    debug!("Sending signal to {:?}", input.peers);
     remote_signal(ExternIO::encode(input.signal).unwrap(), peers)?;
     Ok(())
 }

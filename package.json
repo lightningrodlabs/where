@@ -2,8 +2,8 @@
   "name"           : "where-dev",
   "version"        : "0.2.2",
   "config"         : {
-    "hc_version"   : "0.1.0",
-    "zits_version" : "1.8.0",
+    "hc_version"   : "0.2.2",
+    "zits_version" : "1.9.0",
     "bin"          : "bin"
   },
   "private"        : true,
@@ -34,40 +34,47 @@
     "extract:localize"     : "npm run localize:extract -w webcomponents && npm run localize:extract -w webapp",
     "build:localize"       : "npm run localize:build -w webcomponents && npm run localize:build -w webapp",
 
-    "build:webapp"         : "npm run build:localize && npm run build -w webcomponents && npm run dist -w webapp",
-    "build:devtest"        : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp",
-    "build:devtest:ludo"   : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
+    "build:webapp"             : "npm run build:localize && npm run build -w webcomponents && npm run dist -w webapp",
+    "build:devtest"            : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp",
+    "build:devtest:ludotheque" : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
 
     "dev:components"       : "npm run build:watch -w webcomponents",
 
-    "devtest"              : "npm run build:devtest && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp\" \"npm run start\"",
-    "devtest:ludo"         : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp.ludotheque\" \"npm run start:ludotheque\"",
+    "devtest"              : "npm run build:devtest && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp\" \"npm run start:mem\"",
+    "devtest:ludo"         : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp.ludotheque\" \"npm run start:mem:ludotheque\"",
     "devtest:we"           : "npm run build:devtest && npm run devtest -w we-applet",
-    "devtest:we:ludo"      : "npm run build:devtest:ludo && npm run devtest:ludo -w we-applet",
+    "devtest:we:ludo"      : "npm run build:devtest:ludotheque && npm run devtest:ludo -w we-applet",
     "devtest:electron"     : "npm run build -w webcomponents && npm run dist -w webapp && BUILD_MODE='dev' npm run devtest -w electron",
 
-    "network"              : "npm run build:happ && concurrently-repeat \"npm run start:proxied\"",
-    "network-playground"   : "npm run build:happ && concurrently-repeat \"npm run start:playground\"",
-    "network-mem"         : "npm run build:happ && concurrently-repeat \"npm run start\"",
-
-    "prodtest"             : "npm run dist -w webapp && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "prodtest"             : "npm run dist -w webapp && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
     "prodtest:electron"    : "npm run build -w webcomponents && npm run dist -w webapp && npm run devtest -w electron",
 
+    "_save-ports"          :  "echo $HC_APP_PORT > .hc_app_$INDEX && echo $HC_ADMIN_PORT > .hc_admin_$INDEX",
 
-    "start:proxied"        : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run start:happ:proxied\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start"                : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start:ludotheque"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run start:happ:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
-    "start:playground"     : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run playground\" \"npm run dev:components\" \"npm run start:happ\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start-rerun"          : "cross-env HC_APP_PORT=8888 concurrently -k \"npm run build:watch -w webcomponents\" \"$npm_package_config_bin/hc s run 0 -p 8888\" \"npm run start:ui -w webapp\"",
-    "start:happ"           : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ -a where --run=$HC_APP_PORT network mem",
-    "start:launcher"       : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mem",
+    "start:mem"            : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run new-sandbox:mem\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start:mem:ludotheque" : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently                            \"npm run new-sandbox:mem:ludotheque\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
+    "start:local"          : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run new-sandbox:local\" \"npm run _save-ports\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start:public"         : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
 
-    "start:happ:ludotheque": "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mem",
-    "start:happ:proxied"   : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap.holo.host/ webrtc wss://signal.holo.host",
+    "new-sandbox:mem"      : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network mem",
+    "new-sandbox:mem:ludo" : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mem",
+    "new-sandbox:local"    : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap http://127.0.0.1:$BOOT_PORT webrtc ws://127.0.0.1:$SIGNAL_PORT",
+    "new-sandbox:public"   : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap.holo.host/ webrtc wss://signal.holo.host",
+
+    "serve"                :  "cross-env BOOT_PORT=$(cat .hc_bootenv) SIGNAL_PORT=$(cat .hc_signalenv) npm run serve:run",
+    "serve:run"            :  "hc run-local-services --bootstrap-port $BOOT_PORT --signal-port $SIGNAL_PORT",
+    "serve:save"           :  "echo SIGNAL_PORT=$SIGNAL_PORT && echo $SIGNAL_PORT > .hc_signalenv && echo $BOOT_PORT > .hc_bootenv && echo BOOT_PORT=$BOOT_PORT",
+    "network2"             :  "npm run clean:hc & npm run build:devtest && cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:save\" \"npm run serve:run\" \"cross-env INDEX=0 npm run start:local\" \"sleep 1 && cross-env INDEX=1 npm run start:local\"",
+    "network3"             :  "npm run clean:hc & npm run build:devtest && cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:save\" \"npm run serve:run\" \"cross-env INDEX=0 npm run start:local\" \"sleep 1 && cross-env INDEX=1 npm run start:local\" \"sleep 2 && cross-env INDEX=2 npm run start:local\"",
+    "network:we"           :  "npm run clean:hc & npm run network2 -w we-applet",
+    "_sandbox"             :  "echo INDEX: $INDEX & echo PORTS: $BOOT_PORT $SIGNAL_PORT $HC_APP_PORT $HC_ADMIN_PORT & RUST_LOG=warn WASM_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT run $INDEX",
+    "_local"               :  "cross-env BOOT_PORT=$(cat .hc_bootenv) SIGNAL_PORT=$(cat .hc_signalenv) HC_APP_PORT=$(cat .hc_app_$INDEX) HC_ADMIN_PORT=$(cat .hc_admin_$INDEX) BUILD_MODE='dev' ADD_PROFILES=1 concurrently \"npm run _sandbox\" \"sleep 7 && npm run start:ui-only -w webapp\"",
+    "local0"               :  "cross-env INDEX=0 npm run _local",
+    "local1"               :  "cross-env INDEX=1 npm run _local",
+    "local2"               :  "cross-env INDEX=2 npm run _local",
 
     "launch"               : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mem",
     "launch:we"            : "echo pass | hc-launch --piped -n 1 artifacts/where-we_applet.webhapp network mem",
-
 
     "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
 
@@ -78,8 +85,7 @@
 
     "dist:electron"        : "bash submodules/hc-prebuilt/copy-binaries.sh electron/bin && cd electron && electron-builder build",
 
-    "dl-test-release"     : "rm -rf release & mkdir -p release & gh release download manual-release -D release -R lightningrodlabs/where",
-
+    "dl-test-release"      : "rm -rf release & mkdir -p release & gh release download manual-release -D release -R lightningrodlabs/where",
 
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",
@@ -98,10 +104,10 @@
     "typescript"              : "^4.9.0"
   },
   "dependencies"   : {
-    "@ddd-qc/cell-proxy": "0.18.2",
-    "@ddd-qc/lit-happ"  : "0.18.2",
-    "@holochain/client" : "0.14.1",
-    "@lightningrodlabs/we-applet": "0.6.1",
+    "@ddd-qc/cell-proxy": "0.19.4",
+    "@ddd-qc/lit-happ"  : "0.19.4",
+    "@holochain/client" : "=0.16.2",
+    "@lightningrodlabs/we-applet": "0.8.0",
     "@shoelace-style/shoelace": "^2.4.0"
   },
   "engines": {

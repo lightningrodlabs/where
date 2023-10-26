@@ -117,7 +117,7 @@ export class WhereApp extends HappElement {
     console.log("hvmConstructed()", this._adminWs, this._canAuthorizeZfns)
     /** Authorize all zome calls */
     if (!this._adminWs && this._canAuthorizeZfns) {
-      this._adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
+      this._adminWs = await AdminWebsocket.connect(new URL(`ws://localhost:${HC_ADMIN_PORT}`));
       console.log("hvmConstructed() connect called", this._adminWs);
     }
     if (this._adminWs && this._canAuthorizeZfns) {
@@ -272,19 +272,27 @@ export class WhereApp extends HappElement {
         if (maybeAppInfo) {
           for (const v of Object.values(dict)) {
             const templ = html`
-                <div>${maybeAppInfo.appletName}: ${v.label}</div>`;
+                <li>${maybeAppInfo.appletName}: ${v.label}</li>`;
             attachments.push(templ);
           }
         } else {
           this.fetchAppInfo([appletId]);
         }
       };
+      if (attachments.length == 1) {
+        attachments[0] = html`<span>None</span>`
+      }
     }
 
 
 
     const createProfile = html `
-        ${attachments}
+        <div>
+          Attachments found:
+          <ul>
+          ${attachments}
+          </ul>
+        </div>
         <div class="column"
              style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >

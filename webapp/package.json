@@ -35,7 +35,6 @@
     "run-singleton-cli": "^0.0.5"
   },
   "dependencies": {
-    "@lightningrodlabs/we-applet": "0.6.1",
     "@holochain-open-dev/core-types": "0.6.3",
     "@where/elements": "file:../webcomponents",
     "@material/mwc-button": "^0.25.3",

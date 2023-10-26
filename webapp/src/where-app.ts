@@ -83,7 +83,7 @@ export class WhereApp extends HappElement {
       this._canAuthorizeZfns = true;
     }
     if (_weServices) {
-      console.log(`\t\tProviding context "${weClientContext}" | in host `, this);
+      console.log(`\t\tProviding context "${weClientContext}" | in host `, _weServices, this);
       this._weProvider = new ContextProvider(this, weClientContext, _weServices);
     }
   }
@@ -266,8 +266,8 @@ export class WhereApp extends HappElement {
     if (this._weServices) {
       for (const [appletId, dict] of this._weServices.attachmentTypes.entries()) {
         const appletIdB64 = encodeHashToBase64(appletId)
-        console.log("appletId", appletIdB64);
-        console.log("dict", dict);
+        console.log("weServices.appletId", appletIdB64);
+        console.log("weServices.dict", dict);
         const maybeAppInfo = this._appInfoMap[appletIdB64];
         if (maybeAppInfo) {
           for (const v of Object.values(dict)) {

@@ -25,7 +25,7 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
         }
         return {
             appletBundleId: await fakeEntryHash(),
-            appletName: "FakeThreads",
+            appletName: "FakeThreadsApplet",
             groupsIds: [await fakeDnaHash()],
         };
     };

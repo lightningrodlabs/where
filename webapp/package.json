@@ -5,13 +5,13 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "tsc",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "dist": "rm -rf dist && tsc && rollup -c rollup.config.js",
     "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
     "start:ui-old": "web-dev-server --config ./web-dev-server.config.mjs",
     "localize:extract": "lit-localize extract",
-    "localize:build": "lit-localize build"
+    "localize:build": "lit-localize build",
+    "dist": "rm -rf dist && tsc && rollup -c rollup.config.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
@@ -35,14 +35,10 @@
     "run-singleton-cli": "^0.0.5"
   },
   "dependencies": {
-    "@holochain-open-dev/core-types": "0.6.3",
     "@where/elements": "file:../webcomponents",
     "@material/mwc-button": "^0.25.3",
     "@material/mwc-circular-progress": "^0.25.3",
     "@material/mwc-circular-progress-four-color": "^0.25.3",
-    "@material/mwc-dialog": "^0.25.3",
-    "@lit-labs/context": "0.2.0",
-    "@lit/localize": "^0.11.2",
-    "lit": "2.6.0"
+    "@material/mwc-dialog": "^0.25.3"
   }
 }

@@ -1,8 +1,9 @@
 import nodeResolve from "@rollup/plugin-node-resolve";
-import typescript from "@rollup/plugin-typescript";
+//import typescript from "@rollup/plugin-typescript";
 import commonjs from "@rollup/plugin-commonjs";
+import copy from "rollup-plugin-copy";
 //import replace from "@rollup/plugin-replace";
-//import builtins from "rollup-plugin-node-builtins";
+import builtins from "rollup-plugin-node-builtins";
 //import globals from "rollup-plugin-node-globals";
 
 import babel from "@rollup/plugin-babel";
@@ -22,7 +23,7 @@ export default {
     chunkFileNames: "[hash].js",
     assetFileNames: "[hash][extname]",
     format: "es",
-    dir: "dist",
+    dir: DIST_FOLDER,
   },
   watch: {
     clearScreen: false,
@@ -31,7 +32,7 @@ export default {
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
-      minify: true,
+      //minify: true,
       //injectServiceWorker: true,
       //serviceWorkerPath: "dist/sw.js",
     }),
@@ -41,7 +42,7 @@ export default {
       preferBuiltins: false,
     }),
     //builtins(),
-    typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
+    //typescript({ experimentalDecorators: true, outDir: DIST_FOLDER }),
     //globals(),
     /** Minify JS */
     //terser(),
@@ -102,5 +103,13 @@ export default {
     //   runtimeCaching: [{ urlPattern: "polyfills/*.js", handler: "CacheFirst" }],
     // }),
     commonjs(),
+    copy({
+      copyOnce: true,
+      targets: [
+        { src: "icon.png", dest: DIST_FOLDER },
+        { src: "logo.svg", dest: DIST_FOLDER },
+        { src: "favicon.ico", dest: DIST_FOLDER },
+      ],
+    }),
   ],
 };

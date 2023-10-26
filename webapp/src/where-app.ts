@@ -27,7 +27,7 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {WeServices, weServicesContext} from "@lightningrodlabs/we-applet";
+import {WeServices, weClientContext} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit-labs/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 
@@ -83,8 +83,8 @@ export class WhereApp extends HappElement {
       this._canAuthorizeZfns = true;
     }
     if (_weServices) {
-      console.log(`\t\tProviding context "${weServicesContext}" | in host `, this);
-      this._weProvider = new ContextProvider(this, weServicesContext, _weServices);
+      console.log(`\t\tProviding context "${weClientContext}" | in host `, this);
+      this._weProvider = new ContextProvider(this, weClientContext, _weServices);
     }
   }
 

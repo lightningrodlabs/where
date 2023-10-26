@@ -72,9 +72,9 @@ export class LudothequeStandaloneApp extends HappElement {
     console.log("hvmConstructed()")
     /** Provide Context */
     new ContextProvider(this, cellContext, this.ludothequeDvm.cell);
-    this.conductorAppProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.hcl.toString());
+    this.appProxy.addSignalHandler((sig) => this.onSignal(sig), this.ludothequeDvm.hcl.toString());
     /** Authorize all zome calls */
-    const adminWs = await AdminWebsocket.connect(`ws://localhost:${HC_ADMIN_PORT}`);
+    const adminWs = await AdminWebsocket.connect(new URL(`ws://localhost:${HC_ADMIN_PORT}`));
     //console.log({ adminWs });
     await this.hvm.authorizeAllZomeCalls(adminWs);
     console.log("*** Zome call authorization complete");

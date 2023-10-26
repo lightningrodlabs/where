@@ -34,7 +34,7 @@ export default {
   plugins: [
     /** Enable using HTML as rollup entrypoint */
     html({
-      minify: true,
+      //minify: true,
       //injectServiceWorker: true,
       //serviceWorkerPath: "dist/sw.js",
     }),

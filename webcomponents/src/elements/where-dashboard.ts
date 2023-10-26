@@ -2,7 +2,7 @@ import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
 import {consume} from "@lit-labs/context";
 
-import {AttachmentType, Hrl, WeServices, weServicesContext} from "@lightningrodlabs/we-applet";
+import {AttachmentType, Hrl, WeServices, weClientContext} from "@lightningrodlabs/we-applet";
 
 import {sharedStyles} from "../sharedStyles";
 
@@ -96,7 +96,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   canShowBuildView!: boolean;
 
 
-  @consume({ context: weServicesContext, subscribe: true })
+  @consume({ context: weClientContext, subscribe: true })
   weServices: WeServices;
 
 
@@ -484,7 +484,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                         console.log("Create/Open Thread result:", res);
                         res.context.subjectType = 'space';
                         //res.context.subjectName = play.space.name;
-                        this.weServices.openViews.openHrl(res.hrl, res.context);
+                        this.weServices.openHrl(res.hrl, res.context);
                       }}
             >question_answer</mwc-icon>
           </sl-card>

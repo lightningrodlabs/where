@@ -5,10 +5,10 @@
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "rm -rf dist && tsc",
+    "build": "tsc",
     "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "dist": "npm run tsc && rollup -c",
-    "start:ui": "cp -v index.html dist && concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\""
+    "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
+    "dist": "rm -rf dist && tsc && rollup -c rollup.config.js"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.15.0",
@@ -31,13 +31,10 @@
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-terser": "^7.0.2",
     "rollup-plugin-workbox": "^6.2.0",
+    "rollup-plugin-copy": "^3.4.0",
     "run-singleton-cli": "^0.0.5"
   },
   "dependencies": {
-    "@holochain-open-dev/core-types": "0.6.3",
-    "@where/elements": "file:../webcomponents",
-    "lit": "^2.6.0",
-    "@lit-labs/context": "^0.2.0",
-    "@lit/localize": "^0.11.2"
+    "@where/elements": "file:../webcomponents"
   }
 }

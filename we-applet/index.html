@@ -26,9 +26,9 @@
     <!-- main script -->
     <script type="module">
       console.log("Where we-applet index.html START");
-      import whereAPI from "./out-tsc";
-      console.log("Imported whereAPI");
-      const happElem = await whereAPI.setup(whereAPI.createWhereApplet, whereAPI.whereNames, whereAPI.createWhereWeServicesMock);
+      import setupWhereApplet from "./out-tsc";
+      console.log("Imported setupWhereApplet");
+      const happElem = await setupWhereApplet();
       document.body.append(happElem);
     </script>
   </body>

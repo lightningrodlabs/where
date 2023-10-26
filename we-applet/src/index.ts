@@ -1,14 +1,12 @@
-import {setup} from "./common/setup";
-import {whereNames} from "./appletServices/appletServices";
-import {createWhereWeServicesMock} from "./createWhereWeServicesMock";
+import {setup} from "@ddd-qc/we-utils";
+import {appletServices, whereNames} from "./appletServices/appletServices";
 import {createWhereApplet} from "./createWhereApplet";
+import {createWhereWeServicesMock} from "./createWhereWeServicesMock";
 
 
-export default {
-  setup,
-  whereNames,
-  createWhereApplet,
-  createWhereWeServicesMock,
-};
+export default setupWhereApplet;
 
-
+/** */
+async function setupWhereApplet() {
+  return setup(appletServices, createWhereApplet, whereNames, createWhereWeServicesMock);
+}

@@ -5,7 +5,7 @@ import {
 } from "@holochain/client";
 import {HoloHashMap} from "@holochain-open-dev/utils";
 import {AppletHash, AttachmentName, AttachmentType, WeServices} from "@lightningrodlabs/we-applet";
-import {emptyWeServicesMock} from "./common/mocks/weServicesMock";
+import {emptyWeServicesMock} from "@ddd-qc/we-utils";
 import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
 
 

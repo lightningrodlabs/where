@@ -31,6 +31,7 @@
     "typescript": "^4.9.0"
   },
   "dependencies": {
+    "@ddd-qc/we-utils": "=0.1.0",
     "@holochain-open-dev/utils": "=0.16.0",
     "@where/elements": "file:../webcomponents",
     "ludotheque": "file:../webapp.ludotheque",

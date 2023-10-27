@@ -36,7 +36,7 @@ export default {
         { src: "icon.png", dest: DIST_FOLDER },
         { src: "../webapp/favicon.ico", dest: DIST_FOLDER },
         { src: "../webapp/logo.svg", dest: DIST_FOLDER },
-        { src: "../webapp/logo.svg", dest: "demo" },
+        { src: "../webapp/logo.svg", dest: "./" },
         { src: "../node_modules/@shoelace-style/shoelace/dist/themes/light.css", dest: DIST_FOLDER, rename: "styles.css" },
         { src: '../node_modules/@shoelace-style/shoelace/dist/assets', dest: DIST_FOLDER }
       ],

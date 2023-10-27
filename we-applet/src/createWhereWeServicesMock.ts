@@ -36,7 +36,7 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
             appletHash: decodeHashFromBase64(devtestAppletId),
             entryInfo: {
                 icon_src: "",
-                name: "demo:" + encodeHashToBase64(hrl[1]),
+                name: "fake:" + encodeHashToBase64(hrl[1]),
             }
         }
     }

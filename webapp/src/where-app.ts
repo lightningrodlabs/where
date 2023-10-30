@@ -35,7 +35,7 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {weClientContext, WeServices} from "@lightningrodlabs/we-applet";
+import {AppletId, weClientContext, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit-labs/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 
@@ -76,16 +76,16 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  async fetchAppInfo(appletIds: EntryHash[]) {
-    for (const appletId of appletIds) {
-      this._appInfoMap[encodeHashToBase64(appletId)] = await this._weServices.appletInfo(appletId);
+  async fetchAppInfo(appletHashs: EntryHash[]) {
+    for (const appletHash of appletHashs) {
+      this._appInfoMap[encodeHashToBase64(appletHash)] = await this._weServices.appletInfo(appletHash);
     }
     this.requestUpdate();
   }
 
 
   /** */
-  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId, private _weServices?: WeServices, public appletId?: EntryHash) {
+  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId, private _weServices?: WeServices, public appletId?: AppletId) {
     super(appWs? appWs : HC_APP_PORT, appId);
     if (_canAuthorizeZfns == undefined) {
       this._canAuthorizeZfns = true;
@@ -272,8 +272,8 @@ export class WhereApp extends HappElement {
     /** Display all attachment-types */
     let attachments = [html``];
     if (this._weServices) {
-      for (const [appletId, dict] of this._weServices.attachmentTypes.entries()) {
-        const appletIdB64 = encodeHashToBase64(appletId)
+      for (const [appletHash, dict] of this._weServices.attachmentTypes.entries()) {
+        const appletIdB64 = encodeHashToBase64(appletHash)
         console.log("weServices.appletId", appletIdB64);
         console.log("weServices.dict", dict);
         const maybeAppInfo = this._appInfoMap[appletIdB64];
@@ -284,7 +284,7 @@ export class WhereApp extends HappElement {
             attachments.push(templ);
           }
         } else {
-          this.fetchAppInfo([appletId]);
+          this.fetchAppInfo([appletHash]);
         }
       };
       if (attachments.length == 1) {

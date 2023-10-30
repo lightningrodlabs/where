@@ -110,6 +110,7 @@
     "@holochain/client" : "=0.16.2",
     "@ddd-qc/cell-proxy": "=0.19.14",
     "@ddd-qc/lit-happ"  : "=0.19.14",
+    "@ddd-qc/we-utils": "=0.19.15",
     "@holochain-open-dev/core-types": "=0.6.3",
     "@holochain-open-dev/profiles": "=0.16.1",
     "@lightningrodlabs/we-applet": "0.10.0",

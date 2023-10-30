@@ -18,7 +18,7 @@
     "import-webapp": "cp -v -r ../webapp/dist/* web",
     "build": "npm run import-webapp && tsc",
     "help": "electron --help",
-    "devtest": "npm run build && electron .",
+    "devtest": "npm run build && electron . ",
     "dist:win": "electron-builder --win",
     "dist:linux": "electron-builder --linux tar.gz",
     "dist:linux-app": "electron-builder --linux AppImage"

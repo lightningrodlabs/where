@@ -1,20 +1,28 @@
-import {html, css} from "lit";
-import { state, customElement } from "lit/decorators.js";
+import {css, html} from "lit";
+import {customElement, state} from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
 import {
-  AdminWebsocket, AppInfo,
+  AdminWebsocket,
   AppSignal,
-  AppWebsocket, encodeHashToBase64,
+  AppWebsocket,
+  encodeHashToBase64,
   EntryHash,
   EntryHashB64,
   InstalledAppId,
   RoleName
 } from "@holochain/client";
-import {CellContext, delay, HCL, CellsForRole, HappElement, HvmDef, Dictionary} from "@ddd-qc/lit-happ";
 import {
-  LudothequeDvm, WhereDvm,
-  DEFAULT_WHERE_DEF, MY_ELECTRON_API, IS_ELECTRON
-} from "@where/elements";
+  CellsForRole,
+  delay,
+  Dictionary,
+  HAPP_ELECTRON_API,
+  HAPP_ENV,
+  HappElement,
+  HappEnvType,
+  HCL,
+  HvmDef
+} from "@ddd-qc/lit-happ";
+import {DEFAULT_WHERE_DEF, LudothequeDvm, WhereDvm} from "@where/elements";
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
@@ -27,7 +35,7 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {WeServices, weClientContext} from "@lightningrodlabs/we-applet";
+import {weClientContext, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit-labs/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 
@@ -132,12 +140,12 @@ export class WhereApp extends HappElement {
       }
     }
     /** Send dnaHash to electron */
-    if (IS_ELECTRON) {
+    if (HAPP_ENV == HappEnvType.Electron) {
       const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell.dnaHash;
       //let _reply = MY_ELECTRON_API.dnaHashSync(whereDnaHashB64);
       //const ipc = window.require('electron').ipcRenderer;
       //const ipc = window.require('electron').ipcRenderer;
-      let _reply = MY_ELECTRON_API.sendSync('dnaHash', whereDnaHashB64);
+      let _reply = HAPP_ELECTRON_API.sendSync('dnaHash', whereDnaHashB64);
     }
 
     /** Grab ludo cells */

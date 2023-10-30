@@ -4,7 +4,6 @@ import {app} from "electron";
 /** Build Mode */
 
 //export const IS_PACKAGED = app.isPackaged;
-export const IS_DEV = process.env.BUILD_MODE? process.env.BUILD_MODE == 'dev' : false;
 export const DEVELOPMENT_UI_URL = path.join(__dirname, '../web')
 //export const DEVELOPMENT_UI_URL = path.join(__dirname, '../../web')
 

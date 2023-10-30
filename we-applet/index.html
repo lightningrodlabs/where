@@ -14,7 +14,12 @@
   </head>
 
   <body style="margin: 0px;">
-  <!-- Wait for Shoelace script -->
+    <!-- First script script -->
+    <script type="module">
+      console.log("Where we-applet index.html START");
+      window.IN_WE = true;
+    </script>
+    <!-- Wait for Shoelace script -->
     <script type="module">
       console.log("Waiting for Shoelace...")
       await Promise.allSettled([
@@ -25,7 +30,6 @@
     </script>
     <!-- main script -->
     <script type="module">
-      console.log("Where we-applet index.html START");
       import setupWhereApplet from "./out-tsc";
       console.log("Imported setupWhereApplet");
       const happElem = await setupWhereApplet();

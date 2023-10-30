@@ -3,11 +3,10 @@ import 'cqfill';
 
 // TODO: change exports to be available for consumer packages
 
-export * from "./globals"
-
 export * from './bindings/playset.types';
 //export * from './bindings/ludotheque.types';
 export * from './bindings/where.types';
+export * from './bindings/playset.proxy';
 
 export * from './viewModels/happDef';
 export * from './viewModels/ludotheque.dvm';

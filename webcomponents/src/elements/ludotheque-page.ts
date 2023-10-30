@@ -12,8 +12,7 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PlaysetEntryType} from "../bindings/playset.types";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {delay, DnaElement} from "@ddd-qc/lit-happ";
-import {IS_DEV} from "../globals";
+import {delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
 
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
@@ -802,7 +801,9 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     //   `;
     // });
 
+      const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
 
+    /** */
     return html`
 <!--  DRAWER -->
 <mwc-drawer type="dismissible" id="playset-drawer">
@@ -838,7 +839,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
         <mwc-icon>library_books</mwc-icon>-->
       <div slot="title">${msg('Library')}: ${this._dvm.cell.name === "dLudotheque"? msg("Global") : this._dvm.cell.name}</div>
 
-      ${IS_DEV? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
+      ${isInDev? html`<mwc-icon-button id="dump-signals-button" slot="navigationIcon" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
       <sl-tooltip slot="actionItems" content="${msg('Sync with network')}"  placement="bottom-end" distance="4">
         <mwc-icon-button id="pull-button" icon="cloud_sync" @click=${() => this.onRefresh()} ></mwc-icon-button>
       </sl-tooltip>

@@ -1,5 +1,6 @@
+//import {HAPP_BUILD_MODE, HappBuildModeType} from "@ddd-qc/lit-happ";
+
 export const electronLogger = require('electron-log');
-const {IS_DEV} = require('./constants');
 
 export function log(level, message) {
   electronLogger[level](message);
@@ -19,10 +20,13 @@ log('info', "");
 log('info', "APP STARTED");
 log('info', "");
 
-if (IS_DEV) {
+
+const hasDebugLogs = process.env.HAPP_BUILD_MODE != 'Retail'; //HappBuildModeType.Release;
+
+if (hasDebugLogs) {
   electronLogger.transports.file.level = 'error'; // minimize disk writes ; Use console instead
   electronLogger.transports.console.level = 'debug';
-  log('debug', "DEBUG MODE ENABLED\n");
+  log('debug', "DEBUG LOGS ENABLED\n");
   // require('electron-debug')({ isEnabled: true });
 } else {
   //log('info', "DEBUG MODE DISABLED");

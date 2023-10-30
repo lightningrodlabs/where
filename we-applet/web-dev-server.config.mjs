@@ -10,9 +10,8 @@ const commonjs = fromRollup(rollupCommonjs);
 const builtins = fromRollup(rollupBuiltins);
 const copy = fromRollup(RollupCopy);
 
-const BUILD_MODE = process.env.BUILD_MODE? JSON.stringify(process.env.BUILD_MODE) : 'prod';
-console.log("web-dev-server BUILD_MODE =", BUILD_MODE);
-console.log("web-dev-server copy =", copy);
+console.log("web-dev-server: process.env.HAPP_BUILD_MODE: ", process.env.HAPP_BUILD_MODE);
+const HAPP_BUILD_MODE = process.env.HAPP_BUILD_MODE? process.env.HAPP_BUILD_MODE : "Release";
 
 
 /** Use Hot Module replacement by adding --hmr to the start command */
@@ -25,7 +24,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   nodeResolve: {
     browser: true,
     preferBuiltins: false,
-    exportConditions: ['browser', BUILD_MODE === 'dev' ? 'development' : ''],
+    exportConditions: ['browser', HAPP_BUILD_MODE === 'Debug' ? 'development' : ''],
   },
 
   /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
@@ -46,7 +45,8 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
     }),
     replace({
       "preventAssignment": true,
-      'process.env.BUILD_MODE': BUILD_MODE,
+      'process.env.HAPP_BUILD_MODE': JSON.stringify(HAPP_BUILD_MODE),
+      'process.env.HAPP_ENV': JSON.stringify("DevtestWe"),
       "process.env.HC_APP_PORT": JSON.stringify(process.env.HC_APP_PORT),
       "process.env.HC_ADMIN_PORT": JSON.stringify(process.env.HC_ADMIN_PORT) || undefined,
       delimiters: ["", ""],

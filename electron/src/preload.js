@@ -1,8 +1,9 @@
 const { contextBridge, ipcRenderer } = require('electron')
 
-const BUILD_MODE = process.env.BUILD_MODE? process.env.BUILD_MODE : 'prod';
+console.log("Electron preload. HAPP_BUILD_MODE = " + JSON.stringify(process.env.HAPP_BUILD_MODE));
+const BUILD_MODE = process.env.HAPP_BUILD_MODE? process.env.HAPP_BUILD_MODE : 'Retail';
 
-console.log("Electron preload. BUILD_MODE = " + JSON.stringify(process.env.BUILD_MODE));
+/** Define and add 'electronBridge' to 'window' */
 
 const electronBridge = {
   send: (channel) => {ipcRenderer.send(channel)},

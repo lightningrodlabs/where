@@ -8,7 +8,7 @@ import {sharedStyles} from "../sharedStyles";
 
 import {decodeHashFromBase64, encodeHashToBase64, EntryHash, EntryHashB64} from "@holochain/client";
 
-import {delay, DnaElement} from "@ddd-qc/lit-happ";
+import {delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 
@@ -29,7 +29,6 @@ import {WhereProfile} from "../viewModels/profiles.proxy";
 import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
 import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
 import {SignalPayload} from "../bindings/where.types";
-import {IS_DEV} from "../globals";
 
 import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
 import "@shoelace-style/shoelace/dist/components/badge/badge.js"
@@ -492,13 +491,15 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
     );
 
+    const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
 
-    /** Render all */
+
+      /** Render all */
     return html`
     <!-- TOP APP BAR -->
     <mwc-top-app-bar-fixed id="app-bar" dense centerTitle>
       <div slot="title">Where</div>
-      ${IS_DEV? html`
+      ${isInDev? html`
         <sl-tooltip slot="navigationIcon" content="Dump logs" placement="bottom" distance="4">
             <mwc-icon-button id="dump-signals-button" icon="bug_report" @click=${() => this._dvm.dumpLogs()} ></mwc-icon-button>
         </sl-tooltip>

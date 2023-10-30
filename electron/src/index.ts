@@ -5,51 +5,46 @@ import {
   globalShortcut,
   ipcMain as ipc,
   Menu,
-  MenuItemConstructorOptions, nativeImage,
+  MenuItemConstructorOptions,
+  nativeImage,
   RelaunchOptions,
-  shell, Tray
+  shell,
+  Tray
 } from 'electron'
 import * as path from 'path'
 // import log from 'electron-log'
 import initAgent, {
-  getRunnerVersion,
-  StateSignal,
-  STATUS_EVENT,
   APP_PORT_EVENT,
   ERROR_EVENT,
+  getRunnerVersion,
   HOLOCHAIN_RUNNER_QUIT,
+  StateSignal,
+  STATUS_EVENT,
 } from "@lightningrodlabs/electron-holochain"
 
-import {
-  createHolochainOptions,
-  stateSignalToText,
-  BINARY_PATHS,
-} from './holochain'
+import {BINARY_PATHS, createHolochainOptions, stateSignalToText,} from './holochain'
 
-import { electronLogger, log } from './logger'
-import  { loadUserSettings } from './userSettings'
+import {electronLogger, log} from './logger'
+import {loadUserSettings} from './userSettings'
+import {
+  APP_DATA_PATH,
+  BACKGROUND_COLOR,
+  DEVELOPMENT_UI_URL,
+  getAdminPort,
+  ICON_FILEPATH,
+  LINUX_ICON_FILE,
+  MAIN_FILE,
+  SPLASH_FILE,
+} from './constants'
+
+import {addUidToDisk, initApp} from "./init";
+//import * as prompt from 'electron-prompt';
+import prompt from 'electron-prompt';
 
 /** Global Localization service. Loaded on app 'ready' event */
 let i18n;
 /** Test french */
 //app.commandLine.appendSwitch('lang', 'fr')
-
-
-import {
-  BACKGROUND_COLOR,
-  DEVELOPMENT_UI_URL,
-  LINUX_ICON_FILE,
-  SPLASH_FILE,
-  MAIN_FILE,
-  APP_DATA_PATH, ICON_FILEPATH, getAdminPort, IS_DEV,
-} from './constants'
-
-import {initApp, addUidToDisk} from "./init";
-//import * as prompt from 'electron-prompt';
-import prompt from 'electron-prompt';
-
-
-import { execFile } from 'child_process'
 
 export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
 
@@ -85,17 +80,24 @@ let g_dnaHash = '(unknown)'
 // -- Functions
 //--------------------------------------------------------------------------------------------------
 
+//import {HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
+
+const HAPP_ENV = "Electron";
+
 /**
  *
  */
 const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
+  //const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
+  const isInDev = false;
+
   /** Create the browser window */
   let { width, height } = g_userSettings.get('windowBounds');
   let title = "Where v" + app.getVersion() + " - " + g_uid
   const options: Electron.BrowserWindowConstructorOptions = {
     height,
     width,
-    title: IS_DEV? "[DEV] " + title : title,
+    title: isInDev? "[" + HAPP_ENV + "] " + title : title,
     show: false,
     backgroundColor: BACKGROUND_COLOR,
     /* Use these settings so that the ui can check paths */
@@ -120,7 +122,7 @@ const createMainWindow = async (appPort: string): Promise<BrowserWindow> => {
     mainWindow.reload()
   })
 
-  if (IS_DEV) {
+  if (isInDev) {
     mainWindow.webContents.openDevTools();
   }
 

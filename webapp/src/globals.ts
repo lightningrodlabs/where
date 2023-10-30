@@ -1,4 +1,5 @@
-import {BUILD_MODE, DEFAULT_WHERE_DEF, IS_ELECTRON} from "@where/elements";
+import {DEFAULT_WHERE_DEF} from "@where/elements";
+import {HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
 
 
 /** -- BUILD_MODE & IS_ELECTRON -- */
@@ -28,7 +29,7 @@ import {BUILD_MODE, DEFAULT_WHERE_DEF, IS_ELECTRON} from "@where/elements";
 export let HC_APP_PORT: number;
 export let HC_ADMIN_PORT: number;
 /** override happ id  when in Electron */
-if (IS_ELECTRON) {
+if (HAPP_ENV == HappEnvType.Electron) {
   const APP_ID = 'main-app'
   const searchParams = new URLSearchParams(window.location.search);
   const urlPort = searchParams.get("APP");

@@ -13,14 +13,13 @@ import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetEntryType, Template} from "../bindings/playset.types";
-import {CloneId, delay, DnaElement} from "@ddd-qc/lit-happ";
+import {CloneId, delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
 import {WhereProfile} from "../viewModels/profiles.proxy";
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 
 import {SignalPayload} from "../bindings/where.types";
 import {Dictionary} from "@ddd-qc/cell-proxy";
 import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
-import {IS_DEV} from "../globals";
 
 import {WherePeerList} from "./where-peer-list";
 import {WhereSpace} from "./where-space";
@@ -814,7 +813,10 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       ${create_menu}
       ` : html``;
 
-    /** Render all */
+      const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
+
+
+      /** Render all */
     return html`
 <!--  DRAWER -->
 <mwc-drawer type="dismissible" id="my-drawer" style="width: 100%">
@@ -860,7 +862,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
         this.dispatchEvent(new CustomEvent('play-selected', { detail: null, bubbles: true, composed: true }));
       }} ></mwc-icon-button></sl-tooltip>
       <!-- ACTIONS MENU -->
-      ${IS_DEV? html`<mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
+      ${isInDev? html`<mwc-icon-button id="dump-signals-button" slot="actionItems" icon="bug_report" @click=${() => this.onDumpLogs()} ></mwc-icon-button>` : html``}
       ${this.canShowBuildView?
         html`
           <sl-tooltip slot="actionItems" content=${msg('Sync with network')} placement="bottom" distance="4">

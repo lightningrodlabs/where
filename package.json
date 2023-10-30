@@ -45,17 +45,17 @@
     "devtest:ludo"         : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp.ludotheque\" \"npm run start:mem:ludotheque\"",
     "devtest:we"           : "npm run build:devtest && npm run devtest -w we-applet",
     "devtest:we:ludo"      : "npm run build:devtest:ludotheque && npm run devtest:ludo -w we-applet",
-    "devtest:electron"     : "npm run build -w webcomponents && npm run dist -w webapp && BUILD_MODE='dev' npm run devtest -w electron",
+    "devtest:electron"     : "npm run build -w webcomponents && npm run dist -w webapp && HAPP_BUILD_MODE='Debug' npm run devtest -w electron",
 
     "prodtest"             : "npm run dist -w webapp && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
     "prodtest:electron"    : "npm run build -w webcomponents && npm run dist -w webapp && npm run devtest -w electron",
 
     "_save-ports"          :  "echo $HC_APP_PORT > .hc_app_$INDEX && echo $HC_ADMIN_PORT > .hc_admin_$INDEX",
 
-    "start:mem"            : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run new-sandbox:mem\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start:mem:ludotheque" : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently                            \"npm run new-sandbox:mem:ludo\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
-    "start:local"          : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run new-sandbox:local\" \"npm run _save-ports\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start:public"         : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) BUILD_MODE='dev' concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start:mem"            : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run dev:components\" \"npm run new-sandbox:mem\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start:mem:ludotheque" : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently                            \"npm run new-sandbox:mem:ludo\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
+    "start:local"          : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run dev:components\" \"npm run new-sandbox:local\" \"npm run _save-ports\" \"sleep 7 && npm run start:ui -w webapp\"",
+    "start:public"         : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
 
     "new-sandbox:mem"      : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network mem",
     "new-sandbox:mem:ludo" : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mem",
@@ -108,8 +108,8 @@
   },
   "dependencies"   : {
     "@holochain/client" : "=0.16.2",
-    "@ddd-qc/cell-proxy": "=0.19.11",
-    "@ddd-qc/lit-happ"  : "=0.19.11",
+    "@ddd-qc/cell-proxy": "=0.19.14",
+    "@ddd-qc/lit-happ"  : "=0.19.14",
     "@holochain-open-dev/core-types": "=0.6.3",
     "@holochain-open-dev/profiles": "=0.16.1",
     "@lightningrodlabs/we-applet": "0.10.0",

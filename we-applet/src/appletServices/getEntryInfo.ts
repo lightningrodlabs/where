@@ -1,7 +1,7 @@
 import {asCellProxy} from "@ddd-qc/we-utils";
 import {encodeHashToBase64} from "@holochain/client";
 import {whereNames} from "./appletServices";
-import {PlaysetProxy} from "@where/elements/dist/bindings/playset.proxy";
+import {PlaysetProxy} from "@where/elements";
 
 
 /** */

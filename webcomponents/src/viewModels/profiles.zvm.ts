@@ -60,7 +60,14 @@ export class ProfilesZvm extends ZomeViewModel {
 
   /** */
   async probeAllProfiles(): Promise<void> {
-    const allAgents = await this.zomeProxy.getAgentsWithProfile();
+    let allAgents;
+    /** Attempt a retry on fail as this can create an entry and generate an error (path anchor) */
+    try {
+      allAgents = await this.zomeProxy.getAgentsWithProfile();
+    } catch(e) {
+      allAgents = await this.zomeProxy.getAgentsWithProfile();
+    }
+
     for (const agentPubKey of allAgents) {
       const record = await this.zomeProxy.getAgentProfile(agentPubKey);
       if (!record) {

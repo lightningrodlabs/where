@@ -24,7 +24,7 @@ export async function createWhereApplet(
 ): Promise<WhereApp> {
 
   if (renderInfo.type =="cross-applet-view") {
-    throw Error("cross-applet-view not implemented by Files");
+    throw Error("cross-applet-view not implemented by Where");
   }
 
   const appletViewInfo = renderInfo as AppletViewInfo;

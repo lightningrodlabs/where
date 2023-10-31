@@ -1,7 +1,6 @@
 import { html, css, LitElement } from 'lit';
 import { property, query, state, customElement } from 'lit/decorators.js';
 import { localized, msg, str } from '@lit/localize';
-import {WhereProfile} from "../viewModels/profiles.proxy";
 
 import "@material/mwc-textfield";
 import {TextField} from "@material/mwc-textfield";
@@ -13,6 +12,7 @@ import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
 import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
 import "@shoelace-style/shoelace/dist/components/radio/radio.js"
 import "@shoelace-style/shoelace/dist/components/radio-group/radio-group.js"
+import {ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 /** Crop the image and return a base64 bytes string of its content */
@@ -60,7 +60,7 @@ export class EditProfile extends LitElement {
    * The profile to be edited.
    */
   @property({ type: Object })
-  profile: WhereProfile | undefined;
+  profile: ProfileMat | undefined;
 
   /**
    * Label for the save profile button.
@@ -234,7 +234,7 @@ export class EditProfile extends LitElement {
       fields['lang'] = this._lang;
     }
 
-    const profile: WhereProfile = {
+    const profile: ProfileMat = {
       fields,
       nickname,
     };

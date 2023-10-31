@@ -3,26 +3,11 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {MarkerType, SpaceMeta, UiItem} from "./viewModels/playset.perspective";
 import {defaultLocationMeta, LocationMeta} from "./viewModels/where.perspective";
-import {WhereProfile} from "./viewModels/profiles.proxy";
-import {MarkerPiece} from "./bindings/playset.types";
+import {getInitials, ProfileMat} from "@ddd-qc/profiles-dvm";
 
 export const MARKER_WIDTH = 40;
 export const EMOJI_WIDTH  = 32;
 
-//export const delay = (ms:number) => new Promise(r => setTimeout(r, ms))
-
-
-/** */
-export function getInitials(nickname: string): string {
-  const names = nickname.split(' ');
-  let initials = names[0].substring(0, 1).toUpperCase();
-  if (names.length > 1) {
-    initials += names[names.length - 1].substring(0, 1).toUpperCase();
-  } else {
-    initials += names[0].substring(1, 2);
-  }
-  return initials;
-}
 
 
 /** */
@@ -92,7 +77,7 @@ export function renderMarker(locMeta: LocationMeta, isMe: boolean) {
 
 
 /** */
-export function renderMarkerTypePreview(markerType: MarkerType, profile?: WhereProfile) {
+export function renderMarkerTypePreview(markerType: MarkerType, profile?: ProfileMat) {
   let locMeta: LocationMeta = defaultLocationMeta();
   locMeta.markerType = markerType;
   locMeta.img = profile? profile.fields.avatar : "42";

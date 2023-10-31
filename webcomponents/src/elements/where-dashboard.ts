@@ -24,7 +24,6 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {Template} from "../bindings/playset.types";
 
-import {WhereProfile} from "../viewModels/profiles.proxy";
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
 import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
@@ -59,6 +58,7 @@ import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
+import {ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 
@@ -105,7 +105,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   wherePerspective!: WherePerspective;
 
-  private _myProfile?: WhereProfile;
+  private _myProfile?: ProfileMat;
 
 
   /** State */
@@ -579,7 +579,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  private async onProfileEdited(profile: WhereProfile) {
+  private async onProfileEdited(profile: ProfileMat) {
     await this._dvm.profilesZvm.updateMyProfile(profile);
     this.profileDialogElem.open = false;
     /** Make sure a redraw is triggered */

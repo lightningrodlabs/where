@@ -14,7 +14,6 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetEntryType, Template} from "../bindings/playset.types";
 import {CloneId, delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
-import {WhereProfile} from "../viewModels/profiles.proxy";
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 
 import {SignalPayload} from "../bindings/where.types";
@@ -60,6 +59,7 @@ import "@material/mwc-button";
 import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
+import {ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 /** Styles for top-app-bar */
@@ -105,7 +105,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
   wherePerspective!: WherePerspective;
 
-  private _myProfile?: WhereProfile;
+  private _myProfile?: ProfileMat;
 
 
   /** State */
@@ -711,7 +711,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  private async onProfileEdited(profile: WhereProfile) {
+  private async onProfileEdited(profile: ProfileMat) {
     await this._dvm.profilesZvm.updateMyProfile(profile);
     this.profileDialogElem.open = false;
     /** Make sure a redraw is triggered */

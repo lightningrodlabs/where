@@ -20,7 +20,7 @@ coordinator:
       bundled: ../../../target/wasm32-unknown-unknown/release/where_zome.wasm
       dependencies:
         - name: where_integrity
-    - name: zProfiles
+    - name: profiles
       bundled: ../../../target/wasm32-unknown-unknown/release/profiles_zome.wasm
       dependencies:
         - name: profiles_integrity

@@ -12,7 +12,6 @@ import {EmojiGroup, MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg} from ".
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {MarkerType} from "../viewModels/playset.perspective";
 import {DnaElement} from "@ddd-qc/lit-happ";
-import {WhereProfile} from "../viewModels/profiles.proxy";
 import {AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 
 import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
@@ -47,6 +46,7 @@ import {TabBar} from "@material/mwc-tab-bar";
 import {TextField} from "@material/mwc-textfield";
 import {Fab} from "@material/mwc-fab";
 import {Dialog} from "@material/mwc-dialog";
+import {ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 // // Canvas Animation experiment
@@ -96,7 +96,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** State */
 
-  private _myProfile!: WhereProfile;
+  private _myProfile!: ProfileMat;
 
   private _dialogCoord = { x: 0, y: 0 };
   private _dialogCanEdit = false;

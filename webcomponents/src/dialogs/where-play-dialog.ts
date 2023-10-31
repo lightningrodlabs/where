@@ -17,7 +17,6 @@ import {Play} from "../viewModels/where.perspective";
 import {defaultSpaceMeta, MarkerType, PlaysetPerspective, SpaceMeta, UiItem} from "../viewModels/playset.perspective";
 import {PlaysetZvm} from "../viewModels/playset.zvm";
 import {ZomeElement} from "@ddd-qc/lit-happ";
-import {WhereProfile} from "../viewModels/profiles.proxy";
 import {EntryHashB64} from "@holochain/client";
 
 import {SlTab, SlTabGroup} from "@shoelace-style/shoelace";
@@ -47,6 +46,7 @@ import {Formfield} from "@material/mwc-formfield";
 import {Radio} from "@material/mwc-radio";
 import {Dialog} from "@material/mwc-dialog";
 import {TextField} from "@material/mwc-textfield";
+import {ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 /**
@@ -61,7 +61,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
 
   /** Properties */
   @property({ type: Object})
-  currentProfile?: WhereProfile = undefined;
+  currentProfile?: ProfileMat = undefined;
 
   /** State */
   @state() private _currentTemplate: null | Template = null;

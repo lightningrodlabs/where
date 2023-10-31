@@ -11,10 +11,10 @@ import {DnaViewModel, ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {dematerializeSpace, SpaceMat} from "./playset.perspective";
-import {ProfilesZvm} from "./profiles.zvm";
 import {Space} from "../bindings/playset.types";
 import {Message, MessageType, PlacementSession, SignalPayload} from "../bindings/where.types";
 import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
+import {ProfilesZvm} from "@ddd-qc/profiles-dvm";
 
 
 /** */

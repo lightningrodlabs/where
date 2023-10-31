@@ -5,8 +5,7 @@ import { localized, msg } from '@lit/localize';
 import {Play} from "../viewModels/where.perspective";
 import {MarkerPiece, MarkerPieceVariantEmojiGroup, MarkerPieceVariantSvg, Template} from "../bindings/playset.types";
 import {MarkerType, markerTypeNames, SpaceMeta} from "../viewModels/playset.perspective";
-import {getInitials, renderSvgMarker} from "../sharedRender";
-import {WhereProfile} from "../viewModels/profiles.proxy";
+import {renderSvgMarker} from "../sharedRender";
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 
@@ -14,6 +13,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
+import {getInitials, ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 /**
@@ -29,7 +29,7 @@ export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDv
   @state() private _play?: Play;
   private _template?: Template;
 
-  private _myProfile?: WhereProfile;
+  private _myProfile?: ProfileMat;
 
   /** */
   open(play: Play, template: Template) {

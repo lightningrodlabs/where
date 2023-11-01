@@ -174,16 +174,17 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     console.log("<where-dashboard> firstUpdated()");
     await this._dvm.probeAllPlays();
     /**  Fill AppInfo cache */
+
     if (this.weServices) {
-      const appletIds = [];
-      for (const appletId of this.weServices.attachmentTypes.keys()) {
-        const appletIdB64 = encodeHashToBase64(appletId);
-        const maybeAppInfo = this._appInfoMap[appletIdB64];
+      const appletHashs: EntryHash[] = [];
+      for (const appletHash of this.weServices.attachmentTypes.keys()) {
+        const appletId = encodeHashToBase64(appletHash);
+        const maybeAppInfo = this._appInfoMap[appletId];
         if (!maybeAppInfo) {
-          appletIds.push(appletId);
+          appletHashs.push(appletHash);
         }
       };
-      this.fetchAppInfo(appletIds);
+      this.fetchAppInfo(appletHashs);
     }
 
     /** Done */
@@ -381,7 +382,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //   console.warn("Did not find Threads applet");
     //   return undefined;
     // }
-    for (const [appletId, atts] of this.weServices.attachmentTypes.entries()) {
+    for (const [_appletHash, atts] of this.weServices.attachmentTypes.entries()) {
       //if (encodeHashToBase64(appletId) == threadsAppletId) {
       for (const [attName, att] of Object.entries(atts)) {
         if (attName == "thread") {
@@ -396,10 +397,10 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** */
-  async fetchAppInfo(appletIds: EntryHash[]) {
-    console.log("fetchAppInfo()", appletIds.length);
-    for (const appletId of appletIds) {
-      this._appInfoMap[encodeHashToBase64(appletId)] = await this.weServices.appletInfo(appletId);
+  async fetchAppInfo(appletHashs: EntryHash[]) {
+    console.log("fetchAppInfo()", appletHashs.length);
+    for (const appletHash of appletHashs) {
+      this._appInfoMap[encodeHashToBase64(appletHash)] = await this.weServices.appletInfo(appletHash);
     }
     this.requestUpdate();
   }

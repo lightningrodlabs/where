@@ -20,9 +20,15 @@ import {
   HappElement,
   HappEnvType,
   HCL,
-  HvmDef
+  HvmDef, pascal
 } from "@ddd-qc/lit-happ";
-import {DEFAULT_WHERE_DEF, LudothequeDvm, WhereDvm} from "@where/elements";
+import {
+  DEFAULT_WHERE_DEF,
+  LudothequeDvm, PlaysetEntryType,
+  WHERE_DEFAULT_COORDINATOR_ZOME_NAME, WHERE_DEFAULT_INTEGRITY_ZOME_NAME,
+  WHERE_DEFAULT_ROLE_NAME,
+  WhereDvm
+} from "@where/elements";
 import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
@@ -35,9 +41,10 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {AppletId, weClientContext, WeServices} from "@lightningrodlabs/we-applet";
+import {AppletId, AppletView, weClientContext, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit-labs/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
+import {EntryViewInfo} from "@ddd-qc/we-utils";
 
 
 /**
@@ -48,6 +55,7 @@ import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 export class WhereApp extends HappElement {
 
   @state() private _loaded = false;
+  @state() private _hasHolochainFailed = true;
 
 
   @state() private _canLudotheque = false;
@@ -85,7 +93,7 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId, private _weServices?: WeServices, public appletId?: AppletId) {
+  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId, private _weServices?: WeServices, public appletView?: AppletView) {
     super(appWs? appWs : HC_APP_PORT, appId);
     if (_canAuthorizeZfns == undefined) {
       this._canAuthorizeZfns = true;
@@ -146,6 +154,16 @@ export class WhereApp extends HappElement {
       //const ipc = window.require('electron').ipcRenderer;
       //const ipc = window.require('electron').ipcRenderer;
       let _reply = HAPP_ELECTRON_API.sendSync('dnaHash', whereDnaHashB64);
+    }
+
+    /** Probe EntryDefs */
+    const allAppEntryTypes = await this.whereDvm.fetchAllEntryDefs();
+    console.log("happInitialized(), allAppEntryTypes", allAppEntryTypes);
+    console.log(`${WHERE_DEFAULT_COORDINATOR_ZOME_NAME} entries`, allAppEntryTypes[WHERE_DEFAULT_COORDINATOR_ZOME_NAME]);
+    if (allAppEntryTypes[WHERE_DEFAULT_COORDINATOR_ZOME_NAME].length == 0) {
+      console.warn(`No entries found for ${WHERE_DEFAULT_COORDINATOR_ZOME_NAME}`);
+    } else {
+      this._hasHolochainFailed = false;
     }
 
     /** Grab ludo cells */
@@ -211,18 +229,80 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  render() {
-    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
-    if (!this._loaded) {
-      return html`        
-      <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
-        <mwc-circular-progress indeterminate></mwc-circular-progress>
-      </div>
-      `;
+  renderWhere() {
+    let view;
+    if (this._currentSpaceEh) {
+      view = html`
+                <where-page
+                    .currentSpaceEh=${this._currentSpaceEh}
+                    .canShowBuildView=${this._canShowBuildView}
+                    .ludoRoleCells=${this._ludoRoleCells}
+                    @canShowBuildView-set="${(e: any) => {e.stopPropagation();this._canShowBuildView = e.detail}}"
+                    @show-ludotheque="${(e: any) => {e.stopPropagation();this.onShowLudo(e.detail)}}"
+                    @add-ludotheque="${(e: any) => {e.stopPropagation();this.onAddLudoClone(e.detail.uuid, e.detail.cloneName)}}"
+                    @play-selected="${(e: any) => {e.stopPropagation();this._currentSpaceEh = e.detail}}"
+                    @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail);setLocale(e.detail)}}
+                ></where-page>
+              `;
+    } else {
+      view = html`
+                <where-dashboard
+                    .canShowBuildView=${this._canShowBuildView}
+                    .ludoRoleCells=${this._ludoRoleCells}
+                    @canShowBuildView-set="${(e: any) => {e.stopPropagation();this._canShowBuildView = e.detail}}" 
+                    @show-ludotheque="${(e: any) => {e.stopPropagation();this.onShowLudo(e.detail)}}"
+                    @add-ludotheque="${(e: any) => {e.stopPropagation();this.onAddLudoClone(e.detail.uuid, e.detail.cloneName)}}"
+                    @play-selected="${(e: any) => {e.stopPropagation();this._currentSpaceEh = e.detail}}"
+                    @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail);setLocale(e.detail)}}
+                ></where-dashboard>
+              `;
     }
 
-    /** Pages */
-    const ludothequePage = html`
+    if (this.appletView) {
+      console.log("appletView", this.appletView);
+      switch (this.appletView.type) {
+        case "main":
+          break;
+        case "block":
+          throw new Error("Where/we-applet: Block view is not implemented.");
+        case "entry":
+          const entryViewInfo = this.appletView as EntryViewInfo;
+          if (entryViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
+            throw new Error(`Where/we-applet: Unknown role name '${this.appletView.roleName}'.`);
+          }
+          if (entryViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME) {
+            throw new Error(`Where/we-applet: Unknown zome '${this.appletView.integrityZomeName}'.`);
+          }
+          const entryType = pascal(entryViewInfo.entryType);
+          console.log("pascal entryType", entryType);
+          switch (entryType) {
+            case PlaysetEntryType.Space:
+              const spaceEh = encodeHashToBase64(entryViewInfo.hrl[1]);
+              console.log("Space entry:", spaceEh);
+              //const viewContext = entryViewInfo.context as ViewThreadContext;
+              view = html`<where-space .currentSpaceEh=${spaceEh}></where-space>`;
+              break;
+            default:
+              throw new Error(`Unhandled entry type ${entryViewInfo.entryType}.`);
+          }
+          break;
+        default:
+          console.error("Unknown We applet-view type", this.appletView);
+          throw new Error(`Unknown We applet-view type`);
+      }
+    }
+
+    /** Done */
+    return html`
+        <cell-context .cell="${this.whereDvm.cell}">
+          ${view}
+        </cell-context>
+      `;
+  }
+
+
+  renderLudotheque() {
+    return html`
         <cell-context .cell="${this.ludothequeDvm.cell}">
                   <ludotheque-page examples
                                    .whereInventory="${this._whereInventory}"
@@ -233,34 +313,24 @@ export class WhereApp extends HappElement {
                   ></ludotheque-page>
         </cell-context>
     `;
-
-    const wherePage = html`
-        <cell-context .cell="${this.whereDvm.cell}">
-            ${this._currentSpaceEh? html`
-            <where-page
-                    .currentSpaceEh=${this._currentSpaceEh}
-                    .canShowBuildView=${this._canShowBuildView}
-                    .ludoRoleCells=${this._ludoRoleCells}
-                    @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"
-                    @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
-                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail.uuid, e.detail.cloneName)}}"
-                    @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"
-                    @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
-            ></where-page>` :
-            html`<where-dashboard
-                    .canShowBuildView=${this._canShowBuildView}
-                    .ludoRoleCells=${this._ludoRoleCells}
-                    @canShowBuildView-set="${(e:any) => {e.stopPropagation(); this._canShowBuildView = e.detail}}"     
-                    @show-ludotheque="${(e:any) => {e.stopPropagation(); this.onShowLudo(e.detail)}}"
-                    @add-ludotheque="${(e:any) => {e.stopPropagation(); this.onAddLudoClone(e.detail.uuid, e.detail.cloneName)}}"
-                    @play-selected="${(e:any) => {e.stopPropagation(); this._currentSpaceEh = e.detail}}"                    
-                    @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}                    
-            ></where-dashboard>`}
-        </cell-context>
-    `;
+  }
 
 
-    const page = this._canLudotheque? ludothequePage : wherePage
+  /** */
+  render() {
+    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
+    if (!this._loaded) {
+      return html`        
+      <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+        <mwc-circular-progress indeterminate></mwc-circular-progress>
+      </div>
+      `;
+    }
+    if(this._hasHolochainFailed) {
+      return html`<div style="width: auto; height: auto; font-size: 4rem;">Failed to connect to Holochain Conductor</div>`;
+    }
+
+    const page = this._canLudotheque? this.renderLudotheque() : this.renderWhere();
 
     // const guardedPage = this.hasStartingProfile
     //   ? page
@@ -273,10 +343,10 @@ export class WhereApp extends HappElement {
     let attachments = [html``];
     if (this._weServices) {
       for (const [appletHash, dict] of this._weServices.attachmentTypes.entries()) {
-        const appletIdB64 = encodeHashToBase64(appletHash)
-        console.log("weServices.appletId", appletIdB64);
+        const appletId = encodeHashToBase64(appletHash)
+        console.log("weServices.appletId", appletId);
         console.log("weServices.dict", dict);
-        const maybeAppInfo = this._appInfoMap[appletIdB64];
+        const maybeAppInfo = this._appInfoMap[appletId];
         if (maybeAppInfo) {
           for (const v of Object.values(dict)) {
             const templ = html`
@@ -292,15 +362,22 @@ export class WhereApp extends HappElement {
       }
     }
 
+    let viewAttachments = html``;
 
-
-    const createProfile = html `
+    if (this.appletView) {
+      viewAttachments = html`
         <div>
           Attachments found:
           <ul>
-          ${attachments}
+            ${attachments}
           </ul>
-        </div>
+        </div>        
+      `;
+    }
+
+
+    const createProfile = html `
+        ${viewAttachments}
         <div class="column"
              style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >

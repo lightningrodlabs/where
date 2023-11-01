@@ -1,7 +1,7 @@
 import {asCellProxy} from "@ddd-qc/we-utils";
 import {encodeHashToBase64} from "@holochain/client";
-import {whereNames} from "./appletServices";
-import {PlaysetProxy} from "@where/elements";
+import {PlaysetEntryType, PlaysetProxy, WHERE_DEFAULT_ROLE_NAME} from "@where/elements";
+import {pascal} from "@ddd-qc/cell-proxy";
 
 
 /** */
@@ -12,7 +12,7 @@ export async function getEntryInfo(
     entryType,
     hrl
 ) {
-    if (roleName != whereNames.provisionedRoleName) {
+    if (roleName != WHERE_DEFAULT_ROLE_NAME) {
         throw new Error(`Where/we-applet: Unknown role name '${roleName}'.`);
     }
     if (integrityZomeName != "playset_integrity") {
@@ -20,15 +20,16 @@ export async function getEntryInfo(
     }
 
     const mainAppInfo = await appletClient.appInfo();
+    const pEntryType = pascal(entryType);
 
-    switch (entryType) {
-        case "space": {
+    switch (pEntryType) {
+        case PlaysetEntryType.Space: {
             console.log("Where/we-applet: space info for", hrl);
             const cellProxy = await asCellProxy(
                 appletClient,
                 undefined, //hrl[0],
                 mainAppInfo.installed_app_id, //"ThreadsWeApplet",
-                whereNames.provisionedRoleName,
+                WHERE_DEFAULT_ROLE_NAME,
             );
             const proxy: PlaysetProxy = new PlaysetProxy(cellProxy);
             const space = await proxy.getSpace(encodeHashToBase64(hrl[1]));

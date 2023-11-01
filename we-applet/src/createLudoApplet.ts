@@ -15,13 +15,14 @@ import "@lightningrodlabs/we-applet/dist/elements/hrl-link.js";
 
 import {WhereApp} from "@where/app";
 import {AppletViewInfo} from "@ddd-qc/we-utils";
+import {LudothequeStandaloneApp} from "ludotheque";
 
 
 /** */
-export async function createWhereApplet(
+export async function createLudoApplet(
   renderInfo: RenderInfo,
   weServices: WeServices,
-): Promise<WhereApp> {
+): Promise<LudothequeStandaloneApp> {
 
   if (renderInfo.type =="cross-applet-view") {
     throw Error("cross-applet-view not implemented by Where");
@@ -29,21 +30,16 @@ export async function createWhereApplet(
 
   const appletViewInfo = renderInfo as AppletViewInfo;
 
-  console.log("createWhereApplet() client", appletViewInfo.appletClient);
-  console.log("createWhereApplet() thisAppletId", encodeHashToBase64(appletViewInfo.appletHash));
+  console.log("createLudoApplet() client", appletViewInfo.appletClient);
+  console.log("createLudoApplet() thisAppletId", encodeHashToBase64(appletViewInfo.appletHash));
   const mainAppInfo = await appletViewInfo.appletClient.appInfo();
-  console.log("createWhereApplet() mainAppInfo", mainAppInfo);
+  console.log("createLudoApplet() mainAppInfo", mainAppInfo);
   const mainAppAgentWs = appletViewInfo.appletClient as AppAgentWebsocket;
   const mainAppWs = mainAppAgentWs.appWebsocket;
   /** Create WhereApp */
-  const app = new WhereApp(
+  const app = new LudothequeStandaloneApp(
       mainAppWs,
-      undefined,
-      false,
       mainAppInfo.installed_app_id,
-      weServices,
-      appletViewInfo.view,
-      //encodeHashToBase64(appletViewInfo.appletHash),
       );
   /** Done */
   return app;

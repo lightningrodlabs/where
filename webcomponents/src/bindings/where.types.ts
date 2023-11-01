@@ -151,6 +151,8 @@ export interface HereOutput {
   author: AgentPubKeyB64
 }
 
+export const PLAYSET_DEFAULT_COORDINATOR_ZOME_NAME = "where_playset";
+
 export interface GetSessionInput {
   spaceEh: EntryHashB64
   index: number
@@ -209,6 +211,12 @@ export interface NotifyInput {
   peers: AgentPubKeyB64[]
 }
 
+export interface PlacementSession {
+  name: string
+  index: number
+  spaceEh: EntryHashB64
+}
+
 /** Here entry definition */
 export interface Here {
   value: string
@@ -216,7 +224,17 @@ export interface Here {
   meta: Record<string, string>
 }
 
-export const PLAYSET_ZOME_NAME = "where_playset";
+/**
+ * -------------------------------------------------------------------------------------------------
+ * Global consts
+ * -------------------------------------------------------------------------------------------------
+ * DNA/Zome names
+ */
+export const WHERE_DEFAULT_ROLE_NAME = "rWhere";
+
+export const WHERE_DEFAULT_COORDINATOR_ZOME_NAME = "zWhere";
+
+export const WHERE_DEFAULT_INTEGRITY_ZOME_NAME = "where_integrity";
 
 export enum WhereEntryType {
 	Here = 'Here',
@@ -227,16 +245,15 @@ export type WhereEntryVariantPlacementSession = {PlacementSession: PlacementSess
 export type WhereEntry = 
  | WhereEntryVariantHere | WhereEntryVariantPlacementSession;
 
-/** List of all link kinds handled by this Zome */
+/**
+ * -------------------------------------------------------------------------------------------------
+ * Declaration of this zome's link types
+ * -------------------------------------------------------------------------------------------------
+ * List of all link kinds handled by this Zome
+ */
 export type WhereLinkType =
   | {All: null} | {Hide: null};
 export enum WhereLinkTypeType {
 	All = 'All',
 	Hide = 'Hide',
-}
-
-export interface PlacementSession {
-  name: string
-  index: number
-  spaceEh: EntryHashB64
 }

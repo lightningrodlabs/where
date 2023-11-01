@@ -12,7 +12,7 @@ import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {Space} from "../bindings/playset.types";
-import {Message, MessageType, PlacementSession, SignalPayload} from "../bindings/where.types";
+import {Message, MessageType, PlacementSession, SignalPayload, WHERE_DEFAULT_ROLE_NAME} from "../bindings/where.types";
 import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
 import {ProfilesZvm} from "@ddd-qc/profiles-dvm";
 
@@ -37,7 +37,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** -- DnaViewModel Interface -- */
 
-  static readonly DEFAULT_BASE_ROLE_NAME = "rWhere";
+  static readonly DEFAULT_BASE_ROLE_NAME = WHERE_DEFAULT_ROLE_NAME;
   static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesZvm]
   readonly signalHandler?: AppSignalCb = this.handleSignal;
 

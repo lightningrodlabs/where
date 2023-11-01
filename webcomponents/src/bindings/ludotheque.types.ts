@@ -154,7 +154,12 @@ export type LudothequeEntryVariantPlayset = {Playset: Playset}
 export type LudothequeEntry = 
  | LudothequeEntryVariantPlayset;
 
-/** List of all link kinds handled by this Zome */
+/**
+ * -------------------------------------------------------------------------------------------------
+ * Declaration of this zome's link types
+ * -------------------------------------------------------------------------------------------------
+ * List of all link kinds handled by this Zome
+ */
 export type LudothequeLinkType =
   | {All: null};
 export enum LudothequeLinkTypeType {

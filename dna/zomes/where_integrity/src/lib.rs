@@ -4,22 +4,23 @@
 #![allow(non_snake_case)]
 #![allow(unused_attributes)]
 
-//pub mod error;
-pub mod here;
-pub mod placement_session;
-//pub mod playfield;
-
-pub use here::*;
-//pub use playfield::*;
-pub use placement_session::*;
+mod entries;
+pub use entries::*;
 
 
-//--------------------------------------------------------------------------------------------------
+///-------------------------------------------------------------------------------------------------
+/// Global consts
+///-------------------------------------------------------------------------------------------------
+/// DNA/Zome names
+pub const WHERE_DEFAULT_ROLE_NAME: &'static str = "rWhere";
+pub const WHERE_DEFAULT_COORDINATOR_ZOME_NAME: &'static str = "zWhere";
+pub const WHERE_DEFAULT_INTEGRITY_ZOME_NAME: &'static str = "where_integrity";
+
+///-------------------------------------------------------------------------------------------------
+/// Declaration of this zome's entry types
+///-------------------------------------------------------------------------------------------------
 
 use hdi::prelude::*;
-
-pub const PLAYSET_ZOME_NAME: &'static str = "where_playset";
-
 
 #[hdk_entry_defs]
 #[unit_enum(WhereEntryTypes)]
@@ -32,6 +33,10 @@ pub enum WhereEntry {
     //Playfield(Playfield),
 }
 
+
+///-------------------------------------------------------------------------------------------------
+/// Declaration of this zome's link types
+///-------------------------------------------------------------------------------------------------
 
 /// List of all link kinds handled by this Zome
 #[hdk_link_types]

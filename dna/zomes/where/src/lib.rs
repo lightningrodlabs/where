@@ -13,6 +13,8 @@ pub mod placement_session;
 pub mod hide;
 //pub mod play;
 
+pub const PLAYSET_DEFAULT_COORDINATOR_ZOME_NAME: &'static str = "where_playset";
+
 
 #[hdk_extern]
 fn init(_: ()) -> ExternResult<InitCallbackResult> {
@@ -32,11 +34,11 @@ fn init(_: ()) -> ExternResult<InitCallbackResult> {
 /// Helper function for calling the delivery-zome via inter-zome call
 pub fn call_playset_zome<T>(fn_name: &str, payload: T) -> ExternResult<ZomeCallResponse>
     where
-      T: serde::Serialize + std::fmt::Debug,
+        T: serde::Serialize + std::fmt::Debug,
 {
     call(
         CallTargetCell::Local,
-        where_integrity::PLAYSET_ZOME_NAME,
+        PLAYSET_DEFAULT_COORDINATOR_ZOME_NAME,
         fn_name.to_string().into(),
         None,
         payload,

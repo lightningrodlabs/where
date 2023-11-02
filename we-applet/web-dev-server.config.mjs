@@ -13,6 +13,8 @@ const copy = fromRollup(RollupCopy);
 console.log("web-dev-server: process.env.HAPP_BUILD_MODE: ", process.env.HAPP_BUILD_MODE);
 const HAPP_BUILD_MODE = process.env.HAPP_BUILD_MODE? process.env.HAPP_BUILD_MODE : "Release";
 
+console.log("web-dev-server: process.env.APPLET_VIEW: ", process.env.APPLET_VIEW);
+const APPLET_VIEW = process.env.APPLET_VIEW? process.env.APPLET_VIEW : "main";
 
 /** Use Hot Module replacement by adding --hmr to the start command */
 const hmr = process.argv.includes("--hmr");
@@ -47,6 +49,7 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
       "preventAssignment": true,
       'process.env.HAPP_BUILD_MODE': JSON.stringify(HAPP_BUILD_MODE),
       'process.env.HAPP_ENV': JSON.stringify("DevtestWe"),
+      'process.env.APPLET_VIEW': JSON.stringify(APPLET_VIEW),
       "process.env.HC_APP_PORT": JSON.stringify(process.env.HC_APP_PORT),
       "process.env.HC_ADMIN_PORT": JSON.stringify(process.env.HC_ADMIN_PORT) || undefined,
       delimiters: ["", ""],

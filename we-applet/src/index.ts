@@ -1,7 +1,7 @@
 import {DevTestNames, setup} from "@ddd-qc/we-utils";
 import {createWhereApplet} from "./createWhereApplet";
 import {createWhereWeServicesMock} from "./createWhereWeServicesMock";
-import {WHERE_DEFAULT_ROLE_NAME} from "@where/elements";
+import {PlaysetEntryType, WHERE_DEFAULT_ROLE_NAME, WhereEntryType} from "@where/elements";
 import {AppletServices} from "@lightningrodlabs/we-applet";
 import {getEntryInfo} from "./appletServices/getEntryInfo";
 import {createLudoApplet} from "./createLudoApplet";
@@ -19,11 +19,27 @@ async function setupApplet() {
   }
 }
 
+/** */
+export async function setupWhereApplet() {
+  /** Determine appletView */
+  let APPLET_VIEW = "main";
+  try {
+    APPLET_VIEW = process.env.APPLET_VIEW;
+    //console.log(`HAPP_ENV defined by process.ENV: "${happEnv}"`);
+  } catch (e) {
+  }
+  console.log("Where we-applet setup() APPLET_VIEW", APPLET_VIEW);
+  switch(APPLET_VIEW) {
+    case PlaysetEntryType.Space: return setupWhereEntryView();
+    case "main":
+    default: return setupWhereMainView();
+  }
+}
 
 /** */
-async function setupWhereApplet() {
+async function setupWhereMainView() {
   const whereNames: DevTestNames = {
-    installed_app_id: "where-applet",
+    installed_app_id: "where-we_applet",
     provisionedRoleName: WHERE_DEFAULT_ROLE_NAME,
   }
   const appletServices: AppletServices = {
@@ -38,7 +54,7 @@ async function setupWhereApplet() {
 
 async function setupLudoApplet() {
   const whereNames: DevTestNames = {
-    installed_app_id: "ludotheque-applet",
+    installed_app_id: "ludotheque-we_applet",
     provisionedRoleName: "rLudotheque",
   }
   const appletServices: AppletServices = {
@@ -48,4 +64,11 @@ async function setupLudoApplet() {
     search: async (appletClient, searchFilter) => {return []},
   };
   return setup(appletServices, createLudoApplet, whereNames, createWhereWeServicesMock);
+}
+
+
+/** -- DevTest Entry Views -- */
+
+export async function setupWhereEntryView() {
+  // FIXME
 }

@@ -22,7 +22,7 @@ import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
 import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
-import {Template} from "../bindings/playset.types";
+import {PlaysetEntryType, Template} from "../bindings/playset.types";
 
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
@@ -59,6 +59,7 @@ import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 import {ProfileMat} from "@ddd-qc/profiles-dvm";
+import {filesAppletContext, threadsAppletContext} from "../viewModels/happDef";
 
 
 
@@ -97,7 +98,10 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   @consume({ context: weClientContext, subscribe: true })
   weServices: WeServices;
-
+  @consume({ context: filesAppletContext, subscribe: true })
+  filesAppletHash: EntryHash;
+  @consume({ context: threadsAppletContext, subscribe: true })
+  threadsAppletHash: EntryHash;
 
 
   /** ViewModels */
@@ -119,7 +123,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** We specific */
   private _appInfoMap: Dictionary<AppletInfo> = {};
   private _threadAttachmentType?: AttachmentType;
-
+  private _fileAttachmentType?: AttachmentType;
 
   /** Getters */
 
@@ -173,20 +177,6 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   async firstUpdated() {
     console.log("<where-dashboard> firstUpdated()");
     await this._dvm.probeAllPlays();
-    /**  Fill AppInfo cache */
-
-    if (this.weServices) {
-      const appletHashs: EntryHash[] = [];
-      for (const appletHash of this.weServices.attachmentTypes.keys()) {
-        const appletId = encodeHashToBase64(appletHash);
-        const maybeAppInfo = this._appInfoMap[appletId];
-        if (!maybeAppInfo) {
-          appletHashs.push(appletHash);
-        }
-      };
-      this.fetchAppInfo(appletHashs);
-    }
-
     /** Done */
     this._initialized = true
     this._canPostInit = true;
@@ -366,52 +356,49 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-  /** Search for Threads attachmentType in based on _appInfoMap */
+  /** Search for Thread attachmentType */
   getThreadAttachmentType(): AttachmentType | undefined {
     if (this._threadAttachmentType) {
       return this._threadAttachmentType;
     }
-    // let threadsAppletId = undefined;
-    // for (const [appletId, appInfo] of Object.entries(this._appInfoMap)) {
-    //   if (appInfo.appletName == "Threads") {
-    //     threadsAppletId = appletId;
-    //     break;
-    //   }
-    // }
-    // if (!threadsAppletId) {
-    //   console.warn("Did not find Threads applet");
-    //   return undefined;
-    // }
-    for (const [_appletHash, atts] of this.weServices.attachmentTypes.entries()) {
-      //if (encodeHashToBase64(appletId) == threadsAppletId) {
-      for (const [attName, att] of Object.entries(atts)) {
-        if (attName == "thread") {
-          this._threadAttachmentType = att;
-          return att;
-        }
-      }
+    console.log("getThreadAttachmentType()", this.threadsAppletHash);
+    if (!this.threadsAppletHash) {
+      return undefined;
     }
-    console.warn("Did not find 'thread' attachmentType in Threads WeServices");
+    const attDict = this.weServices.attachmentTypes.get(this.threadsAppletHash);
+    const att = attDict["thread"];
+    if (att) {
+      this._threadAttachmentType = att;
+      return att;
+    }
+    console.warn("Did not find 'thread' attachmentType in Threads' WeServices");
+    return undefined;
+  }
+
+
+  /** Search for File attachmentType */
+  getFileAttachmentType(): AttachmentType | undefined {
+    if (this._fileAttachmentType) {
+      return this._fileAttachmentType;
+    }
+    if (!this.filesAppletHash) {
+      return undefined;
+    }
+    const attDict = this.weServices.attachmentTypes.get(this.filesAppletHash);
+    const att = attDict["file"];
+    if (att) {
+      this._fileAttachmentType = att;
+      return att;
+    }
+    console.warn("Did not find 'file' attachmentType in Files' WeServices");
     return undefined;
   }
 
 
   /** */
-  async fetchAppInfo(appletHashs: EntryHash[]) {
-    console.log("fetchAppInfo()", appletHashs.length);
-    for (const appletHash of appletHashs) {
-      this._appInfoMap[encodeHashToBase64(appletHash)] = await this.weServices.appletInfo(appletHash);
-    }
-    this.requestUpdate();
-  }
-
-
-  /** */
   canComment(): boolean {
-    if (!this.weServices) {
-      return false;
-    }
-    return !!this.getThreadAttachmentType();
+    console.log("canComment()", this.threadsAppletHash);
+    return this.threadsAppletHash != undefined;
   }
 
 
@@ -466,6 +453,47 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         console.log("canComment", this.canComment());
         //const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
         const r = play.space.surface.size.x / play.space.surface.size.y;
+        const threadAttachment = this.getThreadAttachmentType();
+        let threadIcon = html``;
+        if (threadAttachment) {
+          threadIcon = html`
+            <mwc-icon class="info-icon"
+                      style="cursor:pointer;"
+                      @click=${ async () => {
+                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+                        const res = await threadAttachment.create(spaceHrl);
+                        console.log("Create/Open Thread result:", res);
+                        res.context.subjectType = PlaysetEntryType.Space;
+                        //res.context.subjectName = play.space.name;
+                        this.weServices.openHrl(res.hrl, res.context);
+                      }}
+            >
+                question_answer
+            </mwc-icon>
+          `;
+        }
+        const fileAttachment = this.getFileAttachmentType();
+        let fileIcon = html``;
+        if (fileAttachment) {
+          fileIcon = html`
+            <mwc-icon class="info-icon"
+                      style="cursor:pointer;"
+                      @click=${ async () => {
+            const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+            const res = await fileAttachment.create(spaceHrl);
+            console.log("Create File attachment result:", res);
+            if (res.context.detail == "none") {
+              /* await */ this.weServices.openAppletBlock(this.filesAppletHash, "PickFile", {hrl: spaceHrl, type: "Image"});
+            } else {
+              /* await */ this.weServices.openHrl(res.hrl, res.context);
+            }
+          }}
+            >
+                attach_file
+            </mwc-icon>
+          `;
+        }
+        /** */
         return html`
           <sl-card class="card-image" >
             <span slot="image" @click=${() => this.selectPlay(spaceEh)}>${renderSurface(play.space.surface, play.space.name, 290, 200)}</span>
@@ -473,26 +501,14 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
             <mwc-icon class="info-icon" style="cursor: pointer;"
                       @click=${() => {const play = this._dvm.getPlay(spaceEh); this.openPlayInfoDialog(play)}}
             >info</mwc-icon>
-            <mwc-icon class="info-icon" style="cursor:pointer; display:${this.canComment()? 'inline-block' : 'none'};"
-                      @click=${ async () => {
-                        const attType = this.getThreadAttachmentType();
-                        if (!attType) {
-                          console.error("Thread attachmentType not found");
-                        }
-                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                        const res = await attType.create(spaceHrl);
-                        console.log("Create/Open Thread result:", res);
-                        res.context.subjectType = 'space';
-                        //res.context.subjectName = play.space.name;
-                        this.weServices.openHrl(res.hrl, res.context);
-                      }}
-            >question_answer</mwc-icon>
+            ${threadIcon}
+            ${fileIcon}
           </sl-card>
           `
       }
     );
 
-    const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
+    const isInDev = HAPP_ENV == HappEnvType.Devtest || HAPP_ENV == HappEnvType.DevtestWe || HAPP_ENV == HappEnvType.DevTestHolo;
 
 
       /** Render all */

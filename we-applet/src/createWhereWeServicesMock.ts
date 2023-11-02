@@ -9,25 +9,47 @@ import {emptyWeServicesMock} from "@ddd-qc/we-utils";
 import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
 
 
+
+
+
 /** */
 export async function createWhereWeServicesMock(devtestAppletId: string): Promise<WeServices> {
+
+    const fakeThreadsAppletHash = await fakeEntryHash();
+    const fakeThreadsAppletId = encodeHashToBase64(fakeThreadsAppletHash);
+
+    const fakeFilesAppletHash = await fakeEntryHash();
+    const fakeFilesAppletId = encodeHashToBase64(fakeFilesAppletHash);
+
+    const fakeGroupId = await fakeDnaHash();
+
     const myWeServicesMock = emptyWeServicesMock;
     /** appletInfo() */
-    myWeServicesMock.appletInfo = async (appletId) => {
-        const appletIdB64 = encodeHashToBase64(appletId);
-        console.log("WhereWeServicesMock.appletInfo()", appletIdB64, appletIdB64);
-        if (appletIdB64 == devtestAppletId) {
+    myWeServicesMock.appletInfo = async (appletHash) => {
+        const appletId = encodeHashToBase64(appletHash);
+        console.log("WhereWeServicesMock.appletInfo()", appletId, appletId);
+        if (appletId == devtestAppletId) {
             return {
                 appletBundleId: await fakeEntryHash(),
                 appletName: "DevTestWeApplet",
-                groupsIds: [await fakeDnaHash()],
+                groupsIds: [fakeGroupId],
             }
         }
-        return {
-            appletBundleId: await fakeEntryHash(),
-            appletName: "FakeThreadsApplet",
-            groupsIds: [await fakeDnaHash()],
-        };
+        if (fakeThreadsAppletId == appletId) {
+            return {
+                appletBundleId: await fakeEntryHash(),
+                appletName: "threads-we_applet",
+                groupsIds: [fakeGroupId],
+            }
+        }
+        if (fakeFilesAppletId == appletId) {
+            return {
+                appletBundleId: await fakeEntryHash(),
+                appletName: "files-we_applet",
+                groupsIds: [fakeGroupId],
+            }
+        }
+        throw Error("appletInfo() failed. Unknown appletHash");
     };
     /** entryInfo() */
     myWeServicesMock.entryInfo = async (hrl) => {
@@ -42,15 +64,24 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
     }
     /** attachmentTypes */
     const attachmentsMap = new HoloHashMap<AppletHash, Record<AttachmentName, AttachmentType>>();
-    const fakeThreadsAppletId = await fakeEntryHash();
     const fakeThreadsAttachmentTypes = {
         thread: {
             label: "Thread",
             icon_src: "",
             async create(_attachToHrl): Promise<HrlWithContext> {return {hrl: undefined, context: {},};}
+        },
+    }
+    const fakeFilesAttachmentTypes = {
+        file: {
+            label: "File",
+            icon_src: "",
+            async create(_attachToHrl): Promise<HrlWithContext> {
+                return {hrl: undefined, context: {},};
+            }
         }
     }
-    attachmentsMap.set(fakeThreadsAppletId, fakeThreadsAttachmentTypes);
+    attachmentsMap.set(fakeThreadsAppletHash, fakeThreadsAttachmentTypes);
+    attachmentsMap.set(fakeFilesAppletHash, fakeFilesAttachmentTypes);
     myWeServicesMock.attachmentTypes = attachmentsMap;
     /** Done */
     return myWeServicesMock;

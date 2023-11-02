@@ -801,7 +801,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     //   `;
     // });
 
-      const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
+    const isInDev = HAPP_ENV == HappEnvType.Devtest || HAPP_ENV == HappEnvType.DevtestWe || HAPP_ENV == HappEnvType.DevTestHolo;
 
     /** */
     return html`

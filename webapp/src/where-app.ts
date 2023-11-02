@@ -23,8 +23,8 @@ import {
   HvmDef, pascal
 } from "@ddd-qc/lit-happ";
 import {
-  DEFAULT_WHERE_DEF,
-  LudothequeDvm, PlaysetEntryType,
+  DEFAULT_WHERE_DEF, filesAppletContext,
+  LudothequeDvm, PlaysetEntryType, threadsAppletContext,
   WHERE_DEFAULT_COORDINATOR_ZOME_NAME, WHERE_DEFAULT_INTEGRITY_ZOME_NAME,
   WHERE_DEFAULT_ROLE_NAME,
   WhereDvm
@@ -77,19 +77,16 @@ export class WhereApp extends HappElement {
 
   @state() private _canShowBuildView = false;
 
-  protected _weProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+  /** We stuff */
 
+  protected _weProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+  protected _threadsProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+  protected _filesProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+
+  protected _filesAppletHash?: EntryHash;
+  protected _threadsAppletHash?: EntryHash;
 
   private _appInfoMap: Dictionary<AppletInfo> = {};
-
-
-  /** */
-  async fetchAppInfo(appletHashs: EntryHash[]) {
-    for (const appletHash of appletHashs) {
-      this._appInfoMap[encodeHashToBase64(appletHash)] = await this._weServices.appletInfo(appletHash);
-    }
-    this.requestUpdate();
-  }
 
 
   /** */
@@ -129,6 +126,15 @@ export class WhereApp extends HappElement {
 
 
   /** */
+  async fetchAppInfo(appletHashs: EntryHash[]) {
+    for (const appletHash of appletHashs) {
+      this._appInfoMap[encodeHashToBase64(appletHash)] = await this._weServices.appletInfo(appletHash);
+    }
+    this.requestUpdate();
+  }
+
+
+  /** */
   async hvmConstructed() {
     console.log("hvmConstructed()", this._adminWs, this._canAuthorizeZfns)
     /** Authorize all zome calls */
@@ -150,7 +156,7 @@ export class WhereApp extends HappElement {
     /** Send dnaHash to electron */
     if (HAPP_ENV == HappEnvType.Electron) {
       const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell.dnaHash;
-      //let _reply = MY_ELECTRON_API.dnaHashSync(whereDnaHashB64);
+      //let _reply = HAPP_ELECTRON_API.dnaHashSync(whereDnaHashB64);
       //const ipc = window.require('electron').ipcRenderer;
       //const ipc = window.require('electron').ipcRenderer;
       let _reply = HAPP_ELECTRON_API.sendSync('dnaHash', whereDnaHashB64);
@@ -164,6 +170,24 @@ export class WhereApp extends HappElement {
       console.warn(`No entries found for ${WHERE_DEFAULT_COORDINATOR_ZOME_NAME}`);
     } else {
       this._hasHolochainFailed = false;
+    }
+
+    /** Probe we-applets */
+    if (this._weServices) {
+      console.log("Probing weServices.appletInfo()")
+      for (const appletHash of this._weServices.attachmentTypes.keys()) {
+        const appletInfo = await this._weServices.appletInfo(appletHash); // FIXME: use Promise.all();
+        console.log("appletInfo", encodeHashToBase64(appletHash), appletInfo);
+        this._appInfoMap[encodeHashToBase64(appletHash)] = appletInfo;
+        if (appletInfo.appletName == "files-we_applet") {
+          this._filesAppletHash = appletHash;
+          this._filesProvider = new ContextProvider(this, filesAppletContext, this._filesAppletHash);
+        }
+        if (appletInfo.appletName == "threads-we_applet") {
+          this._threadsAppletHash = appletHash;
+          this._threadsProvider = new ContextProvider(this, threadsAppletContext, this._threadsAppletHash);
+        }
+      }
     }
 
     /** Grab ludo cells */
@@ -342,19 +366,16 @@ export class WhereApp extends HappElement {
     /** Display all attachment-types */
     let attachments = [html``];
     if (this._weServices) {
+      /** attachments */
       for (const [appletHash, dict] of this._weServices.attachmentTypes.entries()) {
         const appletId = encodeHashToBase64(appletHash)
         console.log("weServices.appletId", appletId);
         console.log("weServices.dict", dict);
         const maybeAppInfo = this._appInfoMap[appletId];
-        if (maybeAppInfo) {
-          for (const v of Object.values(dict)) {
-            const templ = html`
-                <li>${maybeAppInfo.appletName}: ${v.label}</li>`;
-            attachments.push(templ);
-          }
-        } else {
-          this.fetchAppInfo([appletHash]);
+        console.log("appletName", maybeAppInfo.appletName);
+        for (const v of Object.values(dict)) {
+          const templ = html`<li>${maybeAppInfo.appletName}: ${v.label}</li>`;
+          attachments.push(templ);
         }
       };
       if (attachments.length == 1) {
@@ -363,6 +384,7 @@ export class WhereApp extends HappElement {
     }
 
     let viewAttachments = html``;
+    let viewBlocks = html``;
 
     if (this.appletView) {
       viewAttachments = html`
@@ -371,13 +393,29 @@ export class WhereApp extends HappElement {
           <ul>
             ${attachments}
           </ul>
-        </div>        
+        </div>
       `;
+      if (this._filesAppletHash) {
+        viewBlocks = html`
+          <div>
+            Files:
+            <button @click=${(e) => {
+              this._weServices.openAppletBlock(this._filesAppletHash, "PickFile", null)
+            }}>Pick
+            </button>
+            <button @click=${(e) => {
+              this._weServices.openAppletBlock(this._filesAppletHash, "ImportFile", null)
+            }}>Import
+            </button>
+          </div>
+        `;
+      }
     }
 
 
     const createProfile = html `
         ${viewAttachments}
+        ${viewBlocks}
         <div class="column"
              style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
         >

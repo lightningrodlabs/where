@@ -1,6 +1,6 @@
-import { state, property, customElement } from "lit/decorators.js";
-import { html } from "lit";
-import {cellContext, HappElement} from "@ddd-qc/lit-happ";
+import {customElement, state} from "lit/decorators.js";
+import {html} from "lit";
+import {cellContext, HAPP_ENV, HappElement, HappEnvType} from "@ddd-qc/lit-happ";
 import {DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm} from "@where/elements";
 import {msg} from "@lit/localize";
 import {ContextProvider} from "@lit-labs/context";
@@ -16,10 +16,10 @@ import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId} f
 
 let HC_APP_PORT: number;
 let HC_ADMIN_PORT: number;
-/** override installed_app_id when in Electron */
-export const IS_ELECTRON = (window.location.port === ""); // No HREF PORT when run by Electron
-if (IS_ELECTRON) {
-  let APP_ID = 'main-app'
+
+/** override happ id when in Electron */
+if (HAPP_ENV == HappEnvType.Electron) {
+  const APP_ID = 'main-app'
   const searchParams = new URLSearchParams(window.location.search);
   const urlPort = searchParams.get("APP");
   if(!urlPort) {
@@ -30,16 +30,20 @@ if (IS_ELECTRON) {
   HC_ADMIN_PORT = Number(urlAdminPort);
   const NETWORK_ID = searchParams.get("UID");
   console.log(NETWORK_ID)
-  DEFAULT_LUDOTHEQUE_DEF.id = APP_ID + '-' + NETWORK_ID;
+  DEFAULT_LUDOTHEQUE_DEF.id = APP_ID + '-' + NETWORK_ID;  // override installed_app_id
 } else {
-  HC_APP_PORT = Number(process.env.HC_APP_PORT);
-  HC_ADMIN_PORT = Number(process.env.HC_ADMIN_PORT);
+  try {
+    HC_APP_PORT = Number(process.env.HC_APP_PORT);
+    HC_ADMIN_PORT = Number(process.env.HC_ADMIN_PORT);
+  } catch (e) {
+    console.log("HC_APP_PORT not defined")
+  }
 }
 
 
-console.log("APP_ID =", DEFAULT_LUDOTHEQUE_DEF.id)
-console.log("HC_APP_PORT", HC_APP_PORT);
-console.log("HC_ADMIN_PORT", HC_ADMIN_PORT);
+console.log("LUDOTHEQUE APP_ID =", DEFAULT_LUDOTHEQUE_DEF.id)
+console.log("      HC_APP_PORT =", HC_APP_PORT);
+console.log("    HC_ADMIN_PORT =", HC_ADMIN_PORT);
 
 
 /**
@@ -79,7 +83,7 @@ export class LudothequeStandaloneApp extends HappElement {
     await this.hvm.authorizeAllZomeCalls(adminWs);
     console.log("*** Zome call authorization complete");
     /* Send dnaHash to electron */
-    if (IS_ELECTRON) {
+    if (HAPP_ENV == HappEnvType.Electron) {
       const ludoDnaHashB64 = this.ludothequeDvm.cell.dnaHash;
       //const ipc = window.require('electron').ipcRenderer;
       const ipc = window.require('electron').ipcRenderer;

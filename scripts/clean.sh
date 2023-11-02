@@ -13,7 +13,7 @@ rm -rf we-applet/out-tsc/
 rm -rf we-applet/dist/
 rm we-applet/.hc*
 rm we-applet/tsconfig.tsbuildinfo
-rm we-applet/webhapp.workdir/where-applet.webhapp
+rm we-applet/webhapp.workdir/*.webhapp
 # WEBAPP
 rm -rf webapp/dist/
 rm -rf webapp/out-tsc/

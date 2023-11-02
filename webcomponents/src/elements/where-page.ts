@@ -813,7 +813,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       ${create_menu}
       ` : html``;
 
-      const isInDev = HAPP_ENV == HappEnvType.Devtest || HappEnvType.DevtestWe || HappEnvType.DevTestHolo;
+      const isInDev = HAPP_ENV == HappEnvType.Devtest || HAPP_ENV == HappEnvType.DevtestWe || HAPP_ENV == HappEnvType.DevTestHolo;
 
 
       /** Render all */

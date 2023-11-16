@@ -41,6 +41,10 @@ jobs:
       - name: Build webapp
         run: |
           npm run build:webapp
+      # Build ludotheque
+      - name: Build ludotheque
+        run: |
+          npm run build -w webapp.ludotheque
       # Package web-happ
       - name: Package web-happ
         run: |

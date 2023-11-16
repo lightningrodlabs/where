@@ -38,7 +38,7 @@ import "@material/mwc-button";
 import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
-import {ProfileMat, ProfilesPerspective} from "@ddd-qc/profiles-dvm";
+import {Profile as  ProfileMat, ProfilesPerspective} from "@ddd-qc/profiles-dvm";
 
 
 

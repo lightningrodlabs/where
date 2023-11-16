@@ -46,7 +46,7 @@ import {Formfield} from "@material/mwc-formfield";
 import {Radio} from "@material/mwc-radio";
 import {Dialog} from "@material/mwc-dialog";
 import {TextField} from "@material/mwc-textfield";
-import {ProfileMat} from "@ddd-qc/profiles-dvm";
+import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 /**

@@ -46,7 +46,7 @@ import {TabBar} from "@material/mwc-tab-bar";
 import {TextField} from "@material/mwc-textfield";
 import {Fab} from "@material/mwc-fab";
 import {Dialog} from "@material/mwc-dialog";
-import {ProfileMat} from "@ddd-qc/profiles-dvm";
+import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 // // Canvas Animation experiment

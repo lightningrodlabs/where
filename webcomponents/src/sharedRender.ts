@@ -3,7 +3,7 @@ import {unsafeHTML} from "lit/directives/unsafe-html.js";
 import {unsafeSVG} from "lit/directives/unsafe-svg.js";
 import {MarkerType, SpaceMeta, UiItem} from "./viewModels/playset.perspective";
 import {defaultLocationMeta, LocationMeta} from "./viewModels/where.perspective";
-import {getInitials, ProfileMat} from "@ddd-qc/profiles-dvm";
+import {getInitials, Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 
 export const MARKER_WIDTH = 40;
 export const EMOJI_WIDTH  = 32;

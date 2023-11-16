@@ -3,7 +3,7 @@ import {html} from "lit";
 import {cellContext, HAPP_ENV, HappElement, HappEnvType} from "@ddd-qc/lit-happ";
 import {DEFAULT_LUDOTHEQUE_DEF, LudothequeDvm} from "@where/elements";
 import {msg} from "@lit/localize";
-import {ContextProvider} from "@lit-labs/context";
+import {ContextProvider} from "@lit/context";
 import {AdminWebsocket, AppSignal, AppWebsocket, EntryHashB64, InstalledAppId} from "@holochain/client";
 
 

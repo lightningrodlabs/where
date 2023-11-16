@@ -29,7 +29,6 @@ import {
   WHERE_DEFAULT_ROLE_NAME,
   WhereDvm
 } from "@where/elements";
-import {WhereProfile} from "@where/elements/dist/viewModels/profiles.proxy";
 import {setLocale} from "./localization";
 
 import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
@@ -42,10 +41,10 @@ import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
 import {AppletId, AppletView, weClientContext, WeServices} from "@lightningrodlabs/we-applet";
-import {ContextProvider} from "@lit-labs/context";
+import {ContextProvider} from "@lit/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 import {EntryViewInfo} from "@ddd-qc/we-utils";
-
+import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 
 /**
  *
@@ -222,7 +221,7 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  async createMyProfile(profile: WhereProfile) {
+  async createMyProfile(profile: ProfileMat) {
     //console.log("onNewProfile()", profile)
     await this.whereDvm.profilesZvm.createMyProfile(profile);
     this._hasStartingProfile = true;

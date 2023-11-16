@@ -1,6 +1,6 @@
 import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
-import {consume} from "@lit-labs/context";
+import {consume} from "@lit/context";
 
 import {AttachmentType, Hrl, WeServices, weClientContext} from "@lightningrodlabs/we-applet";
 
@@ -58,7 +58,7 @@ import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
-import {ProfileMat} from "@ddd-qc/profiles-dvm";
+import {Profile as  ProfileMat} from "@ddd-qc/profiles-dvm";
 import {filesAppletContext, threadsAppletContext} from "../viewModels/happDef";
 
 

@@ -3,7 +3,7 @@
   "version"        : "0.2.2",
   "config"         : {
     "hc_version"   : "0.2.2",
-    "zits_version" : "1.9.0",
+    "zits_version" : "1.11.0",
     "bin"          : "bin",
     "we_test_folder": "../we-main"
   },
@@ -11,9 +11,9 @@
   "workspaces"     : [
     "webcomponents",
     "webapp",
+    "webapp.ludotheque",
     "we-applet",
-    "electron",
-    "webapp.ludotheque"
+    "electron"
   ],
   "scripts"        : {
     "postinstall"          : "mkdir -p artifacts",
@@ -93,7 +93,7 @@
     "clean"                : "bash scripts/clean.sh",
     "clean:npm"            : "bash scripts/clean-npm.sh",
     "clean:hc"             : "rm -rf .hc* && rm -rf we-applet/.hc*",
-    "clean:all"            : "npm run clean:hc && npm run clean:npm && npm run clean"
+    "clean:all"            : "git clean -f -x -d -e .idea && rm -rf submodules"
   },
 
   "devDependencies": {
@@ -104,21 +104,21 @@
     "cross-env"               : "^7.0.3",
     "new-port-cli"            : "^1.0.0",
     "tslib"                   : "^2.4.0",
-    "typescript"              : "^4.9.0"
+    "typescript"              : "~5.2.0"
   },
   "dependencies"   : {
     "@holochain/client" : "=0.16.2",
-    "@ddd-qc/cell-proxy": "=0.19.19",
-    "@ddd-qc/lit-happ"  : "=0.19.19",
-    "@ddd-qc/we-utils": "=0.19.19",
-    "@ddd-qc/profiles-dvm": "=0.19.20",
-    "@holochain-open-dev/core-types": "=0.6.3",
-    "@holochain-open-dev/profiles": "=0.16.1",
-    "@lightningrodlabs/we-applet": "0.10.0",
-    "@shoelace-style/shoelace": "2.4.0",
-    "@lit-labs/context": "0.2.0",
-    "@lit/localize": "^0.11.2",
-    "lit": "2.6.0"
+    "@ddd-qc/cell-proxy": "=0.20.1",
+    "@ddd-qc/lit-happ"  : "=0.20.1",
+    "@ddd-qc/we-utils": "=0.20.3",
+    "@ddd-qc/profiles-dvm": "=0.20.2",
+    "@holochain-open-dev/core-types": "=0.7.0",
+    "@holochain-open-dev/profiles": "=0.17.2",
+    "@lightningrodlabs/we-applet": "0.11.0",
+    "@shoelace-style/shoelace": "2.11.2",
+    "@lit/context": "1.0.1",
+    "@lit/localize": "0.12.1",
+    "lit": "3.0.2"
   },
   "engines": {
     "npm": ">=7.0.0"

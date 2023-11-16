@@ -13,7 +13,7 @@ import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {getInitials, ProfileMat} from "@ddd-qc/profiles-dvm";
+import {getInitials, Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 
 
 /**

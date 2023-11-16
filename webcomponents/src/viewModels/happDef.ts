@@ -2,7 +2,7 @@
 import {HvmDef} from "@ddd-qc/lit-happ";
 import {WhereDvm} from "./where.dvm";
 import {LudothequeDvm} from "./ludotheque.dvm";
-import {createContext} from "@lit-labs/context";
+import {createContext} from "@lit/context";
 import {EntryHash} from "@holochain/client";
 
 export const DEFAULT_WHERE_DEF: HvmDef = {

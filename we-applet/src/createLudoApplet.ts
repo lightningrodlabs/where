@@ -28,7 +28,7 @@ export async function createLudoApplet(
     throw Error("cross-applet-view not implemented by Where");
   }
 
-  const appletViewInfo = renderInfo as AppletViewInfo;
+  const appletViewInfo = renderInfo as unknown as AppletViewInfo;
 
   console.log("createLudoApplet() client", appletViewInfo.appletClient);
   console.log("createLudoApplet() thisAppletId", encodeHashToBase64(appletViewInfo.appletHash));

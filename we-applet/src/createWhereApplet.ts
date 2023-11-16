@@ -27,7 +27,7 @@ export async function createWhereApplet(
     throw Error("cross-applet-view not implemented by Where");
   }
 
-  const appletViewInfo = renderInfo as AppletViewInfo;
+  const appletViewInfo = renderInfo as unknown as AppletViewInfo;
 
   console.log("createWhereApplet() client", appletViewInfo.appletClient);
   console.log("createWhereApplet() thisAppletId", encodeHashToBase64(appletViewInfo.appletHash));

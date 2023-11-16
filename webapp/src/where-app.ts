@@ -395,21 +395,6 @@ export class WhereApp extends HappElement {
           </ul>
         </div>
       `;
-      if (this._filesAppletHash) {
-        viewBlocks = html`
-          <div>
-            Files:
-            <button @click=${(e) => {
-              this._weServices.openAppletBlock(this._filesAppletHash, "PickFile", null)
-            }}>Pick
-            </button>
-            <button @click=${(e) => {
-              this._weServices.openAppletBlock(this._filesAppletHash, "ImportFile", null)
-            }}>Import
-            </button>
-          </div>
-        `;
-      }
     }
 
 

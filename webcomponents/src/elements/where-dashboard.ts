@@ -83,9 +83,9 @@ tmpl.innerHTML = `
 @localized()
 @customElement("where-dashboard")
 export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
-  constructor() {
-    super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
-  }
+  // constructor() {
+  //   super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
+  // }
 
   /** Properties */
 
@@ -98,8 +98,6 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   @consume({ context: weClientContext, subscribe: true })
   weServices: WeServices;
-  @consume({ context: filesAppletContext, subscribe: true })
-  filesAppletHash: EntryHash;
   @consume({ context: threadsAppletContext, subscribe: true })
   threadsAppletHash: EntryHash;
 
@@ -376,25 +374,6 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-  /** Search for File attachmentType */
-  getFileAttachmentType(): AttachmentType | undefined {
-    if (this._fileAttachmentType) {
-      return this._fileAttachmentType;
-    }
-    if (!this.filesAppletHash) {
-      return undefined;
-    }
-    const attDict = this.weServices.attachmentTypes.get(this.filesAppletHash);
-    const att = attDict["file"];
-    if (att) {
-      this._fileAttachmentType = att;
-      return att;
-    }
-    console.warn("Did not find 'file' attachmentType in Files' WeServices");
-    return undefined;
-  }
-
-
   /** */
   canComment(): boolean {
     console.log("canComment()", this.threadsAppletHash);
@@ -472,27 +451,6 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
             </mwc-icon>
           `;
         }
-        const fileAttachment = this.getFileAttachmentType();
-        let fileIcon = html``;
-        if (fileAttachment) {
-          fileIcon = html`
-            <mwc-icon class="info-icon"
-                      style="cursor:pointer;"
-                      @click=${ async () => {
-            const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-            const res = await fileAttachment.create(spaceHrl);
-            console.log("Create File attachment result:", res);
-            if (res.context.detail == "none") {
-              /* await */ this.weServices.openAppletBlock(this.filesAppletHash, "PickFile", {hrl: spaceHrl, type: "Image"});
-            } else {
-              /* await */ this.weServices.openHrl(res.hrl, res.context);
-            }
-          }}
-            >
-                attach_file
-            </mwc-icon>
-          `;
-        }
         /** */
         return html`
           <sl-card class="card-image" >
@@ -502,7 +460,6 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                       @click=${() => {const play = this._dvm.getPlay(spaceEh); this.openPlayInfoDialog(play)}}
             >info</mwc-icon>
             ${threadIcon}
-            ${fileIcon}
           </sl-card>
           `
       }

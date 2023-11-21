@@ -373,10 +373,13 @@ export class WhereApp extends HappElement {
         console.log("weServices.appletId", appletId);
         console.log("weServices.dict", dict);
         const maybeAppInfo = this._appInfoMap[appletId];
-        console.log("appletName", maybeAppInfo.appletName);
-        for (const v of Object.values(dict)) {
-          const templ = html`<li>${maybeAppInfo.appletName}: ${v.label}</li>`;
-          attachments.push(templ);
+        if (maybeAppInfo) {
+          console.log("appletName", maybeAppInfo.appletName);
+          for (const v of Object.values(dict)) {
+            const templ = html`
+              <li>${maybeAppInfo.appletName}: ${v.label}</li>`;
+            attachments.push(templ);
+          }
         }
       };
       if (attachments.length == 1) {

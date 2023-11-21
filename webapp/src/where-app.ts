@@ -173,18 +173,20 @@ export class WhereApp extends HappElement {
 
     /** Probe we-applets */
     if (this._weServices) {
-      console.log("Probing weServices.appletInfo()")
+      console.log("weServices|Probing appletInfo() by attachmentTypes")
       for (const appletHash of this._weServices.attachmentTypes.keys()) {
         const appletInfo = await this._weServices.appletInfo(appletHash); // FIXME: use Promise.all();
-        console.log("appletInfo", encodeHashToBase64(appletHash), appletInfo);
+        console.log("weServices|appletInfo", encodeHashToBase64(appletHash), appletInfo);
         this._appInfoMap[encodeHashToBase64(appletHash)] = appletInfo;
-        if (appletInfo.appletName == "files-we_applet") {
-          this._filesAppletHash = appletHash;
-          this._filesProvider = new ContextProvider(this, filesAppletContext, this._filesAppletHash);
-        }
-        if (appletInfo.appletName == "threads-we_applet") {
+        // if (appletInfo.appletName == "files-we_applet") {
+        //   this._filesAppletHash = appletHash;
+        //   this._filesProvider = new ContextProvider(this, filesAppletContext, this._filesAppletHash);
+        // }
+        if (appletInfo.appletName == "hThreadsWeApplet") {
+          console.log("weServices|Threads we-appleet found", encodeHashToBase64(appletHash), appletInfo.appletName);
           this._threadsAppletHash = appletHash;
           this._threadsProvider = new ContextProvider(this, threadsAppletContext, this._threadsAppletHash);
+          break;
         }
       }
     }

@@ -38,7 +38,7 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
         if (fakeThreadsAppletId == appletId) {
             return {
                 appletBundleId: await fakeEntryHash(),
-                appletName: "threads-we_applet",
+                appletName: "hThreadsWeApplet",
                 groupsIds: [fakeGroupId],
             }
         }

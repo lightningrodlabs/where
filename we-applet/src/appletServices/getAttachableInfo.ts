@@ -1,7 +1,8 @@
-import {asCellProxy} from "@ddd-qc/we-utils";
+import {asCellProxy, wrapPathInSvg} from "@ddd-qc/we-utils";
 import {encodeHashToBase64} from "@holochain/client";
 import {PlaysetEntryType, PlaysetProxy, WHERE_DEFAULT_ROLE_NAME} from "@where/elements";
 import {pascal} from "@ddd-qc/cell-proxy";
+import {mdiMapbox} from "@mdi/js";
 
 
 /** */
@@ -37,7 +38,7 @@ export async function getAttachableInfo(
                 return;
             }
             return {
-                icon_src: "",
+                icon_src: wrapPathInSvg(mdiMapbox),
                 name: space.name,
             };
         }

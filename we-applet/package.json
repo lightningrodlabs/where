@@ -31,6 +31,7 @@
     "typescript": "~5.2.0"
   },
   "dependencies": {
+    "@mdi/js": "^7.2.0",
     "@holochain-open-dev/utils": "=0.16.3",
     "@where/elements": "file:../webcomponents",
     "ludotheque": "file:../webapp.ludotheque",

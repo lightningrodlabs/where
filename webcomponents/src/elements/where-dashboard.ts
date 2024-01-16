@@ -454,10 +454,18 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         return html`
           <sl-card class="card-image" >
             <span slot="image" @click=${() => this.selectPlay(spaceEh)}>${renderSurface(play.space.surface, play.space.name, 290, 200)}</span>
-            <b >${play.space.name}</b>
             <mwc-icon class="info-icon" style="cursor: pointer;"
                       @click=${() => {const play = this._dvm.getPlay(spaceEh); this.openPlayInfoDialog(play)}}
             >info</mwc-icon>
+            <b >${play.space.name}</b>
+            ${this.weServices? html`
+            <mwc-icon class="copy-icon"
+                      style="cursor:pointer;"
+                      @click=${ async () => {
+                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+                        this.weServices.hrlToClipboard({hrl: spaceHrl, context: null});
+                      }}
+            >content_copy</mwc-icon>` :html``}
             ${threadIcon}
           </sl-card>
           `
@@ -574,6 +582,12 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         }
 
         .info-icon {
+          color: rgb(164, 182, 223);
+          /*--mdc-icon-size: 22px;*/
+          /*margin-left: 5px;*/
+          vertical-align: middle;
+        }
+        .copy-icon {
           color: rgb(164, 182, 223);
           /*--mdc-icon-size: 22px;*/
           margin-left: 5px;

@@ -5,6 +5,7 @@ import {PlaysetEntryType, WHERE_DEFAULT_ROLE_NAME, WhereEntryType} from "@where/
 import {AppletServices} from "@lightningrodlabs/we-applet";
 import {getAttachableInfo} from "./appletServices/getAttachableInfo";
 import {createLudoApplet} from "./createLudoApplet";
+import {search} from "./appletServices/search";
 
 
 export default setupApplet;
@@ -46,7 +47,7 @@ async function setupWhereMainView() {
     attachmentTypes: async (_appletClient) => ({}),
     getAttachableInfo,
     blockTypes: {},
-    search: async (appletClient, searchFilter) => {return []},
+    search,
   };
   return setup(appletServices, createWhereApplet, whereNames, createWhereWeServicesMock);
 }

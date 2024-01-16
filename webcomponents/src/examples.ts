@@ -109,7 +109,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       ui: [],
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.AnyEmoji, singleEmoji: "",
-      multi: true, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
+      multi: true, canAttach: true, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://www.freeworldmaps.net/southamerica/ecuador/ecuador-map.jpg"]]),
     }
   });
@@ -126,7 +126,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
     meta:{
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.EmojiGroup, singleEmoji: "",
-      multi: false, canTag: false, tagVisible: false,  tagAsMarker:false, predefinedTags: [],
+      multi: false, canAttach: false, canTag: false, tagVisible: false,  tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://h5pstudio.ecampusontario.ca/sites/default/files/h5p/content/9451/images/image-5f6645b4ef14e.jpg"]]),
       ui: [{box:{left:450,top:320,width:100,height:20},style:"padding:10px;background-color:#ffffffb8;border-radius: 10px;",content:"Place of Birth"}]
     }
@@ -144,7 +144,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       markerType: MarkerType.Initials, singleEmoji: "",
       subMap: new Map([["style","background-image:linear-gradient(to bottom right, red, yellow);"]]),
       ui: [{box:{left:200,top:200,width:200,height:200},style:"background-image: linear-gradient(to bottom right, blue, red);",content:""}, {"box":{"left":450,"top":300,"width":100,"height":100},"style":"background-color:blue;border-radius: 10000px;","content":""}],
-      multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
+      multi: true, canAttach: false, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
     }
   });
 
@@ -159,7 +159,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       ui: [],
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.Avatar, singleEmoji: "",
-      multi: false, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
+      multi: false, canAttach: false, canTag: true, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap: new Map([["ImageUrl","https://image.freepik.com/free-vector/zodiac-circle-natal-chart-horoscope-with-zodiac-signs-planets-rulers-black-white-illustration-horoscope-horoscope-wheel-chart_101969-849.jpg"]])
     }});
 
@@ -176,7 +176,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       ui: [],
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.SingleEmoji, singleEmoji: "💥",
-      multi: false, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
+      multi: false, canAttach: false, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
     }});
 
@@ -193,7 +193,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       ui: [{box:{left:10,top:45,width:170,height:20},style:"padding:10px;background-color:#fffffffa;border-radius:10px;border:2px solid violet;font-size:large;",content:"How are you feeling?"}],
       markerType: MarkerType.EmojiGroup, singleEmoji: "",
-      multi: true, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
+      multi: true, canAttach: false, canTag: false, tagVisible: false, tagAsMarker:false, predefinedTags: [],
       subMap,
     }});
 
@@ -209,7 +209,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       ui: [],
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.Tag, singleEmoji: "",
-      multi: true, canTag: true, tagVisible: true, tagAsMarker: true,
+      multi: true, canAttach: false, canTag: true, tagVisible: true, tagAsMarker: true,
       predefinedTags: ["able", "accepting", "caring", "dignified", "happy", "introverted", "modest", "silly"],
       subMap,
     }});
@@ -227,7 +227,7 @@ export async function publishExamplePlayset(dvm: LudothequeDvm): Promise<void> {
       ui: [],
       sessionCount: 0, canModifyPast: true, sessionLabels: [],
       markerType: MarkerType.SvgMarker, singleEmoji: "",
-      multi: true, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
+      multi: true, canAttach: false, canTag: true, tagVisible: true, tagAsMarker:false, predefinedTags: [],
       subMap,
     }}, true);
 

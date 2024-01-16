@@ -5,6 +5,7 @@ import {Coord, WhereLocation, dematerializeHere, WherePerspective, LocationInfo,
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {SignalPayload} from "../bindings/where.types";
 import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain/client";
+import {Hrl} from "@lightningrodlabs/we-applet";
 
 
 /**
@@ -263,14 +264,19 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async updateLocation(sessionEh: EntryHashB64, spaceEh: EntryHashB64, locIdx: number, c: Coord, tag?: string, emoji?: string): Promise<LocationInfo> {
+  async updateLocation(sessionEh: EntryHashB64, spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: Hrl[]): Promise<LocationInfo> {
     const locInfo = this.getSession(sessionEh)!.locations[locIdx]!;
-    locInfo.location.coord = c
-    if (tag != null) {
+    if (c != undefined && c != null) {
+      locInfo.location.coord = c
+    }
+    if (tag != undefined && tag != null) {
       locInfo.location.meta.tag = tag
     }
-    if (emoji != null) {
+    if (emoji != undefined && emoji != null) {
       locInfo.location.meta.emoji = emoji
+    }
+    if (attachables && attachables.length > 0) {
+      locInfo.location.meta.attachables = attachables
     }
     const session = await this.zomeProxy.getSessionFromEh(sessionEh);
     const newLinkAh: ActionHashB64 = await this.publishLocationWithSessionIndex(locInfo.location, spaceEh, session!.index)

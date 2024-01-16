@@ -15,6 +15,7 @@ import {Space} from "../bindings/playset.types";
 import {Message, MessageType, PlacementSession, SignalPayload, WHERE_DEFAULT_ROLE_NAME} from "../bindings/where.types";
 import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
 import {ProfilesZvm} from "@ddd-qc/profiles-dvm";
+import {Hrl} from "@lightningrodlabs/we-applet";
 
 
 /** */
@@ -495,7 +496,7 @@ export class WhereDvm extends DnaViewModel {
   /** -- Misc. -- */
 
   /** */
-  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c: Coord, tag?: string, emoji?: string) {
+  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: Hrl[]) {
     const manifest = this.whereZvm.getManifest(spaceEh);
     const sessionEh = this.getCurrentSession(spaceEh);
     if (!manifest || !sessionEh) {
@@ -503,7 +504,7 @@ export class WhereDvm extends DnaViewModel {
       return;
     }
     const oldLocInfo = this.whereZvm.getLocations(sessionEh)![locIdx]!
-   const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji);
+   const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji, attachables);
     const entry = dematerializeHere(newLocInfo.location);
     let message: Message = {type: MessageType.UpdateHere, content: [locIdx, newLocInfo.linkAh, entry]};
     let signal: SignalPayload = {maybeSpaceHash: spaceEh, from: this._cellProxy.cell.agentPubKey, message};

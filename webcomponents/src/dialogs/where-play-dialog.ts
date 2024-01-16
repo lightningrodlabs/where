@@ -47,6 +47,9 @@ import {Radio} from "@material/mwc-radio";
 import {Dialog} from "@material/mwc-dialog";
 import {TextField} from "@material/mwc-textfield";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {consume} from "@lit/context";
+import {weClientContext} from "../contexts";
+import {WeServices} from "@lightningrodlabs/we-applet";
 
 
 /**
@@ -58,6 +61,9 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   constructor() {
     super(PlaysetZvm.DEFAULT_ZOME_NAME);
   }
+
+  @consume({ context: weClientContext, subscribe: true })
+  weServices: WeServices;
 
   /** Properties */
   @property({ type: Object})
@@ -109,6 +115,10 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   @query('#stop-labels-field')
   _sessionLabelsField!: TextField;
 
+
+  get attChkElem() : Checkbox {
+    return this.shadowRoot!.getElementById("att-chk") as Checkbox;
+  }
 
   get widthFieldElem() : TextField {
     return this.shadowRoot!.getElementById("width-field") as TextField;
@@ -176,6 +186,8 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     // - Markers
     this._markerTypeField.value = MarkerType[originalPlay.space.meta.markerType];
     this._multiChk.checked = originalPlay.space.meta.multi;
+    // - Attachables
+    this.attChkElem.checked = originalPlay.space.meta.canAttach;
     // - Tags
     this._tagChk.checked = originalPlay.space.meta.canTag;
     this.tagChkLabel.label = msg('Display tag on surface')
@@ -412,6 +424,8 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     // - Marker
     this._markerTypeField.value = MarkerType[MarkerType.Avatar]
     this._multiChk.checked = false;
+    // - Attachables
+    this.attChkElem.checked = false;
     // - Tags
     this._tagChk.checked = false;
     this.tagChkLabel.label = msg('Display tag on surface');
@@ -601,6 +615,11 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
               style="border:1px solid #324acb;">`
     }
     return html`${preview}`
+  }
+
+  handleCanAttachClick(e: any) {
+    this._currentMeta.canAttach = !this._currentMeta.canAttach;
+    this.requestUpdate()
   }
 
   handleCanTagClick(e: any) {
@@ -922,6 +941,13 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     <mwc-formfield label="${msg('Allow multiple markers per user')}" style="margin-top:10px">
       <mwc-checkbox id="multi-chk"></mwc-checkbox>
     </mwc-formfield>
+    <!-- Attachables -->
+    ${this.weServices? html`
+    <h4 style="margin-top:25px;margin-bottom:10px;">${msg('Attachables')}</h4>
+    <mwc-formfield label="${msg('Enable attachable tagging')}">
+      <mwc-checkbox id="att-chk" @click=${this.handleCanAttachClick}></mwc-checkbox>
+    </mwc-formfield>` :html``
+    }
     <!-- Tags -->
     <h4 style="margin-top:25px;margin-bottom:10px;">${msg('Tagging')}</h4>
     <mwc-formfield label="${msg('Enable marker tagging')}">

@@ -14,6 +14,9 @@ import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
 import {getInitials, Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {consume} from "@lit/context";
+import {weClientContext} from "../contexts";
+import {WeServices} from "@lightningrodlabs/we-applet";
 
 
 /**
@@ -25,6 +28,9 @@ export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDv
   constructor() {
     super(WhereDvm.DEFAULT_BASE_ROLE_NAME);
   }
+
+  @consume({ context: weClientContext, subscribe: true })
+  weServices: WeServices;
 
   @state() private _play?: Play;
   private _template?: Template;
@@ -137,6 +143,8 @@ export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDv
         ${msg('Multiple markers')}: ${meta.multi}
         <br/>
         ${msg('Tagging')}: ${meta.canTag}
+        <br/>
+        ${this.weServices? msg('Attachables') +": " + meta.canAttach : ""}
     `;
     }
 

@@ -1,4 +1,4 @@
-import {css, html} from "lit";
+import {css, html, TemplateResult} from "lit";
 import {property, query, state, customElement} from "lit/decorators.js";
 import {sharedStyles} from "../sharedStyles";
 import {EMOJI_WIDTH, MARKER_WIDTH, renderMarker, renderUiItems} from "../sharedRender";
@@ -47,6 +47,9 @@ import {TextField} from "@material/mwc-textfield";
 import {Fab} from "@material/mwc-fab";
 import {Dialog} from "@material/mwc-dialog";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {consume} from "@lit/context";
+import {weClientContext} from "../contexts";
+import {Hrl, WeServices} from "@lightningrodlabs/we-applet";
 
 
 // // Canvas Animation experiment
@@ -81,6 +84,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   }
 
 
+  @consume({ context: weClientContext, subscribe: true })
+  weServices: WeServices;
+
   /** Properties */
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
@@ -114,6 +120,10 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   @query('#minus-fab') minusFab!: Fab;
   @query('#hide-here-fab') hideFab!: Fab;
   @query('#sessions-tab-bar') sessionTabBar!: TabBar;
+
+  get locationDialogElem(): Dialog {
+    return this.shadowRoot!.getElementById("edit-location-dialog") as Dialog;
+  }
 
 
   getCurrentPlay(): Play | undefined {
@@ -296,6 +306,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       //TODO fixme with a better way to know dialog type
       this._dialogCanEdit = false;
       const options: LocOptions = {
+        attachables: currentPlay.space.meta?.canAttach ? [] : null,
         tag: currentPlay.space.meta?.canTag ? "" : null,
         emoji: "",
         name: this.myNickName,
@@ -315,6 +326,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         sessionEh: this.getCurrentSession()!,
         meta: {
           markerType: currentPlay.space.meta.markerType,
+          attachables: [],
           tag: "",
           img: this._myProfile!.fields.avatar,
           color: this._myProfile!.fields.color? this._myProfile!.fields.color : "#000000",
@@ -328,9 +340,11 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   }
 
 
+  private _optionAttachables?: Hrl[];
+
   /** */
   openLocationDialog(
-    options : LocOptions = { name: "", img: "", tag: "", canEdit: false, emoji: ""},
+    options : LocOptions = { name: "", img: "", tag: "", canEdit: false, emoji: "", attachables: []},
     coord?: Coord,
     idx?: number
   ) {
@@ -343,6 +357,10 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         emojiPickerElem?.addEventListener('emoji-click', (event: any ) => emojiMarkerElem.innerHTML = event?.detail?.unicode);
         emojiMarkerElem.innerHTML = `${options.emoji}`
       }
+    }
+
+    if (options.attachables && options.attachables.length > 0) {
+      this._optionAttachables = options.attachables;
     }
 
     if (options.canEdit) {
@@ -364,12 +382,6 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       this._dialogCanEdit = false;
     }
     this.locationDialogElem.open = true;
-  }
-
-
-  /** */
-  get locationDialogElem(): Dialog {
-    return this.shadowRoot!.getElementById("edit-location-dialog") as Dialog;
   }
 
 
@@ -420,6 +432,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       meta: {
         authorName: this._myProfile!.nickname,
         markerType,
+        attachables: [], // FIXME
         tag: tagValue,
         emoji: emojiValue,
         img: markerType == MarkerType.Avatar? this._myProfile!.fields['avatar']: "",
@@ -538,6 +551,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         emoji: locInfo.location.meta.emoji,
         tag: locInfo.location.meta.tag,
         canEdit: true,
+        attachables: locInfo.location.meta.attachables,
       },
       locInfo.location.coord,
       idx
@@ -584,6 +598,12 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     >`
   }
 
+  /** */
+  async handleImportAttachableClick(ev: any) {
+    const idx = this.getIdx(ev.target)!;
+    const hrlc = await this.weServices.userSelectHrl();
+    await this._dvm.updateLocation(this.currentSpaceEh!, idx, null, null, null, [hrlc.hrl]);
+  }
 
   /** */
   handleDeleteClick(ev: any): void {
@@ -613,7 +633,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     // TODO: should check agent key and not nickname
     const isMe = locInfo.location.meta.authorName == this.myNickName;
     let marker = renderMarker(locInfo.location.meta, isMe);
-    /** Extra elements for when its my Location */
+    /** Extra elements for when it's my Location */
     let maybeMeClass  = "not-me";
     let maybeDeleteBtn = html ``;
     let maybeEditBtn = html ``;
@@ -634,6 +654,20 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       + (locInfo.location.meta.tag? 20 : 0)
       + (isMe? 40 : 0)
     const details_y = play.space.surface.size.y * z - y < details_height? y - details_height : y;
+    /** Render attachables */
+    let maybeAttachables = html``;
+    if (play!.space.meta?.canAttach) {
+      const attachables = locInfo.location.meta.attachables.map(async (hrl) => {
+        return html`<li><we-hrl .hrl=${hrl}></we-hrl></li>`;
+      })
+      maybeAttachables = html`<ul>${attachables}</ul>`;
+    }
+    const maybeAttachableDetails = html`
+      <div>
+        ${maybeAttachables}
+        <button idx="${i}" @click="${this.handleImportAttachableClick}">Add attachable from clipboard</button>
+      </div>
+    `;
     /** Render Location */
     return html`
       <div
@@ -649,6 +683,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.authorName}</h3>
         <p>${locInfo.location.meta.tag}</p>
+        ${maybeAttachableDetails}
         ${maybeEditBtn}
         ${maybeDeleteBtn}
       </div>
@@ -696,7 +731,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   /** */
-  renderLocationDialog(play?: Play) {
+  async renderLocationDialog(play?: Play) {
     if (!this.canEditLocation(play)) {
       return html``;
     }
@@ -761,12 +796,30 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       }
     }
 
+    let maybeAttachables = html``;
+    if (play!.space.meta?.canAttach) {
+      let attachables = [];
+      if (this._optionAttachables) {
+        attachables = this._optionAttachables.map(async (hrl) => {
+          const maybeInfo = await this.weServices.attachableInfo({hrl, context: null})
+          if (!maybeInfo) return html``;
+          return html`<li>${maybeInfo.attachableInfo.name}</li>`;
+        });
+        await Promise.all(attachables);
+      }
+      maybeAttachables = html`
+        <ul>${attachables}</ul>
+        <button @click="${this.handleImportAttachableClick}">Add attachable from clipboard</button>
+      `;
+    }
+
     /** Render all */
     return html`
         <mwc-dialog id="edit-location-dialog" heading="${msg('Location')}"
                     scrimClickAction="" @wheel=${(e: any) => e.stopPropagation()}>
           ${maybeTagPreview}
           ${tagForm}
+          ${maybeAttachables}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
           <mwc-button slot="primaryAction" @click="${this.handleLocationClick}">${msg('ok')}</mwc-button>
@@ -812,7 +865,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       return;
     }
 
-    this.handleLocationDialogClosing(null)
+    this.handleLocationDialogClosing(null);
+    this._optionAttachables = null;
+
     // - Close dialog
     this.locationDialogElem.close();
   }
@@ -947,23 +1002,6 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       ${maybeLocationDialog}
     `;
   }
-
-
-  // /** */
-  // static get scopedElements() {
-  //   return {
-  //     "sl-avatar": SlAvatar,
-  //     "mwc-slider": Slider,
-  //     "mwc-fab": Fab,
-  //     "mwc-dialog": Dialog,
-  //     "mwc-textfield": TextField,
-  //     "mwc-button": Button,
-  //     "mwc-tab": Tab,
-  //     "mwc-tab-bar": TabBar,
-  //     "emoji-picker": customElements.get('emoji-picker'),
-  //     'mwc-circular-progress': CircularProgress,
-  //   };
-  // }
 
 
   /** */

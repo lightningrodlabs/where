@@ -30,6 +30,7 @@ export * from './elements/where-dashboard';
 export * from './elements/where-page';
 export * from './elements/where-peer-list';
 export * from './elements/where-space';
+export * from './elements/hrl-link';
 
 export * from './stringStore';
 

@@ -72,6 +72,8 @@ export interface SpaceMeta {
   singleEmoji: string,
   //emojiGroup: EntryHashB64 | null,
   //svgMarker: EntryHashB64 | null,
+  /* Attachables */
+  canAttach: boolean,
   /* Tag */
   multi: boolean,
   canTag: boolean,
@@ -111,6 +113,8 @@ export function defaultSpaceMeta(): SpaceMeta {
     singleEmoji: "😀",
     //emojiGroup: null,
     //svgMarker: null,
+    /* Attachables */
+    canAttach: false,
     /* Tag */
     canTag: false,
     tagVisible: false,

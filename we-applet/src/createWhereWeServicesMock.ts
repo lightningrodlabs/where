@@ -5,7 +5,7 @@ import {
 } from "@holochain/client";
 import {HoloHashMap} from "@holochain-open-dev/utils";
 import {AppletHash, AttachmentName, AttachmentType, WeServices} from "@lightningrodlabs/we-applet";
-import {emptyWeServicesMock} from "@ddd-qc/we-utils";
+import {createDefaultWeServicesMock, emptyWeServicesMock} from "@ddd-qc/we-utils";
 import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
 
 
@@ -23,7 +23,9 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
 
     const fakeGroupId = await fakeDnaHash();
 
-    const myWeServicesMock = emptyWeServicesMock;
+    //const myWeServicesMock = emptyWeServicesMock;
+    const myWeServicesMock = await createDefaultWeServicesMock(devtestAppletId)
+
     /** appletInfo() */
     myWeServicesMock.appletInfo = async (appletHash) => {
         const appletId = encodeHashToBase64(appletHash);

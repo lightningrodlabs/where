@@ -207,18 +207,6 @@ export class WhereEmojiGroupDialog extends ZomeElement<PlaysetPerspective, Plays
   }
 
 
-  // /** */
-  // static get scopedElements() {
-  //   return {
-  //     "mwc-select": Select,
-  //     "mwc-list-item": ListItem,
-  //     "mwc-button": Button,
-  //     "mwc-dialog": Dialog,
-  //     "mwc-textfield": TextField,
-  //     "emoji-picker": customElements.get('emoji-picker'),
-  //     "mwc-icon-button": IconButton,
-  //   };
-  // }
 
 //--font-family: "Apple SvgMarker AnyEmoji","Segoe UI AnyEmoji","Segoe UI Symbol","Twemoji Mozilla","Noto SvgMarker AnyEmoji","EmojiOne SvgMarker","Android AnyEmoji",sans-serif
 

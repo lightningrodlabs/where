@@ -13,6 +13,7 @@ import "@shoelace-style/shoelace/dist/components/color-picker/color-picker.js"
 import "@shoelace-style/shoelace/dist/components/radio/radio.js"
 import "@shoelace-style/shoelace/dist/components/radio-group/radio-group.js"
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {Dialog} from "@material/mwc-dialog";
 
 
 /** Crop the image and return a base64 bytes string of its content */
@@ -84,8 +85,10 @@ export class EditProfile extends LitElement {
 
   private _existingUsernames: { [key: string]: boolean } = {};
 
-  @query('#nickname-field')
-  private _nicknameField!: TextField;
+
+  get nicknameFieldElem() : TextField {
+    return this.shadowRoot!.getElementById("nickname-field") as TextField;
+  }
 
   @query('#avatar-file-picker')
   private _avatarFilePicker!: HTMLInputElement;
@@ -95,17 +98,17 @@ export class EditProfile extends LitElement {
 
   /** */
   firstUpdated() {
+    console.log("<edit-profile>.firstUpdated()", this.nicknameFieldElem);
     this._avatar = this.profile?.fields['avatar'];
-
-    this._nicknameField.validityTransform = (newValue: string) => {
+    this.nicknameFieldElem.validityTransform = (newValue: string) => {
       this.requestUpdate();
       if (newValue.length < 3) {
-        this._nicknameField.setCustomValidity(msg(`Nickname is too short`));
+        this.nicknameFieldElem.setCustomValidity(msg(`Nickname is too short`));
         return {
           valid: false,
         };
       } else if (this._existingUsernames[newValue]) {
-        this._nicknameField.setCustomValidity(
+        this.nicknameFieldElem.setCustomValidity(
           msg('This nickname already exists')
         );
         return { valid: false };
@@ -115,6 +118,8 @@ export class EditProfile extends LitElement {
         valid: true,
       };
     };
+    /** Update otherwise save button will be disabled */
+    this.requestUpdate();
   }
 
 
@@ -175,8 +180,9 @@ export class EditProfile extends LitElement {
 
   /** */
   shouldSaveButtonBeEnabled() {
-    if (!this._nicknameField) return false;
-    if (!this._nicknameField.validity.valid) return false;
+    console.log("<edit-profile>.shouldSaveButtonBeEnabled", this.nicknameFieldElem);
+    if (!this.nicknameFieldElem) return false;
+    if (!this.nicknameFieldElem.validity.valid) return false;
     if (this.avatarMode === 'avatar-required' && !this._avatar)
       return false;
     if (
@@ -224,7 +230,7 @@ export class EditProfile extends LitElement {
 
   /** */
   fireSaveProfile() {
-    const nickname = this._nicknameField.value;
+    const nickname = this.nicknameFieldElem.value;
     const fields: Record<string, string> = this.getAdditionalFieldsValues();
 
     /** avatar */
@@ -331,7 +337,7 @@ export class EditProfile extends LitElement {
               .helper=${msg(
                 str`Min. 3 characters`
               )}
-              @input=${() => this._nicknameField.reportValidity()}
+              @input=${() => this.nicknameFieldElem.reportValidity()}
               style="margin-left: 8px;"
             ></mwc-textfield>
 
@@ -342,7 +348,7 @@ export class EditProfile extends LitElement {
               <span style="font-size:18px;padding-right:10px;padding-top:5px;">${msg('Color')}:</span>
               <sl-color-picker id="colorPicker" hoist slot="meta" size="small" noFormatToggle format='rgb'
                                @click="${this.handleColorChange}"
-                               .value=${this.profile?.fields['color']}>
+                               .value=${this.profile && this.profile.fields['color']? this.profile.fields['color']: ""}>
               </sl-color-picker>
           </div>
 

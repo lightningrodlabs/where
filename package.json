@@ -49,8 +49,9 @@
 
     "prodtest"             : "npm run dist -w webapp && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
     "prodtest:electron"    : "npm run build -w webcomponents && npm run dist -w webapp && npm run devtest -w electron",
-    "prodtest:we"          : "npm run dist:we && cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:run\" \"npm run prodtest:we-launch\"",
-    "prodtest:we-launch"   : "/c/Users/damien/AppData/Local/\"We alpha\"/\"We alpha\" --test-applets artifacts/where-we_applet.webhapp artifacts/threads-we_applet.webhapp --network-seed test",
+
+    "prodtest:we"          : "npm run dist:we && cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:run\" \"cross-env AGENT_NUM=1 npm run prodtest:we-launch\"",
+    "prodtest:we-launch"   : "/c/Users/damien/AppData/Local/Programs/org.lightningrodlabs.we-electron-alpha/lightningrodlabs-we \"-b http://127.0.0.1:$BOOT_PORT\" \"-s ws://127.0.0.1:$SIGNAL_PORT\" --dev-config we.prodtest.config.json --agent-num $AGENT_NUM",
 
     "_save-ports"          :  "echo $HC_APP_PORT > .hc_app_$INDEX && echo $HC_ADMIN_PORT > .hc_admin_$INDEX",
 

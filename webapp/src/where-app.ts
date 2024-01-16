@@ -2,19 +2,21 @@ import {css, html} from "lit";
 import {customElement, state} from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
 import {
-  AdminWebsocket,
+  AdminWebsocket, AgentPubKeyB64,
   AppSignal,
   AppWebsocket,
   encodeHashToBase64,
   EntryHash,
   EntryHashB64,
   InstalledAppId,
-  RoleName
+  RoleName, ZomeName
 } from "@holochain/client";
 import {
-  CellsForRole,
+  AppProxy,
+  BaseRoleName,
+  CellsForRole, CloneId,
   delay,
-  Dictionary,
+  Dictionary, DnaViewModel, DvmDef,
   HAPP_ELECTRON_API,
   HAPP_ENV,
   HappElement,
@@ -44,8 +46,18 @@ import {AppletId, AppletView, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 import {AttachableViewInfo} from "@ddd-qc/we-utils";
-import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {Profile as ProfileMat, ProfilesDvm} from "@ddd-qc/profiles-dvm";
 import {weClientContext} from "@where/elements/dist/contexts";
+
+/** */
+export interface ProfileInfo {
+  profilesAppId: InstalledAppId,
+  profilesBaseRoleName: BaseRoleName,
+  profilesCloneId: CloneId | undefined,
+  profilesZomeName: ZomeName,
+  profilesProxy: AppProxy,
+}
+
 
 /**
  *
@@ -77,20 +89,31 @@ export class WhereApp extends HappElement {
 
   @state() private _canShowBuildView = false;
 
-  /** We stuff */
+  /** -- We-applet specifics -- */
 
   protected _weProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
   protected _threadsProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
-  protected _filesProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+  //protected _filesProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+  //protected _filesAppletHash?: EntryHash;
 
-  protected _filesAppletHash?: EntryHash;
   protected _threadsAppletHash?: EntryHash;
 
   private _appInfoMap: Dictionary<AppletInfo> = {};
 
+  private _weProfilesDvm?: ProfilesDvm;
+  @state() private _hasWeProfile = false;
+
 
   /** */
-  constructor(appWs?: AppWebsocket, private _adminWs?: AdminWebsocket, private _canAuthorizeZfns?: boolean, appId?: InstalledAppId, private _weServices?: WeServices, public appletView?: AppletView) {
+  constructor(
+      appWs?: AppWebsocket,
+      private _adminWs?: AdminWebsocket,
+      private _canAuthorizeZfns?: boolean,
+      appId?: InstalledAppId,
+      private _weServices?: WeServices,
+      public appletView?: AppletView,
+      profileInfo?: ProfileInfo,
+  ) {
     super(appWs? appWs : HC_APP_PORT, appId);
     if (_canAuthorizeZfns == undefined) {
       this._canAuthorizeZfns = true;
@@ -98,6 +121,39 @@ export class WhereApp extends HappElement {
     if (_weServices) {
       console.log(`\t\tProviding context "${weClientContext}" | in host `, _weServices, this);
       this._weProvider = new ContextProvider(this, weClientContext, _weServices);
+    }
+    if(profileInfo) {
+      this.createWeProfilesDvm(profileInfo);
+    }
+  }
+
+
+  /** Create a Profiles DVM out of a different happ */
+  async createWeProfilesDvm(profileInfo?: ProfileInfo): Promise<void> {
+    const profilesAppInfo = await profileInfo.profilesProxy.appInfo({installed_app_id: profileInfo.profilesAppId});
+    const profilesDef: DvmDef = {ctor: ProfilesDvm, baseRoleName: profileInfo.profilesBaseRoleName, isClonable: false};
+    const cell_infos = Object.values(profilesAppInfo.cell_info);
+    console.log("createProfilesDvm() cell_infos:", cell_infos);
+    /** Create Profiles DVM */
+        //const profilesZvmDef: ZvmDef = [ProfilesZvm, profilesZomeName];
+    const dvm: DnaViewModel = new profilesDef.ctor(this, profileInfo.profilesProxy, new HCL(profileInfo.profilesAppId, profileInfo.profilesBaseRoleName, profileInfo.profilesCloneId));
+    console.log("createProfilesDvm() dvm", dvm);
+    await this.setupWeProfilesDvm(dvm as ProfilesDvm, encodeHashToBase64(profilesAppInfo.agent_pub_key));
+  }
+
+
+  /** */
+  async setupWeProfilesDvm(dvm: ProfilesDvm, agent: AgentPubKeyB64): Promise<void> {
+    this._weProfilesDvm = dvm as ProfilesDvm;
+    /** Load My profile */
+    const maybeMyProfile = await this._weProfilesDvm.profilesZvm.probeProfile(agent);
+    if (maybeMyProfile) {
+      const maybeLang = maybeMyProfile.fields['lang'];
+      if (maybeLang) {
+        console.log("Setting locale from We Profile", maybeLang);
+        setLocale(maybeLang);
+      }
+      this._hasWeProfile = true;
     }
   }
 
@@ -344,7 +400,7 @@ export class WhereApp extends HappElement {
 
   /** */
   render() {
-    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._curLudoCloneId)
+    console.log("*** <where-app> render()", this._canLudotheque, this._hasStartingProfile, this._hasWeProfile, this._curLudoCloneId)
     if (!this._loaded) {
       return html`        
       <div style="display: flex; justify-content: center; align-items: center; height: 100vh">
@@ -406,20 +462,19 @@ export class WhereApp extends HappElement {
     const createProfile = html `
         ${viewAttachments}
         ${viewBlocks}
-        <div class="column"
-             style="align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;"
-        >
+        <div class="column mainDiv">
           <h1 style="font-family: arial;color: #5804A8;"><img src="logo.svg" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/> Where</h1>            
           <div class="column" style="align-items: center;">
             <sl-card style="box-shadow: rgba(0, 0, 0, 0.19) 0px 10px 20px, rgba(0, 0, 0, 0.23) 0px 6px 6px;">
                 <div class="title" style="margin-bottom: 24px; align-self: flex-start">
-                  ${msg('Create Profile')}
+                  ${this._hasWeProfile? msg('Import Profile') : msg('Create Profile')}
                 </div>
-                  <edit-profile
-                          .saveProfileLabel=${msg('Create Profile')}
+                <edit-profile
+                          .saveProfileLabel=${this._hasWeProfile? msg('Import Profile') : msg('Create Profile')}
+                          .profile=${this._hasWeProfile? this._weProfilesDvm.profilesZvm.getMyProfile() : undefined}
                           @save-profile=${(e: CustomEvent) => this.createMyProfile(e.detail.profile)}
                           @lang-selected=${(e: CustomEvent) => {console.log("<where-app> set lang", e.detail); setLocale(e.detail)}}
-                  ></edit-profile>
+                ></edit-profile>
             </sl-card>
             </div>
         </div>`;
@@ -530,6 +585,10 @@ export class WhereApp extends HappElement {
           width: inherit;
         }
 
+        .mainDiv {
+          align-items: center; justify-content: center; flex: 1; padding-bottom: 10px;
+        }
+        
         .column {
           display: flex;
           flex-direction: column;

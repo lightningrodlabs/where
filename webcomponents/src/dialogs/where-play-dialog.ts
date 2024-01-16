@@ -788,7 +788,9 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
         `
         break;
       case MarkerType.EmojiGroup:
-        marker_eh = (this._currentMarker as MarkerPieceVariantEmojiGroup).emojiGroup;
+        //if (this._currentMarker) {
+          marker_eh = (this._currentMarker as MarkerPieceVariantEmojiGroup).emojiGroup;
+        //}
         /** Build group list */
         console.log("** Building emoji group field:")
         const groups = Object.entries(this.perspective.emojiGroups).map(
@@ -822,7 +824,9 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
         break;
 
       case MarkerType.SvgMarker:
-        marker_eh = (this._currentMarker as MarkerPieceVariantSvg).svg;
+        if (this._currentMarker) {
+          marker_eh = (this._currentMarker as MarkerPieceVariantSvg).svg;
+        }
         /** Build marker list */
         if ((!this._currentMarker ||
           "emojiGroup" in this._currentMarker) && Object.keys(this.perspective.svgMarkers).length > 0) {

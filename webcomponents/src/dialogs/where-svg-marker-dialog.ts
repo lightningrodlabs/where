@@ -149,7 +149,7 @@ export class WhereSvgMarkerDialog extends LitElement {
   <mwc-textfield id="name-field" dialogInitialFocus type="text"
                  style="min-width: 250px;margin-bottom:5px;"
                  @input=${() => (this.shadowRoot!.getElementById("name-field") as TextField).reportValidity()}
-                 minlength="3" maxlength="64" label="${msg('Name')}" autoValidate=true required></mwc-textfield>
+                 minlength="3" maxlength="64" label="${msg('Select')}" autoValidate=true required></mwc-textfield>
   <!-- Display Preview-->
   <div id="svg-marker-thumbnail">${this.previewSvgMarker()}</div>
   <!-- SVG field -->

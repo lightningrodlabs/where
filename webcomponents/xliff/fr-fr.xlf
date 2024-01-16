@@ -274,10 +274,6 @@
   <source>Import</source>
   <target>Importer</target>
 </trans-unit>
-<trans-unit id="sb59d68ed12d46377">
-  <source>Loading</source>
-  <target>Chargement</target>
-</trans-unit>
 <trans-unit id="s63d894b1ddb06289">
   <source>Description</source>
   <target>Description</target>
@@ -419,7 +415,7 @@
   <target>Clicker sur l'image pour placer un emplacement.</target>
 </trans-unit>
 <trans-unit id="sb33618c0875ca307">
-  <source>You can move your Locations with drag'n drop.</source>
+  <source>You can move your Locations with drag &amp; drop.</source>
   <target>Vous pouvez déplacer vos Emplacements en faisant un glisser-déposer.</target>
 </trans-unit>
 <trans-unit id="s3cf26a2a8162cbc6">
@@ -437,6 +433,60 @@
 <trans-unit id="sb736dbefa4802f4b">
   <source>Go to Library</source>
   <target>Aller à la Bibliothèque</target>
+</trans-unit>
+<trans-unit id="sd6c9451fe7610e34">
+  <source>Invalid UUID string</source>
+  <target>UUID invalide</target>
+</trans-unit>
+<trans-unit id="sdde36cef47efdd47">
+  <source>Add Library</source>
+  <target>Ajouter Bibliothèque</target>
+</trans-unit>
+<trans-unit id="s8469eedaed8e2787">
+  <source>Create new</source>
+  <target>Créer</target>
+</trans-unit>
+<trans-unit id="s91f94b62a1ba6616">
+  <source>Enter code</source>
+  <target>Entrer code</target>
+</trans-unit>
+<trans-unit id="s4fdb49c1bd5cb096">
+  <source>Add Library: Enter code</source>
+  <target>Ajouter Bibliothèque: Entrer code</target>
+</trans-unit>
+<trans-unit id="s41def2de29651139">
+  <source>join</source>
+  <target>rejoindre</target>
+</trans-unit>
+<trans-unit id="s655f1e5205938823">
+  <source>Add Library: Choose name</source>
+  <target>Ajouter Bibliothèque: Choisir nom</target>
+</trans-unit>
+<trans-unit id="s02e24bfab9d9273b">
+  <source>min. 2 characters</source>
+  <target>min. 2 caractères</target>
+</trans-unit>
+<trans-unit id="s424bed3a09307207">
+  <source>Add Library: Create new</source>
+  <target>Ajouter Bibliothèque: Créer</target>
+</trans-unit>
+<trans-unit id="sca0e1a23f7b09a6e">
+  <source>Add Library: Create New confirmed</source>
+</trans-unit>
+<trans-unit id="s5429423aed9ac686">
+  <source>Multiple markers</source>
+  <target>Plusieurs marqueurs</target>
+</trans-unit>
+<trans-unit id="s129504c54cfb77a3">
+  <source>Share Library</source>
+  <target>Partager Bibliothèque</target>
+</trans-unit>
+<trans-unit id="sb9ca618d2220eb43">
+  <source>Library UUID</source>
+  <target>UUID de la Bibliothèque</target>
+</trans-unit>
+<trans-unit id="sfc63e31ac7c956ed">
+  <source>Select</source>
 </trans-unit>
 </body>
 </file>

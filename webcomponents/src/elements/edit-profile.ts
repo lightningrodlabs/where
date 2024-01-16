@@ -56,6 +56,8 @@ export function resizeAndExport(img: HTMLImageElement) {
 @customElement("edit-profile")
 export class EditProfile extends LitElement {
 
+  /** -- Properties -- */
+
   /**
    * The profile to be edited.
    */
@@ -68,7 +70,6 @@ export class EditProfile extends LitElement {
   @property({ type: String, attribute: 'save-profile-label' })
   saveProfileLabel: string | undefined;
 
-  /** Dependencies */
 
   @property()
   avatarMode: string;
@@ -76,16 +77,15 @@ export class EditProfile extends LitElement {
   @property({ type: Boolean })
   allowCancel = false;
 
-  @state() private _avatar: string | undefined;
-  @state() private _color: string | undefined;
-  @state() private _lang: string | undefined;
 
-  /** Private properties */
+  /** -- Private properties -- */
+
+  @state() private _avatar: string | undefined;
+
+  private _existingUsernames: { [key: string]: boolean } = {};
 
   @query('#nickname-field')
   private _nicknameField!: TextField;
-
-  private _existingUsernames: { [key: string]: boolean } = {};
 
   @query('#avatar-file-picker')
   private _avatarFilePicker!: HTMLInputElement;
@@ -96,11 +96,6 @@ export class EditProfile extends LitElement {
   /** */
   firstUpdated() {
     this._avatar = this.profile?.fields['avatar'];
-
-    this._color = this.profile?.fields['color'];
-
-    this._lang = this.profile?.fields['lang'];
-    if (!this._lang) this._lang = 'en';
 
     this._nicknameField.validityTransform = (newValue: string) => {
       this.requestUpdate();
@@ -123,6 +118,7 @@ export class EditProfile extends LitElement {
   }
 
 
+  /** */
   onAvatarUploaded() {
     if (this._avatarFilePicker.files && this._avatarFilePicker.files[0]) {
       const reader = new FileReader();
@@ -176,6 +172,8 @@ export class EditProfile extends LitElement {
     `;
   }
 
+
+  /** */
   shouldSaveButtonBeEnabled() {
     if (!this._nicknameField) return false;
     if (!this._nicknameField.validity.valid) return false;
@@ -189,10 +187,14 @@ export class EditProfile extends LitElement {
     return true;
   }
 
+
+  /** */
   textfieldToFieldId(field: TextField): string {
     return field.id.split('-')[2];
   }
 
+
+  /** */
   getAdditionalFieldsValues(): Record<string, string> {
     const textfields = this.getAdditionalTextFields();
 
@@ -204,6 +206,8 @@ export class EditProfile extends LitElement {
     return values;
   }
 
+
+  /** */
   getAdditionalTextFields(): Record<string, TextField> {
     const textfields = Array.from(
       this.shadowRoot!.querySelectorAll('mwc-textfield')
@@ -221,18 +225,23 @@ export class EditProfile extends LitElement {
   /** */
   fireSaveProfile() {
     const nickname = this._nicknameField.value;
-
     const fields: Record<string, string> = this.getAdditionalFieldsValues();
+
+    /** avatar */
     if (this._avatar) {
       fields['avatar'] = this._avatar;
     }
-    if (this._color) {
-      fields['color'] = this._color;
-    }
 
-    if (this._lang) {
-      fields['lang'] = this._lang;
-    }
+    /** lang */
+    const langRadioGroup = this.shadowRoot!.getElementById("langRadioGroup") as any;
+    console.log({langRadioGroup});
+    fields['lang'] = langRadioGroup.value? langRadioGroup.value : "";
+
+    /** Color */
+    const colorPicker = this.shadowRoot!.getElementById("colorPicker") as any;
+    console.log({colorPicker});
+    fields['color'] = colorPicker.value? colorPicker.value : "";
+
 
     const profile: ProfileMat = {
       fields,
@@ -259,6 +268,8 @@ export class EditProfile extends LitElement {
     );
   }
 
+
+  /** */
   renderField(fieldName: string) {
     return html`
       <mwc-textfield
@@ -276,9 +287,10 @@ export class EditProfile extends LitElement {
   }
 
 
+  /** */
   async handleColorChange(e: any) {
     console.log("handleColorChange: " + e.target.lastValueEmitted)
-    this._color = e.target.lastValueEmitted;
+    //this._color = e.target.lastValueEmitted;
     //const profile = this._myProfile!;
     //await this.setMyProfile(profile.nickname, profile.fields['avatar'], color)
   }
@@ -286,19 +298,17 @@ export class EditProfile extends LitElement {
 
   async handleLangChange(_e: any) {
     //console.log({langChangeEvent: e});
-    const frBtn = this.shadowRoot!.getElementById("frBtn") as any;
-    console.log({frBtn})
-    this._lang = frBtn.__checked? frBtn.value : "en";
-    //console.log("handleLangChange: ", this._lang)
-    //this._lang = grp.value;
-    this.dispatchEvent(new CustomEvent('lang-selected', { detail: this._lang, bubbles: true, composed: true }));
+    const langRadioGroup = this.shadowRoot!.getElementById("langRadioGroup") as any;
+    console.log({langRadioGroup})
+    const lang = langRadioGroup.value;
+    this.dispatchEvent(new CustomEvent('lang-selected', { detail: lang, bubbles: true, composed: true }));
 
   }
 
 
   /** */
   render() {
-    console.log("<edit-profile> render()", this._lang);
+    console.log("<edit-profile> render()", this.profile);
 
     return html`
       <input type="file"
@@ -330,15 +340,17 @@ export class EditProfile extends LitElement {
 
           <div class="row" style="justify-content: center; margin-bottom: 18px; align-self: start;" >
               <span style="font-size:18px;padding-right:10px;padding-top:5px;">${msg('Color')}:</span>
-              <sl-color-picker hoist slot="meta" size="small" noFormatToggle format='rgb' @click="${this.handleColorChange}"
-                               value=${this.profile?.fields['color']}></sl-color-picker>
+              <sl-color-picker id="colorPicker" hoist slot="meta" size="small" noFormatToggle format='rgb'
+                               @click="${this.handleColorChange}"
+                               .value=${this.profile?.fields['color']}>
+              </sl-color-picker>
           </div>
 
           <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
               <span style="font-size:18px;padding-right:10px;">${msg('Language')}:</span>
-              <sl-radio-group id="langRadioGroup" label=${msg('Language')} @click="${this.handleLangChange}">
-                  <sl-radio value="en" .checked="${this._lang == 'en'}">🇬🇧</sl-radio>
-                  <sl-radio id="frBtn" value="fr-fr" .checked="${this._lang == 'fr-fr'}">🇫🇷</sl-radio>
+              <sl-radio-group id="langRadioGroup" @click=${this.handleLangChange} .value=${this.profile?.fields['lang']}>
+                  <sl-radio value="en">🇬🇧</sl-radio>
+                  <sl-radio value="fr-fr">🇫🇷</sl-radio>
               </sl-radio-group>
           </div>
 

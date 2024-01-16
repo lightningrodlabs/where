@@ -1,7 +1,5 @@
 import {
-  AppAgentClient,
   AppAgentWebsocket, encodeHashToBase64,
-  EntryHash
 } from "@holochain/client";
 //import { msg } from "@lit/localize";
 
@@ -10,8 +8,6 @@ import {
   WeServices,
 } from "@lightningrodlabs/we-applet";
 
-import "@lightningrodlabs/we-applet/dist/elements/we-client-context.js";
-import "@lightningrodlabs/we-applet/dist/elements/hrl-link.js";
 
 import {WhereApp} from "@where/app";
 import {AppletViewInfo} from "@ddd-qc/we-utils";

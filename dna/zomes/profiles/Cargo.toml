@@ -1,6 +1,5 @@
 [package]
 name = "profiles_zome"
-authors = ["eric@harris-braun.com"]
 version.workspace = true
 rust-version.workspace = true
 edition.workspace = true
@@ -10,5 +9,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 hdk.workspace = true
-hc_zome_profiles_coordinator = {git = "https://github.com/holochain-open-dev/profiles", version = "0.2.0" }
+#hc_zome_profiles_coordinator = {git = "https://github.com/holochain-open-dev/profiles", version = "0.2.0" }
+hc_zome_profiles_coordinator = "=0.2.0"
 

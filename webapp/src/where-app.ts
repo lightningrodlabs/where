@@ -40,11 +40,12 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {AppletId, AppletView, weClientContext, WeServices} from "@lightningrodlabs/we-applet";
+import {AppletId, AppletView, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
-import {EntryViewInfo} from "@ddd-qc/we-utils";
+import {AttachableViewInfo} from "@ddd-qc/we-utils";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {weClientContext} from "@where/elements/dist/contexts";
 
 /**
  *
@@ -290,8 +291,8 @@ export class WhereApp extends HappElement {
           break;
         case "block":
           throw new Error("Where/we-applet: Block view is not implemented.");
-        case "entry":
-          const entryViewInfo = this.appletView as EntryViewInfo;
+        case "attachable":
+          const entryViewInfo = this.appletView as AttachableViewInfo;
           if (entryViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
             throw new Error(`Where/we-applet: Unknown role name '${this.appletView.roleName}'.`);
           }

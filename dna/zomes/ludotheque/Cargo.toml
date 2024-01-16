@@ -1,6 +1,5 @@
 [package]
 name = "where_ludotheque_zome"
-authors = ["eric@harris-braun.com"]
 version.workspace = true
 rust-version.workspace = true
 edition.workspace = true

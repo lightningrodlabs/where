@@ -52,13 +52,13 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
         throw Error("appletInfo() failed. Unknown appletHash");
     };
     /** entryInfo() */
-    myWeServicesMock.entryInfo = async (hrl) => {
-        console.log("WhereWeServicesMock.entryInfo()", hrl);
+    myWeServicesMock.attachableInfo = async (hrlc) => {
+        console.log("WhereWeServicesMock.entryInfo()", hrlc);
         return {
             appletHash: decodeHashFromBase64(devtestAppletId),
-            entryInfo: {
+            attachableInfo: {
                 icon_src: "",
-                name: "fake:" + encodeHashToBase64(hrl[1]),
+                name: "fake:" + encodeHashToBase64(hrlc.hrl[1]),
             }
         }
     }

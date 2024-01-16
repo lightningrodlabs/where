@@ -334,13 +334,13 @@ export class EditProfile extends LitElement {
                                value=${this.profile?.fields['color']}></sl-color-picker>
           </div>
 
-            <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
-                <span style="font-size:18px;padding-right:10px;">${msg('Language')}:</span>
-                <sl-radio-group id="langRadioGroup" label=${msg('Language')} @click="${this.handleLangChange}">
-                    <sl-radio value="en" .checked="${this._lang == 'en'}">🇬🇧</sl-radio>
-                    <sl-radio id="frBtn" value="fr-fr" .checked="${this._lang == 'fr-fr'}">🇫🇷</sl-radio>
-                </sl-radio-group>
-            </div>
+          <div class="row" style="justify-content: center; margin-bottom: 8px; align-self: start;" >
+              <span style="font-size:18px;padding-right:10px;">${msg('Language')}:</span>
+              <sl-radio-group id="langRadioGroup" label=${msg('Language')} @click="${this.handleLangChange}">
+                  <sl-radio value="en" .checked="${this._lang == 'en'}">🇬🇧</sl-radio>
+                  <sl-radio id="frBtn" value="fr-fr" .checked="${this._lang == 'fr-fr'}">🇫🇷</sl-radio>
+              </sl-radio-group>
+          </div>
 
           <div class="row" style="margin-top: 8px;">
 

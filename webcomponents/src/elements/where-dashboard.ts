@@ -2,11 +2,11 @@ import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
 import {consume} from "@lit/context";
 
-import {AttachmentType, Hrl, WeServices, weClientContext} from "@lightningrodlabs/we-applet";
+import {AttachmentType, Hrl, WeServices} from "@lightningrodlabs/we-applet";
 
 import {sharedStyles} from "../sharedStyles";
 
-import {decodeHashFromBase64, encodeHashToBase64, EntryHash, EntryHashB64} from "@holochain/client";
+import {decodeHashFromBase64, EntryHash, EntryHashB64} from "@holochain/client";
 
 import {delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
 import {Dictionary} from "@ddd-qc/cell-proxy";
@@ -14,8 +14,6 @@ import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
 
 import {renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
-import {WherePeerList} from "./where-peer-list";
-import {WhereSpace} from "./where-space";
 import {WherePlayDialog} from "../dialogs/where-play-dialog";
 import {WhereTemplateDialog} from "../dialogs/where-template-dialog";
 import {WhereArchiveDialog} from "../dialogs/where-archive-dialog";
@@ -59,7 +57,8 @@ import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 import {Profile as  ProfileMat} from "@ddd-qc/profiles-dvm";
-import {filesAppletContext, threadsAppletContext} from "../viewModels/happDef";
+import {threadsAppletContext} from "../viewModels/happDef";
+import {weClientContext} from "../contexts";
 
 
 
@@ -440,7 +439,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                       style="cursor:pointer;"
                       @click=${ async () => {
                         const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                        const res = await threadAttachment.create(spaceHrl);
+                        const res = await threadAttachment.create({hrl: spaceHrl, context: null});
                         console.log("Create/Open Thread result:", res);
                         res.context.subjectType = PlaysetEntryType.Space;
                         //res.context.subjectName = play.space.name;

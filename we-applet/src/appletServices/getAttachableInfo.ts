@@ -5,7 +5,7 @@ import {pascal} from "@ddd-qc/cell-proxy";
 
 
 /** */
-export async function getEntryInfo(
+export async function getAttachableInfo(
     appletClient,
     roleName,
     integrityZomeName,

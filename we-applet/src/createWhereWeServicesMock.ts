@@ -4,9 +4,10 @@ import {
     fakeDnaHash, fakeEntryHash
 } from "@holochain/client";
 import {HoloHashMap} from "@holochain-open-dev/utils";
-import {AppletHash, AttachmentName, AttachmentType, WeServices} from "@lightningrodlabs/we-applet";
-import {createDefaultWeServicesMock, emptyWeServicesMock} from "@ddd-qc/we-utils";
+import {AppletHash, AttachmentName, AttachmentType, GroupProfile, WeServices} from "@lightningrodlabs/we-applet";
+import {createDefaultWeServicesMock, emptyWeServicesMock, wrapPathInSvg} from "@ddd-qc/we-utils";
 import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
+import {mdiClipboard} from "@mdi/js";
 
 
 
@@ -25,6 +26,13 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
 
     //const myWeServicesMock = emptyWeServicesMock;
     const myWeServicesMock = await createDefaultWeServicesMock(devtestAppletId)
+
+    myWeServicesMock.groupProfile = async (groupId): Promise<GroupProfile> => {
+        return {
+            name: "fakeGroupeName",
+            logo_src: "https://media.istockphoto.com/id/1412901513/vector/modern-hand-technology-logo-design.jpg?s=612x612&w=0&k=20&c=zZ4Kh-J2BV_oLfx8Tfd65aUFdTNlCvjmWxLOT4sEeVs=",
+        }
+    }
 
     /** appletInfo() */
     myWeServicesMock.appletInfo = async (appletHash) => {
@@ -59,7 +67,7 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
         return {
             appletHash: decodeHashFromBase64(devtestAppletId),
             attachableInfo: {
-                icon_src: "",
+                icon_src: wrapPathInSvg(mdiClipboard),
                 name: "fake:" + encodeHashToBase64(hrlc.hrl[1]),
             }
         }

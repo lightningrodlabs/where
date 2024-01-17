@@ -125,6 +125,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     return this.shadowRoot!.getElementById("edit-location-dialog") as Dialog;
   }
 
+  get tagFieldElem(): TextField {
+    return this.shadowRoot!.getElementById("edit-location-tag") as TextField;
+  }
 
   getCurrentPlay(): Play | undefined {
     return this.currentSpaceEh? this._dvm.getPlay(this.currentSpaceEh) : undefined
@@ -293,7 +296,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** on surface click, try to create Location */
   private handleClick(event: any): void {
-    //console.log("handleClick: ", this.currentSpaceEh, event, this.canCreateLocation())
+    console.log("handleClick: ", this.currentSpaceEh, event, this.canCreateLocation())
     if (!this.currentSpaceEh || event == null || !this.canCreateLocation()) {
       return;
     }
@@ -313,7 +316,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         img: this._myProfile!.fields.avatar,
         canEdit: false,
       }
-      this.openLocationDialog(options);
+      this.openEditLocationDialog(options);
     } else {
       let svgMarker = ""
       if (currentPlay.space.maybeMarkerPiece && "svg" in currentPlay.space.maybeMarkerPiece) {
@@ -343,11 +346,12 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   private _optionAttachables?: Hrl[];
 
   /** */
-  openLocationDialog(
+  openEditLocationDialog(
     options : LocOptions = { name: "", img: "", tag: "", canEdit: false, emoji: "", attachables: []},
     coord?: Coord,
     idx?: number
   ) {
+    console.log("openEditLocationDialog()", options)
     const emojiPickerElem = this.shadowRoot!.getElementById("edit-location-emoji-picker");
     const emojiPreviewElem = this.shadowRoot!.getElementById("edit-location-emoji-preview");
 
@@ -366,9 +370,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     if (options.canEdit) {
       this._dialogCanEdit = options.canEdit;
       if (options.tag) {
-        const tagElem = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-        if (tagElem) {
-          tagElem.value = options.tag
+        if (this.tagFieldElem) {
+          this.tagFieldElem.value = options.tag
         } else {
           const predefinedTagElem = this.shadowRoot!.getElementById("edit-location-predefined-tag");
           if (predefinedTagElem) {
@@ -382,29 +385,30 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       this._dialogCanEdit = false;
     }
     this.locationDialogElem.open = true;
+    this.requestUpdate();
   }
 
 
   /** */
-  private async handleLocationDialogClosing(e: any) {
-    //console.log("handleLocationDialogClosing: " + e.detail.action)
+  private async handleLocationDialogClosing(canOk: boolean) {
+    console.log("handleLocationDialogClosing()");
+
     let tagValue = ""
-    let tag = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    if (!tag) {
+    if (!this.tagFieldElem) {
       const predefinedTag = this.shadowRoot!.getElementById("edit-location-predefined-tag") as HTMLElement;
       if (predefinedTag) {
         tagValue = predefinedTag.innerText
         predefinedTag.innerText = ""
       }
     } else {
-      tagValue = tag.value
-      tag.value = "";
+      tagValue = this.tagFieldElem.value
+      this.tagFieldElem.value = "";
     }
 
-    // if (e.detail.action == "cancel") {
-    //   if (tag) tag.value = "";
-    //   return;
-    // }
+    if (!canOk) {
+      this._optionAttachables = null;
+      return;
+    }
 
     /** handle "ok" */
 
@@ -432,7 +436,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       meta: {
         authorName: this._myProfile!.nickname,
         markerType,
-        attachables: [], // FIXME
+        attachables: this._optionAttachables,
         tag: tagValue,
         emoji: emojiValue,
         img: markerType == MarkerType.Avatar? this._myProfile!.fields['avatar']: "",
@@ -534,8 +538,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   /** Open LocationDialog on clicked element if possible */
-  private handleLocationDblClick(ev: any) {
-    const idx = this.getIdx(ev.target)!;
+  private onEditLocation(idx: number) {
+    //const idx = this.getIdx(ev.target)!;
     if (!this.canUpdateLocation(idx)) {
       return;
     }
@@ -543,8 +547,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     const currentPlay = this.getCurrentPlay();
     if (!currentPlay || !currentSessionEh) return;
     const session = this._dvm.whereZvm.getSession(currentSessionEh)!;
-    const locInfo = session.locations[idx]!;
-    this.openLocationDialog(
+    const locInfo = session.locations[idx];
+    console.log(`onEditLocation(${idx})`, locInfo.location.meta);
+    this.openEditLocationDialog(
       {
         name: locInfo.location.meta.authorName,
         img: locInfo.location.meta.img,
@@ -599,10 +604,12 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   }
 
   /** */
-  async handleImportAttachableClick(ev: any) {
-    const idx = this.getIdx(ev.target)!;
+  async handleImportAttachableClick(idx: number) {
+    //const idx = this.getIdx(ev.target);
+    console.log("handleImportAttachableClick()", idx);
     const hrlc = await this.weServices.userSelectHrl();
     await this._dvm.updateLocation(this.currentSpaceEh!, idx, null, null, null, [hrlc.hrl]);
+    this.requestUpdate();
   }
 
   /** */
@@ -643,9 +650,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
       if (this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
-        maybeDeleteBtn = html`<button idx="${i}" @click="${this.handleDeleteClick}">Remove</button>`
+        maybeDeleteBtn = html`<button idx=${i} @click=${this.handleDeleteClick}>Remove</button>`
         if (this.canEditLocation(play)) {
-          maybeEditBtn = html`<button idx="${i}" @click="${this.handleLocationDblClick}">Edit</button>`
+          maybeEditBtn = html`<button idx=${i} @click=${(_e) => this.onEditLocation(i)}>Edit</button>`
         }
       }
     };
@@ -655,26 +662,29 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       + (isMe? 40 : 0)
     const details_y = play.space.surface.size.y * z - y < details_height? y - details_height : y;
     /** Render attachables */
-    let maybeAttachables = html``;
-    if (play!.space.meta?.canAttach) {
-      const attachables = locInfo.location.meta.attachables.map(async (hrl) => {
-        return html`<li><we-hrl .hrl=${hrl}></we-hrl></li>`;
-      })
-      maybeAttachables = html`<ul>${attachables}</ul>`;
-    }
-    const maybeAttachableDetails = html`
-      <div>
-        ${maybeAttachables}
-        <button idx="${i}" @click="${this.handleImportAttachableClick}">Add attachable from clipboard</button>
-      </div>
+    let maybeAttachableDetails = html``;
+    if (this.weServices && play!.space.meta?.canAttach) {
+      let attachables = [];
+      if (locInfo.location.meta.attachables) {
+        attachables = locInfo.location.meta.attachables.map((hrl) => {
+          return html`
+            <we-hrl .hrl=${hrl}></we-hrl>`;
+        })
+      }
+      maybeAttachableDetails = html`
+        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:5px;">
+          ${attachables}
+          <button style="margin-bottom: 3px;" idx=${i} @click="${(_ev) => this.handleImportAttachableClick(i)}">Add attachable</button>
+        </div>
     `;
+    }
     /** Render Location */
     return html`
       <div
         .draggable=${true}
-        @dblclick="${(e: Event) => this.handleLocationDblClick(e)}"
-        @dragstart="${(e: DragEvent) => this.drag(e)}"
-        idx="${i}" class="location-marker" style="left: ${x - (MARKER_WIDTH / 2)}px; top: ${y - (MARKER_WIDTH / 2)}px;">
+        @dblclick=${(_e) => this.onEditLocation(i)}
+        @dragstart=${(e: DragEvent) => this.drag(e)}
+        idx=${i} class="location-marker" style="left: ${x - (MARKER_WIDTH / 2)}px; top: ${y - (MARKER_WIDTH / 2)}px;">
       ${marker}
       ${play.space.meta?.tagVisible && locInfo.location.meta.tag?
         html`<div class="location-tag" style="border:1px solid ${borderColor};">${locInfo.location.meta.tag}</div>`
@@ -683,9 +693,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       <div class="location-details ${maybeMeClass}" style="left: ${x}px; top: ${details_y}px;">
         <h3>${locInfo.location.meta.authorName}</h3>
         <p>${locInfo.location.meta.tag}</p>
-        ${maybeAttachableDetails}
         ${maybeEditBtn}
         ${maybeDeleteBtn}
+        ${maybeAttachableDetails}
       </div>
     `;
   }
@@ -731,7 +741,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   /** */
-  async renderLocationDialog(play?: Play) {
+  renderLocationDialog(play?: Play) {
     if (!this.canEditLocation(play)) {
       return html``;
     }
@@ -796,20 +806,29 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       }
     }
 
+    /** render attachables */
     let maybeAttachables = html``;
-    if (play!.space.meta?.canAttach) {
+    if (this.weServices && play!.space.meta?.canAttach) {
       let attachables = [];
+      console.log("renderLocatioDialog().attachables", this._optionAttachables);
       if (this._optionAttachables) {
-        attachables = this._optionAttachables.map(async (hrl) => {
-          const maybeInfo = await this.weServices.attachableInfo({hrl, context: null})
-          if (!maybeInfo) return html``;
-          return html`<li>${maybeInfo.attachableInfo.name}</li>`;
+        attachables = this._optionAttachables.map((hrl) => {
+          return html`<we-hrl .hrl=${hrl}></we-hrl>`;
         });
-        await Promise.all(attachables);
       }
       maybeAttachables = html`
-        <ul>${attachables}</ul>
-        <button @click="${this.handleImportAttachableClick}">Add attachable from clipboard</button>
+        <div style="display: flex; flex-direction: column">
+          ${attachables}
+        <mwc-button icon="add" @click=${async (_ev) => {
+          console.log("Adding Attachable. Current:", this._optionAttachables);
+          const hrlc = await this.weServices.userSelectHrl();
+          if (!this._optionAttachables) {
+            this._optionAttachables = [];
+          }
+          this._optionAttachables.push(hrlc.hrl);
+          this.requestUpdate();
+        }}>Attachable</mwc-button>
+        </div>
       `;
     }
 
@@ -817,13 +836,13 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     return html`
         <mwc-dialog id="edit-location-dialog" heading="${msg('Location')}"
                     scrimClickAction="" @wheel=${(e: any) => e.stopPropagation()}>
+          ${maybeAttachables}
           ${maybeTagPreview}
           ${tagForm}
-          ${maybeAttachables}
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
-          <mwc-button slot="primaryAction" @click="${this.handleLocationClick}">${msg('ok')}</mwc-button>
-          <mwc-button slot="secondaryAction" dialogAction="cancel">${msg('cancel')}</mwc-button>
+          <mwc-button slot="primaryAction" @click=${this.handleOkLocationDialog}>${msg('ok')}</mwc-button>
+          <mwc-button slot="secondaryAction" dialogAction="cancel" @click=${(_e) => this.handleLocationDialogClosing(false)}>${msg('cancel')}</mwc-button>
         </mwc-dialog>
     `;
   }
@@ -845,19 +864,18 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   /** */
-  private async handleLocationClick(e: any) {
+  private async handleOkLocationDialog(_e: any) {
     /** Check validity */
     const currentPlay = this.getCurrentPlay()!;
     // tag-field
-    const tagField = this.shadowRoot!.getElementById("edit-location-tag") as TextField;
-    if (tagField && currentPlay.space.meta.tagAsMarker) {
-      let isValid = tagField.value !== "";
+    if (this.tagFieldElem && currentPlay.space.meta.tagAsMarker) {
+      let isValid = this.tagFieldElem.value !== "";
       if (!isValid) {
-        tagField.setCustomValidity("Must not be empty")
-        tagField.reportValidity();
+        this.tagFieldElem.setCustomValidity("Must not be empty")
+        this.tagFieldElem.reportValidity();
         return;
       }
-      tagField.setCustomValidity("")
+      this.tagFieldElem.setCustomValidity("")
     }
     // Check predefined-tag-field
     const predefinedTagField = this.shadowRoot!.getElementById("edit-location-predefined-tag") as HTMLElement;
@@ -865,8 +883,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       return;
     }
 
-    this.handleLocationDialogClosing(null);
-    this._optionAttachables = null;
+    await this.handleLocationDialogClosing(true);
 
     // - Close dialog
     this.locationDialogElem.close();
@@ -1011,7 +1028,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       css`
         .surface {
           position: relative;
-          overflow: auto;
+          /*overflow: auto;*/
           min-width:160px;
         }
 

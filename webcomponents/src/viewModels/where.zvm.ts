@@ -276,7 +276,10 @@ export class WhereZvm extends ZomeViewModel {
       locInfo.location.meta.emoji = emoji
     }
     if (attachables && attachables.length > 0) {
-      locInfo.location.meta.attachables = attachables
+      if (!locInfo.location.meta.attachables) {
+        locInfo.location.meta.attachables = [];
+      }
+      locInfo.location.meta.attachables = locInfo.location.meta.attachables.concat(attachables)
     }
     const session = await this.zomeProxy.getSessionFromEh(sessionEh);
     const newLinkAh: ActionHashB64 = await this.publishLocationWithSessionIndex(locInfo.location, spaceEh, session!.index)

@@ -104,15 +104,13 @@ export class HrlLink extends LitElement {
   const { appletsInfos, groupsProfiles, attachableInfo } = this._info;
 
   return html`
-    <sl-tooltip>
+    <sl-tooltip style="--max-width: 30rem;">
       <div slot="content">
         <div class="row" style="align-items: center">
           ${this.onlyIcon
             ? html` <span>${attachableInfo.attachableInfo.name},&nbsp;</span> `
             : html``}
-          <span>
-            ${appletsInfos.get(attachableInfo.appletHash)?.appletName} ${msg('in')}</span
-          >
+          <span>From ${appletsInfos.get(attachableInfo.appletHash)?.appletName} ${msg('in group')} </span>
           ${appletsInfos.get(attachableInfo.appletHash)?.groupsIds.map(
             (groupId) => html`
               <img
@@ -140,7 +138,7 @@ export class HrlLink extends LitElement {
           ${this.onlyIcon
             ? html``
             : html`
-                <span style="margin-left: 8px">${attachableInfo.attachableInfo.name}</span>
+                <span style="margin-left:8px; text-overflow:ellipsis;">${attachableInfo.attachableInfo.name}</span>
               `}
         </div>
       </sl-tag>

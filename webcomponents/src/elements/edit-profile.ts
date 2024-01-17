@@ -366,7 +366,7 @@ export class EditProfile extends LitElement {
               ? html`
               <mwc-button
                 style="flex: 1; margin-right: 6px;"
-                .label=${'Cancel'}
+                .label=${msg('Cancel')}
                 @click=${() => this.fireCancel()}
               ></mwc-button>
               `

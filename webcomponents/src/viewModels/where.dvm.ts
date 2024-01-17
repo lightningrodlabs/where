@@ -532,6 +532,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64): Promise<void> {
+    console.log("publishLocation()", location);
     const linkAh = await this.whereZvm.publishLocation(location, spaceEh);
     /* Notify peers */
     const entry = dematerializeHere(location)

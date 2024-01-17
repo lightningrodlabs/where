@@ -81,7 +81,7 @@ export type LocOptions = {
   img: string,
   tag: string | null,
   emoji: string | null,
-  canEdit: boolean
+  canUpdateLoc: boolean
 }
 
 export interface Coord {

@@ -16,6 +16,7 @@ export * from './dialogs/where-archive-dialog';
 export * from './dialogs/where-clone-ludo-dialog';
 export * from './dialogs/where-emoji-group-dialog';
 export * from './dialogs/where-ludo-dialog';
+export * from './dialogs/where-location-dialog';
 export * from './dialogs/where-play-dialog';
 export * from './dialogs/where-play-info-dialog';
 export * from './dialogs/where-playset-dialog';

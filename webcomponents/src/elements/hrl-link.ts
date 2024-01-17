@@ -110,7 +110,7 @@ export class HrlLink extends LitElement {
           ${this.onlyIcon
             ? html` <span>${attachableInfo.attachableInfo.name},&nbsp;</span> `
             : html``}
-          <span>From ${appletsInfos.get(attachableInfo.appletHash)?.appletName} ${msg('in group')} </span>
+          <span style="margin-right:6px;">From ${appletsInfos.get(attachableInfo.appletHash)?.appletName}</span>
           ${appletsInfos.get(attachableInfo.appletHash)?.groupsIds.map(
             (groupId) => html`
               <img

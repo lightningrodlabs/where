@@ -15,7 +15,7 @@ import {
     Play,
     WhereLocation
 } from "../viewModels/where.perspective";
-import {EntryHashB64} from "@holochain/client";
+import {encodeHashToBase64, EntryHashB64} from "@holochain/client";
 
 
 import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
@@ -41,6 +41,7 @@ import {weClientContext} from "../contexts";
 import {Hrl, WeServices} from "@lightningrodlabs/we-applet";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm/dist/bindings/profiles.types";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
+import {stringifyHrl} from "@ddd-qc/we-utils";
 
 
 /**
@@ -130,7 +131,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
       coord?: Coord,
       idx?: number
   ) {
-      console.log("<where-location-dialog>.open()", options, coord, idx);
+      console.log("<where-location-dialog>.open()", options, coord, idx, this._optionAttachables);
       /** General */
       this._dialogCanUpdate = options.canUpdateLoc;
       /* Emoji */
@@ -143,6 +144,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
           }
       }
       /* Attachable */
+      this._optionAttachables = [];
       if (options.attachables.length > 0) {
           this._optionAttachables = options.attachables;
       }
@@ -162,7 +164,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
       if (idx) this._dialogIdx = idx;
       /* Open Dialog */
       this.dialogElem.open = true;
-      //this.requestUpdate();
+      this.requestUpdate(); // !important
   }
 
 
@@ -220,7 +222,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
 
   /** */
   private async commitLocation() {
-      console.log("<where-location-dialog>.commitLocation()");
+      console.log("<where-location-dialog>.commitLocation()", this._optionAttachables);
 
       /** Grab Tag value */
       let tagValue = ""
@@ -248,30 +250,31 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
           svgMarker = this._dvm.playsetZvm.getSvgMarker(eh)!.value;
       }
 
-
-      const location: WhereLocation = {
-          coord: this._dialogCoord,
-          sessionEh: this.getCurrentSession()!,
-          meta: {
-              authorName: this.myProfile!.nickname,
-              markerType,
-              attachables: this._optionAttachables,
-              tag: tagValue,
-              emoji: emojiValue,
-              img: markerType == MarkerType.Avatar ? this.myProfile!.fields['avatar'] : "",
-              color: this.myProfile!.fields.color ? this.myProfile!.fields.color : "#858585",
-              svgMarker,
-          },
-      };
+      /** Publish new or update Location */
       if (this._dialogCanUpdate) {
           await this._dvm.updateLocation(
               this.spaceEh,
               this._dialogIdx,
               this._dialogCoord,
               tagValue,
-              emojiValue
+              emojiValue,
+              this._optionAttachables,
           );
       } else {
+          const location: WhereLocation = {
+              coord: this._dialogCoord,
+              sessionEh: this.getCurrentSession()!,
+              meta: {
+                  authorName: this.myProfile!.nickname,
+                  markerType,
+                  attachables: this._optionAttachables,
+                  tag: tagValue,
+                  emoji: emojiValue,
+                  img: markerType == MarkerType.Avatar ? this.myProfile!.fields['avatar'] : "",
+                  color: this.myProfile!.fields.color ? this.myProfile!.fields.color : "#858585",
+                  svgMarker,
+              },
+          };
           await this._dvm.publishLocation(location, this.spaceEh);
       }
   }
@@ -279,6 +282,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
 
   /** */
   render() {
+    console.log("<where-location-dialog>.render()", this._optionAttachables);
     if (!this.canEditLocation()) {
       return html``;
     }
@@ -347,22 +351,34 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
     let maybeAttachables = html``;
     if (this.weServices && this.play.space.meta?.canAttach) {
       let attachables = [];
-      console.log("<where-location-dialog>.render().attachables", this._optionAttachables);
+      console.log("<where-location-dialog>.render().attachables", this._optionAttachables.map((hrl) => encodeHashToBase64(hrl[1])));
       attachables = this._optionAttachables.map((hrl) => {
-        return html`<we-hrl .hrl=${hrl}></we-hrl>`;
+        const sHrl = stringifyHrl(hrl);
+        return html`
+            <div style="display: flex; flex-direction: row">
+                <mwc-icon-button class="delete-attachment-icon" icon="delete" @click=${(_e) => {
+                    console.log("delete an attachment before", this._optionAttachables.length, sHrl);
+                    this._optionAttachables = this._optionAttachables.filter((cur) => stringifyHrl(cur) != sHrl);
+                    console.log("delete an attachment after", this._optionAttachables.length);
+                    this.requestUpdate();
+        }}></mwc-icon-button>
+                <we-hrl .hrl=${hrl}></we-hrl>
+            </div>`;
       });
       maybeAttachables = html`
         <div style="display: flex; flex-direction: column">
-          ${attachables}
-        <mwc-button icon="add" @click=${async (_ev) => {
-        console.log("<where-location-dialog> Adding Attachable. Current:", this._optionAttachables);
-        const hrlc = await this.weServices.userSelectHrl();
-        this._optionAttachables.push(hrlc.hrl);
-        this.requestUpdate();
-      }}>Attachable</mwc-button>
+            ${attachables}
+            <mwc-button icon="add" @click=${async (_ev) => {
+            console.log("<where-location-dialog> Adding Attachable. Current:", this._optionAttachables);
+            const hrlc = await this.weServices.userSelectHrl();
+            this._optionAttachables.push(hrlc.hrl);
+            this.requestUpdate();
+          }}>Attachable</mwc-button>
         </div>
       `;
     }
+
+    // dialogAction="cancel"
 
     /** Render all */
     return html`
@@ -374,7 +390,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
           ${maybeEmojiPreview}
           ${maybeEmojiPicker}
           <mwc-button slot="primaryAction" @click=${this.handleOk}>${msg('ok')}</mwc-button>
-          <mwc-button slot="secondaryAction" dialogAction="cancel" @click=${(_e) => this.close()}>${msg('cancel')}</mwc-button>
+          <mwc-button slot="secondaryAction" @click=${(_e) => this.close()}>${msg('cancel')}</mwc-button>
         </mwc-dialog>
     `;
   }
@@ -386,6 +402,13 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
           sharedStyles,
           css`
 
+            .delete-attachment-icon {
+              --mdc-icon-size:0.75em;
+              --mdc-icon-button-size:0.75em;
+              margin-top:5px;
+              margin-left:-15px;
+              margin-right:5px;
+            }
       #tag-field {
         display: block;
       }

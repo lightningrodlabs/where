@@ -285,7 +285,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
   /** on surface click, try to create Location */
   private handleSurfaceClick(event: any): void {
-    console.log("handleSurfaceClick: ", this.currentSpaceEh, event, this.canCreateLocation())
+    //console.log("handleSurfaceClick: ", this.currentSpaceEh, event, this.canCreateLocation())
     if (!this.currentSpaceEh || event == null || !this.canCreateLocation()) {
       return;
     }
@@ -486,7 +486,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     //const idx = this.getIdx(ev.target);
     console.log("handleImportAttachableClick()", idx);
     const hrlc = await this.weServices.userSelectHrl();
-    await this._dvm.updateLocation(this.currentSpaceEh!, idx, null, null, null, [hrlc.hrl]);
+    const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];
+    const attachables = locInfo.location.meta.attachables.concat([hrlc.hrl]);
+    await this._dvm.updateLocation(this.currentSpaceEh, idx, null, null, null, attachables);
     this.requestUpdate();
   }
 
@@ -552,7 +554,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         })
       }
       maybeAttachableDetails = html`
-        <div style="display:flex; flex-direction:column; gap:5px; margin-bottom:5px;">
+        <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px;">
           ${attachables}
           <button style="margin-bottom: 3px;" idx=${i} @click="${(_ev) => this.handleImportAttachableClick(i)}">Add attachable</button>
         </div>

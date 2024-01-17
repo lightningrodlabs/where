@@ -163,7 +163,8 @@ export class WhereDvm extends DnaViewModel {
           };
         const newInfo = materializeHere(newHereInfo);
         if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
-          this.whereZvm.updateLocation(newInfo.location.sessionEh, signalPayload.maybeSpaceHash, idx, newInfo.location.coord, newInfo.location.meta.tag, newInfo.location.meta.emoji);
+          this.whereZvm.updateLocation(newInfo.location.sessionEh, signalPayload.maybeSpaceHash, idx,
+              newInfo.location.coord, newInfo.location.meta.tag, newInfo.location.meta.emoji, newInfo.location.meta.attachables);
         }
         break;
     }
@@ -497,14 +498,15 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async updateLocation(spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: Hrl[]) {
+    console.log("whereDvm.updateLocation()", attachables);
     const manifest = this.whereZvm.getManifest(spaceEh);
     const sessionEh = this.getCurrentSession(spaceEh);
     if (!manifest || !sessionEh) {
       console.warn("updateLocation() failed: Play or Session not found", spaceEh);
       return;
     }
-    const oldLocInfo = this.whereZvm.getLocations(sessionEh)![locIdx]!
-   const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji, attachables);
+    //const oldLocInfo = this.whereZvm.getLocations(sessionEh)![locIdx]!
+    const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji, attachables);
     const entry = dematerializeHere(newLocInfo.location);
     let message: Message = {type: MessageType.UpdateHere, content: [locIdx, newLocInfo.linkAh, entry]};
     let signal: SignalPayload = {maybeSpaceHash: spaceEh, from: this._cellProxy.cell.agentPubKey, message};
@@ -532,7 +534,7 @@ export class WhereDvm extends DnaViewModel {
 
   /** */
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64): Promise<void> {
-    console.log("publishLocation()", location);
+    console.log("whereDvm.publishLocation()", location);
     const linkAh = await this.whereZvm.publishLocation(location, spaceEh);
     /* Notify peers */
     const entry = dematerializeHere(location)

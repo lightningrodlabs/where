@@ -2,7 +2,7 @@ import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
 import {consume} from "@lit/context";
 
-import {AttachmentType, Hrl, WeServices} from "@lightningrodlabs/we-applet";
+import {AttachmentType, Hrl, WeClient, WeServices} from "@lightningrodlabs/we-applet";
 
 import {sharedStyles} from "../sharedStyles";
 
@@ -59,6 +59,7 @@ import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 import {Profile as  ProfileMat} from "@ddd-qc/profiles-dvm";
 import {threadsAppletContext} from "../viewModels/happDef";
 import {weClientContext} from "../contexts";
+import {getAppletsInfosAndGroupsProfiles} from "./hrl-link";
 
 
 
@@ -170,12 +171,22 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
+  private _appletsInfos: ReadonlyMap<EntryHash, AppletInfo>;
+
   /** After first render only */
   async firstUpdated() {
     console.log("<where-dashboard> firstUpdated()");
     await this._dvm.probeAllPlays();
+    /** Get attachmentInfos */
+    if (this.weServices) {
+      const {groupsProfiles, appletsInfos} = await getAppletsInfosAndGroupsProfiles(
+        this.weServices as WeClient,
+        Array.from(this.weServices.attachmentTypes.keys()),
+      );
+      this._appletsInfos = appletsInfos;
+    }
     /** Done */
-    this._initialized = true
+    this._initialized = true;
     this._canPostInit = true;
   }
 
@@ -428,27 +439,38 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         if (!this._dvm.getVisibility(spaceEh)!) {
           return html ``;
         }
-        console.log("canComment", this.canComment());
+        //console.log("canComment", this.canComment());
         //const template = this._dvm.playsetZvm.getTemplate(play.space.origin);
-        const r = play.space.surface.size.x / play.space.surface.size.y;
-        const threadAttachment = this.getThreadAttachmentType();
-        let threadIcon = html``;
-        if (threadAttachment) {
-          threadIcon = html`
-            <mwc-icon class="info-icon"
-                      style="cursor:pointer;"
-                      @click=${ async () => {
-                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                        const res = await threadAttachment.create({hrl: spaceHrl, context: null});
-                        console.log("Create/Open Thread result:", res);
-                        res.context.subjectType = PlaysetEntryType.Space;
-                        //res.context.subjectName = play.space.name;
-                        this.weServices.openHrl({hrl: res.hrl, context: res.context});
-                      }}
-            >
-                question_answer
-            </mwc-icon>
-          `;
+        //const r = play.space.surface.size.x / play.space.surface.size.y;
+        // const threadAttachment = this.getThreadAttachmentType();
+        // let threadIcon = html``;
+        // if (threadAttachment) {
+        let attIcons = [];
+        for (const [appletHash, atts] of this.weServices.attachmentTypes) {
+          for (const [attName, attType] of Object.entries(atts)) {
+            const attIcon = html`
+              <sl-tooltip style="--max-width: 30rem;">
+              <div slot="content">
+                <div class="row" style="align-items: center">
+                  <span><strong>${attName}&nbsp;</strong></span>
+                  <span style="margin-right:6px;">from ${this._appletsInfos.get(appletHash)?.appletName}</span>
+                </div>
+              </div>
+                <sl-icon-button .src=${attType.icon_src}
+                                @click=${async () => {
+                                  const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+                                  console.log("Create/Open attachment:", spaceHrl);
+                                  const res = await attType.create({hrl: spaceHrl, context: null});
+                                  console.log("Create/Open attachment result:", res);
+                                  res.context.subjectType = PlaysetEntryType.Space;
+                                  //res.context.subjectName = play.space.name;
+                                  this.weServices.openHrl({hrl: res.hrl, context: res.context});
+                                }}
+                ></sl-icon-button>
+              </sl-tooltip>
+            `;
+            attIcons.push(attIcon);
+          }
         }
         /** */
         return html`
@@ -466,7 +488,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                         this.weServices.hrlToClipboard({hrl: spaceHrl, context: null});
                       }}
             >content_copy</mwc-icon>` :html``}
-            ${threadIcon}
+            <div slot="footer" style="display: ${attIcons.length > 0? "block" : "none"}">
+            ${attIcons}
+            </div>
           </sl-card>
           `
       }
@@ -587,6 +611,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           /*margin-left: 5px;*/
           vertical-align: middle;
         }
+
         .copy-icon {
           color: rgb(164, 182, 223);
           /*--mdc-icon-size: 22px;*/
@@ -620,6 +645,10 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
           flex-direction: column;
         }
 
+        sl-icon-button {
+          font-size: 1.3rem;
+          color: rgb(153, 176, 229);
+        }
 
         #app-bar {
           /*margin-top: -15px;*/

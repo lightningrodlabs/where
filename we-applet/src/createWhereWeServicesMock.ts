@@ -7,7 +7,7 @@ import {HoloHashMap} from "@holochain-open-dev/utils";
 import {AppletHash, AttachmentName, AttachmentType, GroupProfile, WeServices} from "@lightningrodlabs/we-applet";
 import {createDefaultWeServicesMock, emptyWeServicesMock, wrapPathInSvg} from "@ddd-qc/we-utils";
 import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
-import {mdiClipboard} from "@mdi/js";
+import {mdiClipboard, mdiFileOutline, mdiInformation} from "@mdi/js";
 
 
 
@@ -77,14 +77,14 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
     const fakeThreadsAttachmentTypes = {
         thread: {
             label: "Thread",
-            icon_src: "",
+            icon_src: wrapPathInSvg(mdiInformation),
             async create(_attachToHrl): Promise<HrlWithContext> {return {hrl: undefined, context: {},};}
         },
     }
     const fakeFilesAttachmentTypes = {
         file: {
             label: "File",
-            icon_src: "",
+            icon_src: wrapPathInSvg(mdiFileOutline),
             async create(_attachToHrl): Promise<HrlWithContext> {
                 return {hrl: undefined, context: {},};
             }

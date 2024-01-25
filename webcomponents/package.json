@@ -53,7 +53,7 @@
     "@material/mwc-top-app-bar-fixed": "^0.25.3",
     "@types/randomcolor": "^0.5.6",
     "cqfill": "^0.6.0",
-    "emoji-picker-element": "^1.8.2",
+    "emoji-picker-element": "1.21.0",
     "eslint-plugin-html": "^7.1.0",
     "fast-xml-parser": "^3.20.0",
     "randomcolor": "^0.6.2"

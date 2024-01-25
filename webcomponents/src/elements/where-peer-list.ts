@@ -314,6 +314,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
         .avatar-badge {
           margin-left: -15px;
           vertical-align: bottom;
+          position: relative;
         }
 
         .avatar-badge::part(base) {

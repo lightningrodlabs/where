@@ -443,7 +443,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                         console.log("Create/Open Thread result:", res);
                         res.context.subjectType = PlaysetEntryType.Space;
                         //res.context.subjectName = play.space.name;
-                        this.weServices.openHrl(res.hrl, res.context);
+                        this.weServices.openHrl({hrl: res.hrl, context: res.context});
                       }}
             >
                 question_answer

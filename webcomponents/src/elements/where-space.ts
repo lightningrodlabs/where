@@ -433,7 +433,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
         emoji: locInfo.location.meta.emoji,
         tag: locInfo.location.meta.tag,
         canUpdateLoc: true,
-        attachables: locInfo.location.meta.attachables,
+        attachables: JSON.parse(JSON.stringify(locInfo.location.meta.attachables)),
       },
       locInfo.location.coord,
       idx
@@ -486,6 +486,9 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     //const idx = this.getIdx(ev.target);
     console.log("handleImportAttachableClick()", idx);
     const hrlc = await this.weServices.userSelectHrl();
+    if (!hrlc) {
+      return;
+    }
     const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];
     const attachables = locInfo.location.meta.attachables.concat([hrlc.hrl]);
     await this._dvm.updateLocation(this.currentSpaceEh, idx, null, null, null, attachables);

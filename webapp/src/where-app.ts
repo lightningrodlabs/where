@@ -348,24 +348,24 @@ export class WhereApp extends HappElement {
         case "block":
           throw new Error("Where/we-applet: Block view is not implemented.");
         case "attachable":
-          const entryViewInfo = this.appletView as AttachableViewInfo;
-          if (entryViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
+          const attachableViewInfo = this.appletView as AttachableViewInfo;
+          if (attachableViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
             throw new Error(`Where/we-applet: Unknown role name '${this.appletView.roleName}'.`);
           }
-          if (entryViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME) {
+          if (attachableViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME) {
             throw new Error(`Where/we-applet: Unknown zome '${this.appletView.integrityZomeName}'.`);
           }
-          const entryType = pascal(entryViewInfo.entryType);
+          const entryType = pascal(attachableViewInfo.entryType);
           console.log("pascal entryType", entryType);
           switch (entryType) {
             case PlaysetEntryType.Space:
-              const spaceEh = encodeHashToBase64(entryViewInfo.hrl[1]);
+              const spaceEh = encodeHashToBase64(attachableViewInfo.hrlWithContext.hrl[1]);
               console.log("Space entry:", spaceEh);
               //const viewContext = entryViewInfo.context as ViewThreadContext;
               view = html`<where-space .currentSpaceEh=${spaceEh}></where-space>`;
               break;
             default:
-              throw new Error(`Unhandled entry type ${entryViewInfo.entryType}.`);
+              throw new Error(`Unhandled entry type ${attachableViewInfo.entryType}.`);
           }
           break;
         default:

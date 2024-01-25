@@ -19,9 +19,11 @@ import { Hrl } from '@lightningrodlabs/we-applet';
 import { WeClient, WeServices } from '@lightningrodlabs/we-applet';
 import { sharedStyles } from '@holochain-open-dev/elements';
 import {weClientContext} from "../contexts";
+import {stringifyHrl} from "@ddd-qc/we-utils";
 //import {AttachableLocationAndInfo} from "@lightningrodlabs/we-applet/dist/types";
 
 
+/** */
 export async function getAppletsInfosAndGroupsProfiles(
   weClient: WeClient,
   appletsHashes: EntryHash[],
@@ -56,9 +58,13 @@ export async function getAppletsInfosAndGroupsProfiles(
 }
 
 
+/**
+ *
+ */
 @localized()
 @customElement('we-hrl')
 export class HrlLink extends LitElement {
+
   @property()
   hrl!: Hrl;
 
@@ -73,23 +79,26 @@ export class HrlLink extends LitElement {
 
   @state() private _info?;//: {attachableInfo: AttachableLocationAndInfo, groupsProfiles: ReadonlyMap<EntryHash, AppletInfo>, appletsInfos: ReadonlyMap<DnaHash, GroupProfile>};
 
+
+  /** */
   protected async firstUpdated(_changedProperties: PropertyValues) {
     super.firstUpdated(_changedProperties);
-    const attachableInfo = await this.weServices.attachableInfo({
+    const attLocInfo = await this.weServices.attachableInfo({
       hrl: this.hrl,
       context: this.context,
     });
-    if (!attachableInfo) {
+    if (!attLocInfo) {
       return undefined;
     }
 
     const { groupsProfiles, appletsInfos } = await getAppletsInfosAndGroupsProfiles(
       this.weServices as WeClient,
-      [attachableInfo.appletHash],
+      [attLocInfo.appletHash],
     );
 
-    this._info = {attachableInfo, groupsProfiles, appletsInfos};
+    this._info = {attLocInfo, groupsProfiles, appletsInfos};
   }
+
 
   /** */
   render() {
@@ -101,17 +110,18 @@ export class HrlLink extends LitElement {
     //   return html`No entry found`; // TODO: what to put here?
     // }
 
-  const { appletsInfos, groupsProfiles, attachableInfo } = this._info;
+  const { attLocInfo, groupsProfiles, appletsInfos } = this._info;
+  console.log("<we-hrl>", attLocInfo.attachableInfo.name, stringifyHrl(this.hrl))
 
   return html`
     <sl-tooltip style="--max-width: 30rem;">
       <div slot="content">
         <div class="row" style="align-items: center">
           ${this.onlyIcon
-            ? html` <span>${attachableInfo.attachableInfo.name},&nbsp;</span> `
+            ? html` <span>${attLocInfo.attachableInfo.name},&nbsp;</span> `
             : html``}
-          <span style="margin-right:6px;">From ${appletsInfos.get(attachableInfo.appletHash)?.appletName}</span>
-          ${appletsInfos.get(attachableInfo.appletHash)?.groupsIds.map(
+          <span style="margin-right:6px;">From ${appletsInfos.get(attLocInfo.appletHash)?.appletName}</span>
+          ${appletsInfos.get(attLocInfo.appletHash)?.groupsIds.map(
             (groupId) => html`
               <img
                 .src=${groupsProfiles.get(groupId)?.logo_src}
@@ -126,19 +136,19 @@ export class HrlLink extends LitElement {
         pill
         style="cursor: pointer"
         tabindex="0"
-        @click=${() => this.weServices.openHrl(this.hrl, this.context)}
+        @click=${() => this.weServices.openHrl({hrl: this.hrl, context: this.context})}
         @keypress=${(e: KeyboardEvent) => {
           if (e.key === 'Enter') {
-            this.weServices.openHrl(this.hrl, this.context);
+            this.weServices.openHrl({hrl:this.hrl, context: this.context});
           }
         }}
       >
         <div class="row" style="align-items: center">
-          <sl-icon .src=${attachableInfo.attachableInfo.icon_src}></sl-icon>
+          <sl-icon .src=${attLocInfo.attachableInfo.icon_src}></sl-icon>
           ${this.onlyIcon
             ? html``
             : html`
-                <span style="margin-left:8px; text-overflow:ellipsis;">${attachableInfo.attachableInfo.name}</span>
+                <span style="margin-left:8px; text-overflow:ellipsis;">${attLocInfo.attachableInfo.name}</span>
               `}
         </div>
       </sl-tag>

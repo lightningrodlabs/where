@@ -282,7 +282,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
 
   /** */
   render() {
-    console.log("<where-location-dialog>.render()", this._optionAttachables);
+    console.log("<where-location-dialog>.render()", this._optionAttachables.map((hrl) => encodeHashToBase64(hrl[1])));
     if (!this.canEditLocation()) {
       return html``;
     }
@@ -353,12 +353,13 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
       let attachables = [];
       console.log("<where-location-dialog>.render().attachables", this._optionAttachables.map((hrl) => encodeHashToBase64(hrl[1])));
       attachables = this._optionAttachables.map((hrl) => {
-        const sHrl = stringifyHrl(hrl);
+        //const sHrl = stringifyHrl(hrl);
+        const sHrl = encodeHashToBase64(hrl[1]);
         return html`
             <div style="display: flex; flex-direction: row">
                 <mwc-icon-button class="delete-attachment-icon" icon="delete" @click=${(_e) => {
                     console.log("delete an attachment before", this._optionAttachables.length, sHrl);
-                    this._optionAttachables = this._optionAttachables.filter((cur) => stringifyHrl(cur) != sHrl);
+                    this._optionAttachables = this._optionAttachables.filter((cur) => encodeHashToBase64(cur[1]) != sHrl);
                     console.log("delete an attachment after", this._optionAttachables.length);
                     this.requestUpdate();
         }}></mwc-icon-button>
@@ -371,6 +372,9 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
             <mwc-button icon="add" @click=${async (_ev) => {
             console.log("<where-location-dialog> Adding Attachable. Current:", this._optionAttachables);
             const hrlc = await this.weServices.userSelectHrl();
+            if (!hrlc) {
+              return;
+            }
             this._optionAttachables.push(hrlc.hrl);
             this.requestUpdate();
           }}>Attachable</mwc-button>

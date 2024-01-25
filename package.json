@@ -5,7 +5,7 @@
     "hc_version"   : "0.2.4",
     "zits_version" : "1.12.0",
     "bin"          : "bin",
-    "we_test_folder": "../we-main"
+    "we_test_folder": "../we-electron"
   },
   "private"        : true,
   "workspaces"     : [
@@ -111,13 +111,13 @@
   },
   "dependencies"   : {
     "@holochain/client" : "=0.16.7",
+    "@lightningrodlabs/we-applet": "0.14.0",
     "@ddd-qc/cell-proxy": "=0.20.8",
     "@ddd-qc/lit-happ"  : "=0.20.8",
-    "@ddd-qc/we-utils": "=0.21.1",
+    "@ddd-qc/we-utils": "=0.21.2",
     "@ddd-qc/profiles-dvm": "=0.20.7",
     "@holochain-open-dev/core-types": "=0.7.0",
     "@holochain-open-dev/profiles": "=0.17.3",
-    "@lightningrodlabs/we-applet": "0.13.0",
     "@shoelace-style/shoelace": "2.11.2",
     "@lit/context": "1.0.1",
     "@lit/localize": "0.12.1",

@@ -28,9 +28,10 @@ export async function search(appletClient: AppAgentClient, appletHash: AppletHas
 
     /** Search spaces */
     const spaces = await playsetProxy.getSpaces();
+    console.log("Where/we-applet/search(): spaces", spaces.length);
     const matching: SpaceOutput[] = spaces
         .filter((spaceOutput) => spaceOutput.content.name.toLowerCase().includes(searchLC))
-
+    console.log("Where/we-applet/search(): matching", matching);
 
     /** Transform results into HrlWithContext */
     const results: Array<HrlWithContext> = matching

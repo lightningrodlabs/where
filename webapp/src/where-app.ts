@@ -352,9 +352,9 @@ export class WhereApp extends HappElement {
           if (attachableViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
             throw new Error(`Where/we-applet: Unknown role name '${this.appletView.roleName}'.`);
           }
-          if (attachableViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME) {
-            throw new Error(`Where/we-applet: Unknown zome '${this.appletView.integrityZomeName}'.`);
-          }
+          // if (attachableViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME /* || "playset_integrity"*/) {
+          //   throw new Error(`Where/we-applet: Unknown zome '${this.appletView.integrityZomeName}'.`);
+          // }
           const entryType = pascal(attachableViewInfo.entryType);
           console.log("pascal entryType", entryType);
           switch (entryType) {

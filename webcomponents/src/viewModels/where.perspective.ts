@@ -3,7 +3,7 @@ import {MarkerType, SpaceMat} from "./playset.perspective";
 import {mapReplacer, mapReviver} from "../utils";
 import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 import {Dictionary} from "@ddd-qc/cell-proxy";
-import {Hrl} from "@lightningrodlabs/we-applet";
+import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
 
 
 /** */
@@ -66,7 +66,7 @@ export interface WhereLocation {
 
 export interface LocationMeta {
   markerType: MarkerType,
-  attachables: Hrl[],
+  attachables: HrlWithContext[],
   tag: string,
   img: any,
   color: string,
@@ -76,7 +76,7 @@ export interface LocationMeta {
 }
 
 export type LocOptions = {
-  attachables: Hrl[] | null,
+  attachables: HrlWithContext[] | null,
   name: string,
   img: string,
   tag: string | null,

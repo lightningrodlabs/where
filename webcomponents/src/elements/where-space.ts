@@ -47,8 +47,9 @@ import {Fab} from "@material/mwc-fab";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {WeServices} from "@lightningrodlabs/we-applet";
+import {HrlWithContext, WeServices} from "@lightningrodlabs/we-applet";
 import {WhereLocationDialog} from "../dialogs/where-location-dialog";
+import {stringifyHrl} from "@ddd-qc/we-utils";
 
 
 // // Canvas Animation experiment
@@ -490,7 +491,18 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
       return;
     }
     const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];
-    const attachables = locInfo.location.meta.attachables.concat([hrlc.hrl]);
+    const attachables = locInfo.location.meta.attachables.concat([hrlc]);
+    await this._dvm.updateLocation(this.currentSpaceEh, idx, null, null, null, attachables);
+    this.requestUpdate();
+  }
+
+
+  /** */
+  async handleDeleteAttachableClick(idx: number, hrlc: HrlWithContext) {
+    //const idx = this.getIdx(ev.target);
+    console.log("handleDeleteAttachableClick()", idx, stringifyHrl(hrlc.hrl));
+    const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];
+    const attachables = locInfo.location.meta.attachables.filter((hrlcur) => stringifyHrl(hrlcur.hrl) != stringifyHrl(hrlc.hrl));
     await this._dvm.updateLocation(this.currentSpaceEh, idx, null, null, null, attachables);
     this.requestUpdate();
   }
@@ -523,15 +535,15 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     const y = locInfo.location.coord.y * z;
     /** Render Marker */
     // TODO: should check agent key and not nickname
-    const isMe = locInfo.location.meta.authorName == this.myNickName;
-    let marker = renderMarker(locInfo.location.meta, isMe);
+    const authorIsMe = locInfo.location.meta.authorName == this.myNickName;
+    let marker = renderMarker(locInfo.location.meta, authorIsMe);
     /** Extra elements for when it's my Location */
     let maybeMeClass  = "not-me";
     let maybeDeleteBtn = html ``;
     let maybeEditBtn = html ``;
     let borderColor = locInfo.location.meta.color;
 
-    if (isMe) {
+    if (authorIsMe) {
       maybeMeClass = "me";
       //borderColor = this._myProfile.value.fields.color? this._myProfile.value.fields.color : "black";
       if (this._dvm.isCurrentSessionToday(this.currentSpaceEh!)) {
@@ -544,22 +556,25 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
     /** adjust details position if too low */
     const details_height = 40
       + (locInfo.location.meta.tag? 20 : 0)
-      + (isMe? 40 : 0)
+      + (authorIsMe? 40 : 0)
     const details_y = play.space.surface.size.y * z - y < details_height? y - details_height : y;
     /** Render attachables */
     let maybeAttachableDetails = html``;
     if (this.weServices && play!.space.meta?.canAttach) {
       let attachables = [];
       if (locInfo.location.meta.attachables) {
-        attachables = locInfo.location.meta.attachables.map((hrl) => {
+        attachables = locInfo.location.meta.attachables.map((hrlc) => {
           return html`
-            <we-hrl .hrl=${hrl}></we-hrl>`;
+            <div style="display: flex; flex-direction: row;">
+              <we-hrl .hrl=${hrlc.hrl} .context=${hrlc.context}></we-hrl>
+              ${authorIsMe? html`<mwc-icon-button class="delete-attachment-icon" icon="delete" @click="${(_ev) => this.handleDeleteAttachableClick(i, hrlc)}"></mwc-icon-button>` : html``}
+            </div>`;
         })
       }
       maybeAttachableDetails = html`
         <div style="display:flex; flex-direction:column; gap:5px; margin-top:5px;">
           ${attachables}
-          <button style="margin-bottom: 3px;" idx=${i} @click="${(_ev) => this.handleImportAttachableClick(i)}">Add attachable</button>
+          ${authorIsMe? html`<button style="margin-bottom: 3px;" idx=${i} @click="${(_ev) => this.handleImportAttachableClick(i)}">Add attachable</button>` : html``}
         </div>
     `;
     }
@@ -842,6 +857,14 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
           position: absolute;
           pointer-events: none;
           text-align: center;
+        }
+
+        .delete-attachment-icon {
+          --mdc-icon-size:0.75em;
+          --mdc-icon-button-size:0.75em;
+          margin-top: 5px;
+          margin-left: 5px;
+          margin-right: 5px;
         }
 
         mwc-fab {

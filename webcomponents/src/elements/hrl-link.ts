@@ -83,12 +83,14 @@ export class HrlLink extends LitElement {
   /** */
   protected async firstUpdated(_changedProperties: PropertyValues) {
     super.firstUpdated(_changedProperties);
+    console.log("<we-hrl> firstUpdated()", this.hrl, this.context);
     const attLocInfo = await this.weServices.attachableInfo({
       hrl: this.hrl,
       context: this.context,
     });
     if (!attLocInfo) {
-      return undefined;
+      this._info = null;
+      return;
     }
 
     const { groupsProfiles, appletsInfos } = await getAppletsInfosAndGroupsProfiles(
@@ -102,9 +104,12 @@ export class HrlLink extends LitElement {
 
   /** */
   render() {
-    if(!this._info) {
-      return html`
-        <sl-skeleton></sl-skeleton>`;
+    console.log("<we-hrl>.render(): ", this.hrl, this.context, this._info);
+    if(this._info == undefined) {
+      return html`<sl-skeleton></sl-skeleton>`;
+    }
+    if(this._info == null) {
+      return html`<div style="color:red">Attachable not found</div>`;
     }
     // if (this._info.value.value === undefined) {
     //   return html`No entry found`; // TODO: what to put here?

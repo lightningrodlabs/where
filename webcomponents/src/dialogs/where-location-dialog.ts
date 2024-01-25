@@ -38,7 +38,7 @@ import {TextField} from "@material/mwc-textfield";
 import {Dialog} from "@material/mwc-dialog";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {Hrl, WeServices} from "@lightningrodlabs/we-applet";
+import {Hrl, HrlWithContext, WeServices} from "@lightningrodlabs/we-applet";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm/dist/bindings/profiles.types";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {stringifyHrl} from "@ddd-qc/we-utils";
@@ -69,7 +69,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
   @property()
   myProfile: ProfileMat;
 
-  private _optionAttachables: Hrl[] = [];
+  private _optionAttachables: HrlWithContext[] = [];
 
   private _dialogCoord = { x: 0, y: 0 };
   private _dialogCanUpdate = false;
@@ -282,7 +282,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
 
   /** */
   render() {
-    console.log("<where-location-dialog>.render()", this._optionAttachables.map((hrl) => encodeHashToBase64(hrl[1])));
+    console.log("<where-location-dialog>.render()", this._optionAttachables.map((hrlc) => encodeHashToBase64(hrlc.hrl[1])));
     if (!this.canEditLocation()) {
       return html``;
     }
@@ -351,19 +351,19 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
     let maybeAttachables = html``;
     if (this.weServices && this.play.space.meta?.canAttach) {
       let attachables = [];
-      console.log("<where-location-dialog>.render().attachables", this._optionAttachables.map((hrl) => encodeHashToBase64(hrl[1])));
-      attachables = this._optionAttachables.map((hrl) => {
+      console.log("<where-location-dialog>.render().attachables", this._optionAttachables.map((hrlc) => encodeHashToBase64(hrlc.hrl[1])));
+      attachables = this._optionAttachables.map((hrlc) => {
         //const sHrl = stringifyHrl(hrl);
-        const sHrl = encodeHashToBase64(hrl[1]);
+        const sHrl_1 = encodeHashToBase64(hrlc.hrl[1]);
         return html`
             <div style="display: flex; flex-direction: row">
                 <mwc-icon-button class="delete-attachment-icon" icon="delete" @click=${(_e) => {
-                    console.log("delete an attachment before", this._optionAttachables.length, sHrl);
-                    this._optionAttachables = this._optionAttachables.filter((cur) => encodeHashToBase64(cur[1]) != sHrl);
+                    console.log("delete an attachment before", this._optionAttachables.length, sHrl_1);
+                    this._optionAttachables = this._optionAttachables.filter((cur) => encodeHashToBase64(cur.hrl[1]) != sHrl_1);
                     console.log("delete an attachment after", this._optionAttachables.length);
                     this.requestUpdate();
         }}></mwc-icon-button>
-                <we-hrl .hrl=${hrl}></we-hrl>
+                <we-hrl .hrl=${hrlc.hrl} .context=${hrlc.context}></we-hrl>
             </div>`;
       });
       maybeAttachables = html`
@@ -375,7 +375,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
             if (!hrlc) {
               return;
             }
-            this._optionAttachables.push(hrlc.hrl);
+            this._optionAttachables.push(hrlc);
             this.requestUpdate();
           }}>Attachable</mwc-button>
         </div>

@@ -460,7 +460,11 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                                 @click=${async () => {
                                   const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
                                   console.log("Create/Open attachment:", spaceHrl);
-                                  const res = await attType.create({hrl: spaceHrl, context: null});
+                                  const context = {
+                                    subjectType: PlaysetEntryType.Space,
+                                    subjectName: play.space.name,
+                                  };
+                                  const res = await attType.create({hrl: spaceHrl, context});
                                   console.log("Create/Open attachment result:", res);
                                   res.context.subjectType = PlaysetEntryType.Space;
                                   //res.context.subjectName = play.space.name;

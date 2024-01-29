@@ -37,7 +37,11 @@ export async function search(appletClient: AppAgentClient, appletHash: AppletHas
     const results: Array<HrlWithContext> = matching
         .map((spaceOutput) => { return {
             hrl: [dnaHash, decodeHashFromBase64(spaceOutput.hash)],
-            context: spaceOutput.content,
+            context: {
+                subjectName: spaceOutput.content.name,
+                subjectType: "Space",
+                //subjectAuthor:,
+            },
         }})
 
     /** Done */

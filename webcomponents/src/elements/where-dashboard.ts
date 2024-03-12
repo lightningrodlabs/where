@@ -2,7 +2,7 @@ import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
 import {consume} from "@lit/context";
 
-import {AttachmentType, Hrl, WeClient, WeServices} from "@lightningrodlabs/we-applet";
+import {CreatableType, Hrl, WeClient} from "@lightningrodlabs/we-applet";
 
 import {sharedStyles} from "../sharedStyles";
 
@@ -60,6 +60,7 @@ import {Profile as  ProfileMat} from "@ddd-qc/profiles-dvm";
 import {threadsAppletContext} from "../viewModels/happDef";
 import {weClientContext} from "../contexts";
 import {getAppletsInfosAndGroupsProfiles} from "./hrl-link";
+import {WeServicesEx} from "@ddd-qc/we-utils";
 
 
 
@@ -97,7 +98,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   @consume({ context: weClientContext, subscribe: true })
-  weServices: WeServices;
+  weServices: WeServicesEx;
   @consume({ context: threadsAppletContext, subscribe: true })
   threadsAppletHash: EntryHash;
 
@@ -120,8 +121,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** We specific */
   private _appInfoMap: Dictionary<AppletInfo> = {};
-  private _threadAttachmentType?: AttachmentType;
-  private _fileAttachmentType?: AttachmentType;
+  private _threadAttachmentType?: CreatableType;
+  private _fileAttachmentType?: CreatableType;
 
   /** Getters */
 
@@ -180,8 +181,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     /** Get attachmentInfos */
     if (this.weServices) {
       const {groupsProfiles, appletsInfos} = await getAppletsInfosAndGroupsProfiles(
-        this.weServices as WeClient,
-        Array.from(this.weServices.attachmentTypes.keys()),
+        this.weServices as unknown as WeClient,
+        [decodeHashFromBase64(this.weServices.appletId)],
       );
       this._appletsInfos = appletsInfos;
     }
@@ -365,20 +366,21 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
 
   /** Search for Thread attachmentType */
-  getThreadAttachmentType(): AttachmentType | undefined {
-    if (this._threadAttachmentType) {
-      return this._threadAttachmentType;
-    }
-    console.log("getThreadAttachmentType()", this.threadsAppletHash);
-    if (!this.threadsAppletHash) {
-      return undefined;
-    }
-    const attDict = this.weServices.attachmentTypes.get(this.threadsAppletHash);
-    const att = attDict["thread"];
-    if (att) {
-      this._threadAttachmentType = att;
-      return att;
-    }
+  getThreadAttachmentType(): CreatableType | undefined {
+    // FIXME
+    // if (this._threadAttachmentType) {
+    //   return this._threadAttachmentType;
+    // }
+    // console.log("getThreadAttachmentType()", this.threadsAppletHash);
+    // if (!this.threadsAppletHash) {
+    //   return undefined;
+    // }
+    // const attDict = this.weServices.creatables.get(this.threadsAppletHash);
+    // const att = attDict["thread"];
+    // if (att) {
+    //   this._threadAttachmentType = att;
+    //   return att;
+    // }
     console.warn("Did not find 'thread' attachmentType in Threads' WeServices");
     return undefined;
   }
@@ -446,36 +448,37 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         // let threadIcon = html``;
         // if (threadAttachment) {
         let attIcons = [];
-        for (const [appletHash, atts] of this.weServices.attachmentTypes) {
-          for (const [attName, attType] of Object.entries(atts)) {
-            const attIcon = html`
-              <sl-tooltip style="--max-width: 30rem;">
-              <div slot="content">
-                <div class="row" style="align-items: center">
-                  <span><strong>${attName}&nbsp;</strong></span>
-                  <span style="margin-right:6px;">from ${this._appletsInfos.get(appletHash)?.appletName}</span>
-                </div>
-              </div>
-                <sl-icon-button .src=${attType.icon_src}
-                                @click=${async () => {
-                                  const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                                  console.log("Create/Open attachment:", spaceHrl);
-                                  const context = {
-                                    subjectType: PlaysetEntryType.Space,
-                                    subjectName: play.space.name,
-                                  };
-                                  const res = await attType.create({hrl: spaceHrl, context});
-                                  console.log("Create/Open attachment result:", res);
-                                  res.context.subjectType = PlaysetEntryType.Space;
-                                  //res.context.subjectName = play.space.name;
-                                  this.weServices.openHrl({hrl: res.hrl, context: res.context});
-                                }}
-                ></sl-icon-button>
-              </sl-tooltip>
-            `;
-            attIcons.push(attIcon);
-          }
-        }
+        // FIXME
+        // for (const [appletHash, atts] of this.weServices.attachmentTypes) {
+        //   for (const [attName, attType] of Object.entries(atts)) {
+        //     const attIcon = html`
+        //       <sl-tooltip style="--max-width: 30rem;">
+        //       <div slot="content">
+        //         <div class="row" style="align-items: center">
+        //           <span><strong>${attName}&nbsp;</strong></span>
+        //           <span style="margin-right:6px;">from ${this._appletsInfos.get(appletHash)?.appletName}</span>
+        //         </div>
+        //       </div>
+        //         <sl-icon-button .src=${attType.icon_src}
+        //                         @click=${async () => {
+        //                           const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+        //                           console.log("Create/Open attachment:", spaceHrl);
+        //                           const context = {
+        //                             subjectType: PlaysetEntryType.Space,
+        //                             subjectName: play.space.name,
+        //                           };
+        //                           const res = await attType.create({hrl: spaceHrl, context});
+        //                           console.log("Create/Open attachment result:", res);
+        //                           res.context.subjectType = PlaysetEntryType.Space;
+        //                           //res.context.subjectName = play.space.name;
+        //                           this.weServices.openHrl({hrl: res.hrl, context: res.context});
+        //                         }}
+        //         ></sl-icon-button>
+        //       </sl-tooltip>
+        //     `;
+        //     attIcons.push(attIcon);
+        //   }
+        // }
         /** */
         return html`
           <sl-card class="card-image" >

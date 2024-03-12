@@ -47,10 +47,9 @@ import {Fab} from "@material/mwc-fab";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {HrlWithContext, WeServices} from "@lightningrodlabs/we-applet";
+import {HrlWithContext} from "@lightningrodlabs/we-applet";
 import {WhereLocationDialog} from "../dialogs/where-location-dialog";
-import {stringifyHrl} from "@ddd-qc/we-utils";
-
+import {stringifyHrl, WeServicesEx} from "@ddd-qc/we-utils";
 
 // // Canvas Animation experiment
 // function draw() {
@@ -85,7 +84,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   @consume({ context: weClientContext, subscribe: true })
-  weServices: WeServices;
+  weServices: WeServicesEx;
 
   /** Properties */
 

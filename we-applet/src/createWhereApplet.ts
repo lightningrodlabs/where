@@ -71,6 +71,7 @@ export async function createWhereApplet(
       false,
       mainAppInfo.installed_app_id,
       weServices,
+      encodeHashToBase64(appletViewInfo.appletHash),
       appletViewInfo.view, //encodeHashToBase64(appletViewInfo.appletHash),
       profileInfo,
       );

@@ -49,7 +49,7 @@ import {TextField} from "@material/mwc-textfield";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {WeServices} from "@lightningrodlabs/we-applet";
+import {WeServicesEx} from "@ddd-qc/we-utils";
 
 
 /**
@@ -63,7 +63,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
   }
 
   @consume({ context: weClientContext, subscribe: true })
-  weServices: WeServices;
+  weServices: WeServicesEx;
 
   /** Properties */
   @property({ type: Object})

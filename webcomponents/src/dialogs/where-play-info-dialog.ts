@@ -16,7 +16,7 @@ import {Dialog} from "@material/mwc-dialog";
 import {getInitials, Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {WeServices} from "@lightningrodlabs/we-applet";
+import {WeServicesEx} from "@ddd-qc/we-utils";
 
 
 /**
@@ -30,7 +30,7 @@ export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDv
   }
 
   @consume({ context: weClientContext, subscribe: true })
-  weServices: WeServices;
+  weServices: WeServicesEx;
 
   @state() private _play?: Play;
   private _template?: Template;

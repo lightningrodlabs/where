@@ -16,10 +16,10 @@ import { EntryHash } from '@holochain/client';
 import { DnaHash } from '@holochain/client';
 import { AppletInfo, GroupProfile } from '@lightningrodlabs/we-applet';
 import { Hrl } from '@lightningrodlabs/we-applet';
-import { WeClient, WeServices } from '@lightningrodlabs/we-applet';
+import { WeClient } from '@lightningrodlabs/we-applet';
 import { sharedStyles } from '@holochain-open-dev/elements';
 import {weClientContext} from "../contexts";
-import {stringifyHrl} from "@ddd-qc/we-utils";
+import {stringifyHrl, WeServicesEx} from "@ddd-qc/we-utils";
 //import {AttachableLocationAndInfo} from "@lightningrodlabs/we-applet/dist/types";
 
 
@@ -72,7 +72,7 @@ export class HrlLink extends LitElement {
   context: any;
 
   @consume({ context: weClientContext, subscribe: true })
-  weServices: WeServices;
+  weServices: WeServicesEx;
 
   @property()
   onlyIcon = false;
@@ -94,7 +94,7 @@ export class HrlLink extends LitElement {
     }
 
     const { groupsProfiles, appletsInfos } = await getAppletsInfosAndGroupsProfiles(
-      this.weServices as WeClient,
+      this.weServices as any as WeClient,
       [attLocInfo.appletHash],
     );
 

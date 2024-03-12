@@ -38,10 +38,10 @@ import {TextField} from "@material/mwc-textfield";
 import {Dialog} from "@material/mwc-dialog";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {Hrl, HrlWithContext, WeServices} from "@lightningrodlabs/we-applet";
+import {HrlWithContext} from "@lightningrodlabs/we-applet";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm/dist/bindings/profiles.types";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
-import {stringifyHrl} from "@ddd-qc/we-utils";
+import {WeServicesEx} from "@ddd-qc/we-utils";
 
 
 /**
@@ -58,7 +58,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
   /** -- Properties -- */
 
   @consume({ context: weClientContext, subscribe: true })
-  weServices: WeServices;
+  weServices: WeServicesEx;
 
   @property({ type: Object})
   play: Play;

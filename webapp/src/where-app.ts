@@ -45,7 +45,7 @@ import {Dialog} from "@material/mwc-dialog";
 import {AppletId, AppletView, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
-import {AttachableViewInfo} from "@ddd-qc/we-utils";
+import {AttachableViewInfo, WeServicesEx} from "@ddd-qc/we-utils";
 import {Profile as ProfileMat, ProfilesDvm} from "@ddd-qc/profiles-dvm";
 import {weClientContext} from "@where/elements/dist/contexts";
 
@@ -92,16 +92,19 @@ export class WhereApp extends HappElement {
   /** -- We-applet specifics -- */
 
   protected _weProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
-  protected _threadsProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
+  //protected _threadsProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
   //protected _filesProvider?: unknown; // FIXME type: ContextProvider<this.getContext()> ?
   //protected _filesAppletHash?: EntryHash;
 
-  protected _threadsAppletHash?: EntryHash;
+  //protected _threadsAppletHash?: EntryHash;
 
   private _appInfoMap: Dictionary<AppletInfo> = {};
 
   private _weProfilesDvm?: ProfilesDvm;
+
   @state() private _hasWeProfile = false;
+
+  private _weServices?: WeServicesEx;
 
 
   /** */
@@ -110,7 +113,8 @@ export class WhereApp extends HappElement {
       private _adminWs?: AdminWebsocket,
       private _canAuthorizeZfns?: boolean,
       appId?: InstalledAppId,
-      private _weServices?: WeServices,
+      weServices?: WeServices,
+      thisAppletId?: AppletId,
       public appletView?: AppletView,
       profileInfo?: ProfileInfo,
   ) {
@@ -118,9 +122,10 @@ export class WhereApp extends HappElement {
     if (_canAuthorizeZfns == undefined) {
       this._canAuthorizeZfns = true;
     }
-    if (_weServices) {
-      console.log(`\t\tProviding context "${weClientContext}" | in host `, _weServices, this);
-      this._weProvider = new ContextProvider(this, weClientContext, _weServices);
+    if (weServices) {
+      this._weServices = new WeServicesEx(weServices, thisAppletId);
+      console.log(`\t\tProviding context "${weClientContext}" | in host `, this._weServices, this);
+      this._weProvider = new ContextProvider(this, weClientContext, this._weServices);
     }
     if(profileInfo) {
       this.createWeProfilesDvm(profileInfo);
@@ -183,6 +188,10 @@ export class WhereApp extends HappElement {
 
   /** */
   async fetchAppInfo(appletHashs: EntryHash[]) {
+    if (!this._weServices) {
+      console.warn("fetchAppInfo() Aborted. WeServices not available.")
+      return;
+    }
     for (const appletHash of appletHashs) {
       this._appInfoMap[encodeHashToBase64(appletHash)] = await this._weServices.appletInfo(appletHash);
     }
@@ -228,25 +237,25 @@ export class WhereApp extends HappElement {
       this._hasHolochainFailed = false;
     }
 
-    /** Probe we-applets */
-    if (this._weServices) {
-      console.log("weServices|Probing appletInfo() by attachmentTypes")
-      for (const appletHash of this._weServices.attachmentTypes.keys()) {
-        const appletInfo = await this._weServices.appletInfo(appletHash); // FIXME: use Promise.all();
-        console.log("weServices|appletInfo", encodeHashToBase64(appletHash), appletInfo);
-        this._appInfoMap[encodeHashToBase64(appletHash)] = appletInfo;
-        // if (appletInfo.appletName == "files-we_applet") {
-        //   this._filesAppletHash = appletHash;
-        //   this._filesProvider = new ContextProvider(this, filesAppletContext, this._filesAppletHash);
-        // }
-        if (appletInfo.appletName == "hThreadsWeApplet") {
-          console.log("weServices|Threads we-appleet found", encodeHashToBase64(appletHash), appletInfo.appletName);
-          this._threadsAppletHash = appletHash;
-          this._threadsProvider = new ContextProvider(this, threadsAppletContext, this._threadsAppletHash);
-          break;
-        }
-      }
-    }
+    // /** Probe we-applets */
+    // if (this._weServices) {
+    //   console.log("weServices|Probing appletInfo() by attachmentTypes")
+    //   for (const appletHash of this._weServices.attachmentTypes.keys()) {
+    //     const appletInfo = await this._weServices.appletInfo(appletHash); // FIXME: use Promise.all();
+    //     console.log("weServices|appletInfo", encodeHashToBase64(appletHash), appletInfo);
+    //     this._appInfoMap[encodeHashToBase64(appletHash)] = appletInfo;
+    //     // if (appletInfo.appletName == "files-we_applet") {
+    //     //   this._filesAppletHash = appletHash;
+    //     //   this._filesProvider = new ContextProvider(this, filesAppletContext, this._filesAppletHash);
+    //     // }
+    //     if (appletInfo.appletName == "hThreadsWeApplet") {
+    //       console.log("weServices|Threads we-applet found", encodeHashToBase64(appletHash), appletInfo.appletName);
+    //       this._threadsAppletHash = appletHash;
+    //       this._threadsProvider = new ContextProvider(this, threadsAppletContext, this._threadsAppletHash);
+    //       break;
+    //     }
+    //   }
+    // }
 
     /** Grab ludo cells */
     this._ludoRoleCells = await this.appProxy.fetchCells(DEFAULT_WHERE_DEF.id, LudothequeDvm.DEFAULT_BASE_ROLE_NAME);
@@ -423,26 +432,27 @@ export class WhereApp extends HappElement {
 
     /** Display all attachment-types */
     let attachments = [html``];
-    if (this._weServices) {
-      /** attachments */
-      for (const [appletHash, dict] of this._weServices.attachmentTypes.entries()) {
-        const appletId = encodeHashToBase64(appletHash)
-        console.log("weServices.appletId", appletId);
-        console.log("weServices.dict", dict);
-        const maybeAppInfo = this._appInfoMap[appletId];
-        if (maybeAppInfo) {
-          console.log("appletName", maybeAppInfo.appletName);
-          for (const v of Object.values(dict)) {
-            const templ = html`
-              <li>${maybeAppInfo.appletName}: ${v.label}</li>`;
-            attachments.push(templ);
-          }
-        }
-      };
-      if (attachments.length == 1) {
-        attachments[0] = html`<span>None</span>`
-      }
-    }
+    // FIXME
+    // if (this._weServices) {
+    //   /** attachments */
+    //   for (const [appletHash, dict] of this._weServices.attachmentTypes.entries()) {
+    //     const appletId = encodeHashToBase64(appletHash)
+    //     console.log("weServices.appletId", appletId);
+    //     console.log("weServices.dict", dict);
+    //     const maybeAppInfo = this._appInfoMap[appletId];
+    //     if (maybeAppInfo) {
+    //       console.log("appletName", maybeAppInfo.appletName);
+    //       for (const v of Object.values(dict)) {
+    //         const templ = html`
+    //           <li>${maybeAppInfo.appletName}: ${v.label}</li>`;
+    //         attachments.push(templ);
+    //       }
+    //     }
+    //   };
+    //   if (attachments.length == 1) {
+    //     attachments[0] = html`<span>None</span>`
+    //   }
+    // }
 
     let viewAttachments = html``;
     let viewBlocks = html``;

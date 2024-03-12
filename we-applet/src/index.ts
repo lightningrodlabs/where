@@ -44,10 +44,11 @@ async function setupWhereMainView() {
     provisionedRoleName: WHERE_DEFAULT_ROLE_NAME,
   }
   const appletServices: AppletServices = {
-    attachmentTypes: async (_appletClient) => ({}),
+    creatables: {},
     getAttachableInfo,
     blockTypes: {},
     search,
+    bindAsset: async (a, b, c, d,e,f) => {},
   };
   return setup(appletServices, createWhereApplet, whereNames, createWhereWeServicesMock);
 }
@@ -59,10 +60,11 @@ async function setupLudoApplet() {
     provisionedRoleName: "rLudotheque",
   }
   const appletServices: AppletServices = {
-    attachmentTypes: async (_appletClient) => ({}),
+    creatables: {},
     getAttachableInfo: ()  => {return undefined},
     blockTypes: {},
     search: async (appletClient, searchFilter) => {return []},
+    bindAsset: async (a, b, c, d,e,f) => {},
   };
   return setup(appletServices, createLudoApplet, whereNames, createWhereWeServicesMock);
 }

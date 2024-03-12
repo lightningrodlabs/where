@@ -1,5 +1,5 @@
 import {createContext} from "@lit/context";
-import {WeServices} from "@lightningrodlabs/we-applet";
+import {WeServicesEx} from "@ddd-qc/we-utils";
 
-export const weClientContext = createContext<WeServices>('we_client');
+export const weClientContext = createContext<WeServicesEx>('we_client');
 

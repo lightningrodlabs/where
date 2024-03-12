@@ -8,7 +8,7 @@
         "path": "S:\\media\\images\\b7.jpg"
       },
       "creatingAgent": {
-        "agentNum": 1,
+        "agentIdx": 1,
         "agentProfile": {
           "nickname": "Alex",
           "avatar": {
@@ -19,7 +19,7 @@
       },
       "joiningAgents": [
         {
-          "agentNum": 2,
+          "agentIdx": 2,
           "agentProfile": {
             "nickname": "Billy",
             "avatar": {

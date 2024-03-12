@@ -1,10 +1,11 @@
 import {
-    decodeHashFromBase64,
-    encodeHashToBase64,
+    ActionHash,
+    decodeHashFromBase64, DnaHash,
+    encodeHashToBase64, EntryHash,
     fakeDnaHash, fakeEntryHash
 } from "@holochain/client";
 import {HoloHashMap} from "@holochain-open-dev/utils";
-import {AppletHash, AttachmentName, AttachmentType, GroupProfile, WeServices} from "@lightningrodlabs/we-applet";
+import {AppletHash, AppletInfo, GroupProfile, WeServices} from "@lightningrodlabs/we-applet";
 import {createDefaultWeServicesMock, emptyWeServicesMock, wrapPathInSvg} from "@ddd-qc/we-utils";
 import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
 import {mdiClipboard, mdiFileOutline, mdiInformation} from "@mdi/js";
@@ -35,13 +36,14 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
     }
 
     /** appletInfo() */
-    myWeServicesMock.appletInfo = async (appletHash) => {
+    myWeServicesMock.appletInfo = async (appletHash: EntryHash): Promise<AppletInfo | undefined> => {
         const appletId = encodeHashToBase64(appletHash);
         console.log("WhereWeServicesMock.appletInfo()", appletId, appletId);
         if (appletId == devtestAppletId) {
             return {
                 appletBundleId: await fakeEntryHash(),
                 appletName: "DevTestWeApplet",
+                appletIcon: "",
                 groupsIds: [fakeGroupId],
             }
         }
@@ -49,6 +51,7 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
             return {
                 appletBundleId: await fakeEntryHash(),
                 appletName: "hThreadsWeApplet",
+                appletIcon: "",
                 groupsIds: [fakeGroupId],
             }
         }
@@ -56,6 +59,7 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
             return {
                 appletBundleId: await fakeEntryHash(),
                 appletName: "files-we_applet",
+                appletIcon: "",
                 groupsIds: [fakeGroupId],
             }
         }
@@ -72,27 +76,28 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
             }
         }
     }
-    /** attachmentTypes */
-    const attachmentsMap = new HoloHashMap<AppletHash, Record<AttachmentName, AttachmentType>>();
-    const fakeThreadsAttachmentTypes = {
-        thread: {
-            label: "Thread",
-            icon_src: wrapPathInSvg(mdiInformation),
-            async create(_attachToHrl): Promise<HrlWithContext> {return {hrl: undefined, context: {},};}
-        },
-    }
-    const fakeFilesAttachmentTypes = {
-        file: {
-            label: "File",
-            icon_src: wrapPathInSvg(mdiFileOutline),
-            async create(_attachToHrl): Promise<HrlWithContext> {
-                return {hrl: undefined, context: {},};
-            }
-        }
-    }
-    attachmentsMap.set(fakeThreadsAppletHash, fakeThreadsAttachmentTypes);
-    attachmentsMap.set(fakeFilesAppletHash, fakeFilesAttachmentTypes);
-    myWeServicesMock.attachmentTypes = attachmentsMap;
+    // FIXME
+    // /** attachmentTypes */
+    // const attachmentsMap = new HoloHashMap<AppletHash, Record<AttachmentName, AttachmentType>>();
+    // const fakeThreadsAttachmentTypes = {
+    //     thread: {
+    //         label: "Thread",
+    //         icon_src: wrapPathInSvg(mdiInformation),
+    //         async create(_attachToHrl): Promise<HrlWithContext> {return {hrl: undefined, context: {},};}
+    //     },
+    // }
+    // const fakeFilesAttachmentTypes = {
+    //     file: {
+    //         label: "File",
+    //         icon_src: wrapPathInSvg(mdiFileOutline),
+    //         async create(_attachToHrl): Promise<HrlWithContext> {
+    //             return {hrl: undefined, context: {},};
+    //         }
+    //     }
+    // }
+    // attachmentsMap.set(fakeThreadsAppletHash, fakeThreadsAttachmentTypes);
+    // attachmentsMap.set(fakeFilesAppletHash, fakeFilesAttachmentTypes);
+    // myWeServicesMock.attachmentTypes = attachmentsMap;
     /** Done */
     return myWeServicesMock;
 }

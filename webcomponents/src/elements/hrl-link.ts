@@ -14,12 +14,12 @@ import '@holochain-open-dev/elements/dist/elements/display-error.js';
 import { HoloHashMap } from '@holochain-open-dev/utils';
 import { EntryHash } from '@holochain/client';
 import { DnaHash } from '@holochain/client';
-import { AppletInfo, GroupProfile } from '@lightningrodlabs/we-applet';
+import {AppletInfo, GroupProfile, weaveUrlFromWal} from '@lightningrodlabs/we-applet';
 import { Hrl } from '@lightningrodlabs/we-applet';
 import { WeClient } from '@lightningrodlabs/we-applet';
 import { sharedStyles } from '@holochain-open-dev/elements';
 import {weClientContext} from "../contexts";
-import {stringifyHrl, WeServicesEx} from "@ddd-qc/we-utils";
+import {WeServicesEx} from "@ddd-qc/we-utils";
 //import {AttachableLocationAndInfo} from "@lightningrodlabs/we-applet/dist/types";
 
 
@@ -116,7 +116,7 @@ export class HrlLink extends LitElement {
     // }
 
   const { attLocInfo, groupsProfiles, appletsInfos } = this._info;
-  console.log("<we-hrl>", attLocInfo.attachableInfo.name, stringifyHrl(this.hrl))
+  console.log("<we-hrl>", attLocInfo.attachableInfo.name, weaveUrlFromWal({hrl:this.hrl}))
 
   return html`
     <sl-tooltip style="--max-width: 30rem;">

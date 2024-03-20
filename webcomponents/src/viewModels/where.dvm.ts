@@ -12,9 +12,17 @@ import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {Space} from "../bindings/playset.types";
-import {Message, MessageType, PlacementSession, SignalPayload, WHERE_DEFAULT_ROLE_NAME} from "../bindings/where.types";
-import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
-import {ProfilesZvm} from "@ddd-qc/profiles-dvm";
+import {
+  Here,
+  HereOutput,
+  Message,
+  MessageType,
+  PlacementSession,
+  SignalPayload,
+  WHERE_DEFAULT_ROLE_NAME
+} from "../bindings/where.types";
+import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb, ActionHashB64} from "@holochain/client";
+import {ProfilesAltZvm, ProfilesZvm} from "@ddd-qc/profiles-dvm";
 import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
 
 
@@ -39,13 +47,13 @@ export class WhereDvm extends DnaViewModel {
   /** -- DnaViewModel Interface -- */
 
   static readonly DEFAULT_BASE_ROLE_NAME = WHERE_DEFAULT_ROLE_NAME;
-  static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesZvm]
+  static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesAltZvm]
   readonly signalHandler?: AppSignalCb = this.handleSignal;
 
   /** QoL Helpers */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.DEFAULT_ZOME_NAME) as PlaysetZvm}
   get whereZvm(): WhereZvm { return this.getZomeViewModel(WhereZvm.DEFAULT_ZOME_NAME) as WhereZvm}
-  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel(ProfilesZvm.DEFAULT_ZOME_NAME) as ProfilesZvm}
+  get profilesZvm(): ProfilesAltZvm { return this.getZomeViewModel(ProfilesZvm.DEFAULT_ZOME_NAME) as ProfilesAltZvm}
 
 
   /** -- Perspective -- */
@@ -86,37 +94,38 @@ export class WhereDvm extends DnaViewModel {
       return;
     }
     const signalPayload = signal.payload as SignalPayload;
+    const sType = Object.keys(signalPayload.message.type)[0];
     /* Update agent's presence stat */
-    this.updatePresence(signalPayload.from)
+    this.updatePresence(signalPayload.from);
     /* Send pong response */
-    if (signalPayload.message.type != MessageType.Pong) {
+    if (sType != MessageType.Pong) {
       console.log("PONGING ", signalPayload.from)
       const pong: SignalPayload = {
         maybeSpaceHash: signalPayload.maybeSpaceHash,
         from: this._cellProxy.cell.agentPubKey,
-        message: {type: MessageType.Pong, content: this._cellProxy.cell.agentPubKey}
+        message: {type: {Pong: null}, content: this._cellProxy.cell.agentPubKey}
       };
       this.notifyPeers(pong, [signalPayload.from])
     }
     /* Handle signal */
-    switch(signalPayload.message.type) {
+    switch(sType) {
       case MessageType.Ping:
       case MessageType.Pong:
         break;
       case MessageType.NewSvgMarker:
-        const svgEh = signalPayload.message.content;
+        const svgEh = signalPayload.message.content as EntryHashB64;
         this.playsetZvm.fetchSvgMarker(svgEh);
         break;
       case MessageType.NewEmojiGroup:
-        const groupEh = signalPayload.message.content
+        const groupEh = signalPayload.message.content as EntryHashB64;
         this.playsetZvm.fetchEmojiGroup(groupEh);
         break;
       case MessageType.NewTemplate:
-        const templateEh = signalPayload.message.content
+        const templateEh = signalPayload.message.content as EntryHashB64;
         this.playsetZvm.fetchTemplate(templateEh);
         break;
       case MessageType.NewSpace:
-        const spaceEh = signalPayload.message.content;
+        const spaceEh = signalPayload.message.content as EntryHashB64;
         /*await*/ this.playsetZvm.fetchSpace(spaceEh).then((space) => {
         if (space.meta.sessionCount == 0) {
           //this.whereZvm.createNextSession()
@@ -136,7 +145,7 @@ export class WhereDvm extends DnaViewModel {
         }
         break;
       case MessageType.NewHere:
-        const hereInfo = signalPayload.message.content;
+        const hereInfo = signalPayload.message.content as HereOutput;
         const newLocInfo: LocationInfo = materializeHere(hereInfo);
         if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
           //console.log("locations before add", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
@@ -145,8 +154,8 @@ export class WhereDvm extends DnaViewModel {
         }
         break;
       case MessageType.DeleteHere:
-        const sessionEh = signalPayload.message.content[0];
-        const hereLinkAh = signalPayload.message.content[1];
+        const sessionEh = signalPayload.message.content[0] as EntryHashB64;
+        const hereLinkAh = signalPayload.message.content[1] as ActionHashB64;
         if (signalPayload.maybeSpaceHash && this._plays[signalPayload.maybeSpaceHash]) {
           //console.log("locations before remove", this._plays[signal.maybeSpaceHash].sessions[hereInfo.entry.sessionEh].locations.length)
           this.whereZvm.removeLocation(signalPayload.maybeSpaceHash, sessionEh, hereLinkAh);
@@ -155,10 +164,10 @@ export class WhereDvm extends DnaViewModel {
         }
         break;
       case MessageType.UpdateHere:
-        const idx = signalPayload.message.content[0];
-        const newHereInfo: HereInfo =   {
-          entry: signalPayload.message.content[2],
-          linkAh: signalPayload.message.content[1],
+        const idx = signalPayload.message.content[0] as number;
+        const newHereInfo: HereInfo = {
+          entry: signalPayload.message.content[2] as Here,
+          linkAh: signalPayload.message.content[1] as ActionHashB64,
           author: signalPayload.from,
           };
         const newInfo = materializeHere(newHereInfo);
@@ -191,7 +200,7 @@ export class WhereDvm extends DnaViewModel {
     const ping: SignalPayload = {
       maybeSpaceHash: maybeSpaceHash? maybeSpaceHash : undefined,
       from: this._cellProxy.cell.agentPubKey,
-      message: {type: MessageType.Ping, content: this._cellProxy.cell.agentPubKey}};
+      message: {type: {Ping: null}, content: this._cellProxy.cell.agentPubKey}};
     // console.log({signal})
     this.notifyPeers(ping, peers);
   }
@@ -356,7 +365,7 @@ export class WhereDvm extends DnaViewModel {
     await this.notifyPeers({
         maybeSpaceHash: spaceEh,
         from: this._cellProxy.cell.agentPubKey,
-        message: {type: "NewSession", content: [sessionEh, dematerializeSession(session, spaceEh)],
+        message: {type: {NewSession: null}, content: [sessionEh, dematerializeSession(session, spaceEh)],
         }},
       this.allCurrentOthers());
     /** Done */
@@ -508,7 +517,7 @@ export class WhereDvm extends DnaViewModel {
     //const oldLocInfo = this.whereZvm.getLocations(sessionEh)![locIdx]!
     const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji, attachables);
     const entry = dematerializeHere(newLocInfo.location);
-    let message: Message = {type: MessageType.UpdateHere, content: [locIdx, newLocInfo.linkAh, entry]};
+    let message: Message = {type: {UpdateHere: null}, content: [locIdx, newLocInfo.linkAh, entry]};
     let signal: SignalPayload = {maybeSpaceHash: spaceEh, from: this._cellProxy.cell.agentPubKey, message};
     await this.notifyPeers(signal, this.allCurrentOthers());
   }
@@ -526,7 +535,7 @@ export class WhereDvm extends DnaViewModel {
     await this.notifyPeers({
         maybeSpaceHash: spaceEh,
         from: this._cellProxy.cell.agentPubKey,
-        message: {type: MessageType.DeleteHere, content: [locInfo.location.sessionEh, locInfo.linkAh],
+        message: {type: {DeleteHere: null}, content: [locInfo.location.sessionEh, locInfo.linkAh],
         }},
       this.allCurrentOthers());
   }
@@ -542,7 +551,7 @@ export class WhereDvm extends DnaViewModel {
         maybeSpaceHash: spaceEh,
         from: this._cellProxy.cell.agentPubKey,
         message: {
-          type: MessageType.NewHere,
+          type: {NewHere: null},
           content: {entry, linkAh, author: this._cellProxy.cell.agentPubKey}
         }
       }

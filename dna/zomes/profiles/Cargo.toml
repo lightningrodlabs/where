@@ -10,5 +10,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 hdk.workspace = true
 #hc_zome_profiles_coordinator = {git = "https://github.com/holochain-open-dev/profiles", version = "0.2.0" }
-hc_zome_profiles_coordinator = "=0.2.0"
+#hc_zome_profiles_coordinator = "=0.2.0"
+hc_zome_profiles_coordinator = {git = "https://github.com/ddd-mtl/profiles_alt_zome", branch = "hdk-3.0", package="profiles_alt_coordinator" }
 

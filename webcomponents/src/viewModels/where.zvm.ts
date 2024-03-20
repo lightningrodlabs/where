@@ -3,7 +3,7 @@ import {Coord, WhereLocation, dematerializeHere, WherePerspective, LocationInfo,
   HereInfo, materializeHere, PlacementSessionMat, PlayManifest
 } from "./where.perspective";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
-import {SignalPayload} from "../bindings/where.types";
+import {NotifyInput, SignalPayload} from "../bindings/where.types";
 import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain/client";
 import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
 
@@ -108,7 +108,17 @@ export class WhereZvm extends ZomeViewModel {
 
   /** */
   notifyPeers(signal: SignalPayload, peers: Array<AgentPubKeyB64>) {
-    this.zomeProxy.notifyPeers({signal, peers})
+    const input = {signal, peers};
+  //   const input = {
+  //     signal: {
+  //       maybeSpaceHash: "uhCEkbVYgrt_UjvrcfZV4wAQJdp1tkO2YiMgH0jpriD9RR5WjeOFf",
+  //       from: "uhCAkeL3NN9nrHXtWcujYdjhQBEYQHJIc0cfrFOSVp2fsdnRTboXE",
+  //       message: { type: {Ping: null}, content: "uhCAkeL3NN9nrHXtWcujYdjhQBEYQHJIc0cfrFOSVp2fsdnRTboXE" }
+  //     },
+  //     peers: ["uhCAkeL3NN9nrHXtWcujYdjhQBEYQHJIc0cfrFOSVp2fsdnRTboXE"],
+  // } as any as NotifyInput;
+    console.log("notifyPeers() input:", input);
+    this.zomeProxy.notifyPeers(input)
   }
 
   /** Returns list of hidden spaces */

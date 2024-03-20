@@ -2,6 +2,7 @@
 
 import {MarkerPiece, PlaysetEntry, EmojiGroup, EmojiGroupOutput, ExportPieceInput, ExportSpaceInput, ExportSpaceOutput, GetInventoryOutput, ImportPieceInput, Space, SpaceOutput, SvgMarker, SvgMarkerOutput, Template, TemplateOutput, } from './playset.types';
 import {
+WebsocketConnectionOptions,
 /** types.ts */
 HoloHash,
 AgentPubKey,

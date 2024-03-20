@@ -2,6 +2,7 @@
 
 import {PLAYSET_DEFAULT_COORDINATOR_ZOME_NAME, WHERE_DEFAULT_COORDINATOR_ZOME_NAME, WHERE_DEFAULT_INTEGRITY_ZOME_NAME, WHERE_DEFAULT_ROLE_NAME, Message, WhereEntry, WhereLinkType, AddHereInput, CreateNextSessionInput, GetSessionInput, Here, HereOutput, NotifyInput, PlacementSession, SignalPayload, SpaceSessionsInput, UpdateHereInput, } from './where.types';
 import {
+WebsocketConnectionOptions,
 /** types.ts */
 HoloHash,
 AgentPubKey,

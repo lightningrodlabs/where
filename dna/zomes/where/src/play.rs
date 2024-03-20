@@ -2,6 +2,7 @@ use hdk::prelude::*;
 use std::collections::BTreeMap;
 use holo_hash::EntryHashB64;
 
+use zome_utils::*;
 use where_integrity::*;
 use crate::placement_session::*;
 //use crate::signals::*;
@@ -30,7 +31,7 @@ fn create_play(input: Playfield) -> ExternResult<EntryHashB64> {
 #[hdk_extern]
 pub fn get_play(play_eh: EntryHashB64) -> ExternResult<Option<Playfield>> {
   let eh: EntryHash = play_eh.into();
-  let Some(Details::Entry(EntryDetails {entry, .. })) = get_details(eh, GetOptions::content())? 
+  let Some(Details::Entry(EntryDetails {entry, .. })) = get_details(eh, GetOptions::network())?
     else {return Ok(None)}
   let play: Playfield = entry.try_into()?;
   Ok(Some(play))
@@ -47,7 +48,7 @@ fn get_plays(_: ()) -> ExternResult<Vec<Playfield>> {
 }
 
 fn get_plays_inner(base: EntryHash) -> ExternResult<Vec<Playfield>> {
-  let entries = get_typed_from_links(base, PlaysetLinkType::All, None)
+  let entries = get_typed_from_links(link_input(base, PlaysetLinkType::All, None))
     .map_err(|err| wasm_error!(WasmErrorInner::Guest(err.to_string())))?;
   let mut spaces = vec![];
   for pair in entries {

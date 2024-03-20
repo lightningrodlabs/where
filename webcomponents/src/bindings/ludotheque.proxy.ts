@@ -2,6 +2,7 @@
 
 import {LudothequeEntry, LudothequeLinkType, ExportPlaysetInput, ImportPieceInput, Playset, PlaysetOutput, } from './ludotheque.types';
 import {
+WebsocketConnectionOptions,
 /** types.ts */
 HoloHash,
 AgentPubKey,

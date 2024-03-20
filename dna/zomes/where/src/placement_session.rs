@@ -20,7 +20,7 @@ pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHashB64>>
   let _ = is_valid_space(input.space_eh.clone().into())?;
   /// Get session at index
   let tag: LinkTag = format!("{}", input.index).as_bytes().to_vec().into();
-  let links = get_links(input.space_eh.clone(), WhereLinkType::All, Some(tag.clone()))?;
+  let links = get_links(link_input(input.space_eh.clone(), WhereLinkType::All, Some(tag.clone())))?;
   if links.len() == 0 {
     debug!("get_session(): Session {} not found for space '{:?}'", input.index, input.space_eh);
     return Ok(None);
@@ -38,7 +38,7 @@ pub fn get_session(input: GetSessionInput) -> ExternResult<Option<EntryHashB64>>
 ///
 #[hdk_extern]
 pub fn get_session_from_eh(session_eh: EntryHashB64) -> ExternResult<Option<PlacementSession>> {
-  let maybe_record = get(session_eh, GetOptions::content())?;
+  let maybe_record = get(session_eh, GetOptions::network())?;
   let Some(record) = maybe_record else {
     return Ok(None);
   };
@@ -48,8 +48,8 @@ pub fn get_session_from_eh(session_eh: EntryHashB64) -> ExternResult<Option<Plac
 
 
 ///
-pub fn is_valid_space(space_eh: EntryHash) -> ExternResult<()> {
-  let _entry_type = get_entry_type_from_eh(space_eh)?;
+pub fn is_valid_space(_space_eh: EntryHash) -> ExternResult<()> {
+  //let _entry_type = get_entry_type_from_eh(space_eh)?;
   // FIXME issue in HDK: cant add playset_integrity_zome because of link issue
   // if entry_type != playset_integrity::PlaysetTypes::Space.try_into().unwrap() {
   //   return zome_error!("input.space_eh does not point to a space entry");
@@ -64,7 +64,7 @@ pub fn get_space_sessions(space_eh: EntryHashB64) -> ExternResult<Vec<EntryHashB
   /// Make sure its a space
   let _ = is_valid_space(space_eh.clone().into())?;
   // get links
-  let links = get_links(space_eh, WhereLinkType::All, None)?;
+  let links = get_links(link_input(space_eh, WhereLinkType::All, None))?;
   let sessions = links.iter().map(|link| link.target.clone().into_entry_hash().unwrap().into()).collect();
   Ok(sessions)
 }
@@ -110,7 +110,7 @@ pub fn create_session(space_eh: EntryHash, name: String, index: u32) -> ExternRe
 
 /// Returns 0 if no session found or if space does not exist
 pub fn get_next_session_index(space_eh: EntryHash) -> ExternResult<u32> {
-  let pairs = get_typed_from_links(space_eh, WhereLinkType::All, None)?;
+  let pairs = get_typed_from_links(link_input(space_eh, WhereLinkType::All, None))?;
   let mut top = 0;
   for pair in pairs {
     let session: PlacementSession = pair.0;

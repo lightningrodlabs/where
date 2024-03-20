@@ -1,4 +1,4 @@
-use hdk::hash_path::path::TypedPath;
+use hdi::hash_path::path::TypedPath;
 use hdk::prelude::*;
 use holo_hash::EntryHashB64;
 use zome_utils::*;
@@ -36,8 +36,8 @@ fn create_playset(input: Playset) -> ExternResult<EntryHashB64> {
 
 #[hdk_extern]
 fn get_playset(input: EntryHashB64) -> ExternResult<Option<Playset>> {
-  let maybe_record = get(input, GetOptions::content())?;
-  let Some(record) = maybe_record 
+  let maybe_record = get(input, GetOptions::network())?;
+  let Some(record) = maybe_record
       else {return Ok(None)};
   let typed = get_typed_from_record::<Playset>(record)?;
   Ok(Some(typed))
@@ -52,7 +52,7 @@ fn get_all_playsets(_: ()) -> ExternResult<Vec<PlaysetOutput>> {
 }
 
 fn get_all_inner(base: EntryHash) -> ExternResult<Vec<PlaysetOutput>> {
-  let entries = get_typed_from_links(base, LudothequeLinkType::All, None)
+  let entries = get_typed_from_links(link_input(base, LudothequeLinkType::All, None))
     .map_err(|err| wasm_error!(WasmErrorInner::Guest(err.to_string())))?;
   let mut playsets = vec![];
   for pair in entries {

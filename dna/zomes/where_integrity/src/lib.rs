@@ -22,14 +22,14 @@ pub const WHERE_DEFAULT_INTEGRITY_ZOME_NAME: &'static str = "where_integrity";
 
 use hdi::prelude::*;
 
-#[hdk_entry_defs]
+#[hdk_entry_types]
 #[unit_enum(WhereEntryTypes)]
 pub enum WhereEntry {
-    #[entry_def(required_validations = 2, visibility = "public")]
+    #[entry_type(required_validations = 2, visibility = "public")]
     Here(Here),
-    #[entry_def(required_validations = 2, visibility = "public")]
+    #[entry_type(required_validations = 2, visibility = "public")]
     PlacementSession(PlacementSession),
-    //#[entry_def(required_validations = 2, visibility = "public")]
+    //#[entry_type(required_validations = 2, visibility = "public")]
     //Playfield(Playfield),
 }
 

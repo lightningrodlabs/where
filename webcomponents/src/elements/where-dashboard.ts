@@ -25,7 +25,7 @@ import {PlaysetEntryType, Template} from "../bindings/playset.types";
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 import {WhereLudoDialog} from "../dialogs/where-ludo-dialog";
 import {WherePlayInfoDialog} from "../dialogs/where-play-info-dialog";
-import {SignalPayload} from "../bindings/where.types";
+import {MessageType, SignalPayload} from "../bindings/where.types";
 
 import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
 import "@shoelace-style/shoelace/dist/components/badge/badge.js"
@@ -57,10 +57,10 @@ import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
 import {Profile as  ProfileMat} from "@ddd-qc/profiles-dvm";
-import {threadsAppletContext} from "../viewModels/happDef";
 import {weClientContext} from "../contexts";
 import {getAppletsInfosAndGroupsProfiles} from "./hrl-link";
 import {WeServicesEx} from "@ddd-qc/we-utils";
+import {str2obj} from "../utils";
 
 
 
@@ -99,8 +99,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   @consume({ context: weClientContext, subscribe: true })
   weServices: WeServicesEx;
-  @consume({ context: threadsAppletContext, subscribe: true })
-  threadsAppletHash: EntryHash;
+  //@consume({ context: threadsAppletContext, subscribe: true })
+  //threadsAppletHash: EntryHash;
 
 
   /** ViewModels */
@@ -276,7 +276,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const newPlayInput = e.detail;
     const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.agentPubKey, message: {type: {NewSpace: null}, content: spaceEh}};
     this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
     /* */
     await this.selectPlay(spaceEh);
@@ -322,7 +322,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const template = e.detail as Template;
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
-      {from: this._dvm.cell.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      {from: this._dvm.cell.agentPubKey, message: {type: {NewTemplate: null}, content: eh}},
       this._dvm.allCurrentOthers(),
     )
   }
@@ -388,8 +388,9 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   canComment(): boolean {
-    console.log("canComment()", this.threadsAppletHash);
-    return this.threadsAppletHash != undefined;
+    //console.log("canComment()", this.threadsAppletHash);
+    //return this.threadsAppletHash != undefined;
+    return false;
   }
 
 

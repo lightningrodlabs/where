@@ -353,7 +353,6 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
       let attachables = [];
       console.log("<where-location-dialog>.render().attachables", this._optionAttachables.map((hrlc) => encodeHashToBase64(hrlc.hrl[1])));
       attachables = this._optionAttachables.map((hrlc) => {
-        //const sHrl = stringifyHrl(hrl);
         const sHrl_1 = encodeHashToBase64(hrlc.hrl[1]);
         return html`
             <div style="display: flex; flex-direction: row">

@@ -16,6 +16,5 @@ export const DEFAULT_LUDOTHEQUE_DEF: HvmDef = {
   dvmDefs: [{ctor:LudothequeDvm, isClonable: false}],
 }
 
-export const filesAppletContext = createContext<EntryHash>('we-applet/Files');
-
-export const threadsAppletContext = createContext<EntryHash>('we-applet/Threads');
+//export const filesAppletContext = createContext<EntryHash>('we-applet/Files');
+//export const threadsAppletContext = createContext<EntryHash>('we-applet/Threads');

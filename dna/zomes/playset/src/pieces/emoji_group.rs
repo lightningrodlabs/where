@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use hdk::hash_path::path::TypedPath;
+use hdi::hash_path::path::TypedPath;
 use holo_hash::EntryHashB64;
 use zome_utils::*;
 use playset_integrity::*;
@@ -36,7 +36,7 @@ pub fn create_emoji_group(input: EmojiGroup) -> ExternResult<EntryHashB64> {
 ///
 #[hdk_extern]
 fn get_emoji_group(input: EntryHashB64) -> ExternResult<Option<EmojiGroup>> {
-    let maybe_record = get(input, GetOptions::content())?;
+    let maybe_record = get(input, GetOptions::network())?;
     let Some(record) = maybe_record
         else {return Ok(None)};
     let typed = get_typed_from_record::<EmojiGroup>(record)?;
@@ -53,7 +53,7 @@ fn get_all_emoji_groups(_: ()) -> ExternResult<Vec<EmojiGroupOutput>> {
 }
 
 fn get_all_inner(base: EntryHash) -> ExternResult<Vec<EmojiGroupOutput>> {
-    let entries = get_typed_from_links(base, PlaysetLinkType::All, None)
+    let entries = get_typed_from_links(link_input(base, PlaysetLinkType::All, None))
       .map_err(|err| wasm_error!(WasmErrorInner::Guest(err.to_string())))?;
     let mut groups = vec![];
     for pair in entries {

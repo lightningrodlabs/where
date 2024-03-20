@@ -14,16 +14,16 @@ pub use pieces::*;
 
 use hdi::prelude::*;
 
-#[hdk_entry_defs]
+#[hdk_entry_types]
 #[unit_enum(PlaysetTypes)]
 pub enum PlaysetEntry {
-    #[entry_def(required_validations = 2, visibility = "public")]
+    #[entry_type(required_validations = 2, visibility = "public")]
     SvgMarker(SvgMarker),
-    #[entry_def(required_validations = 2, visibility = "public")]
+    #[entry_type(required_validations = 2, visibility = "public")]
     EmojiGroup(EmojiGroup),
-    #[entry_def(required_validations = 2, visibility = "public")]
+    #[entry_type(required_validations = 2, visibility = "public")]
     Template(Template),
-    #[entry_def(required_validations = 2, visibility = "public")]
+    #[entry_type(required_validations = 2, visibility = "public")]
     Space(Space),
 }
 

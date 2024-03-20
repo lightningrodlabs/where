@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use hdk::hash_path::path::TypedPath;
+use hdi::hash_path::path::TypedPath;
 use zome_utils::*;
 use holo_hash::EntryHashB64;
 
@@ -31,7 +31,7 @@ pub fn create_space(input: Space) -> ExternResult<EntryHashB64> {
 ///
 #[hdk_extern]
 pub fn get_space(space_eh: EntryHashB64) -> ExternResult<Option<Space>> {
-    let maybe_record = get(space_eh, GetOptions::content())?;
+    let maybe_record = get(space_eh, GetOptions::network())?;
     let Some(record) = maybe_record
         else {return Ok(None)};
     let typed = get_typed_from_record::<Space>(record)?;
@@ -56,7 +56,7 @@ fn get_spaces(_: ()) -> ExternResult<Vec<SpaceOutput>> {
 }
 
 fn get_spaces_inner(base: EntryHash) -> ExternResult<Vec<SpaceOutput>> {
-    let entries = get_typed_from_links(base, PlaysetLinkType::All, None)
+    let entries = get_typed_from_links(link_input(base, PlaysetLinkType::All, None))
       .map_err(|err| wasm_error!(WasmErrorInner::Guest(err.to_string())))?;
     let mut spaces = vec![];
     for pair in entries {

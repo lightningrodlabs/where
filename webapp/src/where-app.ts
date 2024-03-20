@@ -25,9 +25,9 @@ import {
   HvmDef, pascal
 } from "@ddd-qc/lit-happ";
 import {
-  DEFAULT_WHERE_DEF, filesAppletContext,
-  LudothequeDvm, PlaysetEntryType, threadsAppletContext,
-  WHERE_DEFAULT_COORDINATOR_ZOME_NAME, WHERE_DEFAULT_INTEGRITY_ZOME_NAME,
+  DEFAULT_WHERE_DEF,
+  LudothequeDvm, PlaysetEntryType,
+  WHERE_DEFAULT_COORDINATOR_ZOME_NAME,
   WHERE_DEFAULT_ROLE_NAME,
   WhereDvm
 } from "@where/elements";
@@ -204,7 +204,7 @@ export class WhereApp extends HappElement {
     console.log("hvmConstructed()", this._adminWs, this._canAuthorizeZfns)
     /** Authorize all zome calls */
     if (!this._adminWs && this._canAuthorizeZfns) {
-      this._adminWs = await AdminWebsocket.connect(new URL(`ws://localhost:${HC_ADMIN_PORT}`));
+      this._adminWs = await AdminWebsocket.connect({url:new URL(`ws://localhost:${HC_ADMIN_PORT}`)});
       console.log("hvmConstructed() connect called", this._adminWs);
     }
     if (this._adminWs && this._canAuthorizeZfns) {

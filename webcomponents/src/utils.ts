@@ -7,6 +7,12 @@ export interface HoloHashedB64<T> {
 }
 
 
+export function str2obj(input: string): { [key: string]: null } {
+  const obj: { [key: string]: null } = {};
+  obj[input] = null;
+  return obj;
+}
+
 // export function areArraysEqual(first: Uint8Array, second: Uint8Array) {
 //   return first.length === second.length && first.every((value, index) => value === second[index])
 // }

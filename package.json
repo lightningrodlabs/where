@@ -2,10 +2,10 @@
   "name"           : "where-dev",
   "version"        : "0.2.4",
   "config"         : {
-    "hc_version"   : "0.2.4",
-    "zits_version" : "1.12.0",
+    "hc_version"   : "0.3.0-beta-dev.40",
+    "zits_version" : "1.13.0",
     "bin"          : "bin",
-    "we_test_folder": "../we-electron"
+    "we_test_folder": "../we"
   },
   "private"        : true,
   "workspaces"     : [
@@ -112,12 +112,12 @@
     "typescript"              : "~5.2.0"
   },
   "dependencies"   : {
-    "@holochain/client" : "=0.16.7",
+    "@holochain/client": "^0.17.0-dev.3",
     "@lightningrodlabs/we-applet": "0.15.0",
-    "@ddd-qc/cell-proxy": "=0.21.0",
-    "@ddd-qc/lit-happ"  : "=0.21.0",
-    "@ddd-qc/we-utils": "=0.22.1",
-    "@ddd-qc/profiles-dvm": "=0.22.5",
+    "@ddd-qc/cell-proxy": "=0.23.0",
+    "@ddd-qc/lit-happ"  : "=0.23.0",
+    "@ddd-qc/we-utils": "=0.23.0",
+    "@ddd-qc/profiles-dvm": "=0.23.0",
     "@holochain-open-dev/core-types": "=0.7.0",
     "@holochain-open-dev/profiles": "=0.17.3",
     "@shoelace-style/shoelace": "2.11.2",

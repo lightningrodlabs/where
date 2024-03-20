@@ -16,10 +16,11 @@ rust-version = "1.65.0"
 edition = "2021"
 
 [workspace.dependencies]
-serde = { version = "=1.0.163", default-features = false }
-hdi = { version = "0.3.6", default-features = false }
-hdk = { version = "0.2.6", default-features = false }
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "hdk-2.6" }
+serde = { version = "=1.0.197", default-features = false }
+hdi = { version = "=0.4.0-beta-dev.30", default-features = false }
+hdk = { version = "=0.3.0-beta-dev.34", default-features = false }
+
+zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "hdk-3.0" }
 
 
 [profile.dev]

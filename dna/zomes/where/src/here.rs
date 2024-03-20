@@ -85,13 +85,13 @@ fn get_heres(session_eh: EntryHashB64) -> ExternResult<Vec<HereOutput>> {
 
 ///
 fn get_heres_inner(base: EntryHash) -> ExternResult<Vec<HereOutput>> {
-    let links = get_links(base, WhereLinkType::All, None)?;
+    let links = get_links(link_input(base, WhereLinkType::All, None))?;
     let mut output = Vec::with_capacity(links.len());
     /// Get details of every link on the target and create the message.
     for link in links.into_iter().map(|link| link) {
         //debug!("get_heres_inner() link: {:?}", link);
         let here_eh = link.target.clone().into_entry_hash().unwrap();
-        let details =  get_details(here_eh, GetOptions::content())?;
+        let details =  get_details(here_eh, GetOptions::network())?;
         let Some(Details::Entry(EntryDetails {entry, mut actions, .. })) = details
             else {continue};
         /// Turn the entry into a HereOutput

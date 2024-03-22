@@ -20,7 +20,6 @@ import { WeClient } from '@lightningrodlabs/we-applet';
 import { sharedStyles } from '@holochain-open-dev/elements';
 import {weClientContext} from "../contexts";
 import {WeServicesEx} from "@ddd-qc/we-utils";
-//import {AttachableLocationAndInfo} from "@lightningrodlabs/we-applet/dist/types";
 
 
 /** */
@@ -84,7 +83,7 @@ export class HrlLink extends LitElement {
   protected async firstUpdated(_changedProperties: PropertyValues) {
     super.firstUpdated(_changedProperties);
     console.log("<we-hrl> firstUpdated()", this.hrl, this.context);
-    const attLocInfo = await this.weServices.attachableInfo({
+    const attLocInfo = await this.weServices.assetInfo({
       hrl: this.hrl,
       context: this.context,
     });
@@ -109,21 +108,21 @@ export class HrlLink extends LitElement {
       return html`<sl-skeleton></sl-skeleton>`;
     }
     if(this._info == null) {
-      return html`<div style="color:red">Attachable not found</div>`;
+      return html`<div style="color:red">Asset not found</div>`;
     }
     // if (this._info.value.value === undefined) {
     //   return html`No entry found`; // TODO: what to put here?
     // }
 
   const { attLocInfo, groupsProfiles, appletsInfos } = this._info;
-  console.log("<we-hrl>", attLocInfo.attachableInfo.name, weaveUrlFromWal({hrl:this.hrl}))
+  console.log("<we-hrl>", attLocInfo.assetInfo.name, weaveUrlFromWal({hrl:this.hrl}))
 
   return html`
     <sl-tooltip style="--max-width: 30rem;">
       <div slot="content">
         <div class="row" style="align-items: center">
           ${this.onlyIcon
-            ? html` <span>${attLocInfo.attachableInfo.name},&nbsp;</span> `
+            ? html` <span>${attLocInfo.assetInfo.name},&nbsp;</span> `
             : html``}
           <span style="margin-right:6px;">From ${appletsInfos.get(attLocInfo.appletHash)?.appletName}</span>
           ${appletsInfos.get(attLocInfo.appletHash)?.groupsIds.map(
@@ -141,19 +140,19 @@ export class HrlLink extends LitElement {
         pill
         style="cursor: pointer"
         tabindex="0"
-        @click=${() => this.weServices.openHrl({hrl: this.hrl, context: this.context})}
+        @click=${() => this.weServices.openWal({hrl: this.hrl, context: this.context})}
         @keypress=${(e: KeyboardEvent) => {
           if (e.key === 'Enter') {
-            this.weServices.openHrl({hrl:this.hrl, context: this.context});
+            this.weServices.openWal({hrl:this.hrl, context: this.context});
           }
         }}
       >
         <div class="row" style="align-items: center">
-          <sl-icon .src=${attLocInfo.attachableInfo.icon_src}></sl-icon>
+          <sl-icon .src=${attLocInfo.assetInfo.icon_src}></sl-icon>
           ${this.onlyIcon
             ? html``
             : html`
-                <span style="margin-left:8px; text-overflow:ellipsis;">${attLocInfo.attachableInfo.name}</span>
+                <span style="margin-left:8px; text-overflow:ellipsis;">${attLocInfo.assetInfo.name}</span>
               `}
         </div>
       </sl-tag>

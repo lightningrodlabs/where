@@ -144,7 +144,7 @@ export class WherePlayInfoDialog extends DnaElement<WhereDnaPerspective, WhereDv
         <br/>
         ${msg('Tagging')}: ${meta.canTag}
         <br/>
-        ${this.weServices? msg('Attachables') +": " + meta.canAttach : ""}
+        ${this.weServices? msg('Assets') +": " + meta.canAttach : ""}
     `;
     }
 

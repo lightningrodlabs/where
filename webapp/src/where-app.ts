@@ -45,7 +45,7 @@ import {Dialog} from "@material/mwc-dialog";
 import {AppletId, AppletView, WeServices} from "@lightningrodlabs/we-applet";
 import {ContextProvider} from "@lit/context";
 import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
-import {AttachableViewInfo, WeServicesEx} from "@ddd-qc/we-utils";
+import {AssetViewInfo, WeServicesEx} from "@ddd-qc/we-utils";
 import {Profile as ProfileMat, ProfilesDvm} from "@ddd-qc/profiles-dvm";
 import {weClientContext} from "@where/elements/dist/contexts";
 
@@ -356,25 +356,25 @@ export class WhereApp extends HappElement {
           break;
         case "block":
           throw new Error("Where/we-applet: Block view is not implemented.");
-        case "attachable":
-          const attachableViewInfo = this.appletView as AttachableViewInfo;
-          if (attachableViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
+        case "asset":
+          const assetViewInfo = this.appletView as AssetViewInfo;
+          if (assetViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
             throw new Error(`Where/we-applet: Unknown role name '${this.appletView.roleName}'.`);
           }
-          // if (attachableViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME /* || "playset_integrity"*/) {
+          // if (assetViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME /* || "playset_integrity"*/) {
           //   throw new Error(`Where/we-applet: Unknown zome '${this.appletView.integrityZomeName}'.`);
           // }
-          const entryType = pascal(attachableViewInfo.entryType);
+          const entryType = pascal(assetViewInfo.entryType);
           console.log("pascal entryType", entryType);
           switch (entryType) {
             case PlaysetEntryType.Space:
-              const spaceEh = encodeHashToBase64(attachableViewInfo.hrlWithContext.hrl[1]);
+              const spaceEh = encodeHashToBase64(assetViewInfo.wal.hrl[1]);
               console.log("Space entry:", spaceEh);
               //const viewContext = entryViewInfo.context as ViewThreadContext;
               view = html`<where-space .currentSpaceEh=${spaceEh}></where-space>`;
               break;
             default:
-              throw new Error(`Unhandled entry type ${attachableViewInfo.entryType}.`);
+              throw new Error(`Unhandled entry type ${assetViewInfo.entryType}.`);
           }
           break;
         default:
@@ -431,7 +431,7 @@ export class WhereApp extends HappElement {
 
 
     /** Display all attachment-types */
-    let attachments = [html``];
+    let creatableTypes = [html``];
     // FIXME
     // if (this._weServices) {
     //   /** attachments */
@@ -460,9 +460,9 @@ export class WhereApp extends HappElement {
     if (this.appletView) {
       viewAttachments = html`
         <div>
-          Attachments found:
+          Creatable types found:
           <ul>
-            ${attachments}
+            ${creatableTypes}
           </ul>
         </div>
       `;

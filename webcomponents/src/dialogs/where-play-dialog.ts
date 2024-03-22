@@ -943,8 +943,8 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     </mwc-formfield>
     <!-- Attachables -->
     ${this.weServices? html`
-    <h4 style="margin-top:25px;margin-bottom:10px;">${msg('Attachables')}</h4>
-    <mwc-formfield label="${msg('Enable attachable tagging')}">
+    <h4 style="margin-top:25px;margin-bottom:10px;">${msg('Assets')}</h4>
+    <mwc-formfield label="${msg('Enable Asset tagging')}">
       <mwc-checkbox id="att-chk" @click=${this.handleCanAttachClick}></mwc-checkbox>
     </mwc-formfield>` :html``
     }

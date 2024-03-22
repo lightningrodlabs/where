@@ -493,7 +493,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
                       style="cursor:pointer;"
                       @click=${ async () => {
                         const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                        this.weServices.hrlToClipboard({hrl: spaceHrl, context: null});
+                        this.weServices.walToPocket({hrl: spaceHrl, context: null});
                       }}
             >content_copy</mwc-icon>` :html``}
             <div slot="footer" style="display: ${attIcons.length > 0? "block" : "none"}">

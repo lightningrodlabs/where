@@ -3,16 +3,16 @@ import {AppAgentClient, encodeHashToBase64, RoleName, ZomeName} from "@holochain
 import {PlaysetEntryType, PlaysetProxy, WHERE_DEFAULT_ROLE_NAME} from "@where/elements";
 import {pascal} from "@ddd-qc/cell-proxy";
 import {mdiMapbox} from "@mdi/js";
-import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
+import {WAL} from "@lightningrodlabs/we-applet/dist/types";
 
 
 /** */
-export async function getAttachableInfo(
+export async function getAssetInfo(
   appletClient: AppAgentClient,
   roleName: RoleName,
   integrityZomeName: ZomeName,
   entryType: string,
-  hrlc: HrlWithContext,
+  hrlc: WAL,
 ) {
     if (roleName != WHERE_DEFAULT_ROLE_NAME) {
         throw new Error(`Where/we-applet: Unknown role name '${roleName}'.`);

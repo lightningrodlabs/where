@@ -38,7 +38,7 @@ import {TextField} from "@material/mwc-textfield";
 import {Dialog} from "@material/mwc-dialog";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {HrlWithContext} from "@lightningrodlabs/we-applet";
+import {WAL} from "@lightningrodlabs/we-applet";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm/dist/bindings/profiles.types";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {WeServicesEx} from "@ddd-qc/we-utils";
@@ -69,7 +69,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
   @property()
   myProfile: ProfileMat;
 
-  private _optionAttachables: HrlWithContext[] = [];
+  private _optionAttachables: WAL[] = [];
 
   private _dialogCoord = { x: 0, y: 0 };
   private _dialogCanUpdate = false;
@@ -370,7 +370,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
             ${attachables}
             <mwc-button icon="add" @click=${async (_ev) => {
             console.log("<where-location-dialog> Adding Attachable. Current:", this._optionAttachables);
-            const hrlc = await this.weServices.userSelectHrl();
+            const hrlc = await this.weServices.userSelectWal();
             if (!hrlc) {
               return;
             }

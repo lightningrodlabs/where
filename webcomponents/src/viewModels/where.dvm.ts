@@ -23,7 +23,7 @@ import {
 } from "../bindings/where.types";
 import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb, ActionHashB64} from "@holochain/client";
 import {ProfilesAltZvm, ProfilesZvm} from "@ddd-qc/profiles-dvm";
-import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
+import {WAL} from "@lightningrodlabs/we-applet";
 
 
 /** */
@@ -506,7 +506,7 @@ export class WhereDvm extends DnaViewModel {
   /** -- Misc. -- */
 
   /** */
-  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: HrlWithContext[]) {
+  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: WAL[]) {
     console.log("whereDvm.updateLocation()", attachables);
     const manifest = this.whereZvm.getManifest(spaceEh);
     const sessionEh = this.getCurrentSession(spaceEh);

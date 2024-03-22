@@ -2,7 +2,7 @@ import {
     AppAgentClient,
     decodeHashFromBase64,
 } from "@holochain/client";
-import {AppletHash, HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
+import {AppletHash, WAL} from "@lightningrodlabs/we-applet/dist/types";
 import {WeServices} from "@lightningrodlabs/we-applet/dist/api";
 import {asCellProxy} from "@ddd-qc/we-utils";
 import {PlaysetProxy, SpaceOutput, WHERE_DEFAULT_ROLE_NAME} from "@where/elements";
@@ -11,7 +11,7 @@ import {PlaysetProxy, SpaceOutput, WHERE_DEFAULT_ROLE_NAME} from "@where/element
 /**
  * Returns spaces that matchs the searchFilters
  */
-export async function search(appletClient: AppAgentClient, appletHash: AppletHash, weServices: WeServices, searchFilter: string): Promise<Array<HrlWithContext>> {
+export async function search(appletClient: AppAgentClient, appletHash: AppletHash, weServices: WeServices, searchFilter: string): Promise<Array<WAL>> {
     console.log("Where/we-applet/search():", searchFilter);
     const searchLC = searchFilter.toLowerCase();
 
@@ -33,8 +33,8 @@ export async function search(appletClient: AppAgentClient, appletHash: AppletHas
         .filter((spaceOutput) => spaceOutput.content.name.toLowerCase().includes(searchLC))
     console.log("Where/we-applet/search(): matching", matching);
 
-    /** Transform results into HrlWithContext */
-    const results: Array<HrlWithContext> = matching
+    /** Transform results into WAL */
+    const results: Array<WAL> = matching
         .map((spaceOutput) => { return {
             hrl: [dnaHash, decodeHashFromBase64(spaceOutput.hash)],
             context: {

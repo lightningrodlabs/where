@@ -3,9 +3,9 @@ import {Coord, WhereLocation, dematerializeHere, WherePerspective, LocationInfo,
   HereInfo, materializeHere, PlacementSessionMat, PlayManifest
 } from "./where.perspective";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
-import {NotifyInput, SignalPayload} from "../bindings/where.types";
+import {SignalPayload} from "../bindings/where.types";
 import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain/client";
-import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
+import {WAL} from "@lightningrodlabs/we-applet";
 
 
 /**
@@ -274,7 +274,7 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async updateLocation(sessionEh: EntryHashB64, spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: HrlWithContext[]): Promise<LocationInfo> {
+  async updateLocation(sessionEh: EntryHashB64, spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: WAL[]): Promise<LocationInfo> {
     const locInfo = this.getSession(sessionEh)!.locations[locIdx]!;
     if (c != undefined && c != null) {
       locInfo.location.coord = c

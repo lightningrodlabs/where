@@ -47,7 +47,7 @@ import {Fab} from "@material/mwc-fab";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {HrlWithContext, weaveUrlFromWal} from "@lightningrodlabs/we-applet";
+import {WAL, weaveUrlFromWal} from "@lightningrodlabs/we-applet";
 import {WhereLocationDialog} from "../dialogs/where-location-dialog";
 import {WeServicesEx} from "@ddd-qc/we-utils";
 
@@ -485,23 +485,23 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   async handleImportAttachableClick(idx: number) {
     //const idx = this.getIdx(ev.target);
     console.log("handleImportAttachableClick()", idx);
-    const hrlc = await this.weServices.userSelectHrl();
-    if (!hrlc) {
+    const wal = await this.weServices.userSelectWal();
+    if (!wal) {
       return;
     }
     const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];
-    const attachables = locInfo.location.meta.attachables.concat([hrlc]);
+    const attachables = locInfo.location.meta.attachables.concat([wal]);
     await this._dvm.updateLocation(this.currentSpaceEh, idx, null, null, null, attachables);
     this.requestUpdate();
   }
 
 
   /** */
-  async handleDeleteAttachableClick(idx: number, hrlc: HrlWithContext) {
+  async handleDeleteAttachableClick(idx: number, wal: WAL) {
     //const idx = this.getIdx(ev.target);
-    console.log("handleDeleteAttachableClick()", idx, weaveUrlFromWal({hrl:hrlc.hrl}));
+    console.log("handleDeleteAttachableClick()", idx, weaveUrlFromWal(wal));
     const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];
-    const attachables = locInfo.location.meta.attachables.filter((hrlcur) => weaveUrlFromWal({hrl:hrlcur.hrl}) != weaveUrlFromWal({hrl:hrlc.hrl}));
+    const attachables = locInfo.location.meta.attachables.filter((curWal) => weaveUrlFromWal({hrl:curWal.hrl}) != weaveUrlFromWal({hrl:wal.hrl}));
     await this._dvm.updateLocation(this.currentSpaceEh, idx, null, null, null, attachables);
     this.requestUpdate();
   }

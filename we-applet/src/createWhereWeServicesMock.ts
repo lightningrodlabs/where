@@ -1,13 +1,11 @@
 import {
-    ActionHash,
-    decodeHashFromBase64, DnaHash,
+    decodeHashFromBase64,
     encodeHashToBase64, EntryHash,
     fakeDnaHash, fakeEntryHash
 } from "@holochain/client";
-import {HoloHashMap} from "@holochain-open-dev/utils";
-import {AppletHash, AppletInfo, GroupProfile, WeServices} from "@lightningrodlabs/we-applet";
-import {createDefaultWeServicesMock, emptyWeServicesMock, wrapPathInSvg} from "@ddd-qc/we-utils";
-import {HrlWithContext} from "@lightningrodlabs/we-applet/dist/types";
+import {AppletInfo, GroupProfile, WeServices} from "@lightningrodlabs/we-applet";
+import {createDefaultWeServicesMock, wrapPathInSvg} from "@ddd-qc/we-utils";
+import {WAL} from "@lightningrodlabs/we-applet/dist/types";
 import {mdiClipboard, mdiFileOutline, mdiInformation} from "@mdi/js";
 
 
@@ -66,13 +64,13 @@ export async function createWhereWeServicesMock(devtestAppletId: string): Promis
         throw Error("appletInfo() failed. Unknown appletHash");
     };
     /** entryInfo() */
-    myWeServicesMock.attachableInfo = async (hrlc) => {
-        console.log("WhereWeServicesMock.entryInfo()", hrlc);
+    myWeServicesMock.assetInfo = async (wal) => {
+        console.log("WhereWeServicesMock.entryInfo()", wal);
         return {
             appletHash: decodeHashFromBase64(devtestAppletId),
-            attachableInfo: {
+            assetInfo: {
                 icon_src: wrapPathInSvg(mdiClipboard),
-                name: "fake:" + encodeHashToBase64(hrlc.hrl[1]),
+                name: "fake:" + encodeHashToBase64(wal.hrl[1]),
             }
         }
     }

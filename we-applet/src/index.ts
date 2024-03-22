@@ -3,7 +3,7 @@ import {createWhereApplet} from "./createWhereApplet";
 import {createWhereWeServicesMock} from "./createWhereWeServicesMock";
 import {PlaysetEntryType, WHERE_DEFAULT_ROLE_NAME, WhereEntryType} from "@where/elements";
 import {AppletServices} from "@lightningrodlabs/we-applet";
-import {getAttachableInfo} from "./appletServices/getAttachableInfo";
+import {getAssetInfo} from "./appletServices/getAssetInfo";
 import {createLudoApplet} from "./createLudoApplet";
 import {search} from "./appletServices/search";
 
@@ -45,7 +45,7 @@ async function setupWhereMainView() {
   }
   const appletServices: AppletServices = {
     creatables: {},
-    getAttachableInfo,
+    getAssetInfo,
     blockTypes: {},
     search,
     bindAsset: async (a, b, c, d,e,f) => {},
@@ -61,7 +61,7 @@ async function setupLudoApplet() {
   }
   const appletServices: AppletServices = {
     creatables: {},
-    getAttachableInfo: ()  => {return undefined},
+    getAssetInfo: ()  => {return undefined},
     blockTypes: {},
     search: async (appletClient, searchFilter) => {return []},
     bindAsset: async (a, b, c, d,e,f) => {},

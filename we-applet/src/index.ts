@@ -11,6 +11,7 @@ import {search} from "./appletServices/search";
 export default setupApplet;
 
 
+/** */
 async function setupApplet() {
   try {
     return await setupWhereApplet();
@@ -19,6 +20,7 @@ async function setupApplet() {
     return await setupLudoApplet();
   }
 }
+
 
 /** */
 export async function setupWhereApplet() {
@@ -48,7 +50,7 @@ async function setupWhereMainView() {
     getAssetInfo,
     blockTypes: {},
     search,
-    bindAsset: async (a, b, c, d) => {},
+    //bindAsset: async (a, b, c, d) => {},
   };
   return setup(appletServices, createWhereApplet, whereNames, createWhereWeServicesMock);
 }
@@ -64,7 +66,7 @@ async function setupLudoApplet() {
     getAssetInfo: ()  => {return undefined},
     blockTypes: {},
     search: async (appletClient, searchFilter) => {return []},
-    bindAsset: async (a, b, c, d) => {},
+    //bindAsset: async (a, b, c, d) => {},
   };
   return setup(appletServices, createLudoApplet, whereNames, createWhereWeServicesMock);
 }

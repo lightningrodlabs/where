@@ -187,7 +187,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     this._markerTypeField.value = MarkerType[originalPlay.space.meta.markerType];
     this._multiChk.checked = originalPlay.space.meta.multi;
     // - Attachables
-    this.attChkElem.checked = originalPlay.space.meta.canAttach;
+    if (this.attChkElem) this.attChkElem.checked = originalPlay.space.meta.canAttach;
     // - Tags
     this._tagChk.checked = originalPlay.space.meta.canTag;
     this.tagChkLabel.label = msg('Display tag on surface')
@@ -425,7 +425,7 @@ export class WherePlayDialog extends ZomeElement<PlaysetPerspective, PlaysetZvm>
     this._markerTypeField.value = MarkerType[MarkerType.Avatar]
     this._multiChk.checked = false;
     // - Attachables
-    this.attChkElem.checked = false;
+    if (this.attChkElem) this.attChkElem.checked = false;
     // - Tags
     this._tagChk.checked = false;
     this.tagChkLabel.label = msg('Display tag on surface');

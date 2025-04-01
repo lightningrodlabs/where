@@ -21,7 +21,7 @@ export async function createWhereApplet(
   weServices: WeaveServices,
 ): Promise<WhereApp> {
 
-  if (renderInfo.type =="cross-applet-view") {
+  if (renderInfo.type =="cross-group-view") {
     throw Error("cross-applet-view not implemented by Where");
   }
 
@@ -54,7 +54,7 @@ export async function createWhereApplet(
   const profilesAppProxy = new ExternalAppProxy(profilesApi, 10 * 1000);
   await profilesAppProxy.fetchCells(profilesAppInfo.installed_app_id, baseRoleName);
   const profilesCellProxy = await profilesAppProxy.createCellProxy(hcl);
-  console.log("createWhereApplet() profilesCellProxy", profilesCellProxy);
+  console.log("createWhereApplet() profilesCellProxy", profilesCellProxy, weServices);
 
   const profileInfo: ProfileInfo = {
     profilesAppId: profilesAppInfo.installed_app_id,

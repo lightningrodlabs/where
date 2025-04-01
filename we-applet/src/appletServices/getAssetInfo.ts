@@ -11,7 +11,7 @@ export async function getAssetInfo(
   appletClient: AppClient,
   wal: WAL,
   recordInfo?: RecordInfo,
-) {
+): Promise<AssetInfo> {
     console.log("Where/we-applet: getAssetInfo", recordInfo);
     if (!recordInfo) {
         throw new Error(`Where/we-applet: Missing recordInfo.`);
@@ -42,12 +42,11 @@ export async function getAssetInfo(
                 console.debug("Where/we-applet: space NOT FOUND", spaceEh);
                 return;
             }
-            const icon_src = wrapPathInSvg(mdiMapbox)
-            console.debug("Where/we-applet: space FOUND", spaceEh, space.name, icon_src);
-            return {
-                icon_src,
-                name: space.name,
-            } as AssetInfo;
+            const icon_src = wrapPathInSvg(mdiMapbox);
+            //console.debug("Where/we-applet: space FOUND", spaceEh, space.name, icon_src);
+            const info: AssetInfo = {icon_src, name: space.name};
+            console.debug("Where/we-applet: space info FOUND", info);
+            return info;
         }
         break;
         default:

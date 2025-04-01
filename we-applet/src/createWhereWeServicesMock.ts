@@ -33,13 +33,15 @@ export async function createWhereWeServicesMock(devtestAppletId: EntryId): Promi
         }
     }
 
+    const appletBundleId = "fakeAppletBundleId"; // await fakeEntryHash(),
+
     /** appletInfo() */
     myWeServicesMock.appletInfo = async (appletHash: EntryHash): Promise<AppletInfo | undefined> => {
         const appletId = encodeHashToBase64(appletHash);
         console.log("WhereWeServicesMock.appletInfo()", appletId, appletId);
         if (devtestAppletId.equals(appletId)) {
             return {
-                appletBundleId: await fakeEntryHash(),
+                appletBundleId,
                 appletName: "DevTestWeApplet",
                 appletIcon: "",
                 groupsHashes: [fakeGroupHash],
@@ -47,7 +49,7 @@ export async function createWhereWeServicesMock(devtestAppletId: EntryId): Promi
         }
         if (fakeThreadsAppletId == appletId) {
             return {
-                appletBundleId: await fakeEntryHash(),
+                appletBundleId,
                 appletName: "hThreadsWeApplet",
                 appletIcon: "",
                 groupsHashes: [fakeGroupHash],
@@ -55,7 +57,7 @@ export async function createWhereWeServicesMock(devtestAppletId: EntryId): Promi
         }
         if (fakeFilesAppletId == appletId) {
             return {
-                appletBundleId: await fakeEntryHash(),
+                appletBundleId,
                 appletName: "files-we_applet",
                 appletIcon: "",
                 groupsHashes: [fakeGroupHash],
@@ -64,7 +66,7 @@ export async function createWhereWeServicesMock(devtestAppletId: EntryId): Promi
         throw Error("appletInfo() failed. Unknown appletHash");
     };
     /** entryInfo() */
-    myWeServicesMock.assetInfo = async (wal) => {
+    myWeServicesMock.assets.assetInfo = async (wal) => {
         console.log("WhereWeServicesMock.entryInfo()", wal);
         return {
             appletHash: devtestAppletId.hash,

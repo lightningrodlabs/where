@@ -116,6 +116,7 @@ export class WhereApp extends HappElement {
       public appletView?: AppletView,
       profileInfo?: ProfileInfo,
   ) {
+    console.debug("whereApp.ctor()", weServices);
     const adminUrl = _adminWs
       ? undefined
       : HC_ADMIN_PORT
@@ -141,7 +142,7 @@ export class WhereApp extends HappElement {
     console.log("createProfilesDvm() cell_infos:", cell_infos);
     /** Create Profiles DVM */
         //const profilesZvmDef: ZvmDef = [ProfilesZvm, profilesZomeName];
-    const dvm: DnaViewModel = new profilesDef.ctor(this, profileInfo.profilesProxy, new HCL(profileInfo.profilesAppId, profileInfo.profilesBaseRoleName, profileInfo.profilesCloneId));
+    const dvm: DnaViewModel = new profilesDef.ctor(this, profileInfo.profilesProxy, new HCL(profileInfo.profilesAppId, profileInfo.profilesBaseRoleName, profileInfo.profilesCloneId), true);
     console.log("createProfilesDvm() dvm", dvm);
     await this.setupWeProfilesDvm(dvm as ProfilesDvm, encodeHashToBase64(profilesAppInfo.agent_pub_key));
   }

@@ -80,7 +80,7 @@ export class HrlLink extends LitElement {
   protected async firstUpdated(_changedProperties: PropertyValues) {
     super.firstUpdated(_changedProperties);
     console.log("<we-hrl> firstUpdated()", this.hrl, this.context);
-    const attachableInfo = await this.weServices.assetInfo({
+    const attachableInfo = await this.weServices.assets.assetInfo({
       hrl: this.hrl,
       context: this.context,
     });
@@ -140,10 +140,10 @@ export class HrlLink extends LitElement {
         pill
         style="cursor: pointer"
         tabindex="0"
-        @click=${() => this.weServices.openWal({hrl: this.hrl, context: this.context})}
+        @click=${() => this.weServices.openAsset({hrl: this.hrl, context: this.context})}
         @keypress=${(e: KeyboardEvent) => {
           if (e.key === 'Enter') {
-            this.weServices.openWal({hrl:this.hrl, context: this.context});
+            this.weServices.openAsset({hrl:this.hrl, context: this.context});
           }
         }}
       >

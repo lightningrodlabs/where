@@ -20,7 +20,7 @@ export async function createLudoApplet(
   weServices: WeaveServices,
 ): Promise<LudothequeStandaloneApp> {
 
-  if (renderInfo.type =="cross-applet-view") {
+  if (renderInfo.type =="cross-group-view") {
     throw Error("cross-applet-view not implemented by Where");
   }
 

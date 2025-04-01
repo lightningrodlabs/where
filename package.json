@@ -2,8 +2,8 @@
   "name"           : "where-dev",
   "version"        : "0.3.1",
   "config"         : {
-    "hc_version"   : "0.3.1",
-    "zits_version" : "1.16.2",
+    "hc_version"   : "0.4.1",
+    "zits_version" : "1.16.3",
     "bin"          : "bin"
   },
   "private"        : true,
@@ -119,14 +119,14 @@
     "typescript"              : "~5.2.0"
   },
   "dependencies"   : {
-    "@holochain/client": "=0.18.0-dev.13",
-    "@theweave/api": "=0.2.1",
-    "@ddd-qc/cell-proxy": "=0.30.0",
-    "@ddd-qc/lit-happ"  : "=0.30.0",
-    "@ddd-qc/we-utils": "=0.30.2",
-    "@ddd-qc/profiles-dvm": "=0.30.0",
+    "@holochain/client": "=0.18.0",
+    "@theweave/api": "=0.4.0-alpha.3",
+    "@ddd-qc/cell-proxy": "=0.31.10",
+    "@ddd-qc/lit-happ"  : "=0.31.10",
+    "@ddd-qc/we-utils": "=0.31.10",
+    "@ddd-qc/profiles-dvm": "=0.31.10",
     "@holochain-open-dev/core-types": "=0.7.0",
-    "@holochain-open-dev/profiles": "^0.400.0-dev.1",
+    "@holochain-open-dev/profiles": "=0.400.0",
     "@shoelace-style/shoelace": "2.11.2",
     "@lit/context": "1.0.1",
     "@lit/localize": "0.12.1",

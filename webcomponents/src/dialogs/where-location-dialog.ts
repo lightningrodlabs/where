@@ -370,7 +370,7 @@ export class WhereLocationDialog extends DnaElement<WhereDnaPerspective, WhereDv
             ${attachables}
             <mwc-button icon="add" @click=${async (_ev) => {
             console.log("<where-location-dialog> Adding Attachable. Current:", this._optionAttachables);
-            const hrlc = await this.weServices.userSelectWal();
+            const hrlc = await this.weServices.assets.userSelectAsset();
             if (!hrlc) {
               return;
             }

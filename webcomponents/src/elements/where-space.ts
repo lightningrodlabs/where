@@ -485,7 +485,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   async handleImportAttachableClick(idx: number) {
     //const idx = this.getIdx(ev.target);
     console.log("handleImportAttachableClick()", idx);
-    const wal = await this.weServices.userSelectWal();
+    const wal = await this.weServices.assets.userSelectAsset();
     if (!wal) {
       return;
     }

@@ -54,7 +54,8 @@ export async function createWhereApplet(
   const profilesAppProxy = new ExternalAppProxy(profilesApi, 10 * 1000);
   await profilesAppProxy.fetchCells(profilesAppInfo.installed_app_id, baseRoleName);
   const profilesCellProxy = await profilesAppProxy.createCellProxy(hcl);
-  console.log("createWhereApplet() profilesCellProxy", profilesCellProxy, weServices);
+  console.log("createWhereApplet() profilesCellProxy", profilesCellProxy);
+  console.log("createWhereApplet() weServices", weServices);
 
   const profileInfo: ProfileInfo = {
     profilesAppId: profilesAppInfo.installed_app_id,

@@ -27,7 +27,7 @@ export class LudothequeDvm extends DnaViewModel {
   /** -- Perspective -- */
 
   protected hasChanged(): boolean {return true}
-  get perspective(): unknown {return}
+  get perspective(): Object {return {}}
 
   /** -- Methods -- */
 

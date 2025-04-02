@@ -108,7 +108,7 @@
   },
 
   "devDependencies": {
-    "@theweave/cli"           : "0.13.0-gamma.5",
+    "@theweave/cli"           : "0.13.0-rc.1",
     "@types/ws"               : "^8.5.3",
     "bestzip"                 : "^2.2.0",
     "concurrently"            : "^6.2.1",
@@ -118,9 +118,9 @@
     "tslib"                   : "^2.4.0",
     "typescript"              : "~5.2.0"
   },
-  "dependencies"   : {
+  "dependencies": {
     "@holochain/client": "=0.18.0",
-    "@theweave/api": "=0.4.0-alpha.3",
+    "@theweave/api": "=0.4.0",
     "@ddd-qc/cell-proxy": "=0.31.10",
     "@ddd-qc/lit-happ"  : "=0.31.10",
     "@ddd-qc/we-utils": "=0.31.10",

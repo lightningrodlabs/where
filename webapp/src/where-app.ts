@@ -124,6 +124,7 @@ export class WhereApp extends HappElement {
         : undefined;
     super(appWs? appWs : HC_APP_PORT, appId, adminUrl);
     if (weServices) {
+      console.log(`CREATING WeServicesEx`, weServices, weServices.assets);
       this._weServices = new WeServicesEx(weServices, [thisAppletId]);
       console.log(`\t\tProviding context "${weClientContext}" | in host `, this._weServices, this);
       this._weProvider = new ContextProvider(this, weClientContext, this._weServices);

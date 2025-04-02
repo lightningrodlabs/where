@@ -26,7 +26,7 @@ export async function createWhereWeServicesMock(devtestAppletId: EntryId): Promi
     //const myWeServicesMock = emptyWeServicesMock;
     const myWeServicesMock = await createDefaultWeServicesMock(devtestAppletId)
 
-    myWeServicesMock.groupProfile = async (groupId): Promise<GroupProfile> => {
+    myWeServicesMock.groupProfile = async (_groupId): Promise<GroupProfile> => {
         return {
             name: "fakeGroupeName",
             icon_src: "https://media.istockphoto.com/id/1412901513/vector/modern-hand-technology-logo-design.jpg?s=612x612&w=0&k=20&c=zZ4Kh-J2BV_oLfx8Tfd65aUFdTNlCvjmWxLOT4sEeVs=",

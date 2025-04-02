@@ -2,19 +2,25 @@
   "compilerOptions": {
     "target": "es2020",
     "module": "es6",
+    "lib": ["es2020", "dom"],
+
     "moduleResolution": "node",
+    "esModuleInterop": true,
+
     "checkJs": false,
     "allowJs": true,
-    "noEmitOnError": true,
-    "lib": ["es2020", "dom"],
-    "strict": false,
-    "esModuleInterop": false,
-    "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
+    "allowSyntheticDefaultImports": true,
+    "noEmitOnError": true,
+
+    "strict": false,
+
     "importHelpers": true,
-    "skipLibCheck": true,
-    "sourceMap": true,
     "inlineSources": true,
-    "declaration": true
+    "sourceMap": true,
+    "declaration": true,
+    "declarationMap": true,
+    "removeComments": true,
+    "skipLibCheck": true
   }
 }

@@ -1,13 +1,5 @@
-import {
-  AppAgentWebsocket, encodeHashToBase64,
-} from "@holochain/client";
-//import { msg } from "@lit/localize";
-
-import {
-  RenderInfo,
-  WeServices,
-} from "@lightningrodlabs/we-applet";
-
+import {AppWebsocket, encodeHashToBase64} from "@holochain/client";
+import {RenderInfo, WeaveServices} from "@theweave/api";
 
 import {AppletViewInfo} from "@ddd-qc/we-utils";
 import {LudothequeStandaloneApp} from "ludotheque";
@@ -16,11 +8,11 @@ import {LudothequeStandaloneApp} from "ludotheque";
 /** */
 export async function createLudoApplet(
   renderInfo: RenderInfo,
-  weServices: WeServices,
+  _weServices: WeaveServices,
 ): Promise<LudothequeStandaloneApp> {
 
-  if (renderInfo.type =="cross-applet-view") {
-    throw Error("cross-applet-view not implemented by Where");
+  if (renderInfo.type == "cross-group-view") {
+    throw Error("cross-group-view not implemented by Where");
   }
 
   const appletViewInfo = renderInfo as unknown as AppletViewInfo;
@@ -28,10 +20,12 @@ export async function createLudoApplet(
   console.log("createLudoApplet() client", appletViewInfo.appletClient);
   console.log("createLudoApplet() thisAppletId", encodeHashToBase64(appletViewInfo.appletHash));
   const mainAppInfo = await appletViewInfo.appletClient.appInfo();
+  if (!mainAppInfo) {
+    throw Promise.reject("Missing Main AppInfo");
+  }
   console.log("createLudoApplet() mainAppInfo", mainAppInfo);
-  const mainAppAgentWs = appletViewInfo.appletClient as AppAgentWebsocket;
-  const mainAppWs = mainAppAgentWs.appWebsocket;
-  /** Create WhereApp */
+  const mainAppWs = appletViewInfo.appletClient as AppWebsocket;
+  /** Create LudothequeStandaloneApp */
   const app = new LudothequeStandaloneApp(
       mainAppWs,
       mainAppInfo.installed_app_id,

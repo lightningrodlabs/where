@@ -1,5 +1,5 @@
 use hdk::prelude::*;
-use holo_hash::EntryHashB64;
+use zome_fn_input::*;
 
 use playset_integrity::*;
 
@@ -15,30 +15,23 @@ pub struct GetInventoryOutput {
   pub spaces: Vec<EntryHashB64>,
 }
 
+fn get_anchor_targets(path: TypedPath, strategy: GetStrategy) -> ExternResult<Vec<EntryHashB64>> {
+  let base = path.path_entry_hash()?;
+  let links = get_links(LinkQuery::try_new(base, PlaysetLinkType::All)?, strategy)?;
+  Ok(links.into_iter()
+    .filter_map(|link| link.target.into_entry_hash())
+    .map(|eh| eh.into())
+    .collect())
+}
+
 #[hdk_extern]
-pub fn get_inventory(_: ()) -> ExternResult<GetInventoryOutput> {
-  /// Get templates
-  let base = get_templates_path().path_entry_hash()?;
-  let links = get_links(base, PlaysetLinkType::All, None)?;
-  let templates = links.iter().map(|link| link.target.clone().into_entry_hash().unwrap().into()).collect();
-  /// Get svg_markers
-  let base = get_svg_marker_path().path_entry_hash()?;
-  let links = get_links(base, PlaysetLinkType::All, None)?;
-  let svg_markers = links.iter().map(|link| link.target.clone().into_entry_hash().unwrap().into()).collect();
-  /// Get emoji_groups
-  let base = get_emoji_group_path().path_entry_hash()?;
-  let links = get_links(base, PlaysetLinkType::All, None)?;
-  let emoji_groups = links.iter().map(|link| link.target.clone().into_entry_hash().unwrap().into()).collect();
-  /// Get spaces
-  let base = get_spaces_path().path_entry_hash()?;
-  let links = get_links(base, PlaysetLinkType::All, None)?;
-  let spaces = links.iter().map(|link| link.target.clone().into_entry_hash().unwrap().into()).collect();
-  /// Done
+pub fn get_inventory(input: ZomeFnInput<()>) -> ExternResult<GetInventoryOutput> {
+  let strategy = input.get_strategy();
   let inventory = GetInventoryOutput {
-    spaces,
-    svg_markers,
-    emoji_groups,
-    templates,
+    templates: get_anchor_targets(get_templates_path()?, strategy)?,
+    svg_markers: get_anchor_targets(get_svg_marker_path()?, strategy)?,
+    emoji_groups: get_anchor_targets(get_emoji_group_path()?, strategy)?,
+    spaces: get_anchor_targets(get_spaces_path()?, strategy)?,
   };
   Ok(inventory)
 }

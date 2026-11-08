@@ -1,7 +1,5 @@
 use hdk::prelude::*;
-use holo_hash::EntryHashB64;
 
-use zome_utils::*;
 use playset_integrity::*;
 
 use crate::export_piece::*;
@@ -26,7 +24,7 @@ pub struct ExportSpaceOutput {
 #[hdk_extern]
 fn export_space(ExportSpaceInput{cell_id, space_eh}: ExportSpaceInput) -> ExternResult<ExportSpaceOutput> {
   let space_eh: EntryHash = space_eh.into();
-  let space_entry = get_entry_from_eh(space_eh)?;
+  let space_entry = get_entry_local_or_network(space_eh)?;
   let space = Space::try_from(space_entry.clone())?;
   /// Export template
   let piece_info = ExportPieceInput {

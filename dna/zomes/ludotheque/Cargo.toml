@@ -9,7 +9,10 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 serde.workspace = true
+holochain_serialized_bytes.workspace = true
 hdk.workspace = true
 zome_utils.workspace = true
+zome_core.workspace = true
+zome_fn_input.workspace = true
 
 ludotheque_integrity = { package = "where_ludotheque_integrity_zome", path = "../ludotheque_integrity" }

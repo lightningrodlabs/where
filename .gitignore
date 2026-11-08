@@ -31,3 +31,6 @@ bin/
 Cargo.lock
 hash_zome*
 package-lock.json
+
+# dev bootstrap server state
+.kitsune2_bootstrap_srv

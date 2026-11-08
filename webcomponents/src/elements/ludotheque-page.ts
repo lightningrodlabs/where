@@ -2,6 +2,7 @@ import {css, html} from "lit";
 import {property, state, query, customElement} from "lit/decorators.js";
 import { localized, msg } from '@lit/localize';
 import {CellId, encodeHashToBase64, EntryHashB64} from "@holochain/client";
+import {GetStrategy} from "@holochain-open-dev/core-types";
 
 import {sharedStyles} from "../sharedStyles";
 import {renderSurface, renderSvgMarker} from "../sharedRender";
@@ -12,7 +13,7 @@ import {Inventory, PlaysetPerspective} from "../viewModels/playset.perspective";
 import {countInventory} from "../viewModels/playset.zvm";
 import {PlaysetEntryType} from "../bindings/playset.types";
 import {LudothequeDvm} from "../viewModels/ludotheque.dvm";
-import {delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
+import {delay, DnaElement, HAPP_ENV, HappEnvType, HAPP_BUILD_MODE, HappBuildModeType} from "@ddd-qc/lit-happ";
 
 import {WhereSpace} from "./where-space";
 import {WhereSpaceDialog} from "../dialogs/where-space-dialog";
@@ -177,7 +178,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   private async init() {
     console.log("ludotheque-page.init() - START");
     /** Get latest public entries from DHT */
-    this._dvm.probeAll();
+    this._dvm.probeAll(GetStrategy.Network);
     await this.probeInventory();
     const playsets = this._dvm.ludothequeZvm.perspective.playsets
     //const templates = this._templates.value;
@@ -225,13 +226,19 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     if (this._canPostInit) {
       this.anchorCreateMenu();
     }
-    await this.probeInventory();
+    /** The perspective already holds every piece we know of: no zome call per update
+     *  (cell-proxy throttles identical calls and the rejection used to surface here). */
+    this.updateInventory(this._dvm.playsetZvm.inventory);
   }
 
 
   /** */
   private async probeInventory() {
-    const inventory = await this._dvm.playsetZvm.probeInventory();
+    this.updateInventory(await this._dvm.playsetZvm.probeInventory());
+  }
+
+  /** Only grow: an inventory read mid-probe can be shorter than what we already show */
+  private updateInventory(inventory: Inventory) {
     const nextCount = countInventory(inventory);
     if (!this._ludoInventory || nextCount > countInventory(this._ludoInventory)) {
       this._ludoInventory = inventory;
@@ -295,7 +302,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
 
   /** */
   async onDumpLogs() {
-    this._dvm.dumpLogs();
+    this._dvm.dumpCallLogs();
   }
 
 
@@ -347,7 +354,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
   /** */
   onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    this._dvm.probeAll();
+    this._dvm.probeAll(GetStrategy.Network);
   }
 
   /** */
@@ -801,7 +808,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     //   `;
     // });
 
-    const isInDev = HAPP_ENV == HappEnvType.Devtest || HAPP_ENV == HappEnvType.DevtestWe || HAPP_ENV == HappEnvType.DevTestHolo;
+    const isInDev = HAPP_BUILD_MODE == HappBuildModeType.Debug;
 
     /** */
     return html`
@@ -890,7 +897,7 @@ export class LudothequePage extends DnaElement<unknown, LudothequeDvm> {
     <where-svg-marker-dialog id="svg-marker-dialog" @svg-marker-added=${(e:any) => console.log(e.detail)}></where-svg-marker-dialog>
     <where-space-dialog id="space-dialog" @space-created=${this.handleSpaceDialogClosing}></where-space-dialog>
     <mwc-dialog id="show-code-dialog" heading="${msg('Library UUID')}" @opened=${this.requestUpdate()}>
-      <mwc-textfield outlined helperPersistent helper="${this.cell.dnaHash}" .value="${this.cell.dnaModifiers.network_seed}" style="min-width: 500px;" type="text" id="show-uuid-field" label="UUID"></mwc-textfield>
+      <mwc-textfield outlined helperPersistent helper="${this.cell.address.dnaId.b64}" .value="${this.cell.dnaModifiers.network_seed}" style="min-width: 500px;" type="text" id="show-uuid-field" label="UUID"></mwc-textfield>
       <mwc-button id="primary-action-button" raised slot="primaryAction" @click=${this.handleShareOk}>${msg('ok')}</mwc-button>
     </mwc-dialog>
   </div>

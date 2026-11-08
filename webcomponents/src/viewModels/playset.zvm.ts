@@ -5,6 +5,8 @@ import {
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {PlaysetProxy} from "../bindings/playset.proxy";
 import {materializeSpace, dematerializeSpace, Inventory, PlaysetPerspective, SpaceMat} from "./playset.perspective";
+import {GetStrategy} from "@holochain-open-dev/core-types";
+import {catchThrottled, isLocal} from "../utils";
 
 
 /** */
@@ -35,21 +37,27 @@ export class PlaysetZvm extends ZomeViewModel {
 
 
   /** */
-  async initializePerspectiveOnline(): Promise<void> {
-    await this.ProbePlaysets();
+  override async initializePerspectiveFromLocal(): Promise<void> {
+    await this.ProbePlaysets(GetStrategy.Local);
   }
 
-  async ProbePlaysets(): Promise<void> {
-    await this.probeSvgMarkers();
-    await this.probeEmojiGroups();
-    await this.probeTemplates();
-    await this.probeSpaces();
+  /** */
+  override async initializePerspectiveFromNetwork(): Promise<void> {
+    await this.ProbePlaysets(GetStrategy.Network);
+  }
+
+  /** */
+  async ProbePlaysets(strategy: GetStrategy = GetStrategy.Local): Promise<void> {
+    await this.probeSvgMarkers(strategy);
+    await this.probeEmojiGroups(strategy);
+    await this.probeTemplates(strategy);
+    await this.probeSpaces(strategy);
   }
 
 
   /** */
-  probeAllInner() {
-    this.ProbePlaysets();
+  override probeAllInner(strategy: GetStrategy) {
+    this.ProbePlaysets(strategy);
   }
 
   /** -- Perspective -- */
@@ -79,12 +87,23 @@ export class PlaysetZvm extends ZomeViewModel {
 
   /** Probe */
 
-  async probeInventory(): Promise<GetInventoryOutput> {
-    return this.zomeProxy.getInventory();
+  async probeInventory(strategy: GetStrategy = GetStrategy.Local): Promise<GetInventoryOutput> {
+    const [throttled, inventory] = await catchThrottled(this.zomeProxy.getInventory({input: null, local: isLocal(strategy)}));
+    return throttled? this.inventory : inventory!;
   }
 
-  async probeTemplates() : Promise<Record<string, Template>> {
-    const templates = await this.zomeProxy.getTemplates();
+  /** Inventory as currently known by the perspective (no zome call) */
+  get inventory(): GetInventoryOutput {
+    return {
+      templates: Object.keys(this._templates),
+      svgMarkers: Object.keys(this._svgMarkers),
+      emojiGroups: Object.keys(this._emojiGroups),
+      spaces: Object.keys(this._spaces),
+    };
+  }
+
+  async probeTemplates(strategy: GetStrategy = GetStrategy.Local) : Promise<Record<string, Template>> {
+    const templates = await this.zomeProxy.getTemplates({input: null, local: isLocal(strategy)});
     for (const t of templates) {
         this._templates[t.hash] = t.content
     }
@@ -92,8 +111,8 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._templates;
   }
 
-  async probeSvgMarkers() : Promise<Record<string, SvgMarker>> {
-    const markers = await this.zomeProxy.getSvgMarkers();
+  async probeSvgMarkers(strategy: GetStrategy = GetStrategy.Local) : Promise<Record<string, SvgMarker>> {
+    const markers = await this.zomeProxy.getSvgMarkers({input: null, local: isLocal(strategy)});
     for (const e of markers) {
       this._svgMarkers[e.hash] = e.content
     }
@@ -101,8 +120,8 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._svgMarkers
   }
 
-  async probeEmojiGroups() : Promise<Record<string, EmojiGroup>> {
-    const groups = await this.zomeProxy.getAllEmojiGroups();
+  async probeEmojiGroups(strategy: GetStrategy = GetStrategy.Local) : Promise<Record<string, EmojiGroup>> {
+    const groups = await this.zomeProxy.getAllEmojiGroups({input: null, local: isLocal(strategy)});
     for (const e of groups) {
       this._emojiGroups[e.hash] = e.content
     }
@@ -110,8 +129,8 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._emojiGroups
   }
 
-  async probeSpaces() : Promise<Record<string, SpaceMat>> {
-    const spaces = await this.zomeProxy.getSpaces();
+  async probeSpaces(strategy: GetStrategy = GetStrategy.Local) : Promise<Record<string, SpaceMat>> {
+    const spaces = await this.zomeProxy.getSpaces({input: null, local: isLocal(strategy)});
     for (const e of spaces) {
       this._spaces[e.hash] = materializeSpace(e.content)
     }
@@ -121,8 +140,8 @@ export class PlaysetZvm extends ZomeViewModel {
 
   /** Fetch */
 
-  async fetchSvgMarker(eh: EntryHashB64): Promise<SvgMarker> {
-    const svgMarkerEntry = await this.zomeProxy.getSvgMarker(eh);
+  async fetchSvgMarker(eh: EntryHashB64, strategy: GetStrategy = GetStrategy.Network): Promise<SvgMarker> {
+    const svgMarkerEntry = await this.zomeProxy.getSvgMarker({input: eh, local: isLocal(strategy)});
     if (svgMarkerEntry === null) {
       Promise.reject("SvgMarker not found at " + eh)
     }
@@ -131,8 +150,8 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._svgMarkers[eh];
   }
 
-  async fetchEmojiGroup(eh: EntryHashB64): Promise<EmojiGroup> {
-    const entry = await this.zomeProxy.getEmojiGroup(eh);
+  async fetchEmojiGroup(eh: EntryHashB64, strategy: GetStrategy = GetStrategy.Network): Promise<EmojiGroup> {
+    const entry = await this.zomeProxy.getEmojiGroup({input: eh, local: isLocal(strategy)});
     if (entry === null) {
       Promise.reject("EmojiGroup not found at " + eh)
     }
@@ -141,8 +160,8 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._emojiGroups[eh];
   }
 
-  async fetchTemplate(eh: EntryHashB64): Promise<Template> {
-    const entry = await this.zomeProxy.getTemplate(eh);
+  async fetchTemplate(eh: EntryHashB64, strategy: GetStrategy = GetStrategy.Network): Promise<Template> {
+    const entry = await this.zomeProxy.getTemplate({input: eh, local: isLocal(strategy)});
     if (entry === null) {
       Promise.reject("Template not found at " + eh)
     }
@@ -151,8 +170,8 @@ export class PlaysetZvm extends ZomeViewModel {
     return this._templates[eh];
   }
 
-  async fetchSpace(eh: EntryHashB64): Promise<SpaceMat> {
-    const entry = await this.zomeProxy.getSpace(eh);
+  async fetchSpace(eh: EntryHashB64, strategy: GetStrategy = GetStrategy.Network): Promise<SpaceMat> {
+    const entry = await this.zomeProxy.getSpace({input: eh, local: isLocal(strategy)});
     if (entry === null) {
       Promise.reject("Space not found at " + eh)
     }

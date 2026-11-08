@@ -8,9 +8,6 @@ edition.workspace = true
 [lib]
 crate-type = ["cdylib", "rlib"]
 
-
 [dependencies]
-#hc_zome_profiles_integrity = {git = "https://github.com/holochain-open-dev/profiles", version = "0.2.0" }
-hc_zome_profiles_integrity = "=0.2.0"
-
 hdi.workspace = true
+hc_zome_profiles_integrity.workspace = true

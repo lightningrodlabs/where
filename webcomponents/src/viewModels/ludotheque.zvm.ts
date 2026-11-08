@@ -2,6 +2,8 @@ import {CellId, EntryHashB64} from "@holochain/client";
 import {Playset} from "../bindings/ludotheque.types";
 import {LudothequeProxy} from "../bindings/ludotheque.proxy";
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
+import {GetStrategy} from "@holochain-open-dev/core-types";
+import {isLocal} from "../utils";
 
 
 /** */
@@ -29,14 +31,18 @@ export class LudothequeZvm extends ZomeViewModel {
 
 
   /** */
-  async initializePerspectiveOnline(): Promise<void> {
-    await this.probePlaysets();
+  override async initializePerspectiveFromLocal(): Promise<void> {
+    await this.probePlaysets(GetStrategy.Local);
   }
 
+  /** */
+  override async initializePerspectiveFromNetwork(): Promise<void> {
+    await this.probePlaysets(GetStrategy.Network);
+  }
 
   /** */
-  probeAllInner() {
-    this.probePlaysets();
+  override probeAllInner(strategy: GetStrategy) {
+    this.probePlaysets(strategy);
   }
 
 
@@ -60,11 +66,12 @@ export class LudothequeZvm extends ZomeViewModel {
 
   /** Probe */
 
-  async probePlaysets(): Promise<Record<string, Playset>> {
-    const playsets = await this.zomeProxy.getAllPlaysets();
+  async probePlaysets(strategy: GetStrategy = GetStrategy.Local): Promise<Record<string, Playset>> {
+    const playsets = await this.zomeProxy.getAllPlaysets({input: null, local: isLocal(strategy)});
     for (const e of playsets) {
       this._playsets[e.hash] = e.content
     }
+    this.notifySubscribers();
     return this._playsets;
   }
 

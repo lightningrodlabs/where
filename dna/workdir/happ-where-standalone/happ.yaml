@@ -1,5 +1,5 @@
 ---
-manifest_version: "1"
+manifest_version: "0"
 name: where-standalone
 description: Standalone happ for Where for testing purpose
 roles:
@@ -8,5 +8,5 @@ roles:
       strategy: create
       deferred: true
     dna:
-      bundled: "../../../artifacts/where.dna"
+      path: "../../../artifacts/where.dna"
       clone_limit: 0

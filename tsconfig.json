@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "es2020",
-    "module": "es6",
+    "target": "ES2022",
+    "module": "ES2022",
     "moduleResolution": "node",
     "checkJs": false,
     "allowJs": true,
@@ -11,6 +11,7 @@
     "esModuleInterop": false,
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
+    "useDefineForClassFields": false,
     "importHelpers": true,
     "skipLibCheck": true,
     "sourceMap": true,

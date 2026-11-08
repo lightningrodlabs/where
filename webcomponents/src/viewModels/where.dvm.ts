@@ -8,14 +8,17 @@ import {
   dematerializeSession, HereInfo,
 } from "./where.perspective";
 import {DnaViewModel, ZomeViewModel} from "@ddd-qc/lit-happ";
+import {AgentId} from "@ddd-qc/cell-proxy";
+import {catchThrottled} from "../utils";
 import {PlaysetZvm} from "./playset.zvm";
 import {WhereZvm} from "./where.zvm";
 import {dematerializeSpace, SpaceMat} from "./playset.perspective";
 import {Space} from "../bindings/playset.types";
 import {Message, MessageType, PlacementSession, SignalPayload, WHERE_DEFAULT_ROLE_NAME} from "../bindings/where.types";
-import {AgentPubKeyB64, EntryHashB64, AppSignal, AppSignalCb} from "@holochain/client";
-import {ProfilesZvm} from "@ddd-qc/profiles-dvm";
-import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
+import {AgentPubKeyB64, EntryHashB64, Signal, SignalCb, SignalType} from "@holochain/client";
+import {GetStrategy} from "@holochain-open-dev/core-types";
+import {ProfilesAltZvm} from "@ddd-qc/profiles-dvm";
+import {WAL} from "@theweave/api";
 
 
 /** */
@@ -39,13 +42,13 @@ export class WhereDvm extends DnaViewModel {
   /** -- DnaViewModel Interface -- */
 
   static readonly DEFAULT_BASE_ROLE_NAME = WHERE_DEFAULT_ROLE_NAME;
-  static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesZvm]
-  readonly signalHandler?: AppSignalCb = this.handleSignal;
+  static readonly ZVM_DEFS = [PlaysetZvm, WhereZvm, ProfilesAltZvm]
+  readonly signalHandler?: SignalCb = this.handleSignal;
 
   /** QoL Helpers */
   get playsetZvm(): PlaysetZvm { return this.getZomeViewModel(PlaysetZvm.DEFAULT_ZOME_NAME) as PlaysetZvm}
   get whereZvm(): WhereZvm { return this.getZomeViewModel(WhereZvm.DEFAULT_ZOME_NAME) as WhereZvm}
-  get profilesZvm(): ProfilesZvm { return this.getZomeViewModel(ProfilesZvm.DEFAULT_ZOME_NAME) as ProfilesZvm}
+  get profilesZvm(): ProfilesAltZvm { return this.getZomeViewModel(ProfilesAltZvm.DEFAULT_ZOME_NAME) as ProfilesAltZvm}
 
 
   /** -- Perspective -- */
@@ -80,12 +83,16 @@ export class WhereDvm extends DnaViewModel {
   /** -- Signaling -- */
 
   /** */
-  handleSignal(signal: AppSignal) {
+  handleSignal(signal: Signal) {
     console.log("Received Signal", signal);
-    if (signal.zome_name === ProfilesZvm.DEFAULT_ZOME_NAME) {
+    if (signal.type !== SignalType.App) {
       return;
     }
-    const signalPayload = signal.payload as SignalPayload;
+    const appSignal = signal.value;
+    if (appSignal.zome_name !== WhereZvm.DEFAULT_ZOME_NAME) {
+      return;
+    }
+    const signalPayload = appSignal.payload as SignalPayload;
     /* Update agent's presence stat */
     this.updatePresence(signalPayload.from)
     /* Send pong response */
@@ -93,8 +100,8 @@ export class WhereDvm extends DnaViewModel {
       console.log("PONGING ", signalPayload.from)
       const pong: SignalPayload = {
         maybeSpaceHash: signalPayload.maybeSpaceHash,
-        from: this._cellProxy.cell.agentPubKey,
-        message: {type: MessageType.Pong, content: this._cellProxy.cell.agentPubKey}
+        from: this._cellProxy.cell.address.agentId.b64,
+        message: {type: MessageType.Pong, content: this._cellProxy.cell.address.agentId.b64}
       };
       this.notifyPeers(pong, [signalPayload.from])
     }
@@ -178,11 +185,16 @@ export class WhereDvm extends DnaViewModel {
     // };
     console.log(`NOTIFYING "${signal.message.type}" to`, peers)
     /* Skip if no recipients or sending to self only */
-    if (!peers || peers.length == 1 && peers[0] === this._cellProxy.cell.agentPubKey) {
+    if (!peers || peers.length == 1 && peers[0] === this._cellProxy.cell.address.agentId.b64) {
       console.log("notifyPeers() aborted: No recipients for notification")
       return;
     }
-    return this.whereZvm.notifyPeers(signal, peers);
+    /** Answering two signals from the same peer in a row sends identical Pongs within
+     *  cell-proxy's 200ms throttle window; the dropped one is not an error. */
+    const [throttled] = await catchThrottled(this.whereZvm.notifyPeers(signal, peers));
+    if (throttled) {
+      console.log(`notifyPeers() "${signal.message.type}" dropped (throttled)`);
+    }
   }
 
 
@@ -190,21 +202,27 @@ export class WhereDvm extends DnaViewModel {
   async pingPeers(maybeSpaceHash: EntryHashB64 | null, peers: Array<AgentPubKeyB64>) {
     const ping: SignalPayload = {
       maybeSpaceHash: maybeSpaceHash? maybeSpaceHash : undefined,
-      from: this._cellProxy.cell.agentPubKey,
-      message: {type: MessageType.Ping, content: this._cellProxy.cell.agentPubKey}};
+      from: this._cellProxy.cell.address.agentId.b64,
+      message: {type: MessageType.Ping, content: this._cellProxy.cell.address.agentId.b64}};
     // console.log({signal})
     this.notifyPeers(ping, peers);
   }
 
 
+  /** Agents with a presence not older than 5 minutes (lit-happ DnaViewModel contract) */
+  override get livePeers(): AgentId[] {
+    return this.allCurrentOthers().map((b64) => new AgentId(b64));
+  }
+
+
   /** */
   allCurrentOthers(): AgentPubKeyB64[] {
-    const agents = this.profilesZvm.getAgents();
+    const agents = this.profilesZvm.perspective.agents.map((a) => a.b64);
     //console.log({agents})
     //console.log({presences: this._agentPresences})
     const currentTime: number = Math.floor(Date.now() / 1000);
     const keysB64 = agents
-      .filter((key)=> key != this.cell.agentPubKey)
+      .filter((key)=> key != this.cell.address.agentId.b64)
       .filter((key)=> {
         const lastPingTime = this._agentPresences[key];
         if (!lastPingTime) return false;
@@ -222,24 +240,54 @@ export class WhereDvm extends DnaViewModel {
     if (zvm.zomeName !== this.playsetZvm.zomeName) {
       return;
     }
-    this.probeAllPlays();
+    /** Only new spaces need a Play built; session changes arrive as signals.
+     *  (Every piece probed during init notifies, which used to re-probe all plays each time.) */
+    const missing = Object.keys(this.playsetZvm.perspective.spaces).filter((eh) => !this._plays[eh]);
+    if (missing.length == 0) {
+      return;
+    }
+    /*await*/ this.probeAllPlays();
   }
 
+  private _playsProbe?: Promise<Record<string, Play>>;
+  private _playsProbeNext?: GetStrategy;
+
   /** */
-  probeAllInner() {
-    console.log(`${this.baseRoleName}.probeAllInner()...`);
-    super.probeAllInner();
+  override probeAllInner(strategy: GetStrategy) {
+    console.log(`${this.baseRoleName}.probeAllInner()...`, strategy);
+    super.probeAllInner(strategy);
     console.log(`${this.baseRoleName}.probeAllInner() Done.`);
     //console.log(`Found ${Object.keys(this.whereZvm.perspective.manifests).length} / ${Object.keys(this.perspective.plays).length}`)
   }
 
 
   /** For each known space, look for an up-to-date Play, otherwise construct it? */
-  async probeAllPlays() : Promise<Record<string, Play>> {
-    console.log("whereDvm.probeAllPlays()");
+  async probeAllPlays(strategy: GetStrategy = GetStrategy.Local) : Promise<Record<string, Play>> {
+    /** Coalesce: the app, the dashboard and zvmChanged() all ask for this around init, and
+     *  concurrent runs fire identical zome calls that cell-proxy throttles (rejecting them). */
+    if (this._playsProbe) {
+      this._playsProbeNext = strategy;
+      return this._playsProbe;
+    }
+    this._playsProbe = this.probeAllPlaysInner(strategy).finally(() => this._playsProbe = undefined);
+    const plays = await this._playsProbe;
+    if (this._playsProbeNext !== undefined) {
+      const next = this._playsProbeNext;
+      this._playsProbeNext = undefined;
+      return this.probeAllPlays(next);
+    }
+    return plays;
+  }
+
+  /** */
+  private async probeAllPlaysInner(strategy: GetStrategy) : Promise<Record<string, Play>> {
+    console.log("whereDvm.probeAllPlays()", strategy);
     const spaces = this.playsetZvm.perspective.spaces;
+    /** Hidden spaces are one list for all plays: probe it once, not once per space
+     *  (cell-proxy throttles identical calls fired within 200ms). */
+    await this.whereZvm.probeVisibilityForAll(strategy);
     for (const spaceEh of Object.keys(spaces)) {
-      const play = await this.probePlay(spaceEh);
+      const play = await this.probePlay(spaceEh, strategy, false);
       /** Add or update play to perspective */
       if (play) {
         this.addPlay(spaceEh, play);
@@ -251,8 +299,8 @@ export class WhereDvm extends DnaViewModel {
 
 
   /** Construct Play from all related DNA entries */
-  async probePlay(spaceEh: EntryHashB64): Promise<Play | undefined> {
-    const manifest = await this.whereZvm.probeManifest(spaceEh);
+  async probePlay(spaceEh: EntryHashB64, strategy: GetStrategy = GetStrategy.Local, probeVisibility = true): Promise<Play | undefined> {
+    const manifest = await this.whereZvm.probeManifest(spaceEh, strategy, probeVisibility);
     if (!manifest) {
       //return Promise.reject("No manifest found for requested Play");
       return undefined;
@@ -266,8 +314,8 @@ export class WhereDvm extends DnaViewModel {
     /* - Sessions */
     let sessions: Record<string, EntryHashB64> = {};
     for (const sessionEh of manifest.sessionEhs) {
-      // const session = this.whereZvm.getSession(sessionEh);
-      const session = await this.whereZvm.probeSession(sessionEh);
+      const [throttled, probed] = await catchThrottled(this.whereZvm.probeSession(sessionEh, strategy));
+      const session = throttled? this.whereZvm.getSession(sessionEh) : probed;
       if (!session) {
         console.warn("Session not found in whereZvm", sessionEh, spaceEh);
         continue;
@@ -355,7 +403,7 @@ export class WhereDvm extends DnaViewModel {
     /** Notify peers */
     await this.notifyPeers({
         maybeSpaceHash: spaceEh,
-        from: this._cellProxy.cell.agentPubKey,
+        from: this._cellProxy.cell.address.agentId.b64,
         message: {type: "NewSession", content: [sessionEh, dematerializeSession(session, spaceEh)],
         }},
       this.allCurrentOthers());
@@ -374,7 +422,7 @@ export class WhereDvm extends DnaViewModel {
     const session = this.whereZvm.getSession(sessionEh)!;
     let idx = 0;
     for (const locInfo of session.locations) {
-      if (locInfo && locInfo.authorPubKey === this._cellProxy.cell.agentPubKey) {
+      if (locInfo && locInfo.authorPubKey === this._cellProxy.cell.address.agentId.b64) {
         await this.deleteLocation(spaceEh, idx);
       }
       idx += 1;
@@ -497,7 +545,7 @@ export class WhereDvm extends DnaViewModel {
   /** -- Misc. -- */
 
   /** */
-  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: HrlWithContext[]) {
+  async updateLocation(spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: WAL[]) {
     console.log("whereDvm.updateLocation()", attachables);
     const manifest = this.whereZvm.getManifest(spaceEh);
     const sessionEh = this.getCurrentSession(spaceEh);
@@ -509,7 +557,7 @@ export class WhereDvm extends DnaViewModel {
     const newLocInfo = await this.whereZvm.updateLocation(sessionEh, spaceEh, locIdx, c, tag, emoji, attachables);
     const entry = dematerializeHere(newLocInfo.location);
     let message: Message = {type: MessageType.UpdateHere, content: [locIdx, newLocInfo.linkAh, entry]};
-    let signal: SignalPayload = {maybeSpaceHash: spaceEh, from: this._cellProxy.cell.agentPubKey, message};
+    let signal: SignalPayload = {maybeSpaceHash: spaceEh, from: this._cellProxy.cell.address.agentId.b64, message};
     await this.notifyPeers(signal, this.allCurrentOthers());
   }
 
@@ -525,7 +573,7 @@ export class WhereDvm extends DnaViewModel {
     const locInfo = await this.whereZvm.deleteLocation(sessionEh, idx);
     await this.notifyPeers({
         maybeSpaceHash: spaceEh,
-        from: this._cellProxy.cell.agentPubKey,
+        from: this._cellProxy.cell.address.agentId.b64,
         message: {type: MessageType.DeleteHere, content: [locInfo.location.sessionEh, locInfo.linkAh],
         }},
       this.allCurrentOthers());
@@ -540,10 +588,10 @@ export class WhereDvm extends DnaViewModel {
     const entry = dematerializeHere(location)
     this.notifyPeers({
         maybeSpaceHash: spaceEh,
-        from: this._cellProxy.cell.agentPubKey,
+        from: this._cellProxy.cell.address.agentId.b64,
         message: {
           type: MessageType.NewHere,
-          content: {entry, linkAh, author: this._cellProxy.cell.agentPubKey}
+          content: {entry, linkAh, author: this._cellProxy.cell.address.agentId.b64}
         }
       }
       , this.allCurrentOthers());

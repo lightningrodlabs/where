@@ -1,7 +1,7 @@
 ---
-manifest_version: "1"
-name: Where Official
+manifest_version: "0"
+name: Where
 ui:
-  bundled: "../../artifacts/where-webapp-ui.zip"
-happ_manifest:
-  bundled: "../../artifacts/where.happ"
+  path: "../../artifacts/where-webapp-ui.zip"
+happ:
+  path: "../../artifacts/where.happ"

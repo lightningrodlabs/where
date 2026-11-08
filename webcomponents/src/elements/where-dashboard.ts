@@ -2,15 +2,16 @@ import {css, html} from "lit";
 import {property, state, customElement} from "lit/decorators.js";
 import {consume} from "@lit/context";
 
-import {CreatableType, Hrl, WeClient} from "@lightningrodlabs/we-applet";
+import {CreatableType, Hrl} from "@theweave/api";
+import {GetStrategy} from "@holochain-open-dev/core-types";
 
 import {sharedStyles} from "../sharedStyles";
 
-import {decodeHashFromBase64, EntryHash, EntryHashB64} from "@holochain/client";
+import {decodeHashFromBase64, EntryHash, EntryHashB64, HoloHashMap} from "@holochain/client";
 
-import {delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
-import {Dictionary} from "@ddd-qc/cell-proxy";
-import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
+import {delay, DnaElement, HAPP_ENV, HappEnvType, HAPP_BUILD_MODE, HappBuildModeType} from "@ddd-qc/lit-happ";
+import {MyDictionary as Dictionary} from "@ddd-qc/cell-proxy";
+import {CellsForRole} from "@ddd-qc/cell-proxy";
 
 import {renderSurface} from "../sharedRender";
 import {prefix_canvas} from "../templates";
@@ -55,8 +56,9 @@ import "@material/mwc-button";
 import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
-import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
+import {AppletInfo} from "@theweave/api";
 import {Profile as  ProfileMat} from "@ddd-qc/profiles-dvm";
+import {UNKNOWN_PROFILE} from "../utils";
 import {threadsAppletContext} from "../viewModels/happDef";
 import {weClientContext} from "../contexts";
 import {getAppletsInfosAndGroupsProfiles} from "./hrl-link";
@@ -160,7 +162,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     fields['color'] = color;
     fields['avatar'] = avatar;
     try {
-      if (this._dvm.profilesZvm.getProfile(this._dvm.profilesZvm.cell.agentPubKey)) {
+      if (this._dvm.profilesZvm.getMyProfile()) {
         await this._dvm.profilesZvm.updateMyProfile({nickname, fields});
       } else {
         await this._dvm.profilesZvm.createMyProfile({nickname, fields});
@@ -172,17 +174,21 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   }
 
 
-  private _appletsInfos: ReadonlyMap<EntryHash, AppletInfo>;
+  private _appletsInfos: HoloHashMap<EntryHash, AppletInfo>;
 
   /** After first render only */
   async firstUpdated() {
     console.log("<where-dashboard> firstUpdated()");
-    await this._dvm.probeAllPlays();
+    try {
+      await this._dvm.probeAllPlays();
+    } catch (e) {
+      console.warn("<where-dashboard> probeAllPlays() failed, showing what the perspective has", e);
+    }
     /** Get attachmentInfos */
     if (this.weServices) {
       const {groupsProfiles, appletsInfos} = await getAppletsInfosAndGroupsProfiles(
-        this.weServices as unknown as WeClient,
-        [decodeHashFromBase64(this.weServices.appletId)],
+        this.weServices,
+        this.weServices.appletIds.map((id) => decodeHashFromBase64(id)),
       );
       this._appletsInfos = appletsInfos;
     }
@@ -244,7 +250,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    this._dvm.probeAll();
+    this._dvm.probeAll(GetStrategy.Network);
   }
 
 
@@ -276,7 +282,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const newPlayInput = e.detail;
     const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.address.agentId.b64, message: {type: 'NewSpace', content: spaceEh}};
     this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
     /* */
     await this.selectPlay(spaceEh);
@@ -322,7 +328,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const template = e.detail as Template;
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
-      {from: this._dvm.cell.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      {from: this._dvm.cell.address.agentId.b64, message: {type:"NewTemplate", content: eh}},
       this._dvm.allCurrentOthers(),
     )
   }
@@ -381,7 +387,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
     //   this._threadAttachmentType = att;
     //   return att;
     // }
-    console.warn("Did not find 'thread' attachmentType in Threads' WeServices");
+    console.warn("Did not find 'thread' attachmentType in Threads' WeaveServices");
     return undefined;
   }
 
@@ -410,7 +416,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
      /* -- Grab things from the perspective -- */
 
-    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.cell.agentPubKey);
+    this._myProfile = this._dvm.profilesZvm.getMyProfile() ?? UNKNOWN_PROFILE;
 
 
     /* -- Build elements -- */
@@ -461,7 +467,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
         //       </div>
         //         <sl-icon-button .src=${attType.icon_src}
         //                         @click=${async () => {
-        //                           const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
+        //                           const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.address.dnaId.b64), decodeHashFromBase64(spaceEh)];
         //                           console.log("Create/Open attachment:", spaceHrl);
         //                           const context = {
         //                             subjectType: PlaysetEntryType.Space,
@@ -491,8 +497,8 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
             <mwc-icon class="copy-icon"
                       style="cursor:pointer;"
                       @click=${ async () => {
-                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.dnaHash), decodeHashFromBase64(spaceEh)];
-                        this.weServices.hrlToClipboard({hrl: spaceHrl, context: null});
+                        const spaceHrl: Hrl = [decodeHashFromBase64(this.cell.address.dnaId.b64), decodeHashFromBase64(spaceEh)];
+                        this.weServices.assets.assetToPocket({hrl: spaceHrl, context: null});
                       }}
             >content_copy</mwc-icon>` :html``}
             <div slot="footer" style="display: ${attIcons.length > 0? "block" : "none"}">
@@ -503,7 +509,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       }
     );
 
-    const isInDev = HAPP_ENV == HappEnvType.Devtest || HAPP_ENV == HappEnvType.DevtestWe || HAPP_ENV == HappEnvType.DevTestHolo;
+    const isInDev = HAPP_BUILD_MODE == HappBuildModeType.Debug;
 
 
       /** Render all */
@@ -513,7 +519,7 @@ export class WhereDashboard extends DnaElement<WhereDnaPerspective, WhereDvm> {
       <div slot="title">Where</div>
       ${isInDev? html`
         <sl-tooltip slot="navigationIcon" content="Dump logs" placement="bottom" distance="4">
-            <mwc-icon-button id="dump-signals-button" icon="bug_report" @click=${() => this._dvm.dumpLogs()} ></mwc-icon-button>
+            <mwc-icon-button id="dump-signals-button" icon="bug_report" @click=${() => this._dvm.dumpCallLogs()} ></mwc-icon-button>
         </sl-tooltip>
       ` : html``}
       <sl-tooltip slot="actionItems" content=${msg('Sync with network')} placement="bottom" distance="4">

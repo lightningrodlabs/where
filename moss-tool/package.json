@@ -1,0 +1,23 @@
+{
+  "name": "moss-tool",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "build": "vite build",
+    "build:watch": "vite build --watch",
+    "dist": "rm -rf dist && HAPP_BUILD_MODE=Retail npm run build",
+    "devtest": "UI_PORT=$(port) HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run new-sandbox\" \"sleep 5 && npm run start:ui\"",
+    "new-sandbox": "RUST_LOG=warn WASM_LOG=debug echo \"pass\" | hc s --holochain-path holochain --piped -f=$HC_ADMIN_PORT generate ../artifacts/where.happ --run=$HC_APP_PORT -a where-moss-tool",
+    "start:ui": "vite --port $UI_PORT --clearScreen false"
+  },
+  "devDependencies": {
+    "concurrently": "^5.3.0",
+    "new-port-cli": "^1.0.0"
+  },
+  "dependencies": {
+    "@mdi/js": "^7.2.0",
+    "@where/elements": "file:../webcomponents",
+    "@where/app": "file:../webapp",
+    "ludotheque": "file:../webapp.ludotheque"
+  }
+}

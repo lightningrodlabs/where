@@ -3,7 +3,7 @@ import {customElement, state} from "lit/decorators.js";
 import {localized, msg} from '@lit/localize';
 import {
   AdminWebsocket, AgentPubKeyB64,
-  AppSignal,
+  Signal,
   AppWebsocket,
   encodeHashToBase64,
   EntryHash,
@@ -16,25 +16,23 @@ import {
   BaseRoleName,
   CellsForRole, CloneId,
   delay,
-  Dictionary, DnaViewModel, DvmDef,
-  HAPP_ELECTRON_API,
-  HAPP_ENV,
+  MyDictionary as Dictionary, DnaViewModel, DvmDef,
   HappElement,
-  HappEnvType,
   HCL,
-  HvmDef, pascal
+  HcConnectionOptions,
+  HvmDef, pascal, EntryId,
 } from "@ddd-qc/lit-happ";
 import {
-  DEFAULT_WHERE_DEF, filesAppletContext,
-  LudothequeDvm, PlaysetEntryType, threadsAppletContext,
-  WHERE_DEFAULT_COORDINATOR_ZOME_NAME, WHERE_DEFAULT_INTEGRITY_ZOME_NAME,
+  DEFAULT_WHERE_DEF,
+  LudothequeDvm, PlaysetEntryType,
+  WHERE_DEFAULT_COORDINATOR_ZOME_NAME,
   WHERE_DEFAULT_ROLE_NAME,
-  WhereDvm
+  WhereDvm, Inventory, weClientContext,
 } from "@where/elements";
 import {setLocale} from "./localization";
 
 import {HC_ADMIN_PORT, HC_APP_PORT} from "./globals"
-import {Inventory} from "@where/elements/dist/viewModels/playset.perspective";
+import {GetStrategy} from "@holochain-open-dev/core-types";
 
 import "@shoelace-style/shoelace/dist/components/card/card.js";
 
@@ -42,12 +40,10 @@ import "@material/mwc-circular-progress";
 import "@material/mwc-button";
 import "@material/mwc-dialog";
 import {Dialog} from "@material/mwc-dialog";
-import {AppletId, AppletView, WeServices} from "@lightningrodlabs/we-applet";
+import {AppletId, AppletView, WeaveServices, AppletInfo} from "@theweave/api";
 import {ContextProvider} from "@lit/context";
-import {AppletInfo} from "@lightningrodlabs/we-applet/dist/types";
-import {AttachableViewInfo, WeServicesEx} from "@ddd-qc/we-utils";
+import {AssetViewInfo, WeServicesEx} from "@ddd-qc/we-utils";
 import {Profile as ProfileMat, ProfilesDvm} from "@ddd-qc/profiles-dvm";
-import {weClientContext} from "@where/elements/dist/contexts";
 
 /** */
 export interface ProfileInfo {
@@ -113,17 +109,27 @@ export class WhereApp extends HappElement {
       private _adminWs?: AdminWebsocket,
       private _canAuthorizeZfns?: boolean,
       appId?: InstalledAppId,
-      weServices?: WeServices,
+      weServices?: WeaveServices,
       thisAppletId?: AppletId,
       public appletView?: AppletView,
       profileInfo?: ProfileInfo,
   ) {
-    super(appWs? appWs : HC_APP_PORT, appId);
+    /** Standalone: connect through the app port and let the admin websocket authorize zome calls.
+     *  In Moss: the app websocket is provided and Moss handles authorization. */
+    const adminUrl = _adminWs
+      ? undefined
+      : HC_ADMIN_PORT
+        ? new URL(`ws://localhost:${HC_ADMIN_PORT}`)
+        : undefined;
+    const options: HcConnectionOptions = appWs
+      ? {socket: appWs, timeout: 20 * 1000}
+      : {port: HC_APP_PORT, timeout: 20 * 1000, adminUrl};
+    super(options, undefined, appId);
     if (_canAuthorizeZfns == undefined) {
       this._canAuthorizeZfns = true;
     }
     if (weServices) {
-      this._weServices = new WeServicesEx(weServices, thisAppletId);
+      this._weServices = new WeServicesEx(weServices, thisAppletId? [new EntryId(thisAppletId)] : []);
       console.log(`\t\tProviding context "${weClientContext}" | in host `, this._weServices, this);
       this._weProvider = new ContextProvider(this, weClientContext, this._weServices);
     }
@@ -135,13 +141,13 @@ export class WhereApp extends HappElement {
 
   /** Create a Profiles DVM out of a different happ */
   async createWeProfilesDvm(profileInfo?: ProfileInfo): Promise<void> {
-    const profilesAppInfo = await profileInfo.profilesProxy.appInfo({installed_app_id: profileInfo.profilesAppId});
+    const profilesAppInfo = await profileInfo.profilesProxy.appInfo();
     const profilesDef: DvmDef = {ctor: ProfilesDvm, baseRoleName: profileInfo.profilesBaseRoleName, isClonable: false};
     const cell_infos = Object.values(profilesAppInfo.cell_info);
     console.log("createProfilesDvm() cell_infos:", cell_infos);
     /** Create Profiles DVM */
         //const profilesZvmDef: ZvmDef = [ProfilesZvm, profilesZomeName];
-    const dvm: DnaViewModel = new profilesDef.ctor(this, profileInfo.profilesProxy, new HCL(profileInfo.profilesAppId, profileInfo.profilesBaseRoleName, profileInfo.profilesCloneId));
+    const dvm: DnaViewModel = new profilesDef.ctor(this, profileInfo.profilesProxy, new HCL(profileInfo.profilesAppId, profileInfo.profilesBaseRoleName, profileInfo.profilesCloneId), false);
     console.log("createProfilesDvm() dvm", dvm);
     await this.setupWeProfilesDvm(dvm as ProfilesDvm, encodeHashToBase64(profilesAppInfo.agent_pub_key));
   }
@@ -180,7 +186,7 @@ export class WhereApp extends HappElement {
   /** -- Methods -- */
 
   /** */
-  handleSignal(sig: AppSignal) {
+  handleSignal(sig: Signal) {
     //console.log("<where-app> handleSignal()", sig);
     this.appProxy.onSignal(sig);
   }
@@ -189,7 +195,7 @@ export class WhereApp extends HappElement {
   /** */
   async fetchAppInfo(appletHashs: EntryHash[]) {
     if (!this._weServices) {
-      console.warn("fetchAppInfo() Aborted. WeServices not available.")
+      console.warn("fetchAppInfo() Aborted. WeaveServices not available.")
       return;
     }
     for (const appletHash of appletHashs) {
@@ -200,42 +206,14 @@ export class WhereApp extends HappElement {
 
 
   /** */
-  async hvmConstructed() {
+  override async hvmConstructed() {
     console.log("hvmConstructed()", this._adminWs, this._canAuthorizeZfns)
-    /** Authorize all zome calls */
-    if (!this._adminWs && this._canAuthorizeZfns) {
-      this._adminWs = await AdminWebsocket.connect(new URL(`ws://localhost:${HC_ADMIN_PORT}`));
-      console.log("hvmConstructed() connect called", this._adminWs);
-    }
+    /** Authorize all zome calls (HappElement already did it with its own admin websocket if one was derived from HC_ADMIN_PORT) */
     if (this._adminWs && this._canAuthorizeZfns) {
       await this.hvm.authorizeAllZomeCalls(this._adminWs);
       console.log("*** Zome call authorization complete");
-    } else {
-      if (!this._canAuthorizeZfns) {
-        console.warn("No adminWebsocket provided (Zome call authorization done)")
-      } else {
-        console.log("Zome call authorization done externally")
-
-      }
     }
-    /** Send dnaHash to electron */
-    if (HAPP_ENV == HappEnvType.Electron) {
-      const whereDnaHashB64 = this.hvm.getDvm(WhereDvm.DEFAULT_BASE_ROLE_NAME)!.cell.dnaHash;
-      //let _reply = HAPP_ELECTRON_API.dnaHashSync(whereDnaHashB64);
-      //const ipc = window.require('electron').ipcRenderer;
-      //const ipc = window.require('electron').ipcRenderer;
-      let _reply = HAPP_ELECTRON_API.sendSync('dnaHash', whereDnaHashB64);
-    }
-
-    /** Probe EntryDefs */
-    const allAppEntryTypes = await this.whereDvm.fetchAllEntryDefs();
-    console.log("happInitialized(), allAppEntryTypes", allAppEntryTypes);
-    console.log(`${WHERE_DEFAULT_COORDINATOR_ZOME_NAME} entries`, allAppEntryTypes[WHERE_DEFAULT_COORDINATOR_ZOME_NAME]);
-    if (allAppEntryTypes[WHERE_DEFAULT_COORDINATOR_ZOME_NAME].length == 0) {
-      console.warn(`No entries found for ${WHERE_DEFAULT_COORDINATOR_ZOME_NAME}`);
-    } else {
-      this._hasHolochainFailed = false;
-    }
+    this._hasHolochainFailed = false;
 
     // /** Probe we-applets */
     // if (this._weServices) {
@@ -263,16 +241,10 @@ export class WhereApp extends HappElement {
   }
 
 
-  /** */
-  //async perspectiveInitializedOffline(): Promise<void> {}
-
-
-  /** */
-  async perspectiveInitializedOnline(): Promise<void> {
-    console.log("<where-app>.perspectiveInitializedOnline()");
-    /** Load My profile */
-    const maybeMyProfile = this.whereDvm.profilesZvm.perspective.profiles[this.whereDvm.cell.agentPubKey]
-    console.log("<where-app>.perspectiveInitializedOnline() maybeMyProfile", maybeMyProfile);
+  /** Check for my profile and set locale */
+  private loadMyProfile(): void {
+    const maybeMyProfile = this.whereDvm.profilesZvm.getMyProfile();
+    console.log("<where-app>.loadMyProfile() maybeMyProfile", maybeMyProfile);
     if (maybeMyProfile) {
       const maybeLang = maybeMyProfile.fields['lang'];
       if (maybeLang) {
@@ -280,19 +252,75 @@ export class WhereApp extends HappElement {
       }
       this._hasStartingProfile = true;
     }
+  }
 
-    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
 
+  /** Entry defs are queried during local init: use them to check the conductor serves the Where DNA */
+  private checkEntryDefs(): void {
+    const allAppEntryTypes = this.whereDvm.allEntryDefs;
+    console.log("<where-app> allAppEntryTypes", allAppEntryTypes);
+    const whereDefs = allAppEntryTypes[WHERE_DEFAULT_COORDINATOR_ZOME_NAME];
+    if (!whereDefs || Object.keys(whereDefs).length == 0) {
+      console.warn(`No entries found for ${WHERE_DEFAULT_COORDINATOR_ZOME_NAME}`);
+      this._hasHolochainFailed = true;
+    }
+  }
+
+
+  /** Local data is available: render right away */
+  override async perspectiveInitializedFromLocal(): Promise<void> {
+    console.log("<where-app>.perspectiveInitializedFromLocal()");
+    this.checkEntryDefs();
+    this.loadMyProfile();
+    try {
+      await this.whereDvm.probeAllPlays(GetStrategy.Local);
+      this._whereInventory = await this.whereDvm.playsetZvm.probeInventory(GetStrategy.Local);
+    } catch (e) {
+      console.warn("<where-app> local probe failed, rendering what the perspective has", e);
+    }
     /** Done */
     this._loaded = true;
+  }
+
+
+  /** Then refresh everything from the network */
+  override async perspectiveInitializedFromNetwork(): Promise<void> {
+    console.log("<where-app>.perspectiveInitializedFromNetwork()");
+    try {
+      await this.hvm.initializePerspectiveFromNetwork();
+      await this.whereDvm.probeAllPlays(GetStrategy.Network);
+      this._whereInventory = await this.whereDvm.playsetZvm.probeInventory(GetStrategy.Network);
+    } catch (e) {
+      console.warn("<where-app> network probe failed", e);
+    }
+    if (!this._hasStartingProfile) {
+      this.loadMyProfile();
+    }
+    this.requestUpdate();
   }
 
 
   /** */
   async createMyProfile(profile: ProfileMat) {
     //console.log("onNewProfile()", profile)
-    await this.whereDvm.profilesZvm.createMyProfile(profile);
-    this._hasStartingProfile = true;
+    const profilesZvm = this.whereDvm.profilesZvm;
+    try {
+      await profilesZvm.createMyProfile(profile);
+    } catch (e: any) {
+      console.warn("Failed creating my Profile", e);
+      return;
+    }
+    /** ProfilesAltZvm only stores the profile when the zome's post-commit signal arrives,
+     *  so wait for the perspective to catch up (as vines does) before showing the app. */
+    for (let i = 0; i < 250 && !profilesZvm.getMyProfile(); i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    if (!profilesZvm.getMyProfile()) {
+      console.warn("<where-app> my profile signal did not arrive, probing local cell");
+      await profilesZvm.probeAllProfiles(GetStrategy.Local);
+    }
+    this.loadMyProfile();
+    this.requestUpdate();
   }
 
 
@@ -303,7 +331,7 @@ export class WhereApp extends HappElement {
     } else {
       this._curLudoCloneId = undefined;
     }
-    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
+    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory(GetStrategy.Local);
     this._canLudotheque = true;
   }
 
@@ -354,32 +382,31 @@ export class WhereApp extends HappElement {
       switch (this.appletView.type) {
         case "main":
           break;
-        case "block":
-          throw new Error("Where/we-applet: Block view is not implemented.");
-        case "attachable":
-          const attachableViewInfo = this.appletView as AttachableViewInfo;
-          if (attachableViewInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
-            throw new Error(`Where/we-applet: Unknown role name '${this.appletView.roleName}'.`);
+        case "asset":
+          const assetViewInfo = this.appletView as AssetViewInfo;
+          if (!assetViewInfo.recordInfo) {
+            throw new Error("Where Moss Tool: asset view without recordInfo is not supported.");
           }
-          // if (attachableViewInfo.integrityZomeName != WHERE_DEFAULT_INTEGRITY_ZOME_NAME /* || "playset_integrity"*/) {
-          //   throw new Error(`Where/we-applet: Unknown zome '${this.appletView.integrityZomeName}'.`);
-          // }
-          const entryType = pascal(attachableViewInfo.entryType);
+          if (assetViewInfo.recordInfo.roleName != WHERE_DEFAULT_ROLE_NAME) {
+            throw new Error(`Where Moss Tool: Unknown role name '${assetViewInfo.recordInfo.roleName}'.`);
+          }
+          const entryType = pascal(assetViewInfo.recordInfo.entryType);
           console.log("pascal entryType", entryType);
           switch (entryType) {
             case PlaysetEntryType.Space:
-              const spaceEh = encodeHashToBase64(attachableViewInfo.hrlWithContext.hrl[1]);
+              const spaceEh = encodeHashToBase64(assetViewInfo.wal.hrl[1]);
               console.log("Space entry:", spaceEh);
-              //const viewContext = entryViewInfo.context as ViewThreadContext;
               view = html`<where-space .currentSpaceEh=${spaceEh}></where-space>`;
               break;
             default:
-              throw new Error(`Unhandled entry type ${attachableViewInfo.entryType}.`);
+              throw new Error(`Unhandled entry type ${assetViewInfo.recordInfo.entryType}.`);
           }
           break;
+        case "creatable":
+          throw new Error("Where Moss Tool: creatable view is not implemented.");
         default:
-          console.error("Unknown We applet-view type", this.appletView);
-          throw new Error(`Unknown We applet-view type`);
+          console.error("Unknown Moss applet-view type", this.appletView);
+          throw new Error(`Unknown Moss applet-view type`);
       }
     }
 
@@ -397,7 +424,7 @@ export class WhereApp extends HappElement {
         <cell-context .cell="${this.ludothequeDvm.cell}">
                   <ludotheque-page examples
                                    .whereInventory="${this._whereInventory}"
-                                   .whereCellId=${this.whereDvm.cell.id}
+                                   .whereCellId=${this.whereDvm.cell.address.intoId()}
                                    @space-exported="${this.handleSpaceExported}"
                                    @import-playset-requested="${this.handleImportRequest}"
                                    @exit="${() => this._canLudotheque = false}"
@@ -430,7 +457,6 @@ export class WhereApp extends HappElement {
     //         </profile-prompt>`;
 
 
-    /** Display all attachment-types */
     let attachments = [html``];
     // FIXME
     // if (this._weServices) {
@@ -454,24 +480,8 @@ export class WhereApp extends HappElement {
     //   }
     // }
 
-    let viewAttachments = html``;
-    let viewBlocks = html``;
-
-    if (this.appletView) {
-      viewAttachments = html`
-        <div>
-          Attachments found:
-          <ul>
-            ${attachments}
-          </ul>
-        </div>
-      `;
-    }
-
 
     const createProfile = html `
-        ${viewAttachments}
-        ${viewBlocks}
         <div class="column mainDiv">
           <h1 style="font-family: arial;color: #5804A8;"><img src="logo.svg" width="32" height="32" style="padding-left: 5px;padding-top: 5px;"/> Where</h1>            
           <div class="column" style="align-items: center;">
@@ -489,7 +499,9 @@ export class WhereApp extends HappElement {
             </div>
         </div>`;
 
-    const guardedPage = this._hasStartingProfile? page : createProfile;
+    /** Render off the perspective itself (like vines): the profile is only "there" once
+     *  ProfilesAltZvm has stored it, and the pages below dereference it unguarded. */
+    const guardedPage = this.whereDvm.profilesZvm.getMyProfile()? page : createProfile;
 
 
     /** Render all */
@@ -534,7 +546,7 @@ export class WhereApp extends HappElement {
   /** */
   private async handleSpaceExported(event: CustomEvent<EntryHashB64>) {
     console.log("handleSpaceExported() : " + event.detail);
-    await this.whereDvm.playsetZvm.ProbePlaysets();
+    await this.whereDvm.playsetZvm.ProbePlaysets(GetStrategy.Local);
     await this.importSpaces([event.detail]);
   }
 
@@ -550,13 +562,13 @@ export class WhereApp extends HappElement {
 
     const startTime = Date.now();
     this.importingDialogElem.open = true;
-    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh, this.whereDvm.cell.id)
+    const spaceEhs = await this.ludothequeDvm.ludothequeZvm.exportPlayset(this._currentPlaysetEh, this.whereDvm.cell.address.intoId())
     console.log("handleImportRequest()", spaceEhs.length)
-    await this.whereDvm.playsetZvm.ProbePlaysets();
+    await this.whereDvm.playsetZvm.ProbePlaysets(GetStrategy.Local);
 
     await this.importSpaces(spaceEhs);
 
-    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory();
+    this._whereInventory = await this.whereDvm.playsetZvm.probeInventory(GetStrategy.Local);
 
     /** Wait a minimum amount of time before closing dialog */
     while(Date.now() - startTime < 500) {

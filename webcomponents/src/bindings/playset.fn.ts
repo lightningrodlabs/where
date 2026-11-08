@@ -23,7 +23,8 @@ export const playsetFunctionNames: FunctionName[] = [
 	"get_svg_markers",
 	"create_template",
 	"get_template",
-	"get_templates",];
+	"get_templates",
+];
 
 
 /** Generate tuple array of function names with given zomeName */

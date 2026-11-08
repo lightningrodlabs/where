@@ -1,44 +1,20 @@
 {
   "name": "@where/app",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "start:ui-old": "web-dev-server --config ./web-dev-server.config.mjs",
     "localize:extract": "lit-localize extract",
     "localize:build": "lit-localize build",
-    "dist": "rm -rf dist && tsc && rollup -c rollup.config.js"
-  },
-  "devDependencies": {
-    "@babel/preset-env": "^7.15.0",
-    "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-commonjs": "18.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@rollup/plugin-replace": "^3.0.0",
-    "@rollup/plugin-typescript": "^8.2.5",
-    "rollup-plugin-copy": "^3.4.0",
-    "rollup-plugin-css-only": "^4.3.0",
-    "@web/dev-server": "^0.1.21",
-    "@web/rollup-plugin-html": "^1.9.1",
-    "@web/rollup-plugin-import-meta-assets": "^1.0.7",
-    "babel-plugin-template-html-minifier": "^4.1.0",
-    "bestzip": "^2.2.0",
-    "concurrently": "^5.3.0",
-    "deepmerge": "^4.2.2",
-    "exits": "^2.0.1",
-    "path-exists-cli": "^2.0.0",
-    "rollup": "^2.56.2",
-    "run-singleton-cli": "^0.0.5"
+    "build": "rm -rf dist && vite build",
+    "build:watch": "vite build --watch",
+    "start": "vite --port $UI_PORT --clearScreen false"
   },
   "dependencies": {
     "@where/elements": "file:../webcomponents",
     "@material/mwc-button": "^0.25.3",
     "@material/mwc-circular-progress": "^0.25.3",
-    "@material/mwc-circular-progress-four-color": "^0.25.3",
     "@material/mwc-dialog": "^0.25.3"
   }
 }

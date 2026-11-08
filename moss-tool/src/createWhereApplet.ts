@@ -1,28 +1,19 @@
-import {
-  AppAgentWebsocket, encodeHashToBase64, InstalledAppId, ZomeName,
-} from "@holochain/client";
-//import { msg } from "@lit/localize";
-
-import {
-  RenderInfo,
-  WeServices,
-} from "@lightningrodlabs/we-applet";
-
+import {AppClient, AppWebsocket, encodeHashToBase64} from "@holochain/client";
+import {RenderInfo, WeaveServices} from "@theweave/api";
 
 import {ProfileInfo, WhereApp} from "@where/app";
 import {AppletViewInfo, ProfilesApi} from "@ddd-qc/we-utils";
 import {destructureCloneId, ExternalAppProxy, HCL} from "@ddd-qc/cell-proxy";
-import {AppProxy, BaseRoleName, CloneId} from "@ddd-qc/lit-happ";
 
 
 /** */
 export async function createWhereApplet(
   renderInfo: RenderInfo,
-  weServices: WeServices,
+  weServices: WeaveServices,
 ): Promise<WhereApp> {
 
-  if (renderInfo.type =="cross-applet-view") {
-    throw Error("cross-applet-view not implemented by Where");
+  if (renderInfo.type == "cross-group-view") {
+    throw Error("cross-group-view not implemented by Where");
   }
 
   const appletViewInfo = renderInfo as unknown as AppletViewInfo;
@@ -30,14 +21,19 @@ export async function createWhereApplet(
   console.log("createWhereApplet() client", appletViewInfo.appletClient);
   console.log("createWhereApplet() thisAppletId", encodeHashToBase64(appletViewInfo.appletHash));
   const mainAppInfo = await appletViewInfo.appletClient.appInfo();
+  if (!mainAppInfo) {
+    throw Promise.reject("Missing Main AppInfo");
+  }
   console.log("createWhereApplet() mainAppInfo", mainAppInfo);
-  const mainAppAgentWs = appletViewInfo.appletClient as AppAgentWebsocket;
-  const mainAppWs = mainAppAgentWs.appWebsocket;
+  const mainAppWs = appletViewInfo.appletClient as AppWebsocket;
 
 
   /** Determine profilesAppInfo */
   const profilesClient = appletViewInfo.profilesClient;
   let profilesAppInfo = await profilesClient.client.appInfo();
+  if (!profilesAppInfo) {
+    throw Promise.reject("Missing Profiles AppInfo");
+  }
   console.log("createWhereApplet() profilesAppInfo", profilesAppInfo, profilesClient.roleName);
 
   /** Check if roleName is actually a cloneId */
@@ -51,7 +47,9 @@ export async function createWhereApplet(
   /** Determine profilesCellProxy */
   const hcl = new HCL(profilesAppInfo.installed_app_id, baseRoleName, maybeCloneId);
   const profilesApi = new ProfilesApi(profilesClient);
-  const profilesAppProxy = new ExternalAppProxy(profilesApi, 10 * 1000);
+  /** @ddd-qc/we-utils 0.36 ProfilesApi predates @holochain/client 0.21.1, which added
+   * sendDirectSignal/grantDirectSignalCapability to AppClient. ExternalAppProxy never calls them. */
+  const profilesAppProxy = new ExternalAppProxy(profilesApi as unknown as AppClient, "", 10 * 1000);
   await profilesAppProxy.fetchCells(profilesAppInfo.installed_app_id, baseRoleName);
   const profilesCellProxy = await profilesAppProxy.createCellProxy(hcl);
   console.log("createWhereApplet() profilesCellProxy", profilesCellProxy);
@@ -72,7 +70,7 @@ export async function createWhereApplet(
       mainAppInfo.installed_app_id,
       weServices,
       encodeHashToBase64(appletViewInfo.appletHash),
-      appletViewInfo.view, //encodeHashToBase64(appletViewInfo.appletHash),
+      appletViewInfo.view,
       profileInfo,
       );
 

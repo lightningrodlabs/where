@@ -13,12 +13,13 @@ import { localized, msg } from '@lit/localize';
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {Play, WherePerspective} from "../viewModels/where.perspective";
 import {PlaysetEntryType, Template} from "../bindings/playset.types";
-import {CloneId, delay, DnaElement, HAPP_ENV, HappEnvType} from "@ddd-qc/lit-happ";
+import {CloneId, delay, DnaElement, HAPP_ENV, HappEnvType, HAPP_BUILD_MODE, HappBuildModeType} from "@ddd-qc/lit-happ";
+import {GetStrategy} from "@holochain-open-dev/core-types";
 //import {WhereCloneLudoDialog} from "../dialogs/where-clone-ludo-dialog";
 
 import {SignalPayload} from "../bindings/where.types";
-import {Dictionary} from "@ddd-qc/cell-proxy";
-import {CellsForRole} from "@ddd-qc/cell-proxy/dist/types";
+import {MyDictionary as Dictionary} from "@ddd-qc/cell-proxy";
+import {CellsForRole} from "@ddd-qc/cell-proxy";
 
 import {WherePeerList} from "./where-peer-list";
 import {WhereSpace} from "./where-space";
@@ -60,6 +61,7 @@ import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {UNKNOWN_PROFILE} from "../utils";
 
 
 /** Styles for top-app-bar */
@@ -208,7 +210,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     fields['color'] = color;
     fields['avatar'] = avatar;
     try {
-    if (this._dvm.profilesZvm.getProfile(this._dvm.profilesZvm.cell.agentPubKey)) {
+    if (this._dvm.profilesZvm.getMyProfile()) {
       await this._dvm.profilesZvm.updateMyProfile({nickname, fields});
     } else {
       await this._dvm.profilesZvm.createMyProfile({nickname, fields});
@@ -440,7 +442,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
   async pingAllOthers() {
     //if (this._currentSpaceEh) {
     console.log("Pinging All Others");
-    const agents = this._dvm.profilesZvm.getAgents();
+    const agents = this._dvm.profilesZvm.perspective.agents.map((a) => a.b64);
     await this._dvm.pingPeers(this.currentSpaceEh, agents);
     //}
   }
@@ -448,13 +450,13 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
   /** */
   async onDumpLogs() {
-    this._dvm.dumpLogs();
+    this._dvm.dumpCallLogs();
   }
 
   /** */
   async onRefresh() {
     console.log("refresh: Pulling data from DHT")
-    this._dvm.probeAll();
+    this._dvm.probeAll(GetStrategy.Network);
     await this.pingAllOthers();
   }
 
@@ -506,7 +508,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const template = e.detail as Template;
     const eh = await this._dvm.playsetZvm.publishTemplateEntry(template);
     this._dvm.notifyPeers(
-      {from: this._dvm.cell.agentPubKey, message: {type:"NewTemplate", content: eh}},
+      {from: this._dvm.cell.address.agentId.b64, message: {type:"NewTemplate", content: eh}},
       this._dvm.allCurrentOthers(),
     )
   }
@@ -517,7 +519,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
     const newPlayInput = e.detail;
     const spaceEh = await this._dvm.constructNewPlay(newPlayInput.space, newPlayInput.sessionNames)
     /* - Notify others */
-    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.agentPubKey, message: {type: 'NewSpace', content: spaceEh}};
+    const newSpace: SignalPayload = {maybeSpaceHash: spaceEh, from: this._dvm.cell.address.agentId.b64, message: {type: 'NewSpace', content: spaceEh}};
     this._dvm.notifyPeers(newSpace, this._dvm.allCurrentOthers());
     /* */
     await this.selectPlay(spaceEh);
@@ -735,7 +737,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
 
     /* -- Grab things from the perspective -- */
 
-    this._myProfile = this._dvm.profilesZvm.getMyProfile();
+    this._myProfile = this._dvm.profilesZvm.getMyProfile() ?? UNKNOWN_PROFILE;
 
 
     /* -- Build elements -- */
@@ -813,7 +815,7 @@ export class WherePage extends DnaElement<WhereDnaPerspective, WhereDvm> {
       ${create_menu}
       ` : html``;
 
-      const isInDev = HAPP_ENV == HappEnvType.Devtest || HAPP_ENV == HappEnvType.DevtestWe || HAPP_ENV == HappEnvType.DevTestHolo;
+      const isInDev = HAPP_BUILD_MODE == HappBuildModeType.Debug;
 
 
       /** Render all */

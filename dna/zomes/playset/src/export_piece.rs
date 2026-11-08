@@ -1,6 +1,4 @@
 use hdk::prelude::*;
-use hdk::prelude::CellId;
-use holo_hash::EntryHashB64;
 
 use zome_utils::*;
 use crate::import_piece::ImportPieceInput;
@@ -14,6 +12,14 @@ pub struct ExportPieceInput {
   pub piece_type_name: String, // FIXME use UnitEntryTypes and AppEntryTypeName
 }
 
+/// Look locally first, then ask the network
+pub fn get_entry_local_or_network(eh: EntryHash) -> ExternResult<Entry> {
+  if let Ok(entry) = get_entry_from_eh(eh.clone(), GetStrategy::Local) {
+    return Ok(entry);
+  }
+  get_entry_from_eh(eh, GetStrategy::Network)
+}
+
 #[hdk_extern]
 pub fn export_piece(input: ExportPieceInput) -> ExternResult<()> {
   if input.piece_type_name == "Space" {
@@ -24,7 +30,7 @@ pub fn export_piece(input: ExportPieceInput) -> ExternResult<()> {
     && input.piece_type_name != "EmojiGroup" {
     return zome_error!("unknown piece type: '{}'", input.piece_type_name);
   }
-  let entry = get_entry_from_eh(input.piece_eh.into())?;
+  let entry = get_entry_local_or_network(input.piece_eh.into())?;
   export_entry(&input.piece_type_name, entry, input.cell_id.clone())?;
   Ok(())
 }

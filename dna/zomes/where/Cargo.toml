@@ -11,8 +11,11 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 serde.workspace = true
+holochain_serialized_bytes.workspace = true
 hdk.workspace = true
 zome_utils.workspace = true
+zome_core.workspace = true
+zome_fn_input.workspace = true
 
 where_integrity = { package = "where_integrity_zome", path = "../where_integrity" }
 #playset_integrity = { package = "where_playset_integrity_zome", path = "../playset_integrity" }

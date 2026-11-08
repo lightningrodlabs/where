@@ -1,6 +1,5 @@
 use hdi::prelude::*;
 use std::collections::BTreeMap;
-use holo_hash::EntryHashB64;
 
 use crate::pieces::MarkerPiece;
 

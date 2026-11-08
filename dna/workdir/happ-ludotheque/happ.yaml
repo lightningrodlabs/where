@@ -1,5 +1,5 @@
 ---
-manifest_version: "1"
+manifest_version: "0"
 name: hLudotheque
 description: Ludotheque standalone happ
 roles:
@@ -8,5 +8,5 @@ roles:
       strategy: create
       deferred: true
     dna:
-      bundled: "../../../artifacts/ludotheque.dna"
+      path: "../../../artifacts/ludotheque.dna"
       clone_limit: 0

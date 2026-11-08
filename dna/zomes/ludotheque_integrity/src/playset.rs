@@ -1,5 +1,4 @@
 use hdi::prelude::*;
-use holo_hash::EntryHashB64;
 
 /// Playset Entry
 #[hdk_entry_helper]

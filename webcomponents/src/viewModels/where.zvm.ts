@@ -5,7 +5,9 @@ import {Coord, WhereLocation, dematerializeHere, WherePerspective, LocationInfo,
 import {ZomeViewModel} from "@ddd-qc/lit-happ";
 import {SignalPayload} from "../bindings/where.types";
 import {ActionHashB64, AgentPubKeyB64, EntryHashB64} from "@holochain/client";
-import {Hrl, HrlWithContext} from "@lightningrodlabs/we-applet";
+import {WAL} from "@theweave/api";
+import {GetStrategy} from "@holochain-open-dev/core-types";
+import {catchThrottled, isLocal} from "../utils";
 
 
 /**
@@ -24,17 +26,32 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async probeAllInner() {
-    console.log("whereZvm.probeAllInner()", this.perspective)
+  override async initializePerspectiveFromLocal(): Promise<void> {
+    await this.probeAllInnerAsync(GetStrategy.Local);
+  }
+
+  /** */
+  override async initializePerspectiveFromNetwork(): Promise<void> {
+    await this.probeAllInnerAsync(GetStrategy.Network);
+  }
+
+  /** */
+  override probeAllInner(strategy: GetStrategy) {
+    this.probeAllInnerAsync(strategy);
+  }
+
+  /** */
+  async probeAllInnerAsync(strategy: GetStrategy) {
+    console.log("whereZvm.probeAllInner()", strategy, this.perspective)
     for (const spaceEh of Object.keys(this._manifests)) {
-      const maybeManifest = await this.probeManifest(spaceEh); // TODO optimize
+      const maybeManifest = await this.probeManifest(spaceEh, strategy); // TODO optimize
       if (!maybeManifest) continue;
       console.log("whereZvm.probeAllInner()", maybeManifest)
       for (const sessionEh of Object.values(maybeManifest.sessionEhs)) {
-        await this.probeSession(sessionEh); // TODO optimize
+        await this.probeSession(sessionEh, strategy); // TODO optimize
       }
     }
-    await this.probeVisibilityForAll();
+    await this.probeVisibilityForAll(strategy);
   }
 
 
@@ -107,14 +124,17 @@ export class WhereZvm extends ZomeViewModel {
   /** -- Methods -- */
 
   /** */
-  notifyPeers(signal: SignalPayload, peers: Array<AgentPubKeyB64>) {
-    this.zomeProxy.notifyPeers({signal, peers})
+  notifyPeers(signal: SignalPayload, peers: Array<AgentPubKeyB64>): Promise<void> {
+    return this.zomeProxy.notifyPeers({signal, peers});
   }
 
   /** Returns list of hidden spaces */
-  async probeVisibilityForAll(): Promise<EntryHashB64[]> {
-    const hiddens = await this.zomeProxy.getHiddenSpaces();
-    for (const hiddenEh of hiddens) {
+  async probeVisibilityForAll(strategy: GetStrategy = GetStrategy.Local): Promise<EntryHashB64[]> {
+    const [throttled, hiddens] = await catchThrottled(this.zomeProxy.getHiddenSpaces({input: null, local: isLocal(strategy)}));
+    if (throttled) {
+      return Object.values(this._manifests).filter((m) => !m.visible).map((m) => m.spaceEh);
+    }
+    for (const hiddenEh of hiddens!) {
       if (this.getManifest(hiddenEh)) {
         this._manifests[hiddenEh].visible = false;
       }
@@ -125,12 +145,19 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async probeManifest(spaceEh: EntryHashB64): Promise<PlayManifest | null> {
-      const sessionEhs = await this.zomeProxy.getSpaceSessions(spaceEh);
+  async probeManifest(spaceEh: EntryHashB64, strategy: GetStrategy = GetStrategy.Local, probeVisibility = true): Promise<PlayManifest | null> {
+      const [throttled, maybeSessionEhs] = await catchThrottled(this.zomeProxy.getSpaceSessions({input: spaceEh, local: isLocal(strategy)}));
+      if (throttled) {
+        /** Same probe is already in flight or just ran: answer from the perspective */
+        return this.getManifest(spaceEh) ?? null;
+      }
+      const sessionEhs = maybeSessionEhs!;
       if (sessionEhs.length == 0) {
         return null;
       }
-      await this.probeVisibilityForAll(); // TODO: make this optional when probing all plays
+      if (probeVisibility) {
+        await this.probeVisibilityForAll(strategy);
+      }
       let manifest = this.getManifest(spaceEh);
       if (!manifest) {
         manifest = {
@@ -150,8 +177,8 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async probeSession(sessionEh: EntryHashB64): Promise<PlacementSessionMat> {
-    const entry = await this.zomeProxy.getSessionFromEh(sessionEh);
+  async probeSession(sessionEh: EntryHashB64, strategy: GetStrategy = GetStrategy.Local): Promise<PlacementSessionMat> {
+    const entry = await this.zomeProxy.getSessionFromEh({input: sessionEh, local: isLocal(strategy)});
     if (!entry) {
       console.error("fetchSession(): Session entry not found")
       return Promise.reject("fetchSession(): Session entry not found");
@@ -159,7 +186,7 @@ export class WhereZvm extends ZomeViewModel {
     const session: PlacementSessionMat = {
       name: entry.name,
       index: entry.index,
-      locations: await this.probeLocations(sessionEh)
+      locations: await this.probeLocations(sessionEh, strategy)
     };
     this._sessions[sessionEh] = session;
     this.notifySubscribers();
@@ -168,8 +195,8 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  private async probeLocations(sessionEh: EntryHashB64): Promise<Array<LocationInfo>> {
-    const hereInfos = await this.zomeProxy.getHeres(sessionEh);
+  private async probeLocations(sessionEh: EntryHashB64, strategy: GetStrategy = GetStrategy.Local): Promise<Array<LocationInfo>> {
+    const hereInfos = await this.zomeProxy.getHeres({input: sessionEh, local: isLocal(strategy)});
     //console.debug({hereInfos})
     const locs = hereInfos.map((info: HereInfo) => {
       return materializeHere(info)
@@ -244,10 +271,10 @@ export class WhereZvm extends ZomeViewModel {
 
   /** */
   async publishLocation(location: WhereLocation, spaceEh: EntryHashB64) : Promise<ActionHashB64> {
-    const session = await this.zomeProxy.getSessionFromEh(location.sessionEh);
+    const session = await this.zomeProxy.getSessionFromEh({input: location.sessionEh, local: true});
     if (!session) console.error("Current session not found", spaceEh, location.sessionEh);
     const linkAh = await this.publishLocationWithSessionIndex(location, spaceEh, session!.index)
-    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this.cell.agentPubKey }
+    const locInfo: LocationInfo = { location, linkAh, authorPubKey: this.cell.address.agentId.b64 }
     this._sessions[location.sessionEh].locations.push(locInfo)
     this.notifySubscribers();
     return linkAh;
@@ -264,7 +291,7 @@ export class WhereZvm extends ZomeViewModel {
 
 
   /** */
-  async updateLocation(sessionEh: EntryHashB64, spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: HrlWithContext[]): Promise<LocationInfo> {
+  async updateLocation(sessionEh: EntryHashB64, spaceEh: EntryHashB64, locIdx: number, c?: Coord, tag?: string, emoji?: string, attachables?: WAL[]): Promise<LocationInfo> {
     const locInfo = this.getSession(sessionEh)!.locations[locIdx]!;
     if (c != undefined && c != null) {
       locInfo.location.coord = c
@@ -278,7 +305,7 @@ export class WhereZvm extends ZomeViewModel {
     if (attachables != undefined) {
       locInfo.location.meta.attachables = attachables;
     }
-    const session = await this.zomeProxy.getSessionFromEh(sessionEh);
+    const session = await this.zomeProxy.getSessionFromEh({input: sessionEh, local: true});
     const newLinkAh: ActionHashB64 = await this.publishLocationWithSessionIndex(locInfo.location, spaceEh, session!.index)
     await this.zomeProxy.deleteHere(locInfo.linkAh)
     locInfo.linkAh = newLinkAh;

@@ -1,0 +1,13 @@
+[package]
+name = "zome_fn_input"
+version.workspace = true
+rust-version.workspace = true
+edition.workspace = true
+
+[lib]
+crate-type = ["rlib"]
+
+[dependencies]
+serde.workspace = true
+holochain_serialized_bytes.workspace = true
+hdk.workspace = true

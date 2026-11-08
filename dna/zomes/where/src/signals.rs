@@ -1,5 +1,4 @@
 use hdk::prelude::*;
-use holo_hash::{EntryHashB64, AgentPubKeyB64, ActionHashB64};
 
 use where_integrity::*;
 use crate::here::*;
@@ -43,8 +42,7 @@ impl SignalPayload {
 }
 
 #[hdk_extern]
-fn recv_remote_signal(signal: ExternIO) -> ExternResult<()> {
-    let sig: SignalPayload = signal.decode().unwrap();
+fn recv_remote_signal(sig: SignalPayload) -> ExternResult<()> {
     debug!("Received signal from {:?}", sig.from);
     Ok(emit_signal(&sig)?)
 }
@@ -65,6 +63,6 @@ fn notify_peers(input: NotifyInput) -> ExternResult<()> {
         peers.push(a.into())
     }
     debug!("Sending signal to {:?}", input.peers);
-    remote_signal(ExternIO::encode(input.signal).unwrap(), peers)?;
+    send_remote_signal(input.signal, peers)?;
     Ok(())
 }

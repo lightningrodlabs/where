@@ -1,38 +1,12 @@
 {
   "name": "ludotheque",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
-    "build": "tsc",
-    "build:watch": "tsc -w --incremental --preserveWatchOutput",
-    "start:ui": "concurrently --names tsc,dev-server \"npm run build:watch\" \"web-dev-server --config ./web-dev-server.config.mjs\"",
-    "dist": "rm -rf dist && tsc && rollup -c rollup.config.js"
-  },
-  "devDependencies": {
-    "@babel/preset-env": "^7.15.0",
-    "@rollup/plugin-babel": "^5.3.0",
-    "@rollup/plugin-commonjs": "18.0.0",
-    "@rollup/plugin-node-resolve": "^13.0.4",
-    "@rollup/plugin-replace": "^3.0.0",
-    "@rollup/plugin-typescript": "^8.2.5",
-    "@web/dev-server": "^0.1.21",
-    "@web/rollup-plugin-html": "^1.9.1",
-    "@web/rollup-plugin-import-meta-assets": "^1.0.7",
-    "babel-plugin-template-html-minifier": "^4.1.0",
-    "bestzip": "^2.2.0",
-    "concurrently": "^5.3.0",
-    "deepmerge": "^4.2.2",
-    "exits": "^2.0.1",
-    "path-exists-cli": "^2.0.0",
-    "rollup": "^2.56.2",
-    "rollup-plugin-node-builtins": "^2.1.2",
-    "rollup-plugin-node-globals": "^1.4.0",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-workbox": "^6.2.0",
-    "rollup-plugin-copy": "^3.4.0",
-    "run-singleton-cli": "^0.0.5"
+    "build": "rm -rf dist && tsc",
+    "build:watch": "tsc -w --incremental --preserveWatchOutput"
   },
   "dependencies": {
     "@where/elements": "file:../webcomponents"

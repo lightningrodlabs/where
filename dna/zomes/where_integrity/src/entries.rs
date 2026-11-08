@@ -1,5 +1,4 @@
 use hdi::prelude::*;
-use holo_hash::EntryHashB64;
 use std::collections::BTreeMap;
 
 #[hdk_entry_helper]

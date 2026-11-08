@@ -17,7 +17,7 @@ fn import_piece(ImportPieceInput{piece_entry, piece_type_name}: ImportPieceInput
   debug!("import_piece() entry_def_id = {:?} | {}", piece_type_name, zome_info()?.name);
   /// Bail if we already have it
   let eh = hash_entry(piece_entry.clone())?;
-  let maybe_entry = get_entry_from_eh(eh);
+  let maybe_entry = get_entry_from_eh(eh, GetStrategy::Local);
   if maybe_entry.is_ok() {
     return Ok(());
   }

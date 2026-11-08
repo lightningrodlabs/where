@@ -40,3 +40,27 @@ export function mapReviver(key:any, value:any) {
   }
   return value;
 }
+
+
+/** `local` flag for a `ZomeFnInput` from a GetStrategy */
+import {GetStrategy} from "@holochain-open-dev/core-types";
+import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+
+/** Resolve a zome call to [undefined, data], or to [error] when cell-proxy throttled it
+ *  (same identical call within its 200ms bucket). Any other failure still throws. */
+export function catchThrottled<T>(promise: Promise<T>): Promise<[undefined, T] | [Error]> {
+  return promise
+    .then((data) => [undefined, data] as [undefined, T])
+    .catch((error) => {
+      if (error && error.throttled) {
+        return [error] as [Error];
+      }
+      throw error;
+    });
+}
+
+/** Placeholder used while this agent's profile is not in the perspective yet */
+export const UNKNOWN_PROFILE: ProfileMat = {nickname: "unknown", fields: {lang: "en"}};
+export function isLocal(strategy: GetStrategy): boolean {
+  return strategy == GetStrategy.Local;
+}

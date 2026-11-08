@@ -45,11 +45,13 @@ import "@material/mwc-tab-bar";
 import {TabBar} from "@material/mwc-tab-bar";
 import {Fab} from "@material/mwc-fab";
 import {Profile as ProfileMat} from "@ddd-qc/profiles-dvm";
+import {UNKNOWN_PROFILE} from "../utils";
 import {consume} from "@lit/context";
 import {weClientContext} from "../contexts";
-import {HrlWithContext} from "@lightningrodlabs/we-applet";
+import {WAL} from "@theweave/api";
 import {WhereLocationDialog} from "../dialogs/where-location-dialog";
-import {stringifyHrl, WeServicesEx} from "@ddd-qc/we-utils";
+import {WeServicesEx} from "@ddd-qc/we-utils";
+import {stringifyHrl} from "@theweave/api";
 
 // // Canvas Animation experiment
 // function draw() {
@@ -147,8 +149,8 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   async firstUpdated() {
     this._dvm.whereZvm.subscribe(this, 'wherePerspective');
     // this._dvm.playsetZvm.subscribe(this, 'playsetPerspective');
-    await this._dvm.profilesZvm.probeProfile(this._dvm.cell.agentPubKey)
-    this._myProfile = this._dvm.profilesZvm.getProfile(this._dvm.cell.agentPubKey)!;
+    await this._dvm.profilesZvm.findProfile(this._dvm.cell.address.agentId)
+    this._myProfile = this._dvm.profilesZvm.getMyProfile() ?? UNKNOWN_PROFILE;
     //await this.postInit();
     this._loaded = true;
     this._canPostInit = true;
@@ -485,7 +487,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
   async handleImportAttachableClick(idx: number) {
     //const idx = this.getIdx(ev.target);
     console.log("handleImportAttachableClick()", idx);
-    const hrlc = await this.weServices.userSelectHrl();
+    const hrlc = await this.weServices.assets.userSelectAsset();
     if (!hrlc) {
       return;
     }
@@ -497,7 +499,7 @@ export class WhereSpace extends DnaElement<WhereDnaPerspective, WhereDvm>  {
 
 
   /** */
-  async handleDeleteAttachableClick(idx: number, hrlc: HrlWithContext) {
+  async handleDeleteAttachableClick(idx: number, hrlc: WAL) {
     //const idx = this.getIdx(ev.target);
     console.log("handleDeleteAttachableClick()", idx, stringifyHrl(hrlc.hrl));
     const locInfo = this._dvm.whereZvm.getLocations(this.getCurrentSession())[idx];

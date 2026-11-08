@@ -8,7 +8,7 @@ import {g_stringStore} from "../stringStore";
 import {DnaElement} from "@ddd-qc/lit-happ";
 import {WhereDnaPerspective, WhereDvm} from "../viewModels/where.dvm";
 import {AgentPubKeyB64, decodeHashFromBase64} from "@holochain/client";
-import {Dictionary} from "@ddd-qc/cell-proxy";
+import {MyDictionary as Dictionary} from "@ddd-qc/cell-proxy";
 
 import "@shoelace-style/shoelace/dist/components/avatar/avatar.js"
 import "@shoelace-style/shoelace/dist/components/badge/badge.js"
@@ -38,7 +38,7 @@ import "@material/mwc-button";
 import "@material/mwc-fab";
 import "@material/mwc-icon-button-toggle";
 import "@material/mwc-textfield";
-import {Profile as  ProfileMat, ProfilesPerspective} from "@ddd-qc/profiles-dvm";
+import {Profile as  ProfileMat, ProfilesAltPerspective} from "@ddd-qc/profiles-dvm";
 
 
 
@@ -56,7 +56,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   @property() canShowTable: boolean = true;
 
   @property({type: Object, attribute: false, hasChanged: (_v, _old) => true})
-  profilesPerspective!: ProfilesPerspective;
+  profilesPerspective!: ProfilesAltPerspective;
 
   @state() private _loaded = false;
 
@@ -74,7 +74,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
   /** */
   determineAgentStatus(key: AgentPubKeyB64) {
     // const status = "primary"; // "neutral"
-    if (key == this._dvm.cell.agentPubKey) {
+    if (key == this._dvm.cell.address.agentId.b64) {
       return "success";
     }
     const lastPingTime: number = this.perspective.agentPresences[key];
@@ -180,7 +180,7 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
               ${profile.nickname}
             </span>
           </span>
-          ${keyB64 == this._dvm.cell.agentPubKey? html`
+          ${keyB64 == this._dvm.cell.address.agentId.b64? html`
             <sl-tooltip content=${msg('Remove all my locations')} placement="bottom" hoist>
               <mwc-icon-button icon="wrong_location" style="margin-top: -5px;" @click=${() => this.handleClickDeleteMyLocations()}></mwc-icon-button>
             </sl-tooltip>
@@ -234,9 +234,14 @@ export class WherePeerList extends DnaElement<WhereDnaPerspective, WhereDvm> {
         <mwc-circular-progress indeterminate></mwc-circular-progress>
       </div>`;
     }
-    console.log("<where-peer-list> render()", Object.keys(this.profilesPerspective.profiles).length);
-
-    return this.renderList(this.profilesPerspective.profiles);
+    console.log("<where-peer-list> render()", this.profilesPerspective.agents.length);
+    /** AgentPubKeyB64 -> Profile */
+    const profiles: Dictionary<ProfileMat> = {};
+    for (const agentId of this.profilesPerspective.agents) {
+      const profile = this.profilesPerspective.getProfile(agentId);
+      if (profile) profiles[agentId.b64] = profile;
+    }
+    return this.renderList(profiles);
   }
 
 

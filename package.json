@@ -1,131 +1,103 @@
 {
-  "name"           : "where-dev",
-  "version"        : "0.2.4",
-  "config"         : {
-    "hc_version"   : "0.2.4",
-    "zits_version" : "1.12.0",
-    "bin"          : "bin",
-    "we_test_folder": "../we-electron"
+  "name": "where-dev",
+  "version": "0.3.0",
+  "config": {
+    "hc_version": "0.7.1",
+    "zits_version": "1.17.2",
+    "bin": "bin"
   },
-  "private"        : true,
-  "workspaces"     : [
+  "private": true,
+  "workspaces": [
     "webcomponents",
     "webapp",
     "webapp.ludotheque",
-    "we-applet",
-    "electron"
+    "moss-tool"
   ],
-  "scripts"        : {
-    "postinstall"          : "mkdir -p artifacts",
-    "install:submodules"   : "bash scripts/install-submodules.sh $npm_package_config_hc_version",
-    "install:rust"         : "bash submodules/hc-prebuilt/install-rust.sh",
-    "install:hash-zome"    : "bash submodules/hc-prebuilt/install-hash-zome.sh $npm_package_config_bin",
-    "install:hc"           : "bash submodules/hc-prebuilt/install-hc-cli.sh $npm_package_config_bin $npm_package_config_hc_version",
-    "install:zits"         : "cargo install zits --version $npm_package_config_zits_version",
-
-    "version"              : "$npm_package_config_bin/hc --version & holochain --version & lair-keystore --version & tsc --version",
-
-    "hash-zome"            : "bash scripts/write-zome-hash.sh $npm_package_config_bin",
-
-    "build:zome"           : "CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown && npm run hash-zome",
-    "build:dna"            : "npm run build:zome && mkdir -p artifacts && $npm_package_config_bin/hc dna pack -o artifacts/where.dna dna/workdir/dna-where && $npm_package_config_bin/hc dna pack -o artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
-    "build:happ"           : "npm run build:dna && $npm_package_config_bin/hc app pack -o artifacts/where.happ dna/workdir/happ-where && $npm_package_config_bin/hc app pack -o artifacts/where-standalone.happ dna/workdir/happ-where-standalone && $npm_package_config_bin/hc app pack -o ./artifacts/ludotheque.happ dna/workdir/happ-ludotheque && npm run copy:happ",
-
-    "copy:happ"            : "cp -v artifacts/where.happ electron/bin && cp -v artifacts/ludotheque.happ electron/bin",
-    "extract:localize"     : "npm run localize:extract -w webcomponents && npm run localize:extract -w webapp",
-    "build:localize"       : "npm run localize:build -w webcomponents && npm run localize:build -w webapp",
-
-    "build:webapp"             : "npm run build:localize && npm run build -w webcomponents && npm run dist -w webapp",
-    "build:devtest"            : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp",
-    "build:devtest:ludotheque" : "npm run clean:hc & npm run build:happ && bash scripts/ts-bindings.sh && npm run build -w webcomponents && npm run build -w webapp.ludotheque",
-
-    "dev:components"       : "npm run build:watch -w webcomponents",
-
-    "devtest"              : "npm run build:devtest && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp\" \"npm run start:mem\"",
-    "devtest:ludo"         : "npm run clean:hc & npm run build:happ && npm run build -w webcomponents && npm run build -w webapp.ludotheque && concurrently \"npm run build:watch -w webcomponents\" \"npm run build:watch -w webapp.ludotheque\" \"npm run start:mem:ludotheque\"",
-    "devtest:we"           : "npm run build:devtest && npm run devtest -w we-applet",
-    "devtest:we:ludo"      : "npm run build:devtest:ludotheque && npm run devtest:ludo -w we-applet",
-    "devtest:electron"     : "npm run build -w webcomponents && npm run dist -w webapp && HAPP_BUILD_MODE='Debug' npm run devtest -w electron",
-
-    "prodtest"             : "npm run dist -w webapp && cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "prodtest:electron"    : "npm run build -w webcomponents && npm run dist -w webapp && npm run devtest -w electron",
-
-    "prodtestfull:we"      : "npm run build:devtest && npm run dist:we && npm run prodtest:we",
-
-    "prodtest:we"          : "cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:run\" \"cross-env AGENT_NUM=1 npm run prodtest:we-launch\"",
-    "prodtest:we-launch"   : "/c/Users/damien/AppData/Local/Programs/org.lightningrodlabs.we-electron-alpha/lightningrodlabs-we \"-b http://127.0.0.1:$BOOT_PORT\" \"-s ws://127.0.0.1:$SIGNAL_PORT\" --dev-config we.prodtest.config.json --agent-idx $AGENT_NUM",
-
-    "_save-ports"          :  "echo $HC_APP_PORT > .hc_app_$INDEX && echo $HC_ADMIN_PORT > .hc_admin_$INDEX",
-
-    "start:mem"            : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run dev:components\" \"npm run new-sandbox:mem\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start:mem:ludotheque" : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently                            \"npm run new-sandbox:mem:ludo\" \"sleep 7 && npm run start:ui -w webapp.ludotheque\"",
-    "start:local"          : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run dev:components\" \"npm run new-sandbox:local\" \"npm run _save-ports\" \"sleep 7 && npm run start:ui -w webapp\"",
-    "start:public"         : "cross-env HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run dev:components\" \"npm run new-sandbox:public\" \"sleep 7 && npm run start:ui -w webapp\"",
-
-    "new-sandbox:mem"      : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network mem",
-    "new-sandbox:mem:ludo" : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/ludotheque.happ --run=$HC_APP_PORT -a ludotheque network mem",
-    "new-sandbox:local"    : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap http://127.0.0.1:$BOOT_PORT webrtc ws://127.0.0.1:$SIGNAL_PORT",
-    "new-sandbox:public"   : "RUST_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where network --bootstrap https://bootstrap.holo.host/ webrtc wss://signal.holo.host",
-
-    "serve"                :  "cross-env BOOT_PORT=$(cat .hc_bootenv) SIGNAL_PORT=$(cat .hc_signalenv) npm run serve:run",
-    "serve:run"            :  "hc run-local-services --bootstrap-port $BOOT_PORT --signal-port $SIGNAL_PORT",
-    "serve:save"           :  "echo SIGNAL_PORT=$SIGNAL_PORT && echo $SIGNAL_PORT > .hc_signalenv && echo $BOOT_PORT > .hc_bootenv && echo BOOT_PORT=$BOOT_PORT",
-    "network2"             :  "npm run clean:hc & npm run build:devtest && cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:save\" \"npm run serve:run\" \"cross-env INDEX=0 npm run start:local\" \"sleep 1 && cross-env INDEX=1 npm run start:local\"",
-    "network3"             :  "npm run clean:hc & npm run build:devtest && cross-env BOOT_PORT=$(port) SIGNAL_PORT=$(port) concurrently \"npm run serve:save\" \"npm run serve:run\" \"cross-env INDEX=0 npm run start:local\" \"sleep 1 && cross-env INDEX=1 npm run start:local\" \"sleep 2 && cross-env INDEX=2 npm run start:local\"",
-    "network:we"           :  "npm run clean:hc & npm run network2 -w we-applet",
-    "_sandbox"             :  "echo INDEX: $INDEX & echo PORTS: $BOOT_PORT $SIGNAL_PORT $HC_APP_PORT $HC_ADMIN_PORT & RUST_LOG=warn WASM_LOG=warn echo \"pass\" | $npm_package_config_bin/hc s --piped -f=$HC_ADMIN_PORT run $INDEX",
-    "_local"               :  "cross-env BOOT_PORT=$(cat .hc_bootenv) SIGNAL_PORT=$(cat .hc_signalenv) HC_APP_PORT=$(cat .hc_app_$INDEX) HC_ADMIN_PORT=$(cat .hc_admin_$INDEX) BUILD_MODE='dev' ADD_PROFILES=1 concurrently \"npm run _sandbox\" \"sleep 7 && npm run start:ui-only -w webapp\"",
-    "local0"               :  "cross-env INDEX=0 npm run _local",
-    "local1"               :  "cross-env INDEX=1 npm run _local",
-    "local2"               :  "cross-env INDEX=2 npm run _local",
-
-    "launch"               : "echo pass | hc-launch --piped -n 1 artifacts/where.webhapp network mem",
-    "launch:we"            : "echo pass | hc-launch --piped -n 1 artifacts/where-we_applet.webhapp network mem",
-
-    "test"                 : "npm run build:happ && npm run build -w @where/elements && npm t -w @where/tests",
-
-    "package:webapp"       : "rm -rf artifacts/where-webapp-ui.zip & cd webapp/dist && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
-    "package:we"           : "rm -rf artifacts/where-we_applet-ui.zip & cd we-applet/dist && bestzip ../../artifacts/where-we_applet-ui.zip * && cd ../../ && $npm_package_config_bin/hc web-app pack we-applet/webhapp.workdir -o artifacts/where-we_applet.webhapp",
-    "dist:we"              : "npm run dist -w we-applet && npm run package:we  && npm run cp:we",
-    "cp:we"                : "cp artifacts/where-we_applet.webhapp $npm_package_config_we_test_folder/testing-applets",
-
-    "update-version"       : "bash scripts/update-version-number.sh $npm_package_version",
-
-    "dist:electron"        : "bash submodules/hc-prebuilt/copy-binaries.sh electron/bin && cd electron && electron-builder build",
-
-    "dl-test-release"      : "rm -rf release & mkdir -p release & gh release download manual-release -D release -R lightningrodlabs/where",
-
-    "clean"                : "bash scripts/clean.sh",
-    "clean:npm"            : "bash scripts/clean-npm.sh",
-    "clean:hc"             : "rm -rf .hc* && rm -rf we-applet/.hc*",
-    "clean:all"            : "git clean -f -x -d -e .idea && rm -rf submodules"
+  "scripts": {
+    "postinstall": "mkdir -p artifacts && mkdir -p bin",
+    "install:rust": "bash ./node_modules/@ddd-qc/hc-prebuilt/install-rust.sh",
+    "install:hc": "bash ./node_modules/@ddd-qc/hc-prebuilt/download-hc.sh holochain $npm_package_config_bin $npm_package_config_hc_version && bash ./node_modules/@ddd-qc/hc-prebuilt/download-hc.sh hc $npm_package_config_bin $npm_package_config_hc_version && bash ./node_modules/@ddd-qc/hc-prebuilt/download-hc.sh kitsune2-bootstrap-srv-iroh-relay $npm_package_config_bin $npm_package_config_hc_version",
+    "install:zits": "cargo install zits --version $npm_package_config_zits_version",
+    "version": "hc --version & holochain --version & lair-keystore --version & zits --version & echo \"Typescript $(tsc --version)\" & echo \"Weave $(weave --version)\"",
+    "build:zome": "CARGO_TARGET_DIR=target RUSTFLAGS='--cfg getrandom_backend=\"custom\" -C link-arg=--import-undefined' cargo build --release --target wasm32-unknown-unknown",
+    "build:dna": "npm run build:zome && hc dna pack -o artifacts/where.dna dna/workdir/dna-where && hc dna pack -o artifacts/ludotheque.dna dna/workdir/dna-ludotheque",
+    "build:happ": "npm run build:dna && hc app pack -o artifacts/where.happ dna/workdir/happ-where && hc app pack -o artifacts/where-standalone.happ dna/workdir/happ-where-standalone && hc app pack -o artifacts/ludotheque.happ dna/workdir/happ-ludotheque",
+    "build:bindings": "bash scripts/ts-bindings.sh",
+    "extract:localize": "npm run localize:extract -w webcomponents && npm run localize:extract -w webapp",
+    "build:localize": "npm run localize:build -w webcomponents && npm run localize:build -w webapp",
+    "build:elements": "npm run build -w webcomponents",
+    "build:webapp": "npm run build:localize && npm run build -w webcomponents && npm run build -w webapp",
+    "build:devtest": "npm run clean:hc & npm run build:happ && npm run build -w webcomponents",
+    "devtest": "npm run build:devtest && npm run start:mem",
+    "start": "npm run start:mem",
+    "start:mem": "FORCE_COLOR=0 RUST_LOG=warn WASM_LOG=debug UI_PORT=$(port) HC_APP_PORT=$(port) HC_ADMIN_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run new-sandbox:mem\" \"sleep 7 && npm run start -w webapp\"",
+    "new-sandbox:mem": "echo \"pass\" | hc s --holochain-path holochain --piped -f=$HC_ADMIN_PORT generate artifacts/where.happ --run=$HC_APP_PORT -a where",
+    "spin": "hc-spin -n 2 --ui-port $UI_PORT artifacts/where.happ",
+    "spintest": "UI_PORT=$(port) HC_APP_PORT=$(port) HAPP_BUILD_MODE='Debug' concurrently \"npm run spin\" \"sleep 5 && npm run start -w webapp\"",
+    "weave": "env -u ELECTRON_RUN_AS_NODE -u GDK_PIXBUF_MODULE_FILE -u GIO_EXTRA_MODULES -u GIO_MODULE_DIR -u GSETTINGS_SCHEMAS_PATH XDG_DATA_DIRS=/usr/local/share:/usr/share TS_NODE_COMPILER_OPTIONS='{\"module\":\"commonjs\",\"target\":\"es2020\",\"esModuleInterop\":true}' weave",
+    "start:ui:tool": "HAPP_BUILD_MODE=Retail npm run start:ui -w moss-tool",
+    "launch:moss": "concurrently \"UI_PORT=1420 npm run start:ui:tool\" \"sleep 1 && npm run weave -- --agent-idx 1 --dev-config weave.dev.config.ts\" \"sleep 20 && npm run weave -- --agent-idx 2 --sync-time 45000 --dev-config weave.dev.config.ts\"",
+    "tool-dev": "npm run launch:moss",
+    "launch:moss-1": "concurrently \"UI_PORT=1420 npm run start:ui:tool\" \"sleep 1 && npm run weave -- --agent-idx 1 --dev-config weave.dev.config.ts\"",
+    "tool-dev-1": "npm run launch:moss-1",
+    "start:moss": "npm run build:happ && npm run build -w webcomponents && npm run launch:moss",
+    "start:moss-1": "npm run build:happ && npm run build -w webcomponents && npm run launch:moss-1",
+    "dist:tool": "npm run build -w webcomponents && npm run build -w webapp && npm run dist -w moss-tool && npm run package:tool",
+    "package:tool": "rm -rf artifacts/where-moss-tool-ui.zip & cd moss-tool/dist && rm -f *.map && bestzip ../../artifacts/where-moss-tool-ui.zip * && cd ../../ && hc web-app pack moss-tool/webhapp.workdir -o artifacts/where-moss-tool.webhapp",
+    "package": "npm run build:happ && npm run build:localize && npm run dist:tool && npm run hash",
+    "hash": "ELECTRON_DISABLE_SANDBOX=1 weave hash-webhapp $npm_package_version ./artifacts/where-moss-tool.webhapp",
+    "package:webapp": "rm -rf artifacts/where-webapp-ui.zip & cd webapp/dist && rm -f *.map && bestzip ../../artifacts/where-webapp-ui.zip * && cd ../../ && hc web-app pack webapp/webhapp.workdir -o artifacts/where.webhapp",
+    "update-version": "bash scripts/update-version-number.sh $npm_package_version",
+    "clean": "bash scripts/clean.sh",
+    "clean:npm": "bash scripts/clean-npm.sh",
+    "clean:hc": "rm -rf .hc* && rm -f .kitsune2_bootstrap_srv & rm -rf moss-tool/.hc*",
+    "clean:all": "git clean -f -x -d -e .idea",
+    "smoke": "node scripts/smoke-test.mjs $HC_ADMIN_PORT $HC_APP_PORT"
   },
-
   "devDependencies": {
-    "@types/ws"               : "^8.5.3",
-    "bestzip"                 : "^2.2.0",
-    "concurrently"            : "^6.2.1",
-    "concurrently-repeat"     : "^0.0.1",
-    "cross-env"               : "^7.0.3",
-    "new-port-cli"            : "^1.0.0",
-    "tslib"                   : "^2.4.0",
-    "typescript"              : "~5.2.0"
+    "@ddd-qc/hc-prebuilt": "0.601.0",
+    "@holochain/hc-spin": "^0.700.1",
+    "@lit/localize-tools": "^0.6.3",
+    "@theweave/cli": "^0.16.0-rc.5",
+    "@types/ws": "^8.5.3",
+    "bestzip": "^2.2.0",
+    "concurrently": "^6.2.1",
+    "new-port-cli": "^1.0.0",
+    "tslib": "^2.8.0",
+    "typescript": "~5.9.0",
+    "vite": "7.1.10",
+    "vite-plugin-checker": "0.11.0",
+    "vite-plugin-dts": "4.5.4",
+    "vite-plugin-static-copy": "3.1.4"
   },
-  "dependencies"   : {
-    "@holochain/client" : "=0.16.7",
-    "@lightningrodlabs/we-applet": "0.15.0",
-    "@ddd-qc/cell-proxy": "=0.21.0",
-    "@ddd-qc/lit-happ"  : "=0.21.0",
-    "@ddd-qc/we-utils": "=0.22.1",
-    "@ddd-qc/profiles-dvm": "=0.22.5",
-    "@holochain-open-dev/core-types": "=0.7.0",
-    "@holochain-open-dev/profiles": "=0.17.3",
-    "@shoelace-style/shoelace": "2.11.2",
-    "@lit/context": "1.0.1",
-    "@lit/localize": "0.12.1",
-    "lit": "3.0.2"
+  "dependencies": {
+    "@holochain/client": "^0.21.1",
+    "@theweave/api": "^0.7.0-rc.1",
+    "@theweave/elements": "^0.7.0-rc.1",
+    "@ddd-qc/cell-proxy": "^0.36.0",
+    "@ddd-qc/lit-happ": "^0.36.0",
+    "@ddd-qc/we-utils": "^0.36.0",
+    "@ddd-qc/profiles-dvm": "^0.37.0",
+    "@holochain-open-dev/core-types": "^0.701.0",
+    "@holochain-open-dev/elements": "^0.701.0",
+    "@holochain-open-dev/profiles": "^0.702.0",
+    "@holochain-open-dev/utils": "^0.701.0",
+    "@msgpack/msgpack": "^3.1.1",
+    "@shoelace-style/shoelace": "2.20.1",
+    "@lit/context": "1.1.6",
+    "@lit/localize": "0.12.2",
+    "lit": "3.3.2"
   },
   "engines": {
     "npm": ">=7.0.0"
+  },
+  "overrides": {
+    "@holochain/client": "^0.21.1",
+    "@holochain-open-dev/core-types": "^0.701.0",
+    "@holochain-open-dev/elements": "^0.701.0",
+    "@holochain-open-dev/profiles": "^0.702.0",
+    "@holochain-open-dev/utils": "^0.701.0",
+    "@theweave/api": "^0.7.0-rc.1",
+    "@shoelace-style/shoelace": "2.20.1"
   }
 }

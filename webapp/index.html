@@ -2,18 +2,13 @@
 <html lang="en-GB">
   <head>
     <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons"/>
-    <!-- <link rel="stylesheet" href="/shoelace/dist/themes/light.css" /> -->
-    <link
-      rel="stylesheet"
-      media="(prefers-color-scheme:light)"
-      href="https://cdn.jsdelivr.net/npm/@shoelace-style/shoelace@2.4.0/dist/themes/light.css"
-    />
+    <link rel="stylesheet" href="../node_modules/@shoelace-style/shoelace/dist/themes/light.css" />
+    <title>Where</title>
   </head>
   <body style="margin:0px;">
     <where-app></where-app>
-    <script type="module">
-      import { WhereApp } from "./";
-    </script>
+    <script type="module" src="./src/index.ts"></script>
   </body>
 </html>

@@ -1,12 +1,12 @@
 {
   "name": "@where/elements",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "main": "./dist/index.js",
   "module": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
     "lint": "eslint --ext .ts .",
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "build:watch": "tsc --watch --preserveWatchOutput",
     "analyze": "lit-analyzer src --failFast",
     "localize:extract": "lit-localize extract",
@@ -15,11 +15,7 @@
   "type": "module",
   "devDependencies": {
     "@lit/localize-tools": "^0.6.3",
-    "@typescript-eslint/eslint-plugin": "^5.10.0",
-    "@typescript-eslint/parser": "^5.10.0",
-    "eslint-plugin-import": "^2.22.1",
-    "lit-analyzer": "^1.2.1",
-    "watch-cli": "^0.2.3"
+    "lit-analyzer": "^1.2.1"
   },
   "dependencies": {
     "@material/mwc-button": "^0.25.3",
@@ -54,7 +50,6 @@
     "@types/randomcolor": "^0.5.6",
     "cqfill": "^0.6.0",
     "emoji-picker-element": "1.21.0",
-    "eslint-plugin-html": "^7.1.0",
     "fast-xml-parser": "^3.20.0",
     "randomcolor": "^0.6.2"
   }

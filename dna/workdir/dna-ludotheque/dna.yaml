@@ -1,20 +1,19 @@
 ---
-manifest_version: "1"
+manifest_version: "0"
 name: dLudotheque
 integrity:
-  origin_time: 2022-09-25T13:55:49.200Z
   zomes:
     - name: playset_integrity
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm
+      path: ../../../target/wasm32-unknown-unknown/release/where_playset_integrity_zome.wasm
     - name: ludotheque_integrity
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_ludotheque_integrity_zome.wasm
+      path: ../../../target/wasm32-unknown-unknown/release/where_ludotheque_integrity_zome.wasm
 coordinator:
   zomes:
     - name: zPlayset
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_playset_zome.wasm
+      path: ../../../target/wasm32-unknown-unknown/release/where_playset_zome.wasm
       dependencies:
         - name: playset_integrity
     - name: zLudotheque
-      bundled: ../../../target/wasm32-unknown-unknown/release/where_ludotheque_zome.wasm
+      path: ../../../target/wasm32-unknown-unknown/release/where_ludotheque_zome.wasm
       dependencies:
         - name: ludotheque_integrity

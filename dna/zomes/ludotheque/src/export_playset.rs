@@ -1,5 +1,4 @@
 use hdk::prelude::*;
-use holo_hash::EntryHashB64;
 
 use zome_utils::*;
 use ludotheque_integrity::*;
@@ -15,29 +14,42 @@ pub struct ExportPlaysetInput {
 #[hdk_extern]
 fn export_playset(ExportPlaysetInput{playset_eh, destination_cell_id}: ExportPlaysetInput) -> ExternResult<Vec<EntryHashB64>> {
   /* Get Playset */
-  let playset: Playset = get_typed_from_eh(playset_eh.into())?;
+  let playset_eh: EntryHash = playset_eh.into();
+  let playset: Playset = match get_typed_from_eh(playset_eh.clone(), GetStrategy::Local) {
+    Ok(p) => p,
+    Err(_) => get_typed_from_eh(playset_eh, GetStrategy::Network)?,
+  };
   /* Export each template */
   for eh in playset.templates {
-    let entry = get_entry_from_eh(eh.into())?;
+    let entry = get_entry_local_or_network(eh.into())?;
     export_piece_inner("Template", entry, destination_cell_id.clone())?;
   }
   /* Export each svg marker */
   for eh in playset.svg_markers {
-    let entry = get_entry_from_eh(eh.into())?;
+    let entry = get_entry_local_or_network(eh.into())?;
     export_piece_inner("SvgMarker", entry, destination_cell_id.clone())?;
   }
   /* Export each svg marker */
   for eh in playset.emoji_groups {
-    let entry = get_entry_from_eh(eh.into())?;
+    let entry = get_entry_local_or_network(eh.into())?;
     export_piece_inner("EmojiGroup", entry, destination_cell_id.clone())?;
   }
   /* Export each space */
   for spaceEh in playset.spaces.clone() {
-    let space_entry = get_entry_from_eh(spaceEh.into())?;
+    let space_entry = get_entry_local_or_network(spaceEh.into())?;
     export_piece_inner("Space", space_entry, destination_cell_id.clone())?;
   }
   /* Done */
   Ok(playset.spaces)
+}
+
+
+/// Look locally first, then ask the network
+fn get_entry_local_or_network(eh: EntryHash) -> ExternResult<Entry> {
+  if let Ok(entry) = get_entry_from_eh(eh.clone(), GetStrategy::Local) {
+    return Ok(entry);
+  }
+  get_entry_from_eh(eh, GetStrategy::Network)
 }
 
 

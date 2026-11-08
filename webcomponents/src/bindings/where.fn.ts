@@ -15,14 +15,13 @@ export const whereFunctionNames: FunctionName[] = [
 	"hide_space",
 	"unhide_space",
 	"get_hidden_spaces",
-
 	"get_session",
 	"get_session_from_eh",
 	"get_space_sessions",
 	"create_sessions",
 	"create_next_session",
-
-	"notify_peers",];
+	"notify_peers",
+];
 
 
 /** Generate tuple array of function names with given zomeName */

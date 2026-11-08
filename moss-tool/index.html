@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+    <meta name="Description" content="Where Moss Tool" />
+    <link href="https://fonts.googleapis.com/css?family=Material+Icons&display=block" rel="stylesheet"/>
+    <link href="../node_modules/@shoelace-style/shoelace/dist/themes/light.css" rel="stylesheet"/>
+    <base href="." />
+    <title>Where Moss Tool</title>
+  </head>
+
+  <body style="margin: 0px;">
+    <script type="module">
+      console.log("Where Moss Tool index.html START");
+      window.IN_WE = true;
+    </script>
+    <script type="module">
+      import setupWhereTool from "./src/index.ts";
+      console.log("Imported setupWhereTool");
+      setupWhereTool().then((happElem) => {
+        document.body.append(happElem);
+        console.log("Where Moss Tool HappElement Added");
+      });
+    </script>
+  </body>
+</html>

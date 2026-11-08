@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "out-tsc",
+    "rootDir": "..",
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@where/app": ["../webapp/src/index.ts"],
+      "@where/elements": ["../webcomponents/src/index.ts"],
+      "ludotheque": ["../webapp.ludotheque/src/index.ts"]
+    }
+  },
+  "include": ["src/**/*.ts"]
+}

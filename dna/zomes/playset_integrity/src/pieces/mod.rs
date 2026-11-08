@@ -12,7 +12,6 @@ pub use space::*;
 //--------------------------------------------------------------------------------------------------
 
 use hdi::prelude::*;
-use holo_hash::EntryHashB64;
 
 #[derive(Clone, Serialize, Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]

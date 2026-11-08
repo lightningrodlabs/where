@@ -8,7 +8,11 @@ export * from './bindings/playset.types';
 export * from './bindings/where.types';
 export * from './bindings/playset.proxy';
 
+export * from './contexts';
+export * from './utils';
 export * from './viewModels/happDef';
+export * from './viewModels/playset.perspective';
+export * from './viewModels/where.perspective';
 export * from './viewModels/ludotheque.dvm';
 export * from './viewModels/where.dvm';
 

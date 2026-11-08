@@ -1,5 +1,7 @@
 [workspace]
+resolver = "2"
 members = [
+  "dna/zomes/zome_fn_input",
   "dna/zomes/where_integrity",
   "dna/zomes/where",
   "dna/zomes/playset_integrity",
@@ -11,15 +13,26 @@ members = [
   ]
 
 [workspace.package]
-version = "2.0.0"
-rust-version = "1.65.0"
+version = "3.0.0"
+rust-version = "1.93.0"
 edition = "2021"
 
+# Exact pins: a rebuilt zome is a new DNA hash, so the 0.7 DNA line must not float.
 [workspace.dependencies]
-serde = { version = "=1.0.163", default-features = false }
-hdi = { version = "0.3.6", default-features = false }
-hdk = { version = "0.2.6", default-features = false }
-zome_utils = { git = "https://github.com/ddd-mtl/zome-utils", branch = "hdk-2.6" }
+serde = { version = "=1.0.228", default-features = false }
+holochain_serialized_bytes = "=0.0.57"
+hdi = { version = "=0.8.1", default-features = false, features = ["trace"] }
+hdk = { version = "=0.7.1", default-features = false }
+
+# zdk 0.7 line, rev-pinned (same rev vines pins).
+zome_utils = { git = "https://github.com/ddd-mtl/zdk", rev = "90f79989400e2930587b196ef56d488bf9ac808c" }
+zome_core = { git = "https://github.com/ddd-mtl/zdk", rev = "90f79989400e2930587b196ef56d488bf9ac808c" }
+
+hc_zome_profiles_integrity = { git = "https://github.com/holochain-open-dev/profiles", tag = "v0.702.0" }
+# zdk's alternate profiles coordinator: the one @ddd-qc/profiles-dvm (ProfilesAltZvm) talks to.
+hc_zome_profiles_coordinator = { git = "https://github.com/ddd-mtl/zdk", rev = "90f79989400e2930587b196ef56d488bf9ac808c", package = "profiles_alt_coordinator" }
+
+zome_fn_input = { path = "dna/zomes/zome_fn_input" }
 
 
 [profile.dev]

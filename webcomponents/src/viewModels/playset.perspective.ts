@@ -8,7 +8,7 @@ import {
 } from "../bindings/playset.types";
 import {mapReplacer, mapReviver} from "../utils";
 import {EntryHashB64} from "@holochain/client";
-import {Dictionary} from "@ddd-qc/cell-proxy";
+import {MyDictionary as Dictionary} from "@ddd-qc/cell-proxy";
 
 export type Inventory = GetInventoryOutput;
 

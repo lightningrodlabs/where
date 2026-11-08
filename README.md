@@ -15,39 +15,45 @@ For more details read the [design documents](spec/DESIGN.md).
 
 ## Dev testing
 
+Where runs on **Holochain 0.7.1** and is built as a **Moss Tool** (`moss-tool/`).
+See [UPGRADE-0.7.md](UPGRADE-0.7.md) for what changed in the 0.7 upgrade.
+
 ### Setup
-1. Install the required tools
-  1. Rust wasm target: `npm run install:rust`
-  1. [`holochain`](https://github.com/holochain/holochain): `cargo install holochain` (or use nix-shell)
-  4. `npm run install:hc`
-  3. `npm run install:zits`
-4. `npm install`
-5. `npm run install:submodules`
-5. `npm run install:hash-zome`
-5. `npm run build:localize`
-
-### Web
-`npm run devtest`
-
-### Electron
-`npm run devtest:electron`
-
-
-## Network
-
-To bootstrap a network of N agents:
+Enter the nix dev shell first (holonix `main-0.7`: `holochain`, `hc`, `lair-keystore`,
+`kitsune2-bootstrap-srv`, Rust with the wasm target, node 22), then install:
 
 ``` bash
-npm run network 3
+nix develop
+npm install
+npm run build:localize
 ```
 
-Replace the "3" for the number of agents you want to bootstrap.
+Run every other command from inside that shell.
+
+Without nix: install Rust + the wasm target (`npm run install:rust`), fetch the 0.7.1
+binaries into `bin/` with `npm run install:hc`, put `bin/` and a `lair-keystore` 0.7.x on
+your PATH. `npm run install:zits` is only needed to regenerate the TS bindings.
+
+### Build
+- `npm run build:happ` builds the zomes and packs `artifacts/where.happ` (and the ludotheque happ)
+- `npm run build:bindings` regenerates the zome TS bindings with zits
+- `npm run build:webapp` builds the standalone webapp
+
+### Run in Moss (Tool dev mode)
+`npm run start:moss` builds the happ and launches two Moss agents with the Tool served
+by a live vite server (`weave.dev.config.ts`). `npm run launch:moss` skips the happ build,
+and the `-1` variants (`start:moss-1`, `launch:moss-1`) run a single agent.
+
+### Run standalone in a browser
+`npm run devtest` builds the happ and starts a sandbox conductor plus the webapp dev server.
+`npm run smoke` (with `HC_ADMIN_PORT`/`HC_APP_PORT` set to a running sandbox) exercises the zome API.
+
 ## Package
 
-To package the web-happ:
+To package the Moss Tool webhapp:
 
 ``` bash
-npm run package:webapp
+npm run package
 ```
 
 All output files (`*.webhapp`, `*.dna`, `*.happ`, etc.) will be in the `artifacts` folder.
@@ -58,15 +64,12 @@ All output files (`*.webhapp`, `*.dna`, `*.happ`, etc.) will be in the `artifact
 | Directory                                  | Description                                                                                                                 |
 |:-------------------------------------------| :-------------------------------------------------------------------------------------------------------------------------- |
 | `/dna/`                                    | DNA source code
-| `/electron/`                               | Electron app directory
-| &nbsp;&nbsp;&nbsp;&nbsp;`bin/`             | All the binaries we are dependent on and must ship with the app
-| &nbsp;&nbsp;&nbsp;&nbsp;`src/`             | The electron app source code
-| &nbsp;&nbsp;&nbsp;&nbsp;`web/`             | Final artifacts for the electron app (includes output from `webapp`)
+| `/electron/`                               | Electron app directory (not upgraded to Holochain 0.7, not part of the npm workspaces)
 | `/webapp/`                                 | The Where webapp source code
 | &nbsp;&nbsp;&nbsp;&nbsp;`webhapp.workdir/` | webhapp work directory
 | `/webapp.ludotheque/`                      | The Ludotheque standalone webapp source code
 | `/webcomponents/`                          | The web components source code
-| `/we-applet/`                              | The applet for We integration
+| `/moss-tool/`                              | The Moss Tool (Weave) integration
 
 ## License
 [![License: CAL 1.0](https://img.shields.io/badge/License-CAL%201.0-blue.svg)](https://github.com/holochain/cryptographic-autonomy-license)

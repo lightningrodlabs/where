@@ -1,7 +1,0 @@
----
-manifest_version: "1"
-name: Where Official We-applet
-ui:
-  bundled: "../../artifacts/where-we_applet-ui.zip"
-happ_manifest:
-  bundled: "../../artifacts/where.happ"

@@ -11,7 +11,8 @@ export const ludothequeFunctionNames: FunctionName[] = [
 	"export_playset",
 	"create_playset",
 	"get_playset",
-	"get_all_playsets",];
+	"get_all_playsets",
+];
 
 
 /** Generate tuple array of function names with given zomeName */

@@ -1,0 +1,7 @@
+---
+manifest_version: "0"
+name: Where Moss Tool
+ui:
+  path: "../../artifacts/where-moss-tool-ui.zip"
+happ:
+  path: "../../artifacts/where.happ"
